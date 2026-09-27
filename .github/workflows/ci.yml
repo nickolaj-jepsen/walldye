@@ -1,0 +1,193 @@
+name: CI
+
+# Private repo on the Free plan: minutes are metered and every job is rounded up to a whole
+# minute, so the pipeline is three jobs, PRs test on Chromium only, and doc-only changes skip CI.
+on:
+  push:
+    branches: [main]
+    paths-ignore: &docs
+      - 'docs/**'
+      - '**.md'
+      - '.claude/**'
+      - 'infra/**'
+      - 'LICENSES/**'
+      - '.lycheeignore'
+  pull_request:
+    paths-ignore: *docs
+  workflow_dispatch:
+
+permissions: {}
+
+# A newer run supersedes an older one on the same PR or branch, including main.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # History for the changed-meta.yaml diff; blobs stay lazy so this stays cheap.
+          fetch-depth: 0
+          filter: blob:none
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check-artifacts
+      - run: pnpm test
+      - run: pnpm astro build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: List changed meta.yaml files
+        id: changed
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into.
+          # A push whose "before" is gone (new branch, rewritten history) checks every file.
+          if [ "$EVENT" = pull_request ]; then
+            base=HEAD^1
+          elif git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            base=$BEFORE
+          else
+            base=
+          fi
+          list="$RUNNER_TEMP/meta-files.txt"
+          if [ -n "$base" ]; then
+            git diff --name-only --no-renames --diff-filter=d "$base" HEAD -- 'wallpapers/*/meta.yaml' > "$list"
+          else
+            git ls-files -- 'wallpapers/*/meta.yaml' > "$list"
+          fi
+          cat "$list"
+          echo "count=$(wc -l < "$list")" >> "$GITHUB_OUTPUT"
+      - if: steps.changed.outputs.count != '0'
+        uses: actions/cache@v6
+        with:
+          path: .lycheecache
+          key: lychee-${{ github.sha }}
+          restore-keys: lychee-
+      # lychee-action evals args, so file names go through --files-from rather than the command line.
+      # Broken source links fail PRs; on main they are reported without blocking the deploy.
+      - if: steps.changed.outputs.count != '0'
+        uses: lycheeverse/lychee-action@v2
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        with:
+          args: >-
+            --no-progress --max-retries 3 --accept 200..=299,403,429
+            --cache --max-cache-age 7d
+            --files-from ${{ runner.temp }}/meta-files.txt
+          failIfEmpty: false
+
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      ENGINES: ${{ github.event_name == 'pull_request' && 'chromium' || 'chromium firefox webkit' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ env.ENGINES }}
+      # Browsers come from the cache when it hits; --with-deps still installs the system libraries.
+      - run: |
+          read -ra engines <<< "$ENGINES"
+          pnpm exec playwright install --with-deps "${engines[@]}"
+      # Test the dist that deploy will upload instead of building a second one.
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      - run: |
+          args=()
+          for engine in $ENGINES; do args+=("--project=$engine"); done
+          pnpm exec playwright test "${args[@]}"
+        env:
+          E2E_SKIP_BUILD: '1'
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3
+
+  deploy:
+    needs: [build, e2e]
+    if: >-
+      github.event_name == 'push'
+      || (github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only for the preview comment; the job never checks out code.
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      # No checkout here, so wrangler can't read git and gets the commit explicitly.
+      - id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy dist --project-name=walldye
+            --branch=${{ github.head_ref || github.ref_name }}
+            --commit-hash=${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Post or update the preview link
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        run: |
+          # Fallback when wrangler reports no alias, named the way Pages names them.
+          alias=$(printf '%s' "$HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | cut -c1-28 | sed 's/-*$//')
+          url=${ALIAS_URL:-https://$alias.walldye.pages.dev}
+          marker='<!-- walldye-preview -->'
+          body=$(printf '%s\nPreview of %s: %s' "$marker" "${HEAD_SHA:0:7}" "$url")
+
+          ids=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id")
+          id=${ids%%$'\n'*}
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
+          fi
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"

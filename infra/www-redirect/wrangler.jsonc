@@ -1,0 +1,10 @@
+// Deployed by hand, not by CI: `, wrangler deploy` from this directory.
+{
+  "name": "walldye-www-redirect",
+  "main": "index.js",
+  "compatibility_date": "2026-01-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  // custom_domain makes Cloudflare create the www DNS record and certificate.
+  "routes": [{ "pattern": "www.walldye.com", "custom_domain": true }]
+}

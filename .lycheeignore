@@ -1,0 +1,7 @@
+# URLs lychee skips, one regex per line. Lychee reads this file from the
+# directory it runs in, which is the repo root in CI.
+#
+# Nothing is skipped yet. CI already accepts 403 and 429, the usual answers
+# from sites that turn away bots, so a failure normally means a broken link.
+# Add a pattern only for a URL that opens in a browser but keeps failing in
+# CI, with a comment naming the wallpaper that cites it.
