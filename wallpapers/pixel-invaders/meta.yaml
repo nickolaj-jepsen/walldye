@@ -1,0 +1,20 @@
+title: Pixel invaders
+description: One crab peels away from five faint rows of pixel-art invaders and dives along a dotted trail.
+notes: |
+  Aliens that break formation and dive at the player came a year after *Space Invaders*, in Namco's *Galaxian*.
+technique: [pixel]
+subject: [games]
+lineage: [arcade-games]
+sources:
+  - kind: inspiration
+    title: Space Invaders
+    author: Taito
+    year: 1978
+    url: https://en.wikipedia.org/wiki/Space_Invaders
+  - kind: reference
+    title: Galaxian
+    author: Namco
+    year: 1979
+    url: https://en.wikipedia.org/wiki/Galaxian
+added: 2026-09-27
+model: claude-opus-5-5

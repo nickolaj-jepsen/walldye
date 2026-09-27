@@ -1,0 +1,13 @@
+title: Pixel planet
+description: A ringed planet in square pixels, backlit to a thin crescent. Bands and the ring's shadow cross its night side.
+notes: The planet is shaded in five flat steps with no dithering, and the ring tilts at an exact one-in-four slope, so its long edges step in even runs.
+technique: [pixel]
+subject: [space]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: Pixel Planet Generator
+    author: Deep-Fold
+    url: https://deep-fold.itch.io/pixel-planet-generator
+added: 2026-09-27
+model: claude-opus-5-5

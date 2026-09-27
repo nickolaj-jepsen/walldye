@@ -1,0 +1,18 @@
+title: Attribute clash
+description: A night road in ordered dither on a ZX Spectrum screen. The car's tail lights recolour every 8x8 attribute cell they touch.
+notes: |
+  The ZX Spectrum stored colour once per 8x8 block of pixels, one ink and one paper for the whole block. Anything lit inside a block recolours every ink pixel in it, and that spill is attribute clash.
+technique: [pixel, dither]
+subject: [computing]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    topic: ZX Spectrum graphic modes
+    author: Sinclair Research
+    year: 1982
+    url: https://en.wikipedia.org/wiki/ZX_Spectrum_graphic_modes
+  - kind: reference
+    topic: Attribute clash
+    url: https://en.wikipedia.org/wiki/Attribute_clash
+added: 2026-09-27
+model: claude-opus-5-5

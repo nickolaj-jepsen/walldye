@@ -1,0 +1,16 @@
+title: Desk at night
+description: An isometric pixel-art room at night. Only the monitor is on, its light falling across the desk in two dithered steps.
+notes: |
+  Every edge follows the stair step common in isometric pixel art, two cells across for each cell down, so diagonals stay even. The pool of light is worked out on the plane of the desk top, which keeps it flat in the same projection.
+technique: [pixel]
+subject: [computing, architecture]
+lineage: []
+sources:
+  - kind: inspiration
+    author: eBoy
+    url: https://en.wikipedia.org/wiki/EBoy
+  - kind: reference
+    topic: Isometric video game graphics
+    url: https://en.wikipedia.org/wiki/Isometric_video_game_graphics
+added: 2026-09-27
+model: claude-opus-5-5

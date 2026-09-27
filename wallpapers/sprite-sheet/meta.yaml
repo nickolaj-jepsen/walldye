@@ -1,0 +1,15 @@
+title: Sprite sheet
+description: A PICO-8 sprite editor with a campfire enlarged on its grid, the only lit sprite on a half-filled sheet.
+notes: |
+  Past the hand-drawn tiles and items, the gaps fill with random mirrored creatures that thin out towards the lower right, like a sheet still being worked on. The eight squares in the bar under it are the sprite's flags, as in PICO-8's own editor.
+technique: [pixel, instrument]
+subject: [games, computing]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: PICO-8 sprite editor
+    author: Lexaloffle
+    year: 2015
+    url: https://www.lexaloffle.com/dl/docs/pico-8_manual.html
+added: 2026-09-27
+model: claude-opus-5-5

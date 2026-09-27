@@ -1,0 +1,18 @@
+title: Pixel bonsai
+description: A pixel-art bonsai in a shallow tray. One pad's tip has turned for autumn and is dropping a leaf.
+notes: |
+  The tree is in the informal upright style, moyogi: the trunk and branches bend, but the apex stands straight above the point where the trunk enters the soil. Each pad is a row of overlapping bumps cut flat underneath, with a scalloped rim along the top.
+technique: [pixel]
+subject: [flora-fauna]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: cbonsai
+    author: John Allbritten
+    year: 2020
+    url: https://gitlab.com/jallbrit/cbonsai
+  - kind: reference
+    topic: Bonsai
+    url: https://en.wikipedia.org/wiki/Bonsai
+added: 2026-09-27
+model: claude-opus-5-5
