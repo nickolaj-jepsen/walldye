@@ -1,0 +1,26 @@
+---
+/**
+ * Site header: brand, nav, the shared-theme line and the theme button that opens #picker.
+ * Rendered for fireproof; the client rewrites the name, label and shared line.
+ */
+import Chips from './Chips.astro';
+import { DEFAULT_PRESET, presetLabel } from './presets';
+
+interface Props {
+  /** Nav entry to mark as the current page. */
+  current?: 'index' | 'about';
+}
+const { current } = Astro.props;
+const here = (page: Props['current']) => (page === current ? 'page' : undefined);
+---
+
+<header class="masthead">
+  <a class="brand" href="/">Walldye</a>
+  <nav class="nav" aria-label="Site"><a class="sc" href="/" aria-current={here('index')}>Index</a><a class="sc" href="/about" aria-current={here('about')}>About</a></nav>
+  <div class="tools">
+    <p class="shared" id="shared" hidden><span class="lead">You’re looking at a shared theme.</span><button type="button" class="textbtn" data-action="keep-shared">Keep it</button><span class="sep">·</span><button type="button" class="textbtn" data-action="drop-shared">Back to yours</button></p>
+    <button class="seeds" id="theme-button" type="button" popovertarget="picker" aria-expanded="false" aria-label={presetLabel(DEFAULT_PRESET)}>
+      <span class="name mono" data-theme-name>{DEFAULT_PRESET.name}</span><Chips colours={['var(--seed-bg)', 'var(--seed-fg)', 'var(--seed-accent)']} />
+    </button>
+  </div>
+</header>

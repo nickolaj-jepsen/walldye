@@ -137,12 +137,63 @@ describe('theme tokens (e)', () => {
   });
 });
 
+/** Custom properties of the first `selector {` block in `css`, comments removed. */
+function block(css: string, selector: string): Record<string, string> {
+  const start = css.indexOf(`${selector} {`);
+  expect(start, selector).toBeGreaterThanOrEqual(0);
+  const body = css.slice(start, css.indexOf('}', start));
+  return Object.fromEntries([...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
+}
+
+function resolveVars(props: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const value = (v: string): string => {
+    const ref = /^var\((--[\w-]+)\)$/.exec(v);
+    return ref ? value(props[ref[1]]) : v;
+  };
+  for (const [k, v] of Object.entries(props)) out[k] = value(v);
+  return out;
+}
+
 describe('token order', () => {
   it('TOKENS follows walldye._theme.TOKENS', () => {
     const py = readFileSync(`${ROOT}walldye/_theme.py`, 'utf8');
     const tuple = /^TOKENS = \(([^)]*)\)/m.exec(py);
     expect(tuple).not.toBeNull();
     expect([...tuple![1].matchAll(/"(\w+)"/g)].map((m) => m[1])).toEqual([...TOKENS]);
+  });
+});
+
+describe('site CSS', () => {
+  const css = readFileSync(`${ROOT}src/styles/site.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const root = block(css, ':root');
+  const light = { ...root, ...block(css, ':root:not([data-regime])'), ...block(css, '[data-regime="light"]') };
+
+  it('fireproof reproduces the pinned :root block of site.css', () => {
+    const want = resolveVars(root);
+    const got = cssVars(PRESETS.fireproof);
+    expect(Object.keys(got).sort()).toEqual(Object.keys(want).sort());
+    expect(got).toEqual(want);
+  });
+
+  it('flexoki-light reproduces the light block of site.css', () => {
+    expect(cssVars(PRESETS['flexoki-light'])).toEqual(resolveVars(light));
+  });
+
+  it('matches the contrast figures in docs/site.md', () => {
+    const ratio = (a: string, b: string) => contrast(a, b).toFixed(2);
+    const f = cssVars(PRESETS.fireproof);
+    expect(ratio(f['--text'], f['--bg'])).toBe('12.03');
+    expect(ratio(f['--link'], f['--bg'])).toBe('4.77');
+    expect(ratio(f['--control'], f['--bg'])).toBe('3.03');
+    expect(ratio(FIREPROOF.accent, f['--bg-alt'])).toBe('4.13');
+    expect(ratio(f['--shiki-token-keyword'], f['--bg-alt'])).toBe('4.53');
+    expect(ratio(f['--shiki-token-string'], f['--bg-alt'])).toBe('5.70');
+    expect(ratio(f['--shiki-token-comment'], f['--bg-alt'])).toBe('7.26');
+    const l = cssVars(PRESETS['flexoki-light']);
+    expect(ratio(l['--text-2'], l['--bg'])).toBe('10.90');
+    expect(ratio(l['--control'], l['--bg'])).toBe('3.54');
+    expect(ratio(l['--shiki-token-keyword'], l['--bg-alt'])).toBe('4.52');
   });
 });
 

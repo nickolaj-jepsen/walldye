@@ -1,0 +1,40 @@
+---
+/** The theme popover opened by the header's theme button; behaviour lives in the client. */
+import Chips from './Chips.astro';
+import { DEFAULT_PRESET, PRESETS } from './presets';
+
+const fields = [
+  { seed: 'bg', label: 'Background', value: DEFAULT_PRESET.bg },
+  { seed: 'fg', label: 'Foreground', value: DEFAULT_PRESET.fg },
+  { seed: 'accent', label: 'Accent', value: DEFAULT_PRESET.accent },
+] as const;
+---
+
+<div id="picker" class="picker" popover role="dialog" aria-labelledby="picker-h">
+  <h2 id="picker-h" class="vh">Theme</h2>
+  <div class="group">
+    <h3 class="sc">Themes</h3>
+    <ul class="presets">
+      {
+        PRESETS.map((p) => (
+          <li>
+            <button type="button" data-preset={p.name} aria-pressed={p === DEFAULT_PRESET ? 'true' : 'false'}><span class="name">{p.name}</span><span class="leader" /><Chips colours={[p.bg, p.fg, p.accent]} /></button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div class="group hair-t">
+    <h3 class="sc">Colours</h3>
+    {
+      fields.map((f) => (
+        <label class="hexfield"><span class="k">{f.label}</span><span class="chip" style={`--c:var(--seed-${f.seed})`} /><input id={`seed-${f.seed}`} data-seed={f.seed} value={f.value} spellcheck="false" autocomplete="off" autocapitalize="characters" /></label>
+      ))
+    }
+    <div class="msgs" aria-live="polite">
+      <p id="seed-msg" class="msg err" hidden>Use a hex colour, like <span class="mono">#CF6A4C</span>.</p>
+      <p id="faint-msg" class="msg warn" hidden>The background and foreground are too close, so wallpapers will be hard to see.</p>
+    </div>
+  </div>
+  <p class="actions"><button type="button" class="textbtn" data-action="copy-link">Copy link</button></p>
+</div>

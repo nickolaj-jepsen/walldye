@@ -1,0 +1,17 @@
+---
+/**
+ * The caption's attribution from captionParts. Renders nothing for pieces whose
+ * sources are only references or data.
+ */
+import { captionParts, type Piece } from '../lib/content';
+
+interface Props {
+  piece: Piece;
+  /** Add a footnote reference after each source (the detail page's label). */
+  refs?: boolean;
+}
+const { piece, refs = false } = Astro.props;
+const caption = captionParts(piece);
+---
+
+{caption?.lead}{caption?.parts.map((it) => <Fragment>{it.before}{it.title && <i lang={it.lang}>{it.title}</i>}{it.topic && <span lang={it.lang}>{it.topic}</span>}{it.after}{refs && <sup><a href={`#fn${it.n}`} id={`fnref${it.n}`} aria-label={`Source ${it.n}`}>{it.n}</a></sup>}</Fragment>)}

@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+
+const CC0 = 'https://creativecommons.org/publicdomain/zero/1.0/';
+const REPO = 'https://github.com/nickolaj-jepsen/walldye';
+---
+
+<Base title="About" description="How the Walldye wallpapers are made and recoloured, and how to download them." nav="about" mainClass="about">
+  <h1>About</h1>
+  <div class="prose">
+    <p>Walldye is my collection of wallpapers drawn with code. Each one is drawn in three colours (background, foreground and accent), so when you pick a theme at the top of the page, the wallpapers and the site around them are redrawn in your colours.</p>
+    <p>Claude writes the scripts that draw the wallpapers, and I look over each one before it’s published. Some are based on older works, which are credited on their pages.</p>
+    <p>You can download any of them as <abbr>SVG</abbr>, <abbr>PNG</abbr>, <abbr>WebP</abbr> or <abbr>JPEG</abbr>, sized for your screen. They are <a href={CC0}>free to use</a> unless their page says otherwise, and the code is <a href={REPO}>on GitHub</a>.</p>
+  </div>
+</Base>
