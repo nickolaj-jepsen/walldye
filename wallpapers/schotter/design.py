@@ -13,7 +13,9 @@ STRAY_DIR, STRAY_GAPS, STRAY_ROT = (0.55, 0.835), (58, 72, 90), (20, 28, 35)
 
 def square(cx, cy, a, side=SIDE):
     h, c, s = side / 2, math.cos(a), math.sin(a)
-    return [(cx + x * c - y * s, cy + x * s + y * c) for x, y in ((-h, -h), (h, -h), (h, h), (-h, h))]
+    return [
+        (cx + x * c - y * s, cy + x * s + y * c) for x, y in ((-h, -h), (h, -h), (h, h), (-h, h))
+    ]
 
 
 def draw(s):
@@ -34,10 +36,21 @@ def draw(s):
             # resample jitter that would stack a square on a neighbour, or crowd the three strays
             while True:
                 cx, cy = gx + r.gauss(0, t * 18), gy + r.gauss(0, t * 18)
-                if all(math.hypot(cx - px, cy - py) > (24 if k >= 3 else 44) for k, (px, py) in enumerate(placed)):
+                if all(
+                    math.hypot(cx - px, cy - py) > (24 if k >= 3 else 44)
+                    for k, (px, py) in enumerate(placed)
+                ):
                     break
             placed.append((cx, cy))
-            (faded if t > 0.6 else crisp).poly(square(cx, cy, math.radians(r.uniform(-1, 1) * t * 50)), closed=True)
+            (faded if t > 0.6 else crisp).poly(
+                square(cx, cy, math.radians(r.uniform(-1, 1) * t * 50)), closed=True
+            )
     s.path(crisp, fill="none", stroke=UI_ALT, stroke_width=2, stroke_linejoin="round")
     s.path(faded, fill="none", stroke=UI, stroke_width=2, stroke_linejoin="round")
-    s.path(P().poly(square(AX, AY, math.radians(40)), closed=True), fill=ACCENT_6, stroke=ACCENT, stroke_width=3, stroke_linejoin="round")
+    s.path(
+        P().poly(square(AX, AY, math.radians(40)), closed=True),
+        fill=ACCENT_6,
+        stroke=ACCENT,
+        stroke_width=3,
+        stroke_linejoin="round",
+    )

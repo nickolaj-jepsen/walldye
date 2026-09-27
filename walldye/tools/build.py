@@ -30,7 +30,13 @@ def version() -> str:
 
 def dump_slots(slots: dict) -> str:
     """slots.json text: one top-level key per line, each value compact JSON."""
-    return "{\n" + ",\n".join(f"{json.dumps(k)}: {json.dumps(v, separators=(',', ':'))}" for k, v in slots.items()) + "\n}\n"
+    return (
+        "{\n"
+        + ",\n".join(
+            f"{json.dumps(k)}: {json.dumps(v, separators=(',', ':'))}" for k, v in slots.items()
+        )
+        + "\n}\n"
+    )
 
 
 def load_slots(slug: str) -> dict | None:
@@ -55,7 +61,10 @@ def _current(slug: str, slots: dict, design_sha: str) -> bool:
     return (
         slots.get("design_sha") == design_sha
         and slots.get("checked") == version()
-        and all((d / e["file"]).exists() and hashing.sha256((d / e["file"]).read_bytes()) == e["sha256"] for e in entries)
+        and all(
+            (d / e["file"]).exists() and hashing.sha256((d / e["file"]).read_bytes()) == e["sha256"]
+            for e in entries
+        )
     )
 
 
@@ -77,7 +86,13 @@ def _write(report: check.Report, design_sha: str) -> None:
     }
     for key, e in report.entries.items():
         sha = hashing.sha256(report.templates[e["file"]].encode())
-        slots[key] = {"file": e["file"], "sha256": sha, "n": e["n"], "coefs": e["coefs"], "occ": e["occ"]}
+        slots[key] = {
+            "file": e["file"],
+            "sha256": sha,
+            "n": e["n"],
+            "coefs": e["coefs"],
+            "occ": e["occ"],
+        }
     (d / "slots.json").write_text(dump_slots(slots))
 
 
@@ -105,7 +120,9 @@ def _build(slug: str, lib_sha: str, stamped: str | None, force: bool) -> bool:
             print(f"{slug}: up to date")
             return True
         try:
-            unchanged = check.probe_hashes(lambda t: check.render(slug, t, "16:9"), check.regimes(meta)) == old.get("probes")
+            unchanged = check.probe_hashes(
+                lambda t: check.render(slug, t, "16:9"), check.regimes(meta)
+            ) == old.get("probes")
         except check.DesignError:
             unchanged = False  # check_slug below reports it
         if unchanged:
@@ -144,7 +161,9 @@ def verify_templates(slugs: list[str]) -> int:
                 continue
             committed = f.read_bytes().decode()
             if fresh != committed:
-                problems.append(f"{f.name} differs from a fresh render under {theme}, {fit.first_diff(committed, fresh)}")
+                problems.append(
+                    f"{f.name} differs from a fresh render under {theme}, {fit.first_diff(committed, fresh)}"
+                )
         print(f"{slug}: " + ("ok" if not problems else "DRIFT"))
         for p in problems:
             print(f"  {p}")
@@ -161,10 +180,17 @@ def write_index() -> None:
     for slug in common.slugs():
         try:
             m = common.load_meta(slug)
-            index[slug] = {"aspects": check.aspects(slug), "draft": common.is_draft(m), "license": lint.license_of(m), "title": m.get("title")}
+            index[slug] = {
+                "aspects": check.aspects(slug),
+                "draft": common.is_draft(m),
+                "license": lint.license_of(m),
+                "title": m.get("title"),
+            }
         except (OSError, ValueError, SyntaxError) as e:
             print(f"index.json: left out {slug}: {e}", file=sys.stderr)
-    (common.WALLPAPERS / "index.json").write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n")
+    (common.WALLPAPERS / "index.json").write_text(
+        json.dumps(index, indent=2, ensure_ascii=False) + "\n"
+    )
 
 
 def run(slugs: list[str], all: bool = False, verify: bool = False, force: bool = False) -> int:
@@ -187,7 +213,10 @@ def run(slugs: list[str], all: bool = False, verify: bool = False, force: bool =
         return 2
     for regime, basis in _basis.BASIS.items():
         if (cond := _basis.condition_number(basis)) > _basis.MAX_COND:
-            print(f"the {regime} basis has condition number {cond:.1f}, over {_basis.MAX_COND}: fits would be unstable", file=sys.stderr)
+            print(
+                f"the {regime} basis has condition number {cond:.1f}, over {_basis.MAX_COND}: fits would be unstable",
+                file=sys.stderr,
+            )
             return 1
     lib_sha, stamped = hashing.render_lib_sha(), hashing.stamped_render_lib_sha()
     failed = [slug for slug in targets if not _build(slug, lib_sha, stamped, force)]
@@ -197,7 +226,9 @@ def run(slugs: list[str], all: bool = False, verify: bool = False, force: bool =
             hashing.render_lib_stamp().write_text(lib_sha + "\n")
             print(f"stamped {hashing.render_lib_stamp().name}")
         else:
-            print("render inputs changed since the last stamp: run `walldye build --all` to restamp")
+            print(
+                "render inputs changed since the last stamp: run `walldye build --all` to restamp"
+            )
     return 1 if failed else 0
 
 
@@ -228,5 +259,8 @@ def recolour(template_svg: str, slots_entry: dict, seeds: dict[str, str]) -> str
     if s == _FIREPROOF or len(spans) != slots_entry["n"]:
         return template_svg
     bg, fg, accent = (hex_to_rgb(s[k]) for k in SEEDS)
-    rows = [rgb_to_hex(*(a * bg[i] + b * fg[i] + c * accent[i] + d[i] for i in range(3))) for a, b, c, *d in slots_entry["coefs"]]
+    rows = [
+        rgb_to_hex(*(a * bg[i] + b * fg[i] + c * accent[i] + d[i] for i in range(3)))
+        for a, b, c, *d in slots_entry["coefs"]
+    ]
     return substitute(template_svg, [rows[o] for o in slots_entry["occ"]])

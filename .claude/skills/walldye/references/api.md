@@ -13,9 +13,9 @@ import math
 
 from walldye import ACCENT, BG_DEEP, UI, H, P, W, rng
 
-ASPECTS = ["any"]   # omit -> 16:9 only; or e.g. ["16:9", "21:9"]
-BG = BG_DEEP        # optional: the canvas is filled with this instead of the theme bg
-U = min(W, H)       # always 1080: size in U, place in fractions of W/H
+ASPECTS = ["any"]  # omit -> 16:9 only; or e.g. ["16:9", "21:9"]
+BG = BG_DEEP  # optional: the canvas is filled with this instead of the theme bg
+U = min(W, H)  # always 1080: size in U, place in fractions of W/H
 
 
 def draw(s):
@@ -109,9 +109,9 @@ theme is in the light regime: bg strictly brighter than fg by WCAG luminance, wi
 counting as dark. Build, the site and derive_theme use the same test.
 
 ```python
-STRUCT = MUTED if is_light() else UI        # a per-regime token choice: one template serves both
+STRUCT = MUTED if is_light() else UI  # a per-regime token choice: one template serves both
 if is_light():
-    tone = 0.8 * (MAX_TONE - tone)          # a geometry branch: build writes a .light.svg per aspect
+    tone = 0.8 * (MAX_TONE - tone)  # a geometry branch: build writes a .light.svg per aspect
 ```
 
 Colour helpers (all take and return `#RRGGBB`):
@@ -184,11 +184,11 @@ stripes = P()
 for y in range(0, H, 14):
     stripes.M(0, y).H(W)
 with s.g(clip_path=s.clip(f'<circle cx="{cx}" cy="{cy}" r="300"/>')):
-    s.path(stripes, fill="none", stroke=UI, stroke_width=1)    # stripes only inside the disc
+    s.path(stripes, fill="none", stroke=UI, stroke_width=1)  # stripes only inside the disc
 hatch = s.pattern(10, 10, f'<path d="M0 10L10 0" stroke="{UI_ALT}" stroke-width="1"/>')
 s.rect(0, 0, W, H, fill=hatch, mask=s.mask(f'<circle cx="{cx}" cy="{cy}" r="130" fill="#fff"/>'))
 fade = s.linear_gradient([(0, BG, 0), (1, BG)], 0, H * 0.6, 0, H, units="userSpaceOnUse")
-s.rect(0, H * 0.6, W, H * 0.4, fill=fade)                     # fade the bottom into bg
+s.rect(0, H * 0.6, W, H * 0.4, fill=fade)  # fade the bottom into bg
 ```
 
 ## Paths
@@ -209,10 +209,13 @@ number of subpaths, so use one per colour/stroke style.
 ```python
 d = P()
 for y in range(100, 1000, 12):
-    d.M(0, y).H(W)                                   # 75 lines, one element
+    d.M(0, y).H(W)  # 75 lines, one element
 s.path(d, fill="none", stroke=BG_ALT, stroke_width=1)
-loop = [polar(960, 540, 200 + 20 * math.sin(5 * a), a) for a in np.linspace(0, 2 * math.pi, 40, endpoint=False)]
-s.path(P().smooth(loop, closed=True), fill=UI)       # closed: no repeated end point
+loop = [
+    polar(960, 540, 200 + 20 * math.sin(5 * a), a)
+    for a in np.linspace(0, 2 * math.pi, 40, endpoint=False)
+]
+s.path(P().smooth(loop, closed=True), fill=UI)  # closed: no repeated end point
 s.path(P().arc_band(960, 540, 300, 312, -math.pi / 2, 0.4), fill=ACCENT)
 ```
 
@@ -227,8 +230,14 @@ def squircle(cx, cy, a, b, n=4.0, k=96):
     pts = []
     for t in np.linspace(0, 2 * math.pi, k, endpoint=False):
         c, s_ = math.cos(t), math.sin(t)
-        pts.append((cx + a * math.copysign(abs(c) ** (2 / n), c), cy + b * math.copysign(abs(s_) ** (2 / n), s_)))
+        pts.append(
+            (
+                cx + a * math.copysign(abs(c) ** (2 / n), c),
+                cy + b * math.copysign(abs(s_) ** (2 / n), s_),
+            )
+        )
     return P().smooth(pts, closed=True)
+
 
 s.path(squircle(W * 0.7, H * 0.5, 320, 240), fill=BG_ALT, stroke=UI_ALT, stroke_width=2)
 ```
@@ -248,7 +257,7 @@ s.path(squircle(W * 0.7, H * 0.5, 320, 240), fill=BG_ALT, stroke=UI_ALT, stroke_
 n = Noise(3)
 wobble = [(x, 540 + 40 * n.fbm(x / 300, 0.5)) for x in range(0, W + 1, 8)]
 f = noise_grid(W // 4, H // 4, 60, seed=1, octaves=3)
-f = (f - f.min()) / (f.max() - f.min())                     # to 0..1
+f = (f - f.min()) / (f.max() - f.min())  # to 0..1
 ```
 
 ## Pixel art, dithering & glyphs
@@ -293,7 +302,7 @@ loops, or it loses both. Keep the origin a whole unit and a multiple of the cell
 
 ```python
 CELL = 4
-ys, xs = (np.mgrid[0:H // CELL, 0:W // CELL] + 0.5) * CELL     # cell centres in canvas units
+ys, xs = (np.mgrid[0 : H // CELL, 0 : W // CELL] + 0.5) * CELL  # cell centres in canvas units
 tone = np.clip(1 - np.hypot(xs - W * 0.68, ys - H * 0.44) / 420, 0, 1)
 grid = dither(lambda i, j: tone[j, i], W // CELL, H // CELL, 4, "bayer", matrix=8)
 grid_runs(s, grid, [BG, ACCENT_6, ACCENT_3, ACCENT], CELL)
@@ -322,11 +331,19 @@ and no `<text>`.
 ```python
 TONE = {"frame": UI, "digit": ACCENT}
 role = lambda c, r, ch: "digit" if ch.isdigit() else "frame"
-glyphs(s, ["┌──────┐", "│ T+42 │", "└──────┘"], lambda c, r, ch: TONE[role(c, r, ch)], key=role, px=2, x=200, y=200)
+glyphs(
+    s,
+    ["┌──────┐", "│ T+42 │", "└──────┘"],
+    lambda c, r, ch: TONE[role(c, r, ch)],
+    key=role,
+    px=2,
+    x=200,
+    y=200,
+)
 # braille: 2×4 sub-pixels per character; dot bit for (dx 0..1, dy 0..3)
 BIT = [0x01, 0x02, 0x04, 0x40, 0x08, 0x10, 0x20, 0x80]
-dots = {(0, 0), (1, 3)}                                         # sub-pixels that are on
-ch = chr(0x2800 + sum(BIT[dx * 4 + dy] for dx, dy in dots))      # '⢁'
+dots = {(0, 0), (1, 3)}  # sub-pixels that are on
+ch = chr(0x2800 + sum(BIT[dx * 4 + dy] for dx, dy in dots))  # '⢁'
 ```
 
 ## Geometry & fields
@@ -389,9 +406,9 @@ d = P()
 for g in getattr(blob, "geoms", [blob]):
     for ring in [g.exterior, *g.interiors]:
         d.poly(ring.coords[:-1], closed=True)
-s.path(d, fill=UI, fill_rule="evenodd")                         # holes survive via evenodd
+s.path(d, fill=UI, fill_rule="evenodd")  # holes survive via evenodd
 
-h = P()                                                          # 45° hatching clipped to the blob
+h = P()  # 45° hatching clipped to the blob
 for k in range(-600, 600, 8):
     cut = LineString([(960 + k - 400, 940), (960 + k + 400, 140)]).intersection(blob)
     for seg in getattr(cut, "geoms", [cut]):
@@ -401,18 +418,28 @@ s.path(h, fill="none", stroke=UI_HI, stroke_width=1)
 
 p = np.array(poisson_disk(rng(2), W, H, 90))
 tri = Delaunay(p)
-edges = sorted({tuple(sorted((a, b))) for t in tri.simplices for a, b in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0]))})
+edges = sorted(
+    {
+        tuple(sorted((a, b)))
+        for t in tri.simplices
+        for a, b in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0]))
+    }
+)
 mesh = P()
 for a, b in edges:
     mesh.M(*p[a]).L(*p[b])
 
-vor = Voronoi(p)   # bounded cells only
-cells = [vor.vertices[vor.regions[i]] for i in vor.point_region if vor.regions[i] and -1 not in vor.regions[i]]
+vor = Voronoi(p)  # bounded cells only
+cells = [
+    vor.vertices[vor.regions[i]]
+    for i in vor.point_region
+    if vor.regions[i] and -1 not in vor.regions[i]
+]
 
 F = gaussian_filter(np.random.default_rng(4).random((H // 4, W // 4)), 8)
 iso = P()
 for c in find_contours(F, 0.5):
-    iso.poly(approximate_polygon(c, 0.3)[:, ::-1] * 4)          # (row, col) to (x, y) in canvas units
+    iso.poly(approximate_polygon(c, 0.3)[:, ::-1] * 4)  # (row, col) to (x, y) in canvas units
 ```
 
 ## Performance & lint limits

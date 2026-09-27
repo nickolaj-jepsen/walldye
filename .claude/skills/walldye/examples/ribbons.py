@@ -6,7 +6,20 @@ import numpy as np
 from shapely.geometry import LineString
 from shapely.ops import unary_union
 
-from walldye import ACCENT, ACCENT_1, ACCENT_3, BG_ALT, UI, H, P, W, Noise, poisson_disk, rng, smoothstep
+from walldye import (
+    ACCENT,
+    ACCENT_1,
+    ACCENT_3,
+    BG_ALT,
+    UI,
+    H,
+    Noise,
+    P,
+    W,
+    poisson_disk,
+    rng,
+    smoothstep,
+)
 
 ASPECTS = ["any"]
 
@@ -22,7 +35,10 @@ TONES = (BG_ALT, UI, ACCENT_3, ACCENT_1, ACCENT)  # paint order; ribbons refer t
 def draw(s):
     r, noise = rng(11), Noise(11)
     field = np.array(
-        [[noise.fbm(x / 880, y / 880, 2, gain=0.35) for x in range(-PAD, W + PAD + FIELD, FIELD)] for y in range(-PAD, H + PAD + FIELD, FIELD)]
+        [
+            [noise.fbm(x / 880, y / 880, 2, gain=0.35) for x in range(-PAD, W + PAD + FIELD, FIELD)]
+            for y in range(-PAD, H + PAD + FIELD, FIELD)
+        ]
     )
     field -= field.mean()
     occ = np.zeros(((H + 2 * PAD) // CELL + 2, (W + 2 * PAD) // CELL + 2), bool)
@@ -35,9 +51,14 @@ def draw(s):
     def disk(x, y, rad):
         """Slice of `occ` around (x, y) and the boolean disk of radius `rad` within it."""
         i0, j0 = max(int((y + PAD - rad) / CELL), 0), max(int((x + PAD - rad) / CELL), 0)
-        i1, j1 = min(int((y + PAD + rad) / CELL) + 2, occ.shape[0]), min(int((x + PAD + rad) / CELL) + 2, occ.shape[1])
+        i1, j1 = (
+            min(int((y + PAD + rad) / CELL) + 2, occ.shape[0]),
+            min(int((x + PAD + rad) / CELL) + 2, occ.shape[1]),
+        )
         yy, xx = np.ogrid[i0:i1, j0:j1]
-        return (slice(i0, i1), slice(j0, j1)), (yy * CELL - PAD - y) ** 2 + (xx * CELL - PAD - x) ** 2 <= rad * rad
+        return (slice(i0, i1), slice(j0, j1)), (yy * CELL - PAD - y) ** 2 + (
+            xx * CELL - PAD - x
+        ) ** 2 <= rad * rad
 
     def free(x, y, rad):
         sl, mask = disk(x, y, rad)
@@ -70,7 +91,13 @@ def draw(s):
     ax, ay = min(0.72 * W, W - 520 * k), 0.24 * H
     a = angle(ax, ay) + math.pi / 2  # stack the ribbons across the local flow
     ribbons, off = [], 0.0
-    school = [(8, 2, 400, 360), (14, 3, 440, 470), (28, 4, 470, 420), (12, 3, 430, 330), (6, 2, 460, 400)]
+    school = [
+        (8, 2, 400, 360),
+        (14, 3, 440, 470),
+        (28, 4, 470, 420),
+        (12, 3, 430, 330),
+        (6, 2, 460, 400),
+    ]
     for w, t, back, fwd in school:
         off += w / 2
         line = grow(ax + off * math.cos(a), ay + off * math.sin(a), w, back * k, fwd * k)

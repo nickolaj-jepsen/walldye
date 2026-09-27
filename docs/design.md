@@ -12,7 +12,7 @@ Procedural SVG wallpapers, each a small seeded Python script, published as a sta
 - `~/nixos` stops owning `modules/desktop/dms/wallgen/` and the imported SVGs in `backgrounds/`. Files that are not imported (geometry.svg and unknown.svg until their provenance is confirmed) stay there as local files. It consumes this repo as a `flake = false` input (cutover in M2).
 - The library starts from the theme-aware `wallgen.py` on nixos branch `feat/wallgen-skill` (0a62994), renamed `walldye`. Re-verified 2026-09-27: all 208 current nixos design scripts reproduce their committed SVGs byte-for-byte under the branch library's fireproof preset (Python 3.13, numpy 2.5.3).
 - Python is a uv project: `pyproject.toml`, `uv.lock`, `.python-version`, console script `walldye`. Prebuilt wheels need `programs.nix-ld.enable` on NixOS (on for this host, `~/nixos/modules/system/ld.nix:3`); the README says so. No Nix devShell.
-- CI never runs Python. Render drift from dependency bumps or other machines is caught locally by `walldye build --verify`, which the skill runs before committing.
+- CI never runs Python (ruff's standalone binary checks formatting there). Python is formatted with ruff: line length 100, import sorting, config in pyproject.toml. Render drift from dependency bumps or other machines is caught locally by `walldye build --verify`, which the skill runs before committing.
 - The Claude skill is repo-only. The branch's install-anywhere packaging, `export` command and compositor monitor detection (`detect_screens`) are not carried over.
 
 ## Layout

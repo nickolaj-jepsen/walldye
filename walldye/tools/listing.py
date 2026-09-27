@@ -13,7 +13,11 @@ from walldye.tools import common
 FIXTURE = common.ROOT / "src/lib/__fixtures__/themes.json"
 FIXTURE_SEED, FIXTURE_PER_REGIME = 1, 20
 # Seed triples where regime selection is closest to a tie.
-EDGE_CASES = [("#808080", "#808080", "#CF6A4C"), ("#777777", "#787878", "#CF6A4C"), ("#787878", "#777777", "#CF6A4C")]
+EDGE_CASES = [
+    ("#808080", "#808080", "#CF6A4C"),
+    ("#777777", "#787878", "#CF6A4C"),
+    ("#787878", "#777777", "#CF6A4C"),
+]
 
 
 def run_list() -> int:
@@ -30,13 +34,19 @@ def run_list() -> int:
             aspects = ",".join(walldye.native_aspects(common.design_aspects(slug)))
         except (OSError, ValueError, SyntaxError):
             aspects = "error"
-        one_line = [re.sub(r"\s+", " ", str(meta.get(k) or "")).strip() for k in ("title", "description")]
+        one_line = [
+            re.sub(r"\s+", " ", str(meta.get(k) or "")).strip() for k in ("title", "description")
+        ]
         print("\t".join([slug, *one_line, "draft" if common.is_draft(meta) else "-", aspects]))
     return 0
 
 
 def _entry(seeds: dict[str, str]) -> dict:
-    return {"seeds": seeds, "light": _theme.is_light(seeds["bg"], seeds["fg"]), "tokens": walldye.theme_tokens(seeds)}
+    return {
+        "seeds": seeds,
+        "light": _theme.is_light(seeds["bg"], seeds["fg"]),
+        "tokens": walldye.theme_tokens(seeds),
+    }
 
 
 def fixture() -> dict:
@@ -47,7 +57,8 @@ def fixture() -> dict:
     return {
         "presets": {name: _entry(walldye.parse_seeds(name)) for name in walldye.PRESETS},
         "random": {
-            r: [_entry(dict(zip(walldye.SEEDS, t, strict=True))) for t in themes] for r, themes in random.items()
+            r: [_entry(dict(zip(walldye.SEEDS, t, strict=True))) for t in themes]
+            for r, themes in random.items()
         },
         "edges": [_entry(dict(zip(walldye.SEEDS, t, strict=True))) for t in EDGE_CASES],
     }

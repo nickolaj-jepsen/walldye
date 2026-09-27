@@ -72,7 +72,9 @@ def _cmd_render(a) -> int:
     except ValueError as e:
         sys.exit(str(e))
     if not walldye.supports(declared, a.aspect):
-        sys.exit(f"{a.slug} declares ASPECTS={declared}, not {a.aspect}; render 16:9 with --crop instead")
+        sys.exit(
+            f"{a.slug} declares ASPECTS={declared}, not {a.aspect}; render 16:9 with --crop instead"
+        )
     svg = common.render(a.slug, a.theme, a.aspect)
     if a.crop:
         svg = common.crop_svg(svg, a.crop)
@@ -80,9 +82,14 @@ def _cmd_render(a) -> int:
         sys.stdout.write(svg)
         return 0
     crop = "-crop" if a.crop else ""
-    out = Path(a.output or f"{a.slug}-{walldye.theme_token(a.theme)}-{walldye.aspect_label(a.aspect)}{crop}.svg")
+    out = Path(
+        a.output
+        or f"{a.slug}-{walldye.theme_token(a.theme)}-{walldye.aspect_label(a.aspect)}{crop}.svg"
+    )
     wallpapers, target = common.WALLPAPERS.resolve(), out.resolve()
-    if target.is_relative_to(wallpapers) and target.relative_to(wallpapers).parts[1:2] == ("build",):
+    if target.is_relative_to(wallpapers) and target.relative_to(wallpapers).parts[1:2] == (
+        "build",
+    ):
         sys.exit(f"refusing to write {out}: only walldye build writes into build/")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(svg)
@@ -146,8 +153,12 @@ def _parser() -> argparse.ArgumentParser:
     targets.add_argument("slugs", nargs="*", type=_slug)
     targets.add_argument("--all", action="store_true", help="every piece in wallpapers/")
     canvas = argparse.ArgumentParser(add_help=False)
-    canvas.add_argument("--aspect", type=_aspect, default="16:9", help="e.g. 21:9, 9:19.5 (default 16:9)")
-    canvas.add_argument("--crop", type=_crop, metavar="X,Y,W,H", help="canvas-unit box to zoom into")
+    canvas.add_argument(
+        "--aspect", type=_aspect, default="16:9", help="e.g. 21:9, 9:19.5 (default 16:9)"
+    )
+    canvas.add_argument(
+        "--crop", type=_crop, metavar="X,Y,W,H", help="canvas-unit box to zoom into"
+    )
 
     s = sub.add_parser("new", help="scaffold wallpapers/<slug>/ (design.py + draft meta.yaml)")
     s.add_argument("slug")
@@ -155,56 +166,92 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--model", required=True, help="model id, e.g. claude-opus-5-5")
     s.set_defaults(fn=_cmd_new)
 
-    s = sub.add_parser("preview", parents=[theme, canvas], help="render a PNG to $WALLDYE_PREVIEW and print lint hints")
+    s = sub.add_parser(
+        "preview",
+        parents=[theme, canvas],
+        help="render a PNG to $WALLDYE_PREVIEW and print lint hints",
+    )
     s.add_argument("slug", type=_slug)
     s.add_argument("--width", type=_positive, default=1280, help="long side in px (default 1280)")
     s.add_argument("--renderer", choices=["resvg", "inkscape"], default="resvg")
     s.set_defaults(fn=_cmd_preview)
 
-    s = sub.add_parser("render", parents=[theme, canvas], help="write one SVG (default ./<slug>-<theme>-<aspect>.svg)")
+    s = sub.add_parser(
+        "render",
+        parents=[theme, canvas],
+        help="write one SVG (default ./<slug>-<theme>-<aspect>.svg)",
+    )
     s.add_argument("slug", type=_slug)
     s.add_argument("-o", "--output", metavar="PATH", help="output file, or - for stdout")
     s.set_defaults(fn=_cmd_render)
 
-    s = sub.add_parser("check", parents=[targets], help="determinism, skeleton, fit and lint checks (errors exit 1)")
-    s.add_argument("--set", action="store_true", help="also list near-clone pairs and skipped pieces")
+    s = sub.add_parser(
+        "check",
+        parents=[targets],
+        help="determinism, skeleton, fit and lint checks (errors exit 1)",
+    )
+    s.add_argument(
+        "--set", action="store_true", help="also list near-clone pairs and skipped pieces"
+    )
     s.set_defaults(fn=_cmd_check, need_targets=True)
 
-    s = sub.add_parser("build", parents=[targets], help="check, then write build/ templates, slots.json and index.json")
-    s.add_argument("--verify", action="store_true", help="re-render committed templates and diff, writing nothing")
+    s = sub.add_parser(
+        "build",
+        parents=[targets],
+        help="check, then write build/ templates, slots.json and index.json",
+    )
+    s.add_argument(
+        "--verify",
+        action="store_true",
+        help="re-render committed templates and diff, writing nothing",
+    )
     # walldye/tools/ is outside every hash, so a fit or lint change alone never triggers a rebuild.
     s.add_argument("--force", action="store_true", help="rebuild even when slots.json is current")
     s.set_defaults(fn=_cmd_build, need_targets=True)
 
     s = sub.add_parser("review", help="approve drafts in a localhost page; blocks until Done")
     s.add_argument("slugs", nargs="*", type=_slug, help="default: every draft: true piece")
-    s.add_argument("--timeout", type=float, default=7200, help="seconds to wait for Done (default 7200)")
+    s.add_argument(
+        "--timeout", type=float, default=7200, help="seconds to wait for Done (default 7200)"
+    )
     s.add_argument("--port", type=int, default=0)
     s.add_argument("--no-open", action="store_true", help="don't open a browser")
     s.set_defaults(fn=_cmd_review)
 
     s = sub.add_parser(
-        "sheet", parents=[targets, theme], help="contact sheet of build/16x9.svg, recoloured with --theme"
+        "sheet",
+        parents=[targets, theme],
+        help="contact sheet of build/16x9.svg, recoloured with --theme",
     )
     s.add_argument("--cols", type=_positive, default=4)
     s.add_argument("--thumb", type=_positive, default=480, help="thumbnail width in px")
-    s.add_argument("-o", "--output", metavar="PATH", help="default $WALLDYE_PREVIEW/sheet-<theme>.png")
+    s.add_argument(
+        "-o", "--output", metavar="PATH", help="default $WALLDYE_PREVIEW/sheet-<theme>.png"
+    )
     s.set_defaults(fn=_cmd_sheet, need_targets=True)
 
-    s = sub.add_parser("list", help="slug, title, description, draft and native aspects, tab-separated")
+    s = sub.add_parser(
+        "list", help="slug, title, description, draft and native aspects, tab-separated"
+    )
     s.set_defaults(fn=_cmd_list)
 
     s = sub.add_parser("drop", help="delete wallpapers/<slug>/ after confirmation")
     s.add_argument("slugs", nargs="+", type=_slug)
-    s.add_argument("--yes", action="store_true", help="skip the y/N prompt (the owner already confirmed)")
+    s.add_argument(
+        "--yes", action="store_true", help="skip the y/N prompt (the owner already confirmed)"
+    )
     s.set_defaults(fn=_cmd_drop)
 
     s = sub.add_parser("themes", help="list presets; --json writes the vitest theme fixture")
-    s.add_argument("--theme", type=_seeds, metavar="TOKEN", help="also print this theme's 21 tokens")
+    s.add_argument(
+        "--theme", type=_seeds, metavar="TOKEN", help="also print this theme's 21 tokens"
+    )
     s.add_argument("--json", action="store_true", help="write src/lib/__fixtures__/themes.json")
     s.set_defaults(fn=_cmd_themes)
 
-    s = sub.add_parser("_hashes")  # check's determinism subprocess: WALLPAPERS_DIR SLUG@ASPECT@THEME...
+    s = sub.add_parser(
+        "_hashes"
+    )  # check's determinism subprocess: WALLPAPERS_DIR SLUG@ASPECT@THEME...
     s.add_argument("args", nargs="*")
     s.set_defaults(fn=_cmd_hashes)
     return ap

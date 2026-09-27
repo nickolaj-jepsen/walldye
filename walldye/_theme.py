@@ -19,7 +19,14 @@ TOKENS = (
     "accent_5", "accent_6", "accent_7", "accent_8", "orange_dark",
 )  # fmt: skip
 # Fractions fitted to the hand-picked Flexoki/terracotta values of the default theme.
-_GREY_T = {"bg_alt": 0.063, "ui": 0.126, "ui_alt": 0.189, "ui_hi": 0.31, "muted": 0.563, "fg_alt": 0.816}
+_GREY_T = {
+    "bg_alt": 0.063,
+    "ui": 0.126,
+    "ui_alt": 0.189,
+    "ui_hi": 0.31,
+    "muted": 0.563,
+    "fg_alt": 0.816,
+}
 _ACCENT_T = {
     "accent_1": 0.17, "accent_2": 0.26, "accent_3": 0.5, "accent_4": 0.56,
     "accent_5": 0.68, "accent_6": 0.8, "accent_7": 0.9, "accent_8": 0.955,
@@ -28,12 +35,27 @@ _ACCENT_T = {
 PRESETS: dict[str, dict[str, str]] = {
     # Explicit tokens so the original hand-picked greys and terracotta ramp render exactly.
     "fireproof": {
-        "black": "#100F0F", "bg_deep": "#181716", "bg": "#1C1B1A", "bg_alt": "#282726",
-        "ui": "#343331", "ui_alt": "#403E3C", "ui_hi": "#575653", "muted": "#878580",
-        "fg_alt": "#B7B5AC", "fg": "#DAD8CE",
-        "accent_hi": "#E08A6E", "accent": "#CF6A4C", "accent_1": "#B14D2F", "accent_2": "#A1462B",
-        "accent_3": "#71311E", "accent_4": "#6B3528", "accent_5": "#55291F", "accent_6": "#40211B",
-        "accent_7": "#2E1C19", "accent_8": "#241B19", "orange_dark": "#BC5215",
+        "black": "#100F0F",
+        "bg_deep": "#181716",
+        "bg": "#1C1B1A",
+        "bg_alt": "#282726",
+        "ui": "#343331",
+        "ui_alt": "#403E3C",
+        "ui_hi": "#575653",
+        "muted": "#878580",
+        "fg_alt": "#B7B5AC",
+        "fg": "#DAD8CE",
+        "accent_hi": "#E08A6E",
+        "accent": "#CF6A4C",
+        "accent_1": "#B14D2F",
+        "accent_2": "#A1462B",
+        "accent_3": "#71311E",
+        "accent_4": "#6B3528",
+        "accent_5": "#55291F",
+        "accent_6": "#40211B",
+        "accent_7": "#2E1C19",
+        "accent_8": "#241B19",
+        "orange_dark": "#BC5215",
     },  # fmt: skip
     "flexoki-light": {"bg": "#FFFCF0", "fg": "#100F0F", "accent": "#BC5215"},
     "gruvbox-dark": {"bg": "#282828", "fg": "#EBDBB2", "accent": "#FE8019"},
@@ -93,7 +115,9 @@ def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
         raise ValueError(f"theme needs {', '.join(sorted(missing))}")
     unknown = seeds.keys() - set(TOKENS)
     if unknown:
-        raise ValueError(f"unknown theme tokens: {', '.join(sorted(unknown))} (known: {', '.join(TOKENS)})")
+        raise ValueError(
+            f"unknown theme tokens: {', '.join(sorted(unknown))} (known: {', '.join(TOKENS)})"
+        )
     bg, fg, accent = seeds["bg"], seeds["fg"], seeds["accent"]
     dark = not is_light(bg, fg)
     beyond = "#000000" if dark else "#FFFFFF"
@@ -103,7 +127,10 @@ def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
         "bg_deep": mix(bg, beyond, 0.15),
         "black": mix(bg, beyond, 0.43),
         "accent_hi": mix(accent, fg, 0.28),
-        **{k: mix(bg, fg, min(v * boost, 0.5) if k in ("bg_alt", "ui", "ui_alt", "ui_hi") else v) for k, v in _GREY_T.items()},
+        **{
+            k: mix(bg, fg, min(v * boost, 0.5) if k in ("bg_alt", "ui", "ui_alt", "ui_hi") else v)
+            for k, v in _GREY_T.items()
+        },
         **{k: mix(accent, bg, v) for k, v in _ACCENT_T.items()},
     }
     t["orange_dark"] = t["accent_1"]
@@ -137,11 +164,15 @@ def parse_seeds(spec: str | None) -> dict[str, str]:
         pairs = [p.split("=", 1) for p in spec.split(",")]
         values = {p[0].strip(): p[1] for p in pairs if len(p) == 2}
         if len(values) != len(pairs) or values.keys() != set(SEEDS):
-            raise ValueError(f"theme {spec!r}: keyed form takes exactly bg=, fg= and accent=, no preset or other tokens")
+            raise ValueError(
+                f"theme {spec!r}: keyed form takes exactly bg=, fg= and accent=, no preset or other tokens"
+            )
         return {k: normalise_seed(values[k]) for k in SEEDS}
     parts = spec.split("," if "," in spec else "-")
     if len(parts) != 3:
-        raise ValueError(f"unknown theme {spec!r}: use a preset ({', '.join(PRESETS)}) or bg-fg-accent hex seeds")
+        raise ValueError(
+            f"unknown theme {spec!r}: use a preset ({', '.join(PRESETS)}) or bg-fg-accent hex seeds"
+        )
     return {k: normalise_seed(v) for k, v in zip(SEEDS, parts)}
 
 
@@ -149,7 +180,9 @@ def theme_tokens(seeds: dict[str, str]) -> dict[str, str]:
     """All 21 tokens for exactly {bg, fg, accent}: the pinned fireproof table for fireproof's
     exact seeds, derive_theme otherwise. Seeds are normalised first; ValueError on other keys."""
     if seeds.keys() != set(SEEDS):
-        raise ValueError(f"theme seeds must be exactly bg, fg, accent (got {', '.join(sorted(seeds))})")
+        raise ValueError(
+            f"theme seeds must be exactly bg, fg, accent (got {', '.join(sorted(seeds))})"
+        )
     s = {k: normalise_seed(seeds[k]) for k in SEEDS}
     return derive_theme(PRESETS["fireproof"] if s == _preset_seeds("fireproof") else s)
 

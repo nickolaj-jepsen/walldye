@@ -29,7 +29,12 @@ HERE = Path(__file__).parent
 DESIGNS = HERE / "designs"
 SHARED = common.ROOT / "src/lib/__fixtures__"
 REFERENCE = common.ROOT / "tests/fixtures"
-META = {"title": "Fixture", "description": "A synthetic design for the build tests.", "ai_generated": True, "draft": True}
+META = {
+    "title": "Fixture",
+    "description": "A synthetic design for the build tests.",
+    "ai_generated": True,
+    "draft": True,
+}
 # vitest (b) themes: a 1-unit neighbour of fireproof (derived model), two presets, and a light
 # corner, so each regime is recoloured under two themes other than its template's.
 RECOLOUR_THEMES = ["1c1b1b-dad8ce-cf6a4c", "nord", "flexoki-light", "ffffff-000000-0000ff"]
@@ -63,13 +68,20 @@ def per_hex(slug: str, regime: str = "dark") -> dict:
     renders = []
     for t in basis:
         colours = fit.colours(common.render(slug, dict(zip(SEEDS, t))))
-        renders.append(np.array([colours[[i for i, c in enumerate(template) if c == h]].mean(axis=0) for h in hexes]))
+        renders.append(
+            np.array(
+                [colours[[i for i, c in enumerate(template) if c == h]].mean(axis=0) for h in hexes]
+            )
+        )
     rows, _ = fit.compact(fit.fit(basis, renders))
     return {"n": len(template), "coefs": rows, "occ": [hexes.index(c) for c in template]}
 
 
 def hash_vector() -> str:
-    lines = [*(f"{path}\t{hashing.sha256(text.encode())}" for path, text in HASH_VECTOR_FILES.items()), *HASH_VECTOR_LINES]
+    lines = [
+        *(f"{path}\t{hashing.sha256(text.encode())}" for path, text in HASH_VECTOR_FILES.items()),
+        *HASH_VECTOR_LINES,
+    ]
     vector = {
         "definition": "sha256 over UTF-8 lines '<key>\\t<value>\\n' sorted by line; a file's key is its repo-relative posix path, its value the sha256 of its bytes.",
         "files": HASH_VECTOR_FILES,
@@ -94,7 +106,10 @@ def collision() -> dict[str, str]:
             return {
                 "collision/16x9.svg": (b / "16x9.svg").read_text(),
                 "collision/slots.json": (b / "slots.json").read_text(),
-                "collision/renders.json": json.dumps({t: common.render("collision", t) for t in RECOLOUR_THEMES}, indent=1) + "\n",
+                "collision/renders.json": json.dumps(
+                    {t: common.render("collision", t) for t in RECOLOUR_THEMES}, indent=1
+                )
+                + "\n",
                 "collision/per-hex.json": json.dumps(per_hex("collision")) + "\n",
             }
         finally:
@@ -133,7 +148,9 @@ def references() -> dict[str, str | bytes]:
     for slug in REFERENCE_PIECES:
         slots = build.load_slots(slug)
         pieces[slug] = {"design_sha": slots["design_sha"]}
-        for aspect in dict.fromkeys(k.split("/")[0] for k, v in slots.items() if isinstance(v, dict) and "file" in v):
+        for aspect in dict.fromkeys(
+            k.split("/")[0] for k, v in slots.items() if isinstance(v, dict) and "file" in v
+        ):
             for theme in RECOLOUR_THEMES:
                 key, applied = build.select(slots, aspect, parse_seeds(theme))
                 rel = f"{slug}/{aspect_label(aspect)}.{theme}.svg"
@@ -146,7 +163,9 @@ def references() -> dict[str, str | bytes]:
     slug, aspect, theme, width = RESVG
     slots = build.load_slots(slug)
     key, applied = build.select(slots, aspect, parse_seeds(theme))
-    svg = build.recolour((common.build_dir(slug) / slots[key]["file"]).read_text(), slots[key], applied)
+    svg = build.recolour(
+        (common.build_dir(slug) / slots[key]["file"]).read_text(), slots[key], applied
+    )
     w, h = canvas_size(aspect)
     height = round(width * h / w)
     name = f"resvg/{slug}.{aspect_label(aspect)}.{theme}"

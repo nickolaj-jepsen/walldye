@@ -68,7 +68,9 @@ def _card(slug: str) -> dict:
         light, caption = f"light/{slug}.svg", "dark-only: flexoki-light with bg and fg swapped"
     else:
         light, caption = f"light/{slug}.svg", "16x9.svg recoloured to flexoki-light"
-    strip = [a for a in walldye.SITE_ASPECTS if a != "16:9" and (b / walldye.template_name(a)).exists()]
+    strip = [
+        a for a in walldye.SITE_ASPECTS if a != "16:9" and (b / walldye.template_name(a)).exists()
+    ]
     return {
         "slug": slug,
         "title": meta.get("title") or "",
@@ -88,7 +90,9 @@ def summarise(slugs: list[str], state: dict) -> dict:
     status = {s: (state.get(s) or {}).get("status", "undecided") for s in slugs}
     return {
         "approved": [s for s in slugs if status[s] == "approved"],
-        "rejected": [{"slug": s, "note": state[s].get("note", "")} for s in slugs if status[s] == "rejected"],
+        "rejected": [
+            {"slug": s, "note": state[s].get("note", "")} for s in slugs if status[s] == "rejected"
+        ],
         "undecided": [s for s in slugs if status[s] == "undecided"],
         "notes": {s: state[s]["note"] for s in slugs if (state.get(s) or {}).get("note")},
     }
@@ -112,10 +116,15 @@ def apply(slugs: list[str], state: dict) -> dict:
         proposed = meta.pop("proposed_facets", None) or {}
         decided = state[slug].get("facets") or {}
         pending = [
-            f"{f}: {v}" for f, vs in proposed.items() for v in vs if (decided.get(f) or {}).get(v) not in DECISIONS
+            f"{f}: {v}"
+            for f, vs in proposed.items()
+            for v in vs
+            if (decided.get(f) or {}).get(v) not in DECISIONS
         ]
         if pending:
-            refused.append({"slug": slug, "reason": "proposed facets undecided: " + ", ".join(pending)})
+            refused.append(
+                {"slug": slug, "reason": "proposed facets undecided: " + ", ".join(pending)}
+            )
             continue
         for facet, values in proposed.items():
             for v in values:
@@ -133,7 +142,9 @@ def apply(slugs: list[str], state: dict) -> dict:
         meta["draft"] = False
         published[slug] = meta
     if grown:
-        header = "".join(itertools.takewhile(lambda line: line.startswith("#"), text.splitlines(keepends=True)))
+        header = "".join(
+            itertools.takewhile(lambda line: line.startswith("#"), text.splitlines(keepends=True))
+        )
         common.TAXONOMY.write_text(header + dump_yaml(taxonomy, flow_lists=False))
     for slug, meta in published.items():
         write_meta(slug, meta)
@@ -153,7 +164,11 @@ def run(slugs: list[str], timeout: float, port: int, open_browser: bool) -> int:
     slugs = slugs or drafts()
     if not slugs:
         sys.exit("no drafts to review; name slugs to review other pieces")
-    missing = [s for s in slugs if not all((common.build_dir(s) / f).exists() for f in ("16x9.svg", "slots.json"))]
+    missing = [
+        s
+        for s in slugs
+        if not all((common.build_dir(s) / f).exists() for f in ("16x9.svg", "slots.json"))
+    ]
     if missing:
         sys.exit(f"not built: {', '.join(missing)} (run walldye build {' '.join(missing)})")
 
@@ -175,7 +190,9 @@ def run(slugs: list[str], timeout: float, port: int, open_browser: bool) -> int:
             if self.path in ("/", "/index.html"):
                 cfg = {"cards": [_card(s) for s in slugs], "state": load_state()}
                 # </script> inside meta text must not end the inline script.
-                page = PAGE.read_text().replace("__CONFIG__", json.dumps(cfg, default=str).replace("</", "<\\/"))
+                page = PAGE.read_text().replace(
+                    "__CONFIG__", json.dumps(cfg, default=str).replace("</", "<\\/")
+                )
                 return self._send(200, page.encode(), "text/html; charset=utf-8")
             if (m := re.fullmatch(r"/svg/([a-z0-9-]+)/([^/]+)", self.path)) and m.group(1) in slugs:
                 f = common.build_dir(m.group(1)) / m.group(2)
@@ -190,7 +207,9 @@ def run(slugs: list[str], timeout: float, port: int, open_browser: bool) -> int:
 
         def do_POST(self):
             try:
-                data = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
+                data = json.loads(
+                    self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}"
+                )
             except ValueError:
                 return self._send(400, b"bad json")
             if self.path == "/state" and isinstance(data, dict):
@@ -211,7 +230,12 @@ def run(slugs: list[str], timeout: float, port: int, open_browser: bool) -> int:
                         try:
                             result.update(apply(slugs, state), finished=True)
                         except Exception as e:  # the wait must end and the page must hear why
-                            result.update(published=[], refused=[], error=f"{type(e).__name__}: {e}", finished=False)
+                            result.update(
+                                published=[],
+                                refused=[],
+                                error=f"{type(e).__name__}: {e}",
+                                finished=False,
+                            )
                         done.set()
                 code = 500 if "error" in result else 200
                 return self._send(code, json.dumps(result).encode(), "application/json")

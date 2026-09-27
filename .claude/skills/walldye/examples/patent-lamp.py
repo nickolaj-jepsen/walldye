@@ -16,7 +16,19 @@ U = min(W, H) / 1080
 FX, FY, K = (0.615 * W, H / 2, U) if W >= H else (W / 2, 0.54 * H, 1.35 * U)
 TILT = 0.2  # ellipse squash: we look slightly down on the lamp
 # right half of the glass profile, crown to neck (dx, y)
-PROFILE = [(0, 196), (72, 206), (132, 238), (172, 292), (188, 358), (182, 428), (158, 494), (122, 556), (94, 604), (80, 648), (77, 684)]
+PROFILE = [
+    (0, 196),
+    (72, 206),
+    (132, 238),
+    (172, 292),
+    (188, 358),
+    (182, 428),
+    (158, 494),
+    (122, 556),
+    (94, 604),
+    (80, 648),
+    (77, 684),
+]
 NECK, THREAD_TOP, THREAD_R, AMP, PITCH, TURNS = 684, 688, 76, 6, 25, 4
 
 
@@ -26,7 +38,18 @@ def catmull(points, n=12):
     out = []
     for p0, p1, p2, p3 in zip(p, p[1:], p[2:], p[3:]):
         for t in (k / n for k in range(n)):
-            out.append(tuple(0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t**3) for a, b, c, d in zip(p0, p1, p2, p3)))
+            out.append(
+                tuple(
+                    0.5
+                    * (
+                        2 * b
+                        + (c - a) * t
+                        + (2 * a - 5 * b + 4 * c - d) * t * t
+                        + (3 * b - a - 3 * c + d) * t**3
+                    )
+                    for a, b, c, d in zip(p0, p1, p2, p3)
+                )
+            )
     return out + [points[-1]]
 
 
@@ -50,7 +73,13 @@ def hatch(d, xs, y0, y1, shape):
 
 def ell(cy, r, a0=0.0, a1=math.pi, n=48, dy=0.0):
     """Arc of a horizontal circle seen from above; angles in (0, pi) are the front half."""
-    return [(r * math.cos(a0 + (a1 - a0) * i / n), cy + TILT * r * math.sin(a0 + (a1 - a0) * i / n) + dy * i / n) for i in range(n + 1)]
+    return [
+        (
+            r * math.cos(a0 + (a1 - a0) * i / n),
+            cy + TILT * r * math.sin(a0 + (a1 - a0) * i / n) + dy * i / n,
+        )
+        for i in range(n + 1)
+    ]
 
 
 def thread_y(q):
@@ -63,18 +92,38 @@ def draw(s):
     glass = Polygon(glass_line + ell(NECK, 77)[1:-1])
     inner = glass.buffer(-7)
     edge, ruled, fine, crests, dense, clamps, stip = (P() for _ in range(7))
-    edge.poly(glass_line).poly(ell(NECK, 77)).M(-9, 197).Q(-5, 186, 0, 176).Q(5, 186, 9, 197)  # + exhaust tip
+    edge.poly(glass_line).poly(ell(NECK, 77)).M(-9, 197).Q(-5, 186, 0, 176).Q(
+        5, 186, 9, 197
+    )  # + exhaust tip
     hatch(ruled, rules(70, 186, 15), 150, NECK, inner)  # shadow side of the glass
 
     # glass stem, lead-in wires and their clamps
-    edge.smooth([(-60, NECK - 2), (-44, 640), (-20, 596), (-16, 520), (16, 520), (20, 596), (44, 640), (60, NECK - 2)], tension=0.6)
+    edge.smooth(
+        [
+            (-60, NECK - 2),
+            (-44, 640),
+            (-20, 596),
+            (-16, 520),
+            (16, 520),
+            (20, 596),
+            (44, 640),
+            (60, NECK - 2),
+        ],
+        tension=0.6,
+    )
     edge.M(-16, 520).Q(0, 512, 16, 520)
     for sg in (-1, 1):
         fine.M(sg * 8, NECK + 4).V(530).L(sg * 22, 486)
         clamps.M(sg * 22 - 3.5, 486).H(sg * 22 + 3.5).V(474).H(sg * 22 - 3.5).Z()
 
     # Edison screw: sine silhouettes ending on thread roots (right one half a turn lower), joined by front crests
-    sil = [[(sg * THREAD_R - AMP * math.sin(math.pi / 2 * i / 12), thread_y(i / 12)) for i in range(12 * (4 * TURNS + sg) + 1)] for sg in (-1, 1)]
+    sil = [
+        [
+            (sg * THREAD_R - AMP * math.sin(math.pi / 2 * i / 12), thread_y(i / 12))
+            for i in range(12 * (4 * TURNS + sg) + 1)
+        ]
+        for sg in (-1, 1)
+    ]
     edge.poly(sil[0]).poly(sil[1])
     for k in range(TURNS):
         crests.poly(ell(thread_y(4 * k + 1), THREAD_R + AMP, math.pi, 0, 60, dy=PITCH / 2))
@@ -93,7 +142,9 @@ def draw(s):
 
     # patent shade line: the lower-right edge carries a tapered extra weight
     arc = [p for p in glass_line if p[0] > 0 and 300 <= p[1] <= 640]
-    swell = [(x + 2.4 * math.sin(math.pi * i / (len(arc) - 1)) ** 0.8, y) for i, (x, y) in enumerate(arc)]
+    swell = [
+        (x + 2.4 * math.sin(math.pi * i / (len(arc) - 1)) ** 0.8, y) for i, (x, y) in enumerate(arc)
+    ]
 
     # stipple hugging the lit left rim, densest lower-left, fading past the crown and bottom-right
     r = rng(11)
@@ -109,12 +160,28 @@ def draw(s):
             stip.M(x - 1.2, y).A(1.2, 1.2, 0, 1, 0, x + 1.2, y).A(1.2, 1.2, 0, 1, 0, x - 1.2, y)
 
     # filament: a horseshoe loop; the glow is offset rings that stop higher up and dissolve into dashes
-    fil = [(-22, 478), (-30, 430), (-44, 372), (-50, 316), (-34, 272), (0, 258), (34, 272), (50, 316), (44, 372), (30, 430), (22, 478)]
+    fil = [
+        (-22, 478),
+        (-30, 430),
+        (-44, 372),
+        (-50, 316),
+        (-34, 272),
+        (0, 258),
+        (34, 272),
+        (50, 316),
+        (44, 372),
+        (30, 430),
+        (22, 478),
+    ]
     loop = Polygon(catmull(fil, 16))
     tones = accent_ramp(12)
     halos = []
     for off, cut, k in ((13, 452, 8), (27, 414, 6), (41, 376, 4)):
-        ring = loop.buffer(off, quad_segs=24).exterior.intersection(box(-300, 0, 300, cut)).intersection(inner)
+        ring = (
+            loop.buffer(off, quad_segs=24)
+            .exterior.intersection(box(-300, 0, 300, cut))
+            .intersection(inner)
+        )
         solid, taper = P(), P()
         for g in getattr(ring, "geoms", [ring]):
             if isinstance(g, LineString) and not g.is_empty:
@@ -127,7 +194,12 @@ def draw(s):
 
     # leaders: one gentle bow from each part to a ring marker in two tidy columns
     lead, rings, mr = P(), P(), 7
-    for (sx, sy), (ex, ey) in (((183, 336), (280, 300)), ((82, thread_y(11)), (280, 800)), ((-25, 452), (-280, 404)), ((-37, 628), (-280, 668))):
+    for (sx, sy), (ex, ey) in (
+        ((183, 336), (280, 300)),
+        ((82, thread_y(11)), (280, 800)),
+        ((-25, 452), (-280, 404)),
+        ((-37, 628), (-280, 668)),
+    ):
         dx, dy, bow = ex - sx, ey - sy, math.copysign(0.12, ex - sx)
         tx = ex - math.copysign(mr, dx)
         lead.M(sx, sy).Q((sx + tx) / 2 - dy * bow, (sy + ey) / 2 + dx * bow * 0.5, tx, ey)

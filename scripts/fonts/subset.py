@@ -26,7 +26,9 @@ CACHE = HERE / ".cache"
 OUT = HERE.parents[1] / "src" / "assets" / "fonts"
 
 GOOGLE_FONTS = "https://raw.githubusercontent.com/google/fonts/f8c1d3d6cc75e30d77130bdcbfbff27e3b6233fe/ofl/ebgaramond"
-MONASPACE = "https://github.com/githubnext/monaspace/releases/download/v1.400/monaspace-variable-v1.400.zip"
+MONASPACE = (
+    "https://github.com/githubnext/monaspace/releases/download/v1.400/monaspace-variable-v1.400.zip"
+)
 KRYPTON_MEMBER = "Variable Fonts/Monaspace Krypton/Monaspace Krypton Var.ttf"
 
 SOURCES = {
@@ -179,19 +181,34 @@ def verify(out: Path, upstream: TTFont, garamond: bool) -> list[str]:
         if font["name"].getDebugName(1) != "EB Garamond":
             errors.append(f"family is {font['name'].getDebugName(1)!r}")
     else:
-        expect = {1: MONO_FAMILY, 2: "Regular", 4: f"{MONO_FAMILY} Regular", 6: f"{MONO_PS}-Regular"}
+        expect = {
+            1: MONO_FAMILY,
+            2: "Regular",
+            4: f"{MONO_FAMILY} Regular",
+            6: f"{MONO_PS}-Regular",
+        }
         for name_id, text in expect.items():
             if font["name"].getDebugName(name_id) != text:
                 errors.append(f"name ID {name_id} is {font['name'].getDebugName(name_id)!r}")
         for rec in font["name"].names:
             if rec.nameID != 0 and RESERVED.search(rec.toUnicode()):
-                errors.append(f"name ID {rec.nameID} keeps a Reserved Font Name: {rec.toUnicode()!r}")
+                errors.append(
+                    f"name ID {rec.nameID} keeps a Reserved Font Name: {rec.toUnicode()!r}"
+                )
 
     gaps = sorted(wanted - upstream_cmap.keys())
-    axes = ", ".join(f"{a.axisTag} {a.minValue:g}-{a.maxValue:g}" for a in font["fvar"].axes) if "fvar" in font else "static"
-    print(f"{out.name}: {out.stat().st_size} bytes, {len(font.getGlyphOrder())} glyphs, {len(cmap)} codepoints, {axes}")
+    axes = (
+        ", ".join(f"{a.axisTag} {a.minValue:g}-{a.maxValue:g}" for a in font["fvar"].axes)
+        if "fvar" in font
+        else "static"
+    )
+    print(
+        f"{out.name}: {out.stat().st_size} bytes, {len(font.getGlyphOrder())} glyphs, {len(cmap)} codepoints, {axes}"
+    )
     print(f"  family {font['name'].getDebugName(1)!r}, usWeightClass {font['OS/2'].usWeightClass}")
-    print(f"  GSUB {' '.join(features(font, 'GSUB'))}; GPOS {' '.join(features(font, 'GPOS')) or '-'}")
+    print(
+        f"  GSUB {' '.join(features(font, 'GSUB'))}; GPOS {' '.join(features(font, 'GPOS')) or '-'}"
+    )
     if gaps:
         print(f"  not in upstream: {' '.join(f'U+{u:04X}' for u in gaps)}")
     for e in errors:

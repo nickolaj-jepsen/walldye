@@ -57,14 +57,25 @@ def test_token_round_trips():
 # --- fireproof and derive_theme ------------------------------------------------
 
 
-@pytest.mark.parametrize("spec", ["fireproof", "1c1b1a-dad8ce-cf6a4c", "1C1B1A,DAD8CE,CF6A4C", "bg=1c1b1a,fg=dad8ce,accent=cf6a4c"])
+@pytest.mark.parametrize(
+    "spec",
+    [
+        "fireproof",
+        "1c1b1a-dad8ce-cf6a4c",
+        "1C1B1A,DAD8CE,CF6A4C",
+        "bg=1c1b1a,fg=dad8ce,accent=cf6a4c",
+    ],
+)
 def test_fireproof_seeds_resolve_to_pinned_table(spec):
     assert walldye.parse_theme(spec) == walldye.PRESETS["fireproof"]
     assert list(walldye.parse_theme(spec)) == list(walldye.TOKENS)
 
 
 def test_fireproof_seed_dict_resolves_to_pinned_table():
-    assert walldye.set_theme({"bg": "#1c1b1a", "fg": "dad8ce", "accent": "#CF6A4C"}) == walldye.PRESETS["fireproof"]
+    assert (
+        walldye.set_theme({"bg": "#1c1b1a", "fg": "dad8ce", "accent": "#CF6A4C"})
+        == walldye.PRESETS["fireproof"]
+    )
     assert walldye.ACCENT_3 == "#71311E"
 
 
@@ -132,11 +143,17 @@ def branch(monkeypatch):
 def test_derive_theme_matches_branch(branch):
     for name, seeds in walldye.PRESETS.items():
         # Presets added after the branch have no pinned tokens, so derive_theme is the reference.
-        expected = branch.parse_theme(name) if name in branch.PRESETS else branch.derive_theme(seeds)
+        expected = (
+            branch.parse_theme(name) if name in branch.PRESETS else branch.derive_theme(seeds)
+        )
         assert walldye.parse_theme(name) == expected
     r = random.Random(11)
     triples = [tuple(f"#{r.getrandbits(24):06X}" for _ in range(3)) for _ in range(500)]
-    triples += [("#808080", "#808080", "#123456"), ("#777777", "#787878", "#ABCDEF"), ("#787878", "#777777", "#ABCDEF")]
+    triples += [
+        ("#808080", "#808080", "#123456"),
+        ("#777777", "#787878", "#ABCDEF"),
+        ("#787878", "#777777", "#ABCDEF"),
+    ]
     for bg, fg, accent in triples:
         seeds = {"bg": bg, "fg": fg, "accent": accent}
         assert walldye.derive_theme(seeds) == branch.derive_theme(seeds)
@@ -145,9 +162,25 @@ def test_derive_theme_matches_branch(branch):
 def test_pixel_helpers_match_branch_but_for_the_tag(branch):
     def draw(lib):
         s = lib.Svg()
-        lib.grid_runs(s, [[0, 1, 2, 2], [1, 1, 0, 2]], [lib.BG, lib.UI, lib.ACCENT], 3.5, 10, 20.5, opacity=0.5)
+        lib.grid_runs(
+            s,
+            [[0, 1, 2, 2], [1, 1, 0, 2]],
+            [lib.BG, lib.UI, lib.ACCENT],
+            3.5,
+            10,
+            20.5,
+            opacity=0.5,
+        )
         lib.sprite(s, "ab.\n.ba", {"a": lib.MUTED, "b": lib.ACCENT_2}, 4, x=7, y=9)
-        lib.glyphs(s, ["ok ┌─┐", "⡇?"], lambda c, r, ch: lib.ACCENT if c % 2 else lib.UI, font="8x16", px=2, x=3, y=4)
+        lib.glyphs(
+            s,
+            ["ok ┌─┐", "⡇?"],
+            lambda c, r, ch: lib.ACCENT if c % 2 else lib.UI,
+            font="8x16",
+            px=2,
+            x=3,
+            y=4,
+        )
         lib.glyphs(s, ["FIG. 1"], lib.UI_HI, "5x8", 3, 100, 200, 1)
         return s.to_string()
 
@@ -192,7 +225,18 @@ def test_template_names(aspect, light, name):
     assert walldye.TEMPLATE_NAME.match(name)
 
 
-@pytest.mark.parametrize("name", ["16x9", "16x9.dark.svg", "slots.json", "16:9.svg", "x9.svg", "9x19.5.light.svg.bak", "16x9.light.light.svg"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "16x9",
+        "16x9.dark.svg",
+        "slots.json",
+        "16:9.svg",
+        "x9.svg",
+        "9x19.5.light.svg.bak",
+        "16x9.light.light.svg",
+    ],
+)
 def test_template_name_rejects(name):
     assert not walldye.TEMPLATE_NAME.match(name)
     with pytest.raises(ValueError):
@@ -205,7 +249,9 @@ def test_template_name_rejects(name):
 def test_pixel_paths_are_tagged_and_recorded():
     walldye.set_theme()
     s = walldye.Svg()
-    walldye.grid_runs(s, [[0, 1, 1], [2, 0, 1]], [walldye.BG, walldye.UI, walldye.ACCENT], 4, 10, 20)
+    walldye.grid_runs(
+        s, [[0, 1, 1], [2, 0, 1]], [walldye.BG, walldye.UI, walldye.ACCENT], 4, 10, 20
+    )
     walldye.sprite(s, "a.\n.b", {"a": walldye.UI, "b": walldye.ACCENT}, 3, x=1, y=2)
     walldye.glyphs(s, ["hi"], walldye.FG, px=2, x=5, y=6)
     walldye.glyphs(s, ["  "], walldye.FG, px=9)  # draws nothing, records nothing
@@ -236,7 +282,12 @@ def test_glyphs_key_keeps_roles_apart():
     assert len(draw(key=lambda c, r, ch: ch)) == 2
     walldye.set_theme("fireproof")
     with pytest.raises(ValueError):
-        walldye.glyphs(walldye.Svg(), ["ab"], lambda c, r, ch: walldye.UI if ch == "a" else walldye.MUTED, key=lambda c, r, ch: 0)
+        walldye.glyphs(
+            walldye.Svg(),
+            ["ab"],
+            lambda c, r, ch: walldye.UI if ch == "a" else walldye.MUTED,
+            key=lambda c, r, ch: 0,
+        )
 
 
 # --- fit basis ---------------------------------------------------------------------
@@ -260,8 +311,16 @@ def test_basis_sets(regime):
     assert all(walldye.theme_token(dict(zip(walldye.SEEDS, t))) != "fireproof" for t in themes)
     assert fireproof not in themes
     assert not set(_basis.BASIS[regime]) & set(_basis.HELD_OUT[regime] + _basis.PROBES[regime])
-    presets = {n for n in walldye.PRESETS if n != "fireproof" and _theme.is_light(walldye.PRESETS[n]["bg"], walldye.PRESETS[n]["fg"]) == (regime == "light")}
-    assert presets <= {walldye.theme_token(dict(zip(walldye.SEEDS, t))) for t in _basis.HELD_OUT[regime]}
+    presets = {
+        n
+        for n in walldye.PRESETS
+        if n != "fireproof"
+        and _theme.is_light(walldye.PRESETS[n]["bg"], walldye.PRESETS[n]["fg"])
+        == (regime == "light")
+    }
+    assert presets <= {
+        walldye.theme_token(dict(zip(walldye.SEEDS, t))) for t in _basis.HELD_OUT[regime]
+    }
     assert len(_basis.HELD_OUT[regime]) == len(presets) + 4 + 4
 
 
@@ -280,7 +339,9 @@ def test_render_legacy(wallpapers):
         '<svg viewBox="0 0 1920 1080"><rect fill="#1c1b1a"/><path fill="#201a18" stroke="#CF6A4C"/>'
         '<mask id="c0ffee"><rect fill="white"/></mask><g mask="url(#c0ffee)" fill="#123456"/></svg>\n'
     )
-    (d / "palette.yaml").write_text('"#1C1B1A": bg\n"#cf6a4c": accent\n"#201A18": [bg_deep, accent_8, 0.68]\n"#C0FFEE": fg\n')
+    (d / "palette.yaml").write_text(
+        '"#1C1B1A": bg\n"#cf6a4c": accent\n"#201A18": [bg_deep, accent_8, 0.68]\n"#C0FFEE": fg\n'
+    )
     assert common.is_legacy("old-piece")
     assert common.design_aspects("old-piece") == ["16:9"]
     fire = common.render("old-piece", "fireproof")
@@ -338,8 +399,15 @@ def test_rasterise_ink_and_focus():
 SCHOTTER = IMPORT / "nixos-wallgen/wallgen/designs/schotter.py"
 
 
-@pytest.mark.skipif(not (SCHOTTER.exists() and (NIXOS_BACKGROUNDS / "schotter.svg").exists()), reason="nixos schotter not available")
+@pytest.mark.skipif(
+    not (SCHOTTER.exists() and (NIXOS_BACKGROUNDS / "schotter.svg").exists()),
+    reason="nixos schotter not available",
+)
 def test_schotter_reproduces_nixos_svg(wallpapers):
     (wallpapers / "schotter").mkdir()
-    (wallpapers / "schotter" / "design.py").write_text(SCHOTTER.read_text().replace("from wallgen import", "from walldye import"))
-    assert common.render("schotter", "fireproof") == (NIXOS_BACKGROUNDS / "schotter.svg").read_text()
+    (wallpapers / "schotter" / "design.py").write_text(
+        SCHOTTER.read_text().replace("from wallgen import", "from walldye import")
+    )
+    assert (
+        common.render("schotter", "fireproof") == (NIXOS_BACKGROUNDS / "schotter.svg").read_text()
+    )

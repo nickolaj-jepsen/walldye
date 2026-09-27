@@ -23,6 +23,7 @@ uv run walldye check <slug>
 uv run walldye build <slug>
 uv run walldye build --verify         # re-render every committed template and diff; read-only
 uv run pytest
+uv run ruff format . && uv run ruff check --fix .   # formatting (line length 100) and import order
 uv run python tests/python/fixtures/regen.py   # after a build that changes the shared fixtures
 
 pnpm test                             # vitest
@@ -39,6 +40,7 @@ On NixOS the Python wheels need `programs.nix-ld.enable`; there is no devShell.
 - Never edit anything in `wallpapers/*/build/` by hand. Only `walldye build` writes there, and `pnpm check-artifacts` catches hand edits.
 - After changing a `design.py`, the `themes:` line of a `meta.yaml` or anything in the library, run `uv run walldye build` for the affected pieces and commit its output with the change. Run `uv run walldye build --verify` before committing.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text) follows the Copy rules in `docs/design.md`: no colour names, no theme roles as nouns, no internal terms, no evaluative adjectives.
+- Python is formatted with ruff (`uv run ruff format .`); CI fails on unformatted files.
 - CI runs Node only. Do not add Python steps to `.github/workflows/`; drift in Python output is caught locally by `walldye build --verify`.
 
 ## Dev server

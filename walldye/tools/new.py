@@ -36,7 +36,8 @@ class _MetaDumper(_BlockDumper):
 
 
 _BlockDumper.add_representer(
-    str, lambda d, v: d.represent_scalar("tag:yaml.org,2002:str", v, style="|" if "\n" in v else None)
+    str,
+    lambda d, v: d.represent_scalar("tag:yaml.org,2002:str", v, style="|" if "\n" in v else None),
 )
 _MetaDumper.add_representer(
     list,

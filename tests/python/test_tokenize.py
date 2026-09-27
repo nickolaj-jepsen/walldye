@@ -26,6 +26,9 @@ def test_spec_tables():
 
 def test_substitute():
     svg = '<rect fill="#fff" stroke=" red "/><path fill="none"/>'
-    assert tokenize.substitute(svg, ["#000000", "#111111"]) == '<rect fill="#000000" stroke=" #111111 "/><path fill="none"/>'
+    assert (
+        tokenize.substitute(svg, ["#000000", "#111111"])
+        == '<rect fill="#000000" stroke=" #111111 "/><path fill="none"/>'
+    )
     with pytest.raises(ValueError):
         tokenize.substitute(svg, ["#000000"])

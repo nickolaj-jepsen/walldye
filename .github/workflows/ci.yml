@@ -42,6 +42,11 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Ruff is a standalone binary here: this checks Python formatting without running Python.
+      - uses: astral-sh/ruff-action@v3
+        with:
+          version: 0.16.9 # keep in step with uv.lock
+          args: format --check
       - run: pnpm check-artifacts
       - run: pnpm test
       - run: pnpm astro build

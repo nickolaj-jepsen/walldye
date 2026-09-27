@@ -41,7 +41,10 @@ def design_lines(slug: str) -> list[str]:
     """Hash lines of a piece: design.py (or source.svg and palette.yaml) plus `themes\\t<a,b>`."""
     d = common.piece_dir(slug)
     names = ["source.svg", "palette.yaml"] if common.is_legacy(slug) else ["design.py"]
-    return [*(file_line(f"wallpapers/{slug}/{n}", d / n) for n in names), "themes\t" + ",".join(sorted(themes(common.load_meta(slug))))]
+    return [
+        *(file_line(f"wallpapers/{slug}/{n}", d / n) for n in names),
+        "themes\t" + ",".join(sorted(themes(common.load_meta(slug)))),
+    ]
 
 
 def design_sha(slug: str) -> str:
@@ -49,7 +52,13 @@ def design_sha(slug: str) -> str:
 
 
 def _git_files(*flags: str) -> list[str]:
-    run = subprocess.run(["git", "ls-files", "-z", *flags, "--", "walldye"], cwd=common.ROOT, capture_output=True, text=True, check=True)
+    run = subprocess.run(
+        ["git", "ls-files", "-z", *flags, "--", "walldye"],
+        cwd=common.ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     return [p for p in run.stdout.split("\0") if p]
 
 
@@ -64,7 +73,11 @@ def render_lib_lines() -> list[str]:
         p for p in listed
         if not p.startswith("walldye/tools/") and "__pycache__" not in p.split("/") and (common.ROOT / p).is_file()
     })  # fmt: skip
-    pinned = [p for p in tomllib.loads((common.ROOT / "uv.lock").read_text())["package"] if p["name"] in RENDER_DEPS]
+    pinned = [
+        p
+        for p in tomllib.loads((common.ROOT / "uv.lock").read_text())["package"]
+        if p["name"] in RENDER_DEPS
+    ]
     if missing := set(RENDER_DEPS) - {p["name"] for p in pinned}:
         raise ValueError(f"uv.lock pins none of: {', '.join(sorted(missing))}")
     deps = [f"dep\t{p['name']}=={p['version']}" for p in pinned]

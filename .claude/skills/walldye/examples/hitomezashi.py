@@ -45,7 +45,12 @@ def regions(a, b):
 
 
 def patch(cells):
-    return unary_union([box(k % COLS * CELL, k // COLS * CELL, (k % COLS + 1) * CELL, (k // COLS + 1) * CELL) for k in cells])
+    return unary_union(
+        [
+            box(k % COLS * CELL, k // COLS * CELL, (k % COLS + 1) * CELL, (k // COLS + 1) * CELL)
+            for k in cells
+        ]
+    )
 
 
 def pick(label):
@@ -61,7 +66,14 @@ def pick(label):
             continue
         shape = patch(cells)
         x0, y0, x1, y1 = shape.bounds
-        if shape.geom_type != "Polygon" or not shape.interiors or x0 < 2 * CELL or y0 < 2 * CELL or x1 > W - 2 * CELL or y1 > H - 2 * CELL:
+        if (
+            shape.geom_type != "Polygon"
+            or not shape.interiors
+            or x0 < 2 * CELL
+            or y0 < 2 * CELL
+            or x1 > W - 2 * CELL
+            or y1 > H - 2 * CELL
+        ):
             continue
         d = (shape.centroid.x - fx) ** 2 + (shape.centroid.y - fy) ** 2
         if d < best_d:
@@ -77,7 +89,9 @@ def draw(s):
     inside = set(pick(regions(a, b)))
 
     def seg(d, x0, y0, x1, y1):
-        d.M(x0 + (x1 - x0) * GAP, y0 + (y1 - y0) * GAP).L(x0 + (x1 - x0) * (1 - GAP), y0 + (y1 - y0) * (1 - GAP))
+        d.M(x0 + (x1 - x0) * GAP, y0 + (y1 - y0) * GAP).L(
+            x0 + (x1 - x0) * (1 - GAP), y0 + (y1 - y0) * (1 - GAP)
+        )
 
     # a stitch on the patch boundary (cells on either side differ in membership) is sewn in accent
     plain, hot = P(), P()

@@ -32,7 +32,9 @@ class Report:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     templates: dict[str, str] = field(default_factory=dict)  # build/ file name -> normalised svg
-    entries: dict[str, dict] = field(default_factory=dict)  # "<aspect>/<regime>" -> {file, n, coefs, occ}
+    entries: dict[str, dict] = field(
+        default_factory=dict
+    )  # "<aspect>/<regime>" -> {file, n, coefs, occ}
     cells: list[float] = field(default_factory=list)
     probes: dict[str, str] = field(default_factory=dict)
 
@@ -71,9 +73,13 @@ def render(slug: str, theme: str | Theme, aspect: str) -> str:
     try:
         return common.render(slug, theme_spec(theme), aspect)
     except Exception as e:  # whatever a design raises fails the check
-        frames = [f for f in traceback.extract_tb(e.__traceback__) if Path(f.filename).name == "design.py"]
+        frames = [
+            f for f in traceback.extract_tb(e.__traceback__) if Path(f.filename).name == "design.py"
+        ]
         where = f" (design.py line {frames[-1].lineno})" if frames else ""
-        raise DesignError(f"{aspect}: render under {fit.label(theme)} failed: {type(e).__name__}: {e}{where}") from e
+        raise DesignError(
+            f"{aspect}: render under {fit.label(theme)} failed: {type(e).__name__}: {e}{where}"
+        ) from e
 
 
 class _Renders:
@@ -112,7 +118,9 @@ def _determinism(slug: str, aspects: list[str], regimes: list[str], renders: _Re
             theme = _basis.BASIS[regime][0]
             first = renders(aspect, theme)
             if render(slug, theme, aspect) != first:
-                errors.append(f"{aspect}: two renders under {fit.label(theme)} differ (unseeded randomness?)")
+                errors.append(
+                    f"{aspect}: two renders under {fit.label(theme)} differ (unseeded randomness?)"
+                )
             expected[f"{slug}@{aspect}@{fit.label(theme)}"] = hashing.sha256(first.encode())
     if errors:
         return errors
@@ -159,9 +167,13 @@ def check_slug(slug: str) -> Report:
             w, h = walldye.canvas_size(aspect)
             for theme in template_themes:
                 if (got := common.viewbox(renders(aspect, theme))) != f"0 0 {w} {h}":
-                    report.errors.append(f'{aspect}: viewBox under {theme} must be "0 0 {w} {h}", not {got!r}')
+                    report.errors.append(
+                        f'{aspect}: viewBox under {theme} must be "0 0 {w} {h}", not {got!r}'
+                    )
         for aspect in piece_aspects:
-            templates, entries, errors = fit.fit_aspect(partial(renders, aspect), aspect, piece_regimes)
+            templates, entries, errors = fit.fit_aspect(
+                partial(renders, aspect), aspect, piece_regimes
+            )
             report.templates.update(templates)
             report.entries.update(entries)
             report.errors += errors
@@ -169,7 +181,9 @@ def check_slug(slug: str) -> Report:
             errors, warnings = lint.svg(text)
             report.errors += [f"{name}: {e}" for e in errors]
             report.warnings += [f"{name}: {w}" for w in warnings]
-        grids = {a: [g for t in template_themes for g in renders.grids[(a, t)]] for a in piece_aspects}
+        grids = {
+            a: [g for t in template_themes for g in renders.grids[(a, t)]] for a in piece_aspects
+        }
         report.cells = sorted({cell for g in grids.values() for cell, _, _ in g})
         report.warnings += [f"{a}: {w}" for a, g in grids.items() for w in lint.pixel_origins(g)]
         report.probes = probe_hashes(partial(renders, "16:9"), piece_regimes)
@@ -180,7 +194,10 @@ def check_slug(slug: str) -> Report:
 
 def print_report(report: Report) -> None:
     status = f"{len(report.errors)} error(s)" if report.errors else "ok"
-    print(f"{report.slug}: {status}" + (f", {len(report.warnings)} warning(s)" if report.warnings else ""))
+    print(
+        f"{report.slug}: {status}"
+        + (f", {len(report.warnings)} warning(s)" if report.warnings else "")
+    )
     for e in report.errors:
         print(f"  error: {e}")
     for w in report.warnings:

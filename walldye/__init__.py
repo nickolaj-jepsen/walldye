@@ -140,7 +140,9 @@ def set_theme(spec: str | dict[str, str] | None = None) -> dict[str, str]:
     global THEME, GREYS, ACCENTS
     THEME = theme_tokens(spec) if isinstance(spec, dict) else parse_theme(spec)
     globals().update({k.upper(): v for k, v in THEME.items()})
-    GREYS = [THEME[k] for k in ("black", "bg_deep", "bg", "bg_alt", "ui", "ui_alt", "ui_hi", "muted")]
+    GREYS = [
+        THEME[k] for k in ("black", "bg_deep", "bg", "bg_alt", "ui", "ui_alt", "ui_hi", "muted")
+    ]
     # bg-ward → accent: the ramp most designs step through.
     ACCENTS = [THEME[f"accent_{i}"] for i in range(8, 0, -1)] + [THEME["accent"]]
     reset_pixel_grids()
@@ -212,7 +214,7 @@ def lerp(a: float, b: float, t: float) -> float:
 
 
 def clamp(v: float, lo: float = 0.0, hi: float = 1.0) -> float:
-    return lo if v < lo else hi if v > hi else v
+    return lo if v < lo else min(v, hi)
 
 
 def smoothstep(e0: float, e1: float, x: float) -> float:
@@ -351,7 +353,11 @@ class Svg:
         return markup
 
     def el(self, tag: str, _content: str | None = None, **kw) -> str:
-        m = f"<{tag}{_attrs(kw)}/>" if _content is None else f"<{tag}{_attrs(kw)}>{_content}</{tag}>"
+        m = (
+            f"<{tag}{_attrs(kw)}/>"
+            if _content is None
+            else f"<{tag}{_attrs(kw)}>{_content}</{tag}>"
+        )
         return self.raw(m)
 
     def rect(self, x, y, w, h, **kw):
@@ -392,21 +398,29 @@ class Svg:
         """`stops`: [(offset, color[, opacity])]. Returns a `url(#id)` paint."""
         gid = self.uid("lg")
         s = "".join(
-            f'<stop offset="{fmt(o, 3)}" stop-color="{c}"' + (f' stop-opacity="{fmt(rest[0], 3)}"' if rest else "") + "/>"
+            f'<stop offset="{fmt(o, 3)}" stop-color="{c}"'
+            + (f' stop-opacity="{fmt(rest[0], 3)}"' if rest else "")
+            + "/>"
             for o, c, *rest in stops
         )
         u = f' gradientUnits="{units}"' if units else ""
-        self.defs(f'<linearGradient id="{gid}" x1="{fmt(x1, 3)}" y1="{fmt(y1, 3)}" x2="{fmt(x2, 3)}" y2="{fmt(y2, 3)}"{u}>{s}</linearGradient>')
+        self.defs(
+            f'<linearGradient id="{gid}" x1="{fmt(x1, 3)}" y1="{fmt(y1, 3)}" x2="{fmt(x2, 3)}" y2="{fmt(y2, 3)}"{u}>{s}</linearGradient>'
+        )
         return f"url(#{gid})"
 
     def radial_gradient(self, stops, cx=0.5, cy=0.5, r=0.5, units: str | None = None) -> str:
         gid = self.uid("rg")
         s = "".join(
-            f'<stop offset="{fmt(o, 3)}" stop-color="{c}"' + (f' stop-opacity="{fmt(rest[0], 3)}"' if rest else "") + "/>"
+            f'<stop offset="{fmt(o, 3)}" stop-color="{c}"'
+            + (f' stop-opacity="{fmt(rest[0], 3)}"' if rest else "")
+            + "/>"
             for o, c, *rest in stops
         )
         u = f' gradientUnits="{units}"' if units else ""
-        self.defs(f'<radialGradient id="{gid}" cx="{fmt(cx, 3)}" cy="{fmt(cy, 3)}" r="{fmt(r, 3)}"{u}>{s}</radialGradient>')
+        self.defs(
+            f'<radialGradient id="{gid}" cx="{fmt(cx, 3)}" cy="{fmt(cy, 3)}" r="{fmt(r, 3)}"{u}>{s}</radialGradient>'
+        )
         return f"url(#{gid})"
 
     def clip(self, markup: str) -> str:
@@ -418,14 +432,18 @@ class Svg:
     def mask(self, markup: str) -> str:
         """Define a mask (white = visible) from raw markup; returns `url(#id)`."""
         mid = self.uid("m")
-        self.defs(f'<mask id="{mid}" maskUnits="userSpaceOnUse" x="0" y="0" width="{self.w}" height="{self.h}">{markup}</mask>')
+        self.defs(
+            f'<mask id="{mid}" maskUnits="userSpaceOnUse" x="0" y="0" width="{self.w}" height="{self.h}">{markup}</mask>'
+        )
         return f"url(#{mid})"
 
     def pattern(self, w, h, markup: str, transform: str | None = None) -> str:
         """Tile `markup` on a w×h userSpace grid; returns `url(#id)`."""
         pid = self.uid("p")
         t = f' patternTransform="{transform}"' if transform else ""
-        self.defs(f'<pattern id="{pid}" width="{fmt(w, 3)}" height="{fmt(h, 3)}" patternUnits="userSpaceOnUse"{t}>{markup}</pattern>')
+        self.defs(
+            f'<pattern id="{pid}" width="{fmt(w, 3)}" height="{fmt(h, 3)}" patternUnits="userSpaceOnUse"{t}>{markup}</pattern>'
+        )
         return f"url(#{pid})"
 
     def to_string(self) -> str:
@@ -484,7 +502,11 @@ class Noise:
         A, B = p[xi] + yi, p[xi + 1] + yi
         AA, AB, BA, BB = p[A] + zi, p[A + 1] + zi, p[B] + zi, p[B + 1] + zi
         return lerp(
-            lerp(lerp(g(p[AA], xf, yf, zf), g(p[BA], xf - 1, yf, zf), u), lerp(g(p[AB], xf, yf - 1, zf), g(p[BB], xf - 1, yf - 1, zf), u), v),
+            lerp(
+                lerp(g(p[AA], xf, yf, zf), g(p[BA], xf - 1, yf, zf), u),
+                lerp(g(p[AB], xf, yf - 1, zf), g(p[BB], xf - 1, yf - 1, zf), u),
+                v,
+            ),
             lerp(
                 lerp(g(p[AA + 1], xf, yf, zf - 1), g(p[BA + 1], xf - 1, yf, zf - 1), u),
                 lerp(g(p[AB + 1], xf, yf - 1, zf - 1), g(p[BB + 1], xf - 1, yf - 1, zf - 1), u),
@@ -493,7 +515,9 @@ class Noise:
             w,
         )
 
-    def fbm(self, x: float, y: float, octaves: int = 4, lacunarity: float = 2.0, gain: float = 0.5) -> float:
+    def fbm(
+        self, x: float, y: float, octaves: int = 4, lacunarity: float = 2.0, gain: float = 0.5
+    ) -> float:
         amp, freq, total, norm = 1.0, 1.0, 0.0, 0.0
         for _ in range(octaves):
             total += amp * self(x * freq, y * freq)
@@ -503,7 +527,9 @@ class Noise:
         return total / norm
 
 
-def noise_grid(cols: int, rows: int, scale: float, seed: int = 0, octaves: int = 1, gain: float = 0.5):
+def noise_grid(
+    cols: int, rows: int, scale: float, seed: int = 0, octaves: int = 1, gain: float = 0.5
+):
     """numpy (rows, cols) fBm Perlin field in ~[-1, 1]; `scale` is the base feature size in cells."""
     import numpy as np
 
@@ -515,7 +541,10 @@ def noise_grid(cols: int, rows: int, scale: float, seed: int = 0, octaves: int =
         gx, gy = int(cols / s) + 2, int(rows / s) + 2
         ang = r.uniform(0, 2 * np.pi, (gy, gx))
         # The random offset can push x0 + 1 one past the lattice; wrap one extra cell.
-        vx, vy = np.pad(np.cos(ang), ((0, 1), (0, 1)), mode="wrap"), np.pad(np.sin(ang), ((0, 1), (0, 1)), mode="wrap")
+        vx, vy = (
+            np.pad(np.cos(ang), ((0, 1), (0, 1)), mode="wrap"),
+            np.pad(np.sin(ang), ((0, 1), (0, 1)), mode="wrap"),
+        )
         x = np.arange(cols) / s + r.uniform(0, 1)
         y = np.arange(rows) / s + r.uniform(0, 1)
         X, Y = np.meshgrid(x, y)
@@ -528,7 +557,9 @@ def noise_grid(cols: int, rows: int, scale: float, seed: int = 0, octaves: int =
         u = fx * fx * fx * (fx * (fx * 6 - 15) + 10)
         v = fy * fy * fy * (fy * (fy * 6 - 15) + 10)
         n0 = dot(x0, y0, fx, fy) + u * (dot(x0 + 1, y0, fx - 1, fy) - dot(x0, y0, fx, fy))
-        n1 = dot(x0, y0 + 1, fx, fy - 1) + u * (dot(x0 + 1, y0 + 1, fx - 1, fy - 1) - dot(x0, y0 + 1, fx, fy - 1))
+        n1 = dot(x0, y0 + 1, fx, fy - 1) + u * (
+            dot(x0 + 1, y0 + 1, fx - 1, fy - 1) - dot(x0, y0 + 1, fx, fy - 1)
+        )
         out += amp * (n0 + v * (n1 - n0)) * 1.41
         norm += amp
         amp *= gain
@@ -549,12 +580,17 @@ def bayer(n: int) -> list[list[float]]:
     m = BAYER2
     while len(m) < n:
         k = len(m)
-        m = [[4 * m[y % k][x % k] + BAYER2[y // k][x // k] for x in range(2 * k)] for y in range(2 * k)]
+        m = [
+            [4 * m[y % k][x % k] + BAYER2[y // k][x // k] for x in range(2 * k)]
+            for y in range(2 * k)
+        ]
     size = len(m) ** 2
     return [[(v + 0.5) / size for v in row] for row in m]
 
 
-def grid_runs(s: Svg, grid, colors, cell: float, ox: float = 0, oy: float = 0, skip: int | None = 0, **kw) -> None:
+def grid_runs(
+    s: Svg, grid, colors, cell: float, ox: float = 0, oy: float = 0, skip: int | None = 0, **kw
+) -> None:
     """Emit a 2D index grid as one merged-run <path class="px"> per color index.
 
     `grid[row][col]` indexes `colors`; index `skip` (default 0 = background) is not drawn.
@@ -571,7 +607,9 @@ def grid_runs(s: Svg, grid, colors, cell: float, ox: float = 0, oy: float = 0, s
                 k += 1
             if c is not None and c != skip:
                 x, y, w = ox + i * cell, oy + j * cell, (k - i) * cell
-                by_color.setdefault(c, []).append(f"M{fmt(x)} {fmt(y)}h{fmt(w)}v{fmt(cell)}h{fmt(-w)}z")
+                by_color.setdefault(c, []).append(
+                    f"M{fmt(x)} {fmt(y)}h{fmt(w)}v{fmt(cell)}h{fmt(-w)}z"
+                )
             i = k
     if by_color:
         _PIXEL_GRIDS.append((cell, ox, oy))
@@ -582,23 +620,70 @@ def grid_runs(s: Svg, grid, colors, cell: float, ox: float = 0, oy: float = 0, s
 DIFFUSION = {
     "fs": [(1, 0, 7), (-1, 1, 3), (0, 1, 5), (1, 1, 1)],
     "atkinson": [(1, 0, 1), (2, 0, 1), (-1, 1, 1), (0, 1, 1), (1, 1, 1), (0, 2, 1)],
-    "jarvis": [(1, 0, 7), (2, 0, 5), (-2, 1, 3), (-1, 1, 5), (0, 1, 7), (1, 1, 5), (2, 1, 3),
-               (-2, 2, 1), (-1, 2, 3), (0, 2, 5), (1, 2, 3), (2, 2, 1)],
-    "stucki": [(1, 0, 8), (2, 0, 4), (-2, 1, 2), (-1, 1, 4), (0, 1, 8), (1, 1, 4), (2, 1, 2),
-               (-2, 2, 1), (-1, 2, 2), (0, 2, 4), (1, 2, 2), (2, 2, 1)],
+    "jarvis": [
+        (1, 0, 7),
+        (2, 0, 5),
+        (-2, 1, 3),
+        (-1, 1, 5),
+        (0, 1, 7),
+        (1, 1, 5),
+        (2, 1, 3),
+        (-2, 2, 1),
+        (-1, 2, 3),
+        (0, 2, 5),
+        (1, 2, 3),
+        (2, 2, 1),
+    ],
+    "stucki": [
+        (1, 0, 8),
+        (2, 0, 4),
+        (-2, 1, 2),
+        (-1, 1, 4),
+        (0, 1, 8),
+        (1, 1, 4),
+        (2, 1, 2),
+        (-2, 2, 1),
+        (-1, 2, 2),
+        (0, 2, 4),
+        (1, 2, 2),
+        (2, 2, 1),
+    ],
     "burkes": [(1, 0, 8), (2, 0, 4), (-2, 1, 2), (-1, 1, 4), (0, 1, 8), (1, 1, 4), (2, 1, 2)],
-    "sierra": [(1, 0, 5), (2, 0, 3), (-2, 1, 2), (-1, 1, 4), (0, 1, 5), (1, 1, 4), (2, 1, 2),
-               (-1, 2, 2), (0, 2, 3), (1, 2, 2)],
+    "sierra": [
+        (1, 0, 5),
+        (2, 0, 3),
+        (-2, 1, 2),
+        (-1, 1, 4),
+        (0, 1, 5),
+        (1, 1, 4),
+        (2, 1, 2),
+        (-1, 2, 2),
+        (0, 2, 3),
+        (1, 2, 2),
+    ],
     "sierra-lite": [(1, 0, 2), (-1, 1, 1), (0, 1, 1)],
 }
 # Divisors per kernel; atkinson deliberately drops 1/4 of the error (its high-contrast look).
-DIFFUSION_DIV = {"fs": 16, "atkinson": 8, "jarvis": 48, "stucki": 42, "burkes": 32, "sierra": 32, "sierra-lite": 4}
+DIFFUSION_DIV = {
+    "fs": 16,
+    "atkinson": 8,
+    "jarvis": 48,
+    "stucki": 42,
+    "burkes": 32,
+    "sierra": 32,
+    "sierra-lite": 4,
+}
 
 # 8x8 clustered-dot threshold order (dots grow from the centre, like a print halftone screen).
 CLUSTERED8 = [
-    [24, 10, 12, 26, 35, 47, 49, 37], [8, 0, 2, 14, 45, 59, 61, 51], [22, 6, 4, 16, 43, 57, 63, 53],
-    [30, 20, 18, 28, 33, 41, 55, 39], [34, 46, 48, 36, 25, 11, 13, 27], [44, 58, 60, 50, 9, 1, 3, 15],
-    [42, 56, 62, 52, 23, 7, 5, 17], [32, 40, 54, 38, 31, 21, 19, 29],
+    [24, 10, 12, 26, 35, 47, 49, 37],
+    [8, 0, 2, 14, 45, 59, 61, 51],
+    [22, 6, 4, 16, 43, 57, 63, 53],
+    [30, 20, 18, 28, 33, 41, 55, 39],
+    [34, 46, 48, 36, 25, 11, 13, 27],
+    [44, 58, 60, 50, 9, 1, 3, 15],
+    [42, 56, 62, 52, 23, 7, 5, 17],
+    [32, 40, 54, 38, 31, 21, 19, 29],
 ]
 
 
@@ -690,7 +775,16 @@ def _hilbert(order: int):
         yield x, y
 
 
-def dither(value, cols: int, rows: int, levels: int, method: str = "bayer", matrix: int = 4, seed: int = 0, serpentine: bool = False) -> list[list[int]]:
+def dither(
+    value,
+    cols: int,
+    rows: int,
+    levels: int,
+    method: str = "bayer",
+    matrix: int = 4,
+    seed: int = 0,
+    serpentine: bool = False,
+) -> list[list[int]]:
     """Quantise `value(col, row) -> [0,1]` to indices 0..levels-1.
 
     Ordered (threshold mask): 'bayer' (crisp crosshatch, `matrix` = 2/4/8/16), 'clustered'
@@ -758,10 +852,24 @@ def glyph(ch: str, font: str = "8x16") -> list[list[bool]]:
     rows = table.get(ord(ch))
     if rows is None:
         return [[False] * w for _ in range(h)]
-    return [[bool(int(rows[2 * j : 2 * j + 2], 16) >> (w - 1 - i) & 1) for i in range(w)] for j in range(h)]
+    return [
+        [bool(int(rows[2 * j : 2 * j + 2], 16) >> (w - 1 - i) & 1) for i in range(w)]
+        for j in range(h)
+    ]
 
 
-def glyphs(s: "Svg", lines, color, font: str = "8x16", px: int = 2, x: float = 0, y: float = 0, gap: int = 0, key=None, **kw) -> None:
+def glyphs(
+    s: Svg,
+    lines,
+    color,
+    font: str = "8x16",
+    px: int = 2,
+    x: float = 0,
+    y: float = 0,
+    gap: int = 0,
+    key=None,
+    **kw,
+) -> None:
     """Render a character grid as crisp pixels (one merged <path class="px"> per group).
 
     `lines`: list of strings (one per text row). `color`: a single colour, or
@@ -797,7 +905,9 @@ def glyphs(s: "Svg", lines, color, font: str = "8x16", px: int = 2, x: float = 0
                         k = i
                         while k < fw and row[k]:
                             k += 1
-                        out.append(f"M{fmt(ox + i * px)} {fmt(oy + j * px)}h{fmt((k - i) * px)}v{fmt(px)}h{fmt(-(k - i) * px)}z")
+                        out.append(
+                            f"M{fmt(ox + i * px)} {fmt(oy + j * px)}h{fmt((k - i) * px)}v{fmt(px)}h{fmt(-(k - i) * px)}z"
+                        )
                         i = k
                     else:
                         i += 1
@@ -807,7 +917,7 @@ def glyphs(s: "Svg", lines, color, font: str = "8x16", px: int = 2, x: float = 0
         s.path("".join(d), fill=fill, class_="px", **kw)
 
 
-def sprite(s: "Svg", art, palette: dict, cell: float, x: float = 0, y: float = 0, **kw) -> None:
+def sprite(s: Svg, art, palette: dict, cell: float, x: float = 0, y: float = 0, **kw) -> None:
     """Draw pixel art: `art` is a multi-line string (or list of rows), one char per pixel.
 
     `palette` maps chars to colors; unmapped chars ('.', ' ') are transparent. Drawn by
@@ -852,12 +962,23 @@ def contours(field, level: float, cell: float = 1.0, ox: float = 0, oy: float = 
                 continue
             top, right, bottom, left = ("h", i, j), ("v", i + 1, j), ("h", i, j + 1), ("v", i, j)
             table = {
-                1: [(left, bottom)], 2: [(bottom, right)], 3: [(left, right)], 4: [(top, right)],
-                6: [(top, bottom)], 7: [(left, top)], 8: [(left, top)], 9: [(top, bottom)],
-                11: [(top, right)], 12: [(left, right)], 13: [(bottom, right)], 14: [(left, bottom)],
+                1: [(left, bottom)],
+                2: [(bottom, right)],
+                3: [(left, right)],
+                4: [(top, right)],
+                6: [(top, bottom)],
+                7: [(left, top)],
+                8: [(left, top)],
+                9: [(top, bottom)],
+                11: [(top, right)],
+                12: [(left, right)],
+                13: [(bottom, right)],
+                14: [(left, bottom)],
             }
             if idx in (5, 10):
-                centre = (field[j][i] + field[j][i + 1] + field[j + 1][i] + field[j + 1][i + 1]) / 4 > level
+                centre = (
+                    field[j][i] + field[j][i + 1] + field[j + 1][i] + field[j + 1][i + 1]
+                ) / 4 > level
                 if (idx == 5) == centre:
                     segs = [(left, top), (bottom, right)]
                 else:
@@ -902,7 +1023,15 @@ def sample_field(fn, cols: int, rows: int):
     return [[fn(i, j) for i in range(cols + 1)] for j in range(rows + 1)]
 
 
-def poisson_disk(r: random.Random, width: float, height: float, radius: float, k: int = 30, x0: float = 0, y0: float = 0):
+def poisson_disk(
+    r: random.Random,
+    width: float,
+    height: float,
+    radius: float,
+    k: int = 30,
+    x0: float = 0,
+    y0: float = 0,
+):
     """Bridson Poisson-disk samples with min spacing `radius` inside the box."""
     cs = radius / math.sqrt(2)
     gw, gh = int(width / cs) + 1, int(height / cs) + 1
@@ -936,5 +1065,3 @@ def poisson_disk(r: random.Random, width: float, height: float, radius: float, k
         else:
             active.pop(idx)
     return [(x + x0, y + y0) for x, y in out]
-
-

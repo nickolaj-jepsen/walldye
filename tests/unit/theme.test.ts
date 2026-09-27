@@ -161,7 +161,7 @@ describe('token order', () => {
   const py = readFileSync(`${ROOT}walldye/__init__.py`, 'utf8');
 
   it('GREYS follows walldye.GREYS', () => {
-    const tuple = /GREYS = \[THEME\[k\] for k in \(([^)]*)\)\]/.exec(py);
+    const tuple = /GREYS = \[\s*THEME\[k\] for k in \(([^)]*)\)\s*\]/.exec(py);
     expect(tuple).not.toBeNull();
     expect([...tuple![1].matchAll(/"(\w+)"/g)].map((m) => m[1])).toEqual(GREYS);
   });

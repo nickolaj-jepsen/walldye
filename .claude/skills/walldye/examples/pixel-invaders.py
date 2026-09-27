@@ -2,7 +2,20 @@
 
 import math
 
-from walldye import ACCENT, ACCENT_2, ACCENT_3, ACCENT_4, ACCENT_5, BG_ALT, UI, H, W, mix, rng, sprite
+from walldye import (
+    ACCENT,
+    ACCENT_2,
+    ACCENT_3,
+    ACCENT_4,
+    ACCENT_5,
+    BG_ALT,
+    UI,
+    H,
+    W,
+    mix,
+    rng,
+    sprite,
+)
 
 ASPECTS = ["any"]
 
@@ -10,15 +23,27 @@ U = min(W, H) / 1080  # short-side unit: sizes stay constant relative to the scr
 PX = 6 * U
 DX, DY = 16 * PX, 10 * PX  # formation pitch
 
-SQUID = ("...##...|..####..|.######.|##.##.##|########|..#..#..|.#.##.#.|#.#..#.#",
-         "...##...|..####..|.######.|##.##.##|########|.#.##.#.|#......#|.#....#.")
-CRAB = ("..#.....#..|...#...#...|..#######..|.##.###.##.|###########|#.#######.#|#.#.....#.#|...##.##...",
-        "..#.....#..|#..#...#..#|#.#######.#|###.###.###|###########|.#########.|..#.....#..|.#.......#.")
-OCTO = ("....####....|.##########.|############|###..##..###|############|...##..##...|..##.##.##..|##........##",
-        "....####....|.##########.|############|###..##..###|############|..###..###..|.##..##..##.|..##....##..")
+SQUID = (
+    "...##...|..####..|.######.|##.##.##|########|..#..#..|.#.##.#.|#.#..#.#",
+    "...##...|..####..|.######.|##.##.##|########|.#.##.#.|#......#|.#....#.",
+)
+CRAB = (
+    "..#.....#..|...#...#...|..#######..|.##.###.##.|###########|#.#######.#|#.#.....#.#|...##.##...",
+    "..#.....#..|#..#...#..#|#.#######.#|###.###.###|###########|.#########.|..#.....#..|.#.......#.",
+)
+OCTO = (
+    "....####....|.##########.|############|###..##..###|############|...##..##...|..##.##.##..|##........##",
+    "....####....|.##########.|############|###..##..###|############|..###..###..|.##..##..##.|..##....##..",
+)
 CANNON = "......#......|.....###.....|.....###.....|.###########.|#############|#############|#############|#############"
 ROWS = (SQUID, CRAB, CRAB, OCTO, OCTO)
-TONES = (BG_ALT, mix(BG_ALT, UI, 0.5), mix(BG_ALT, UI, 0.5), UI, UI)  # formation fades toward the back
+TONES = (
+    BG_ALT,
+    mix(BG_ALT, UI, 0.5),
+    mix(BG_ALT, UI, 0.5),
+    UI,
+    UI,
+)  # formation fades toward the back
 
 
 def art(a):
@@ -28,14 +53,19 @@ def art(a):
 def bunker(r):
     """22x16 arch shield: bomb craters bitten from the top edge, one shot-hole above the arch."""
     bites = [(r.randrange(8, 14), 10, 2.2)]
-    bites += [(r.randrange(3, 19), r.choice((0, 1)), r.uniform(1.6, 2.6)) for _ in range(r.randint(1, 3))]
+    bites += [
+        (r.randrange(3, 19), r.choice((0, 1)), r.uniform(1.6, 2.6)) for _ in range(r.randint(1, 3))
+    ]
     rows = []
     for y in range(16):
         row = ""
         for x in range(22):
             corner = y < 4 and (x < 4 - y or x > 17 + y)
             arch = y >= 12 and 6 <= x <= 15 or y >= 11 and 7 <= x <= 14
-            hit = any(math.hypot(x - cx, (y - cy) * 1.2) < rad + r.uniform(-0.6, 0.6) for cx, cy, rad in bites)
+            hit = any(
+                math.hypot(x - cx, (y - cy) * 1.2) < rad + r.uniform(-0.6, 0.6)
+                for cx, cy, rad in bites
+            )
             row += "." if corner or arch or hit else "#"
         rows.append(row)
     return rows
@@ -66,7 +96,9 @@ def draw(s):
         for c in range(cols):
             if (j, c) != gap:
                 a = art(frames[(j + c) % 2])
-                sprite(s, a, {"#": TONES[j]}, PX, x0 + c * DX + (12 - len(a[0])) // 2 * PX, y0 + j * DY)
+                sprite(
+                    s, a, {"#": TONES[j]}, PX, x0 + c * DX + (12 - len(a[0])) // 2 * PX, y0 + j * DY
+                )
 
     # the player's end is pinned to the bottom edge; shields repeat out from the cannon while they fit,
     # leaning left so the space under the diver stays quiet
@@ -77,7 +109,9 @@ def draw(s):
         if margin <= bx - 11 * PX and bx + 11 * PX <= W - margin:
             sprite(s, bunker(r), {"#": mix(BG_ALT, UI, 0.6)}, PX, bx - 11 * PX, floor - 32 * PX)
     sprite(s, art(CANNON), {"#": UI}, PX, slot[0] - 6 * PX, floor - 10 * PX)
-    s.rect(slot[0], floor - 24 * PX, PX, 3 * PX, fill=UI)  # the shot, aimed up the diver's empty column
+    s.rect(
+        slot[0], floor - 24 * PX, PX, 3 * PX, fill=UI
+    )  # the shot, aimed up the diver's empty column
     s.rect(margin, floor, W - 2 * margin, PX, fill=BG_ALT)
 
     # taller screens get a longer dive, so the crab still lands mid-field

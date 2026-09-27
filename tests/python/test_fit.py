@@ -40,11 +40,15 @@ def test_predict_rounds_half_to_even_and_clamps():
     half = np.array([[0.5, 0, 0, 0, 0, 0]])
     assert fit.predict(half, ("#850000", "#000000", "#000000"))[0, 0] == 66  # 66.5
     assert fit.predict(half, ("#870000", "#000000", "#000000"))[0, 0] == 68  # 67.5
-    assert fit.predict(np.array([[0, 0, 0, 300, -4, 0]]), ("#000000",) * 3).tolist() == [[255, 0, 0]]
+    assert fit.predict(np.array([[0, 0, 0, 300, -4, 0]]), ("#000000",) * 3).tolist() == [
+        [255, 0, 0]
+    ]
 
 
 def test_constant_threshold():
-    rows = np.array([[0, 0, 0, 255, 255, 255], [0.001, 0.001, 0.001, 0, 0, 0], [0.004, 0, 0, 0, 0, 0]])
+    rows = np.array(
+        [[0, 0, 0, 255, 255, 255], [0.001, 0.001, 0.001, 0, 0, 0], [0.004, 0, 0, 0, 0, 0]]
+    )
     assert fit.constant(rows).tolist() == [True, True, False]
 
 
@@ -107,10 +111,14 @@ def test_collision_needs_per_occurrence_slots(wallpapers):
 
     per_hex = regen.per_hex("collision")
     rows = np.array(per_hex["coefs"])[per_hex["occ"]]
-    worst = max(np.abs(fit.predict(rows, t) - fit.colours(render(t))).max() for t in _basis.HELD_OUT["dark"])
+    worst = max(
+        np.abs(fit.predict(rows, t) - fit.colours(render(t))).max() for t in _basis.HELD_OUT["dark"]
+    )
     assert worst > fit.MAX_ERROR
 
 
-@pytest.mark.parametrize(("a", "b", "where"), [("abc\ndef", "abc\ndxf", "line 2"), ("abc", "abcd", "line 1")])
+@pytest.mark.parametrize(
+    ("a", "b", "where"), [("abc\ndef", "abc\ndxf", "line 2"), ("abc", "abcd", "line 1")]
+)
 def test_first_diff(a, b, where):
     assert fit.first_diff(a, b).startswith(f"{where}: ")

@@ -65,7 +65,9 @@ def load_meta(slug: str) -> dict:
     except yaml.YAMLError as e:
         mark = getattr(e, "problem_mark", None)
         where = f" (line {mark.line + 1})" if mark else ""
-        raise ValueError(f"{path}: not valid YAML{where}: {getattr(e, 'problem', None) or e}") from e
+        raise ValueError(
+            f"{path}: not valid YAML{where}: {getattr(e, 'problem', None) or e}"
+        ) from e
     if meta is None:
         return {}
     if not isinstance(meta, dict):
@@ -107,10 +109,14 @@ def design_aspects(slug: str) -> list[str]:
             except ValueError:
                 value = None
             if not isinstance(value, (list, tuple)) or not all(isinstance(a, str) for a in value):
-                raise ValueError(f"{path}: ASPECTS must be a literal list of strings, like [\"any\"] or [\"16:9\", \"21:9\"]")
+                raise ValueError(
+                    f'{path}: ASPECTS must be a literal list of strings, like ["any"] or ["16:9", "21:9"]'
+                )
             for a in value:
                 if a != "any" and not is_aspect(a):
-                    raise ValueError(f"{path}: ASPECTS entry {a!r} is not \"any\" or an aspect like 16:9")
+                    raise ValueError(
+                        f'{path}: ASPECTS entry {a!r} is not "any" or an aspect like 16:9'
+                    )
             return list(value)
     return list(DEFAULT_ASPECTS)
 
@@ -154,13 +160,19 @@ def _render_legacy(d: Path, aspect: str) -> str:
     theme = walldye.THEME
     try:
         values = {
-            normalise_seed(c): theme[v] if isinstance(v, str) else walldye.mix(theme[v[0]], theme[v[1]], v[2])
+            normalise_seed(c): theme[v]
+            if isinstance(v, str)
+            else walldye.mix(theme[v[0]], theme[v[1]], v[2])
             for c, v in palette.items()
         }
     except (KeyError, IndexError, TypeError) as e:
-        raise ValueError(f"{d / 'palette.yaml'}: entries must be a token or [token, token, t] ({e!r})") from e
+        raise ValueError(
+            f"{d / 'palette.yaml'}: entries must be a token or [token, token, t] ({e!r})"
+        ) from e
     source = (d / "source.svg").read_text()
-    return substitute(source, [values.get(c, source[start:end]) for start, end, c in find_colours(source)])
+    return substitute(
+        source, [values.get(c, source[start:end]) for start, end, c in find_colours(source)]
+    )
 
 
 def viewbox(svg: str) -> str | None:

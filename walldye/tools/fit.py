@@ -92,7 +92,10 @@ def _regions(svg: str) -> list[tuple[int, int, tuple[tuple[str, str | None], ...
                 pass
             continue
         ident = _ID.search(m.group("attrs"))
-        chain = (*stack, (name, ident and (ident.group(1) if ident.group(1) is not None else ident.group(2))))
+        chain = (
+            *stack,
+            (name, ident and (ident.group(1) if ident.group(1) is not None else ident.group(2))),
+        )
         out.append((m.start(), m.end(), chain))
         if not m.group("empty"):
             stack.append(chain[-1])
@@ -158,12 +161,20 @@ def slot_rule(svg: str, rows: list[list[float]], occ: list[int]) -> list[str]:
         elif not c and m:
             themed.setdefault(colour, []).append(start)
     return [
-        *(f"hardcoded {c} ×{len(at)} (line {_line(svg, at[0])}): use a token or mix(); constant colours belong only in <mask>/<clipPath>" for c, at in hard.items()),
-        *(f"theme-dependent {c} ×{len(at)} in mask content (line {_line(svg, at[0])}): masks take #fff/#000 only" for c, at in themed.items()),
+        *(
+            f"hardcoded {c} ×{len(at)} (line {_line(svg, at[0])}): use a token or mix(); constant colours belong only in <mask>/<clipPath>"
+            for c, at in hard.items()
+        ),
+        *(
+            f"theme-dependent {c} ×{len(at)} in mask content (line {_line(svg, at[0])}): masks take #fff/#000 only"
+            for c, at in themed.items()
+        ),
     ]
 
 
-def fit_aspect(render: Render, aspect: str, regimes: list[str]) -> tuple[dict[str, str], dict[str, dict], list[str]]:
+def fit_aspect(
+    render: Render, aspect: str, regimes: list[str]
+) -> tuple[dict[str, str], dict[str, dict], list[str]]:
     """Fit one native aspect of a design for each of `regimes` ("dark", optionally "light").
 
     `render(theme)` returns the design's SVG at `aspect` under a preset name or seed triple.
@@ -188,7 +199,9 @@ def fit_aspect(render: Render, aspect: str, regimes: list[str]) -> tuple[dict[st
         if differ:
             role, t, s = differ[0]
             more = f" (and {len(differ) - 1} more)" if len(differ) > 1 else ""
-            errors.append(f"{aspect} {regime}: geometry changes with the theme: {role} {label(t)} differs from {ref_theme}{more}, {first_diff(ref_skeleton, s)}")
+            errors.append(
+                f"{aspect} {regime}: geometry changes with the theme: {role} {label(t)} differs from {ref_theme}{more}, {first_diff(ref_skeleton, s)}"
+            )
             continue
 
         if regime == "dark" or ref_skeleton == dark_skeleton:

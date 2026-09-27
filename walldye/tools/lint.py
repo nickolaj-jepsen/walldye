@@ -54,17 +54,28 @@ def svg(text: str) -> tuple[list[str], list[str]]:
     if "image" in tags:
         errors.append("<image> is not allowed: templates are self-contained vectors")
     size = len(text.encode())
-    for value, hard, soft, what in ((size, MAX_BYTES, WARN_BYTES, f"{size:,} bytes"), (len(tags), MAX_ELEMENTS, WARN_ELEMENTS, f"{len(tags)} elements")):
+    for value, hard, soft, what in (
+        (size, MAX_BYTES, WARN_BYTES, f"{size:,} bytes"),
+        (len(tags), MAX_ELEMENTS, WARN_ELEMENTS, f"{len(tags)} elements"),
+    ):
         if value > hard:
-            errors.append(f"{what} is over the limit of {hard:,}; merge shapes into one <path> per colour")
+            errors.append(
+                f"{what} is over the limit of {hard:,}; merge shapes into one <path> per colour"
+            )
         elif value > soft:
-            warnings.append(f"{what} is heavy (over {soft:,}); merge shapes into one <path> per colour")
+            warnings.append(
+                f"{what} is heavy (over {soft:,}); merge shapes into one <path> per colour"
+            )
     return errors, warnings
 
 
 def colour_words(text: str) -> set[str]:
     """Colour words in `text`, lowercased; ALL-CAPS words (token names like ORANGE_DARK) are not prose."""
-    return {w.lower() for w in re.findall(r"\b[A-Za-z]+\b", text) if w.lower() in COLOUR_WORDS and not w.isupper()}
+    return {
+        w.lower()
+        for w in re.findall(r"\b[A-Za-z]+\b", text)
+        if w.lower() in COLOUR_WORDS and not w.isupper()
+    }
 
 
 def source(path: Path) -> tuple[list[str], list[str]]:
@@ -78,18 +89,38 @@ def source(path: Path) -> tuple[list[str], list[str]]:
         if isinstance(node, ast.ImportFrom) and node.level:
             errors.append(f"line {node.lineno}: relative import; designs are single files")
             continue
-        names = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module] if isinstance(node, ast.ImportFrom) else []
+        names = (
+            [a.name for a in node.names]
+            if isinstance(node, ast.Import)
+            else [node.module]
+            if isinstance(node, ast.ImportFrom)
+            else []
+        )
         for name in names:
             top = name.split(".")[0]
             if top not in sys.stdlib_module_names and top not in DESIGN_IMPORTS:
-                errors.append(f"line {node.lineno}: imports {name}; designs may import the standard library and {', '.join(DESIGN_IMPORTS)}")
+                errors.append(
+                    f"line {node.lineno}: imports {name}; designs may import the standard library and {', '.join(DESIGN_IMPORTS)}"
+                )
     for call in COLOUR_CALLS:
         if call in text:
-            warnings.append(f"uses {call.rstrip('(')}: branch only on is_light() and colour only with tokens and mix()")
-    docs = [ast.get_docstring(n) or "" for n in ast.walk(tree) if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))]
-    comments = [t.string for t in py_tokenize.generate_tokens(io.StringIO(text).readline) if t.type == py_tokenize.COMMENT]
+            warnings.append(
+                f"uses {call.rstrip('(')}: branch only on is_light() and colour only with tokens and mix()"
+            )
+    docs = [
+        ast.get_docstring(n) or ""
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
+    comments = [
+        t.string
+        for t in py_tokenize.generate_tokens(io.StringIO(text).readline)
+        if t.type == py_tokenize.COMMENT
+    ]
     if words := colour_words("\n".join(docs + comments)):
-        warnings.append(f"colour words in docstrings or comments: {', '.join(sorted(words))} (name tokens or roles, never hues)")
+        warnings.append(
+            f"colour words in docstrings or comments: {', '.join(sorted(words))} (name tokens or roles, never hues)"
+        )
     return errors, warnings
 
 
@@ -98,7 +129,9 @@ def license_of(meta: dict) -> str | None:
     no recreation source, else None (no licence can be resolved)."""
     if meta.get("license"):
         return meta["license"]
-    recreation = any(isinstance(s, dict) and s.get("kind") == "recreation" for s in meta.get("sources") or [])
+    recreation = any(
+        isinstance(s, dict) and s.get("kind") == "recreation" for s in meta.get("sources") or []
+    )
     return DEFAULT_LICENSE if meta.get("ai_generated") is True and not recreation else None
 
 
@@ -143,9 +176,13 @@ def meta(slug: str, m: dict, taxonomy: dict[str, set[str]] | None) -> tuple[list
         elif m.get("ai_generated") is not True:
             errors.append("human-made pieces need an explicit license:")
     if (licence := license_of(m)) and not (LICENSES / f"{licence}.txt").is_file():
-        errors.append(f"license {licence!r} has no LICENSES/{licence}.txt; add the licence text or fix the id")
+        errors.append(
+            f"license {licence!r} has no LICENSES/{licence}.txt; add the licence text or fix the id"
+        )
     franchise = m.get("franchise")
-    if m.get("license") == FAN_WORK and not (isinstance(franchise, dict) and franchise.get("title") and franchise.get("owner")):
+    if m.get("license") == FAN_WORK and not (
+        isinstance(franchise, dict) and franchise.get("title") and franchise.get("owner")
+    ):
         errors.append(f"license {FAN_WORK} needs franchise: {{title, owner}}")
     if m.get("model") and m.get("ai_generated") is not True:
         errors.append("model: is only for ai_generated pieces")
@@ -159,7 +196,9 @@ def meta(slug: str, m: dict, taxonomy: dict[str, set[str]] | None) -> tuple[list
                 continue
             for v in values:
                 if v not in allowed:
-                    errors.append(f"{facet}: {v!r} is not in taxonomy.yaml (suggest it under proposed_facets)")
+                    errors.append(
+                        f"{facet}: {v!r} is not in taxonomy.yaml (suggest it under proposed_facets)"
+                    )
     if m.get("proposed_facets") and not common.is_draft(m):
         errors.append("proposed_facets are only allowed while draft: true")
     return errors, warnings + copy_words(m)
@@ -167,13 +206,19 @@ def meta(slug: str, m: dict, taxonomy: dict[str, set[str]] | None) -> tuple[list
 
 def copy_words(m: dict) -> list[str]:
     """A warning naming the colour words in the title, description and notes of meta.yaml `m`, or []."""
-    if words := colour_words("\n".join(str(m.get(k) or "") for k in ("title", "description", "notes"))):
-        return [f"colour words in meta.yaml copy: {', '.join(sorted(words))} (describe the shape or what it picks out, without naming colours)"]
+    if words := colour_words(
+        "\n".join(str(m.get(k) or "") for k in ("title", "description", "notes"))
+    ):
+        return [
+            f"colour words in meta.yaml copy: {', '.join(sorted(words))} (describe the shape or what it picks out, without naming colours)"
+        ]
     return []
 
 
 def pixel_origins(grids: list[tuple[float, float, float]]) -> list[str]:
     """Warnings for pixel helper grids (walldye.pixel_grids()) whose origin is not a whole unit."""
     off = sorted({(x, y, cell) for cell, x, y in grids if x % 1 or y % 1})
-    return [f"pixel grid origin ({x:g}, {y:g}) is not a whole unit; snap it to the {cell:g}-unit cell grid" for x, y, cell in off]
-
+    return [
+        f"pixel grid origin ({x:g}, {y:g}) is not a whole unit; snap it to the {cell:g}-unit cell grid"
+        for x, y, cell in off
+    ]

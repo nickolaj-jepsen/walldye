@@ -37,7 +37,9 @@ def piece(wallpapers, slug, design=TINY, **meta):
     d = wallpapers / slug
     d.mkdir()
     (d / "design.py").write_text(design)
-    new.write_meta(slug, {"title": slug.capitalize(), "description": "A test piece.", "draft": True, **meta})
+    new.write_meta(
+        slug, {"title": slug.capitalize(), "description": "A test piece.", "draft": True, **meta}
+    )
     return d
 
 
@@ -71,7 +73,9 @@ def fake_tokenize(monkeypatch):
     module(
         monkeypatch,
         "tokenize",
-        find_colours=lambda svg: [(m.start(1), m.end(1), m.group(1).upper()) for m in pat.finditer(svg)],
+        find_colours=lambda svg: [
+            (m.start(1), m.end(1), m.group(1).upper()) for m in pat.finditer(svg)
+        ],
         skeleton=lambda svg: pat.sub(lambda m: m.group(0).replace(m.group(1), "#"), svg),
     )
 
@@ -115,7 +119,13 @@ def fake_build(monkeypatch):
         return json.loads((common.build_dir(slug) / "slots.json").read_text())
 
     module(
-        monkeypatch, "build", load_slots=load_slots, select=select, recolour=recolour, write_index=write_index, run=run
+        monkeypatch,
+        "build",
+        load_slots=load_slots,
+        select=select,
+        recolour=recolour,
+        write_index=write_index,
+        run=run,
     )
     return calls
 
@@ -133,7 +143,10 @@ def review_files(tmp_path, monkeypatch):
 
 
 def test_new_scaffolds_a_draft(wallpapers, capsys):
-    assert cli.main(["new", "ring-one", "--author", "Claude Opus 5.5", "--model", "claude-opus-5-5"]) == 0
+    assert (
+        cli.main(["new", "ring-one", "--author", "Claude Opus 5.5", "--model", "claude-opus-5-5"])
+        == 0
+    )
     d = wallpapers / "ring-one"
     assert capsys.readouterr().out.strip() == str(d)
     text = (d / "meta.yaml").read_text()
@@ -179,7 +192,10 @@ def test_render_names_file_after_slug_token_and_aspect(wallpapers, tmp_path, mon
     assert f.read_text() == common.render("tiny", "nord", "21:9")
     assert 'viewBox="0 0 2520 1080"' in f.read_text()
 
-    assert cli.main(["render", "tiny", "--theme", "1c1b1b-dad8ce-cf6a4c", "--crop", "100,50,400,300"]) == 0
+    assert (
+        cli.main(["render", "tiny", "--theme", "1c1b1b-dad8ce-cf6a4c", "--crop", "100,50,400,300"])
+        == 0
+    )
     cropped = (out / "tiny-1c1b1b-dad8ce-cf6a4c-16x9-crop.svg").read_text()
     assert cropped.startswith(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 50 400 300" width="400" height="300">'
@@ -245,7 +261,12 @@ def test_render_refuses_build_dirs_and_undeclared_aspects(wallpapers, tmp_path):
 def test_preview_writes_png_and_reports(wallpapers, tmp_path, monkeypatch, capsys, fake_lint):
     piece(wallpapers, "tiny")
     monkeypatch.setenv("WALLDYE_PREVIEW", str(tmp_path / "prev"))
-    assert cli.main(["preview", "tiny", "--theme", "flexoki-light", "--aspect", "9:19.5", "--width", "400"]) == 0
+    assert (
+        cli.main(
+            ["preview", "tiny", "--theme", "flexoki-light", "--aspect", "9:19.5", "--width", "400"]
+        )
+        == 0
+    )
     lines = capsys.readouterr().out.splitlines()
     png = tmp_path / "prev/tiny-flexoki-light-9x19.5.png"
     assert lines == [
@@ -281,12 +302,15 @@ def test_preview_prints_lint_lines(wallpapers, tmp_path, monkeypatch, capsys, fa
     ]
     # Judged under nord, the render's theme: its hardcoded accent #88C0D0 is on the palette.
     assert re.fullmatch(
-        r"hint: 1 colour\(s\) off the theme, hardcoded unless inside a mask: #FF00FF \(Δ\d+\)", lines[4]
+        r"hint: 1 colour\(s\) off the theme, hardcoded unless inside a mask: #FF00FF \(Δ\d+\)",
+        lines[4],
     )
     assert lines[5] == "lint: 1 error(s), 3 warning(s)"
 
 
-def test_preview_dark_only_and_undeclared_aspect(wallpapers, tmp_path, monkeypatch, capsys, fake_lint):
+def test_preview_dark_only_and_undeclared_aspect(
+    wallpapers, tmp_path, monkeypatch, capsys, fake_lint
+):
     piece(wallpapers, "flat", FLAT, themes=["dark"])
     monkeypatch.setenv("WALLDYE_PREVIEW", str(tmp_path))
     assert cli.main(["preview", "flat", "--aspect", "21:9", "--width", "200"]) == 0
@@ -336,7 +360,11 @@ def test_crop_parsing():
 def test_check_and_build_wiring(wallpapers, monkeypatch, fake_build):
     piece(wallpapers, "tiny")
     runs = []
-    module(monkeypatch, "check", run=lambda slugs, all=False, set_mode=False: runs.append((slugs, all, set_mode)) or 3)
+    module(
+        monkeypatch,
+        "check",
+        run=lambda slugs, all=False, set_mode=False: runs.append((slugs, all, set_mode)) or 3,
+    )
     assert cli.main(["check", "tiny", "--set"]) == 3
     assert cli.main(["check", "--all"]) == 3
     assert runs == [(["tiny"], False, True), ([], True, False)]
@@ -344,8 +372,20 @@ def test_check_and_build_wiring(wallpapers, monkeypatch, fake_build):
     assert cli.main(["build", "tiny"]) == 0
     assert cli.main(["build", "--all", "--verify"]) == 0
     assert cli.main(["build", "tiny", "--force"]) == 0
-    assert fake_build["run"] == [([], False, True, False), (["tiny"], False, False, False), ([], True, True, False), (["tiny"], False, False, True)]
-    for bad in (["check"], ["check", "--all", "tiny"], ["build"], ["sheet"], ["check", "missing"], ["check", "Bad"]):
+    assert fake_build["run"] == [
+        ([], False, True, False),
+        (["tiny"], False, False, False),
+        ([], True, True, False),
+        (["tiny"], False, False, True),
+    ]
+    for bad in (
+        ["check"],
+        ["check", "--all", "tiny"],
+        ["build"],
+        ["sheet"],
+        ["check", "missing"],
+        ["check", "Bad"],
+    ):
         with pytest.raises(SystemExit) as e:
             cli.main(bad)
         assert e.value.code == 2
@@ -388,13 +428,19 @@ def test_themes_fixture(tmp_path, monkeypatch, capsys):
         assert all(list(e["tokens"]) == list(walldye.TOKENS) for e in entries)
         assert all(e["tokens"] == walldye.derive_theme(e["seeds"]) for e in entries)
     edges = [(e["seeds"]["bg"], e["seeds"]["fg"], e["light"]) for e in fx["edges"]]
-    assert edges == [("#808080", "#808080", False), ("#777777", "#787878", False), ("#787878", "#777777", True)]
+    assert edges == [
+        ("#808080", "#808080", False),
+        ("#777777", "#787878", False),
+        ("#787878", "#777777", True),
+    ]
     assert cli.main(["themes", "--json"]) == 0
     assert json.loads(listing.FIXTURE.read_text()) == fx
 
 
 def test_committed_themes_fixture_is_current():
-    assert json.loads(listing.FIXTURE.read_text()) == listing.fixture(), "run uv run walldye themes --json"
+    assert json.loads(listing.FIXTURE.read_text()) == listing.fixture(), (
+        "run uv run walldye themes --json"
+    )
 
 
 def test_themes_prints_tokens(capsys):
@@ -411,7 +457,21 @@ def test_sheet_recolours_through_slots(wallpapers, tmp_path, capsys, fake_build)
     piece(wallpapers, "unbuilt")
     (built(wallpapers, "half") / "build/slots.json").unlink()
     out = tmp_path / "s.png"
-    args = ["sheet", "a", "b", "unbuilt", "half", "--theme", "flexoki-light", "--cols", "1", "--thumb", "160", "-o", str(out)]
+    args = [
+        "sheet",
+        "a",
+        "b",
+        "unbuilt",
+        "half",
+        "--theme",
+        "flexoki-light",
+        "--cols",
+        "1",
+        "--thumb",
+        "160",
+        "-o",
+        str(out),
+    ]
     assert cli.main(args) == 0
     captured = capsys.readouterr()
     assert captured.out.strip() == str(out)
@@ -425,7 +485,10 @@ def test_sheet_recolours_through_slots(wallpapers, tmp_path, capsys, fake_build)
 
 def test_themed_leaves_fireproof_untouched(wallpapers, fake_build):
     d = built(wallpapers, "a")
-    assert sheet.themed("a", walldye.parse_seeds("1C1B1A-DAD8CE-CF6A4C")) == (d / "build/16x9.svg").read_text()
+    assert (
+        sheet.themed("a", walldye.parse_seeds("1C1B1A-DAD8CE-CF6A4C"))
+        == (d / "build/16x9.svg").read_text()
+    )
     assert sheet.themed("a", walldye.parse_seeds("nord")).endswith("<!--nord--></svg>\n")
     assert fake_build["recolour"] == [("dark", walldye.parse_seeds("nord"))]
 
@@ -454,7 +517,10 @@ def test_apply_publishes_and_settles_facets(wallpapers, review_files, fake_build
         "a": {"status": "approved"},
         "b": {
             "status": "approved",
-            "facets": {"technique": {"weave": "accept", "stipple": "decline"}, "subject": {"moon": "accept"}},
+            "facets": {
+                "technique": {"weave": "accept", "stipple": "decline"},
+                "subject": {"moon": "accept"},
+            },
         },
         "c": {"status": "approved", "facets": {"subject": {}}},
         "d": {"status": "rejected", "note": "too busy"},
@@ -504,12 +570,18 @@ def serve(monkeypatch, capsys, slugs, timeout=30):
 
 def http(url, data=None):
     body = None if data is None else json.dumps(data).encode()
-    with urllib.request.urlopen(urllib.request.Request(url, data=body, method="POST" if body else "GET")) as r:
+    with urllib.request.urlopen(
+        urllib.request.Request(url, data=body, method="POST" if body else "GET")
+    ) as r:
         return r.read()
 
 
 def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys, fake_build, fake_lint):
-    built(wallpapers, "a", sources=[{"kind": "inspiration", "title": "</script><b>x", "author": "Someone"}])
+    built(
+        wallpapers,
+        "a",
+        sources=[{"kind": "inspiration", "title": "</script><b>x", "author": "Someone"}],
+    )
     d = built(wallpapers, "b", proposed_facets={"subject": ["moon"]}, ai_generated=True)
     (d / "build/16x9.light.svg").write_text("<svg>light</svg>")
     (d / "build/21x9.svg").write_text("<svg>wide</svg>")
@@ -528,10 +600,18 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys, fake_b
         "light/a.svg",
         "svg/b/16x9.light.svg",
     )
-    assert b["strip"] == [{"aspect": "21:9", "src": "svg/b/21x9.svg"}] and b["proposed"] == {"subject": ["moon"]}
+    assert b["strip"] == [{"aspect": "21:9", "src": "svg/b/21x9.svg"}] and b["proposed"] == {
+        "subject": ["moon"]
+    }
     assert http(url + "svg/b/21x9.svg") == b"<svg>wide</svg>"
     assert http(url + "light/a.svg").decode().endswith("<!--flexoki-light--></svg>\n")
-    for missing in ("svg/published/16x9.svg", "svg/a/slots.json", "svg/a/..%2Fmeta.yaml", "light/b.svg.bak", "nope"):
+    for missing in (
+        "svg/published/16x9.svg",
+        "svg/a/slots.json",
+        "svg/a/..%2Fmeta.yaml",
+        "light/b.svg.bak",
+        "nope",
+    ):
         with pytest.raises(urllib.error.HTTPError):
             http(url + missing)
 
@@ -565,7 +645,9 @@ def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, ca
     sent = json.loads(e.value.read())
     printed = finish(code=1)
     assert printed == sent
-    assert printed["finished"] is False and printed["published"] == [] and printed["approved"] == ["a"]
+    assert (
+        printed["finished"] is False and printed["published"] == [] and printed["approved"] == ["a"]
+    )
     assert printed["error"] == f"ValueError: {common.TAXONOMY}: technique must be a list of values"
     assert meta("a")["draft"] is True and fake_build["write_index"] == 0
 

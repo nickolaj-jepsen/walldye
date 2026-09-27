@@ -10,7 +10,9 @@ ASPECTS = ["any"]
 
 U = min(W, H) / 1080  # the moon and its dither cell scale with the short side, never the long one
 R, CELL = 270 * U, 3 * U
-PHASE = math.radians(58)  # sun angle from the viewer; >0 lights from the right, terminator on the left
+PHASE = math.radians(
+    58
+)  # sun angle from the viewer; >0 lights from the right, terminator on the left
 MAX_TONE = 0.75  # keep BG showing through even the brightest limb
 
 
@@ -37,28 +39,39 @@ def draw(s):
 
     # Albedo carries the texture: dark maria (upper half, like the near side) and bright ejecta.
     mare = 1.6 * noise_grid(size, size, 60, seed=4, octaves=3) + 0.3 * (-v) - 0.1
-    mare += blobs(u, v, [(-0.1, -0.35, 0.22, 0.5), (0.3, -0.05, 0.16, 0.45), (-0.35, 0.05, 0.14, 0.35)])
-    albedo = 0.95 - 0.62 * np.clip((mare - 0.02) * 2.8, 0, 1) + 0.08 * noise_grid(size, size, 6, seed=11, octaves=2)
+    mare += blobs(
+        u, v, [(-0.1, -0.35, 0.22, 0.5), (0.3, -0.05, 0.16, 0.45), (-0.35, 0.05, 0.14, 0.35)]
+    )
+    albedo = (
+        0.95
+        - 0.62 * np.clip((mare - 0.02) * 2.8, 0, 1)
+        + 0.08 * noise_grid(size, size, 6, seed=11, octaves=2)
+    )
 
     rng = np.random.default_rng(3)
-    albedo += blobs(u, v, [(*rng.uniform(-0.8, 0.8, 2), rng.uniform(0.015, 0.04), 0.4) for _ in range(18)])
+    albedo += blobs(
+        u, v, [(*rng.uniform(-0.8, 0.8, 2), rng.uniform(0.015, 0.04), 0.4) for _ in range(18)]
+    )
 
     # Tycho-like ray crater low on the disc: bright halo plus thin rays.
     tx, ty = 0.2, 0.6
     ang = np.arctan2(v - ty, u - tx)
     dist = np.hypot(u - tx, v - ty)
     rays = sum(
-        np.exp(-(((ang - a + np.pi) % (2 * np.pi) - np.pi) * dist / 0.014) ** 2) * np.exp(-dist / w)
+        np.exp(-((((ang - a + np.pi) % (2 * np.pi) - np.pi) * dist / 0.014) ** 2))
+        * np.exp(-dist / w)
         for a, w in zip(rng.uniform(-np.pi, np.pi, 18), rng.uniform(0.15, 0.45, 18))
     )
-    albedo += 0.3 * np.clip(rays, 0, 1) + 0.45 * np.exp(-(dist / 0.06) ** 2)
+    albedo += 0.3 * np.clip(rays, 0, 1) + 0.45 * np.exp(-((dist / 0.06) ** 2))
 
     lam = np.clip((u * math.sin(PHASE) + z * math.cos(PHASE)) * 3 + 0.2, 0, 1) ** 0.8
     limb = 1 - 0.35 * np.clip((rr - 0.88) / 0.12, 0, 1)
     tone = np.clip(lam * albedo * limb * 0.62, 0, MAX_TONE)
     tone = np.maximum(tone, 0.07)  # faint earthshine on the dark side
     if is_light():
-        tone = 0.8 * (MAX_TONE - tone)  # on paper, ink the shadows instead: a pencil moon, not a negative
+        tone = 0.8 * (
+            MAX_TONE - tone
+        )  # on paper, ink the shadows instead: a pencil moon, not a negative
     tone = np.where(inside, tone, 0)
 
     grid = np.array(dither(lambda i, j: tone[j, i], size, size, 2, "bluenoise", seed=5))

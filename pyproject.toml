@@ -30,4 +30,17 @@ testpaths = ["tests/python"]
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "ruff>=0.16.9",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["import", "scripts/fonts/.cache"]
+
+[tool.ruff.lint]
+# Import sorting counts as formatting; the rest is ruff's default rule set.
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["walldye"]

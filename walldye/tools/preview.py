@@ -40,7 +40,10 @@ def palette_hints(svg: str) -> list[str]:
     token hull (probably hardcoded; a fast stand-in for check's constant-slot rule), or []."""
     from walldye.tools.tokenize import find_colours
 
-    off = sorted(((walldye.palette_distance(c), c) for c in {c for _, _, c in find_colours(svg)}), reverse=True)
+    off = sorted(
+        ((walldye.palette_distance(c), c) for c in {c for _, _, c in find_colours(svg)}),
+        reverse=True,
+    )
     off = [(d, c) for d, c in off if d > HINT_TOL]
     if not off:
         return []
@@ -90,11 +93,17 @@ def _inkscape(svg: str, width: int, crop: Crop | None) -> Image.Image:
     with tempfile.TemporaryDirectory() as d:
         src, png = Path(d, "in.svg"), Path(d, "out.png")
         src.write_text(common.crop_svg(svg, crop) if crop else svg)
-        subprocess.run(["inkscape", "-w", str(width), str(src), "-o", str(png)], check=True, capture_output=True)
+        subprocess.run(
+            ["inkscape", "-w", str(width), str(src), "-o", str(png)],
+            check=True,
+            capture_output=True,
+        )
         return Image.open(png).convert("RGB")
 
 
-def run(slug: str, seeds: dict[str, str], aspect: str, crop: Crop | None, width: int, renderer: str) -> int:
+def run(
+    slug: str, seeds: dict[str, str], aspect: str, crop: Crop | None, width: int, renderer: str
+) -> int:
     """Render `slug` under `seeds` at `aspect` and write `<slug>-<token>-<aspect>[-crop-X-Y-W-H].png`
     to preview_dir(), `width` px on its long side (of `crop`, when given). Prints lint lines, the
     regime, whether light geometry differs, then the PNG path last. Design errors propagate;
@@ -122,7 +131,11 @@ def run(slug: str, seeds: dict[str, str], aspect: str, crop: Crop | None, width:
     for label, lines in (("error", errors), ("warning", warnings), ("hint", hints)):
         for line in lines:
             print(f"{label}: {line}")
-    print("lint: ok" if not (errors or warnings) else f"lint: {len(errors)} error(s), {len(warnings)} warning(s)")
+    print(
+        "lint: ok"
+        if not (errors or warnings)
+        else f"lint: {len(errors)} error(s), {len(warnings)} warning(s)"
+    )
     regime = "light" if _theme.is_light(seeds["bg"], seeds["fg"]) else "dark"
     print(f"regime: {regime} ({token})")
     print(f"light geometry: {_light_geometry(slug, aspect, svg, token)}")

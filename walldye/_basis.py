@@ -114,7 +114,8 @@ _PRESET_SEEDS = [tuple(PRESETS[name][k] for k in SEEDS) for name in PRESETS if n
 
 # Predicted within 2 RGB units or build fails: every preset but fireproof, corners, random.
 HELD_OUT: dict[str, list[Theme]] = {
-    r: [t for t in _PRESET_SEEDS if regime(t) == r] + _CORNERS[r] + _HELD_OUT_RANDOM[r] for r in ("dark", "light")
+    r: [t for t in _PRESET_SEEDS if regime(t) == r] + _CORNERS[r] + _HELD_OUT_RANDOM[r]
+    for r in ("dark", "light")
 }
 
 # Skeleton check only, never fitted. Collapse: every token lands on (nearly) one hex, so
