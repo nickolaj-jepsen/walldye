@@ -1,0 +1,11 @@
+title: Synthwave sunset
+description: A sun cut by widening gaps sets between low ridges over a perspective grid floor.
+technique: [line, flat]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: reference
+    topic: Synthwave
+    url: https://en.wikipedia.org/wiki/Synthwave
+added: 2026-09-27
+model: claude-opus-5-5

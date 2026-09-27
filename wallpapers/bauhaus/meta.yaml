@@ -1,0 +1,11 @@
+title: Bauhaus study
+description: Two discs rest on a ruled line, one large and one faint. A tall rectangle covers the large one's right half.
+technique: [flat]
+subject: []
+lineage: [modernism]
+sources:
+  - kind: reference
+    topic: Bauhaus
+    url: https://en.wikipedia.org/wiki/Bauhaus
+added: 2026-09-27
+model: claude-opus-5-5

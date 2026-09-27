@@ -1,0 +1,13 @@
+title: Hilbert curve
+description: A Hilbert curve fills the frame in thin lines, one stretch drawn heavier.
+technique: [line]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: Über die stetige Abbildung einer Linie auf ein Flächenstück
+    author: David Hilbert
+    year: 1891
+    lang: de
+added: 2026-09-27
+model: claude-opus-5-5

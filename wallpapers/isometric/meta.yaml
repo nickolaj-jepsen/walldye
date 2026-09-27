@@ -1,0 +1,11 @@
+title: Isometric cubes
+description: Isometric cubes floor the screen. Right of centre, a hexagon of 36 is filled in, inside a circle shaded one step apart.
+technique: [tiling, flat]
+subject: []
+lineage: []
+sources:
+  - kind: reference
+    topic: Isometric projection
+    url: https://en.wikipedia.org/wiki/Isometric_projection
+added: 2026-09-27
+model: claude-opus-5-5

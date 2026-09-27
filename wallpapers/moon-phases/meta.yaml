@@ -1,0 +1,11 @@
+title: Moon phases
+description: Nine moons on a thin line, from new to full and back again. Only their sunlit parts are filled in.
+technique: [flat]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    topic: Lunar phase
+    url: https://en.wikipedia.org/wiki/Lunar_phase
+added: 2026-09-27
+model: claude-opus-5-5
