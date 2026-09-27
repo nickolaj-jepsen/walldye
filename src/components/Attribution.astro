@@ -1,0 +1,26 @@
+---
+/**
+ * The caption's attribution: "after {author}, {title}, {year}" for recreations, "suggested by
+ * {author}, {title}" for inspirations, several joined with "and", missing fields dropped. Renders
+ * nothing for pieces whose sources are only references or data.
+ */
+import { captionSources, type Piece } from '../lib/content';
+
+interface Props {
+  piece: Piece;
+  /** Add a footnote reference after each source (the detail page's label). */
+  refs?: boolean;
+}
+const { piece, refs = false } = Astro.props;
+const caption = captionSources(piece);
+const lead = caption?.kind === 'recreation' ? 'after ' : 'suggested by ';
+const items = (caption?.items ?? []).map(({ source: s, n }, i) => ({
+  before: `${i > 0 ? ' and ' : ''}${s.author ?? ''}${s.author && s.title ? ', ' : ''}`,
+  title: s.title,
+  lang: s.lang,
+  after: caption?.kind === 'recreation' && s.year !== undefined ? `, ${s.year}` : '',
+  n,
+}));
+---
+
+{caption && lead}{items.map((it) => <Fragment>{it.before}{it.title && <i lang={it.lang}>{it.title}</i>}{it.after}{refs && <sup><a href={`#fn${it.n}`} id={`fnref${it.n}`} aria-label={`Source ${it.n}`}>{it.n}</a></sup>}</Fragment>)}

@@ -1,0 +1,54 @@
+---
+/**
+ * The detail page's "Colours and export" column (SPEC 6.9), rendered for fireproof at 16:9 with
+ * the default size and format; the client keeps it in step with the theme and the choices made
+ * (src/scripts/DOM.md).
+ */
+import { DEFAULT_PRESET } from './presets';
+import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, EXPORT_SIZES, FORMATS, SITE_ASPECTS, downloadName, type Piece } from '../lib/content';
+
+interface Props {
+  piece: Piece;
+}
+const { piece: p } = Astro.props;
+const seeds = [
+  { seed: 'bg', value: DEFAULT_PRESET.bg, role: 'background' },
+  { seed: 'fg', value: DEFAULT_PRESET.fg, role: 'foreground' },
+  { seed: 'accent', value: DEFAULT_PRESET.accent, role: 'accent' },
+] as const;
+const sizes = EXPORT_SIZES['16:9'];
+const size = sizes[DEFAULT_SIZE_INDEX];
+const format = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!;
+const file = downloadName(p.slug, DEFAULT_PRESET.name, format, size, '16:9', false);
+---
+
+<section class="controls" aria-label="Colours and export">
+  <section aria-labelledby="theme-h">
+    <h2 id="theme-h" class="sc">Colours</h2>
+    <ul class="seedlist">
+      {seeds.map((s) => <li><span class="chip" style={`--c:var(--seed-${s.seed})`} /><span class="mono" data-seed={s.seed}>{s.value}</span><span class="role">{s.role}</span></li>)}
+    </ul>
+    <p class="actions"><button type="button" class="textbtn" popovertarget="picker">Change</button><button type="button" class="textbtn" data-action="copy-link">Copy link</button></p>
+  </section>
+
+  <section id="export" aria-labelledby="export-h" data-license={p.licence}>
+    <h2 id="export-h" class="sc">Export</h2>
+    <div class="row"><span class="k">Format</span><div class="seg" role="radiogroup" aria-label="Format">{FORMATS.map((f) => <label><input type="radio" name="fmt" value={f.value} data-ext={f.ext} checked={f === format} /><span>{f.label}</span></label>)}</div><span class="sub hint" id="format-hint" hidden>This browser can’t make WebP files.</span></div>
+    <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint" hidden>cropped from <span class="mono">16:9</span></span></div>
+    <div class="row center" id="crop-row" hidden><span class="k">Crop</span><input class="range" id="crop" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="Crop position" /></div>
+    <div class="row"><span class="k">Size</span><div class="seg" id="sizes" role="radiogroup" aria-label="Size">{sizes.map((s) => <label><input type="radio" name="size" value={s} checked={s === size} /><span><span class="mono">{s.replace('x', '×')}</span></span></label>)}<label><input type="radio" name="size" value="screen" /><span>your screen</span></label></div><span class="sub hint" id="size-limit" hidden>This browser can’t draw a file that large.</span><span class="sub hint lnum" id="cell-note" hidden></span></div>
+    <button type="button" class="download row" id="download"><span class="k">Download</span><span class="file"><span class="mono" id="download-name">{file}</span></span></button>
+    <p class="row" aria-live="polite"><span class="sub msg err" id="export-error"></span></p>
+  </section>
+</section>
+
+<style>
+  /* A format or size the browser cannot make (the client disables it) fades to the guarded --text-dim. */
+  .seg :global(input:disabled + span) {
+    color: var(--text-dim);
+    cursor: default;
+  }
+  .seg :global(label:has(input:disabled)) {
+    cursor: default;
+  }
+</style>

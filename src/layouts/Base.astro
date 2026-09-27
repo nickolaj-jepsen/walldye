@@ -1,0 +1,82 @@
+---
+/**
+ * Page shell shared by every page: head (meta, canonical, Open Graph, fonts, theme boot, site.css),
+ * skip link, the `.page` frame with the masthead, `<main id="main">` and the theme picker.
+ *
+ * Slots: `head` (extra head elements), default (the main content), `after` (inside `.page`
+ * after the picker: page scripts).
+ */
+import { Font } from 'astro:assets';
+import Masthead from '../components/Masthead.astro';
+import Picker from '../components/Picker.astro';
+import { themeBootScript } from '../lib/theme-boot-script';
+import '../styles/site.css';
+
+interface Props {
+  /** Page title; the document title is "<title> · Walldye", or "Walldye" when omitted. */
+  title?: string;
+  /** Meta and Open Graph description. */
+  description: string;
+  /** Social card image as a site path such as `/og/schotter.jpg` (1200x630); switches the card to summary_large_image. */
+  image?: string;
+  /** Open Graph type. */
+  ogType?: 'website' | 'article';
+  /** Class on `<main id="main">`: `index`, `detail` or `about`. */
+  mainClass?: string;
+  /** Nav entry marked as the current page. */
+  nav?: 'index' | 'about';
+  /** Keep the page out of search results and give it no canonical URL (the 404 page, served at every missing address). */
+  noindex?: boolean;
+}
+
+const { title, description, image, ogType = 'website', mainClass, nav, noindex = false } = Astro.props;
+const docTitle = title ? `${title} · Walldye` : 'Walldye';
+
+// build.format 'file' serves /about from about.html; the canonical URL drops the extension, the index and any query.
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') || '/';
+const canonical = noindex ? undefined : new URL(path, Astro.site).href;
+const imageUrl = image ? new URL(image, Astro.site).href : undefined;
+const themeBoot = await themeBootScript(!import.meta.env.DEV);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* THEME BOOT (src/lib/theme-boot.ts): keep it the first script, ahead of every stylesheet, so it never waits on CSS. */}
+    <script is:inline set:html={themeBoot} />
+    <title>{docTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:site_name" content="Walldye" />
+    <meta property="og:title" content={title ?? 'Walldye'} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {imageUrl && <meta property="og:image" content={imageUrl} />}
+    {imageUrl && <meta property="og:image:width" content="1200" />}
+    {imageUrl && <meta property="og:image:height" content="630" />}
+    <meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+    <Font cssVariable="--serif" preload={[{ style: 'normal' }]} />
+    <Font cssVariable="--mono" preload />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="page">
+      <Masthead current={nav} />
+      <main id="main" class={mainClass}>
+        <slot />
+      </main>
+      <Picker />
+      <script>
+        import '../scripts/site.ts';
+      </script>
+      <slot name="after" />
+    </div>
+  </body>
+</html>

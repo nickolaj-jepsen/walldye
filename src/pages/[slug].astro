@@ -1,0 +1,143 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Attribution from '../components/Attribution.astro';
+import Controls from '../components/Controls.astro';
+import Footnotes from '../components/Footnotes.astro';
+import PlateBox from '../components/PlateBox.astro';
+import SourceCode from '../components/SourceCode.astro';
+import Base from '../layouts/Base.astro';
+import { captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery, isDarkOnly } from '../lib/content';
+import { LICENCE_LINES, TAKEDOWN_CONTACT, UNLISTED, facetLabel, type TaxonomyFacet } from '../lib/labels';
+import { DEFAULT_LICENSE, FAN_WORK } from '../lib/meta';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('wallpapers');
+  const groups = filterGroups(entries.map((e) => e.data));
+  // Facts link to the index only for values it offers as filters.
+  const filters = new Set(groups.flatMap((g) => g.entries.map((e) => `${g.facet}:${e.value}`)));
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry, filters } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'wallpapers'>;
+  filters: Set<string>;
+}
+
+const { entry, filters } = Astro.props;
+const p = entry.data;
+const { Content } = await render(entry);
+const hasNotes = Boolean(entry.rendered?.html);
+
+const facts = (facet: TaxonomyFacet) =>
+  p[facet]
+    .filter((v) => !UNLISTED[facet].includes(v))
+    .map((v) => ({ label: facetLabel(facet, v)!, href: filters.has(`${facet}:${v}`) ? indexQuery(facet, v) : undefined }));
+const technique = facts('technique');
+const lineage = facts('lineage');
+const aspectsText = p.aspects.join(', ');
+
+// Figures inside names ("Opus 5.5") take lining numerals.
+const credit = `${p.ai_generated ? 'Made with' : 'Made by'} ${p.author}`.split(/(\S*\d\S*)/).map((text, i) => ({ text, lnum: i % 2 === 1 }));
+const fanWork = p.licence === FAN_WORK ? p.franchise : undefined;
+const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LICENCE_LINES[p.licence] : undefined;
+---
+
+<Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} ogType="article" mainClass="detail">
+  <figure class="spread">
+    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div></PlateBox>
+  </figure>
+
+  <div class="below">
+    <div class="label">
+      <h1>{p.title}</h1>
+      {isDarkOnly(p) && <p class="attr" id="dark-note" data-dark-note hidden>Made for dark themes, shown here with your colours swapped</p>}
+      {captionSources(p) && <p class="attr"><Attribution piece={p} refs /></p>}
+      <p class="desc">{p.description}</p>
+      <p class="credit">{credit.map((c) => (c.lnum ? <span class="lnum">{c.text}</span> : c.text))}</p>
+      {fanWork && <p class="licence">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact {TAKEDOWN_CONTACT} for takedown.</p>}
+      {licenceLine && <p class="licence">{licenceLine}</p>}
+      <dl class="facts hair-t">
+        {technique.length > 0 && <Fragment><dt>Technique</dt><dd>{technique.map((f, i) => <Fragment>{i > 0 && ', '}{f.href ? <a href={f.href}>{f.label}</a> : f.label}</Fragment>)}</dd></Fragment>}
+        {lineage.length > 0 && <Fragment><dt>Inspired by</dt><dd>{lineage.map((f, i) => <Fragment>{i > 0 && ', '}{f.href ? <a href={f.href}>{f.label}</a> : f.label}</Fragment>)}</dd></Fragment>}
+        <dt>Shape</dt><dd>{fitsAnyScreen(p) ? 'Any screen' : <Fragment><span class="mono">{aspectsText}</span> (cropped for other screens)</Fragment>}</dd>
+        <dt>Added</dt><dd>{formatAdded(p.added)}</dd>
+      </dl>
+    </div>
+
+    <Controls piece={p} />
+
+    {
+      (hasNotes || p.sources.length > 0) && (
+        <div class="label-more">
+          {hasNotes && (
+            <section class="sect" aria-labelledby="notes-h">
+              <h2 id="notes-h" class="sc hair-t">Notes</h2>
+              <div class="prose"><Content /></div>
+            </section>
+          )}
+          {p.sources.length > 0 && (
+            <section class="sect" aria-labelledby="sources-h">
+              <h2 id="sources-h" class="sc hair-t">Sources</h2>
+              <Footnotes piece={p} />
+            </section>
+          )}
+        </div>
+      )
+    }
+  </div>
+
+  <SourceCode piece={p} />
+  <script>
+    import '../scripts/detail.ts';
+  </script>
+</Base>
+
+<style>
+  /* One line per licence notice under the credit, in the credit's type. */
+  .licence {
+    font-size: var(--fs-2);
+    color: var(--text-2);
+  }
+  /* A shape with its own template shows that template whole, centred in the 16:9 box, inside a frame like the crop window's so the shape reads. */
+  .spread :global(.plate img:not([data-aspect='16:9'])) {
+    object-position: center;
+  }
+  .spread :global(.plate:has(> img:not([data-aspect='16:9']))::before) {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    margin: auto;
+    width: min(100%, calc(100cqw * 9 / 16 * var(--shape)));
+    width: min(100%, calc(round(up, 100cqw * 9 / 16, var(--u)) * var(--shape)));
+    height: min(100%, calc(100cqw / var(--shape)));
+    box-shadow: inset 0 0 0 1px var(--text);
+    pointer-events: none;
+  }
+  /* Width over height of each shape a piece may have its own template for. */
+  .spread :global(.plate:has(> img[data-aspect='16:10'])) {
+    --shape: 1.6;
+  }
+  .spread :global(.plate:has(> img[data-aspect='21:9'])) {
+    --shape: calc(21 / 9);
+  }
+  .spread :global(.plate:has(> img[data-aspect='32:9'])) {
+    --shape: calc(32 / 9);
+  }
+  .spread :global(.plate:has(> img[data-aspect='9:19.5'])) {
+    --shape: calc(9 / 19.5);
+  }
+  .spread :global(.plate:has(> img[data-aspect='10:16'])) {
+    --shape: 0.625;
+  }
+  /* Fullscreen (the f key): the wallpaper alone, centred on its ground. */
+  .spread :global(.plate:fullscreen img) {
+    height: 100%;
+    object-position: center;
+  }
+  .spread :global(.plate:fullscreen .crop),
+  .spread :global(.plate:fullscreen::before),
+  .spread :global(.plate:fullscreen::after) {
+    display: none;
+  }
+</style>

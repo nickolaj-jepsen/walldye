@@ -1,0 +1,40 @@
+---
+/** The "Source code" appendix (SPEC 6.10): design.py through Shiki, a Copy button, and the run command. */
+import { highlightDesign } from './highlight';
+import { DEFAULT_PRESET } from './presets';
+import { lineCount, type Piece } from '../lib/content';
+
+interface Props {
+  piece: Piece;
+}
+const { piece: p } = Astro.props;
+const listing = p.script === null ? '' : await highlightDesign(p.script);
+const token = DEFAULT_PRESET.name;
+---
+
+<section class="appendix" aria-labelledby="appendix-h">
+  <h2 id="appendix-h">Source code</h2>
+  {
+    p.script === null ? (
+      <p class="lost">The script for this wallpaper has been lost.</p>
+    ) : (
+      <Fragment>
+        <p class="listing-head"><span><span class="mono">{`wallpapers/${p.slug}/design.py`}</span>, <span class="nowrap">{lineCount(p.script)} lines</span></span><button type="button" class="textbtn" data-action="copy-source">Copy</button></p>
+        <div class="listing">
+          <Fragment set:html={listing} />
+          <template id="raw-source">{p.script}</template>
+        </div>
+        <div class="run">
+          <h3 class="sc">Run it yourself</h3>
+          <pre tabindex="0" role="region" aria-label="Run command"><code><span class="cmd"><span class="prompt">$ </span>git clone https://github.com/nickolaj-jepsen/walldye &amp;&amp; cd walldye</span><span class="cmd"><span class="prompt">$ </span><span id="run-render" data-slug={p.slug}>{`uv run walldye render ${p.slug} --theme ${token} -o ${p.slug}-${token}-16x9.svg`}</span></span></code></pre>
+        </div>
+      </Fragment>
+    )
+  }
+</section>
+
+<style>
+  .lost {
+    color: var(--text-2);
+  }
+</style>

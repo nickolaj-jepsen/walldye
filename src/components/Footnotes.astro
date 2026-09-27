@@ -1,0 +1,45 @@
+---
+/**
+ * The Sources list (SPEC 6.8): numbered footnotes "{author}, {title}, {year}." with the title
+ * linked when the source has a URL; sources cited in the caption get a link back to it, which never
+ * wraps away from the entry's last word (nothing may break between a word and its full stop).
+ */
+import { captionSources, type Piece } from '../lib/content';
+
+interface Props {
+  piece: Piece;
+}
+const { piece: p } = Astro.props;
+const cited = new Set(captionSources(p)?.items.map((c) => c.n) ?? []);
+const notes = p.sources.map((s, i) => ({
+  n: i + 1,
+  author: s.author,
+  title: s.title,
+  lang: s.lang,
+  url: s.url,
+  year: s.year === undefined ? '' : `${s.author || s.title ? ', ' : ''}${s.year}`,
+  sep: s.author && s.title ? ', ' : '',
+}));
+---
+
+<ol class="footnotes">
+  {
+    notes.map((f) => (
+      <li id={`fn${f.n}`}><span>{f.url && !f.title ? <a href={f.url}>{f.author}</a> : f.author}{f.sep}{f.title && (f.url ? <a href={f.url}><i lang={f.lang}>{f.title}</i></a> : <i lang={f.lang}>{f.title}</i>)}{f.year}{cited.has(f.n) ? <span class="nowrap">.{' '}<a href={`#fnref${f.n}`} class="back" aria-label="Back to text">↑</a></span> : '.'}</span></li>
+    ))
+  }
+</ol>
+
+<style>
+  /* Source links read like the other in-text links (site.css .prose a). */
+  a:not(.back) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: var(--link-line);
+  }
+  a:not(.back):hover {
+    color: var(--text);
+    text-decoration-color: currentColor;
+  }
+</style>

@@ -1,0 +1,18 @@
+# Cloudflare Pages response headers (docs/design.md, Routing and content).
+# Rules that match one request add up and repeat headers are comma-joined, so no two
+# Cache-Control rules below may match the same path.
+
+# Content-addressed: templates, slots and catalogue (/t/<sha256[:12]>.*), and Vite's hashed assets and fonts.
+/t/*
+  Cache-Control: public, max-age=31536000, immutable
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML is one path segment (build.format 'file'): /, /about, /404, /<slug>.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/:page
+  Cache-Control: public, max-age=0, must-revalidate
+
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex

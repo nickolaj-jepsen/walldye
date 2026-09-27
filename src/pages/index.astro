@@ -1,17 +1,52 @@
 ---
+import { getCollection } from 'astro:content';
+import Plate from '../components/Plate.astro';
+import Base from '../layouts/Base.astro';
+import { filterGroups, sortPieces } from '../lib/content';
 
+const entries = sortPieces(await getCollection('wallpapers'));
+const groups = filterGroups(entries.map((e) => e.data));
+const total = entries.length;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base description="Wallpapers drawn with code, in colours you choose." nav="index" mainClass="index">
+  <h1 class="vh">Index</h1>
+  <details class="filter" open>
+    <summary><span class="sc">Filter</span><span class="state"></span></summary>
+    <form id="facets" class="facets" role="search" aria-label="Filter wallpapers" action="/" method="get">
+      <div class="search">
+        <label class="label sc" for="q">Search</label>
+        <input id="q" name="q" type="search" placeholder="title, artist or description" autocomplete="off" />
+      </div>
+      <fieldset>
+        <legend class="sc">Sort</legend>
+        <div class="seg">
+          <label><input type="radio" name="sort" value="newest" checked /><span>newest</span></label>
+          <label><input type="radio" name="sort" value="title" /><span>title</span></label>
+        </div>
+      </fieldset>
+      {
+        groups.map((g) => (
+          <fieldset>
+            <legend class="sc">{g.legend}</legend>
+            {g.entries.map((e) => (
+              <label class="entry"><input type="checkbox" name={g.facet} value={e.value} /><span class="term">{e.label}</span><span class="leader" /><span class="count">{e.count}</span></label>
+            ))}
+          </fieldset>
+        ))
+      }
+    </form>
+  </details>
+  {/* Phones start with the filter closed; decided before first paint so the grid does not jump. */}
+  <script is:inline>document.currentScript.previousElementSibling.open = matchMedia('(min-width: 60.0625rem)').matches;</script>
+  <section class="plates" aria-label="Wallpapers">
+    <p class="results-line"><span id="result-count" class="lnum">{total} {total === 1 ? 'wallpaper' : 'wallpapers'}</span><button type="reset" form="facets" class="textbtn clear" hidden>clear</button></p>
+    <p class="empty" hidden>Try fewer filters or a shorter search.</p>
+    <ul class="grid">
+      {entries.map((e) => <Plate piece={e.data} />)}
+    </ul>
+  </section>
+  <script>
+    import '../scripts/index.ts';
+  </script>
+</Base>

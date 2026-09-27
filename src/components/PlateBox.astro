@@ -1,0 +1,42 @@
+---
+/**
+ * A `.plate`: the wallpaper box the client fills with a recoloured `<img>` (src/scripts/DOM.md),
+ * carrying template and slots URLs. Before JS it is an empty 16:9 box on the plate ground; without
+ * JS a `<noscript>` shows the untouched 16:9 template. Children (the crop window) go after it.
+ */
+import { isDarkOnly, type Piece } from '../lib/content';
+
+interface Props {
+  piece: Piece;
+  /** Only the 16:9 templates (index plates); otherwise every aspect (detail spread). */
+  only169?: boolean;
+  /** Lazy-load the no-JS image. */
+  lazy?: boolean;
+}
+const { piece: p, only169 = false, lazy = false } = Astro.props;
+const templates = Object.fromEntries(
+  Object.entries(p.templates)
+    .filter(([key]) => !only169 || key.startsWith('16:9/'))
+    .map(([key, t]) => [key, t.url]),
+);
+---
+
+<div class="plate" data-plate={p.slug} data-templates={JSON.stringify(templates)} data-slots={p.slotsUrl} data-alt={p.description} data-dark-only={isDarkOnly(p) ? '' : undefined}><noscript><img src={p.templates['16:9/dark'].url} alt={p.description} width="1920" height="1080" loading={lazy ? 'lazy' : undefined} decoding="async" /></noscript><slot /></div>
+
+<style>
+  /* site.css sizes an `:empty` plate; one holding only its <noscript> (or the crop window) is still waiting for its image. */
+  .plate:not(:has(img)) {
+    aspect-ratio: 16 / 9;
+  }
+  /* Same rounded-up height as the image will take (site.css .plate img), so captions do not move when it arrives. */
+  @supports (height: round(up, 1px, 1px)) {
+    .plate:not(:has(img)) {
+      aspect-ratio: auto;
+    }
+    .plate:not(:has(img))::before {
+      content: '';
+      display: block;
+      height: round(up, calc(100cqw * 9 / 16), var(--u));
+    }
+  }
+</style>
