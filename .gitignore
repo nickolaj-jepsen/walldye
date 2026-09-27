@@ -22,3 +22,18 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# python
+__pycache__/
+.venv/
+.pytest_cache/
+
+# walldye
+import/
+.walldye-review.json
+
+# tooling
+.wrangler/
+playwright-report/
+test-results/
+.lycheecache
