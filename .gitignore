@@ -7,3 +7,8 @@
 
 # jetbrains setting folder
 .idea/
+
+# python
+__pycache__/
+.venv/
+.pytest_cache/

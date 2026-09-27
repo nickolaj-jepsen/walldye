@@ -1,0 +1,71 @@
+[project]
+name = "walldye"
+version = "0.2.0"
+description = "Procedural SVG wallpapers recoloured from three seed colours."
+authors = [{ name = "Nickolaj Jepsen" }]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.5.3",
+    "pillow>=12.3.0",
+    "pyyaml>=6.0.3",
+    "resvg-py>=0.5.0",
+    "scikit-image>=0.26.0",
+    "scipy>=1.18.1",
+    "shapely>=2.1.2",
+]
+
+[project.urls]
+Homepage = "https://walldye.com"
+Repository = "https://github.com/nickolaj-jepsen/walldye"
+
+[project.scripts]
+walldye = "walldye.tools.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+# tests import the shared fixtures module as `fixtures`
+pythonpath = ["tests/python"]
+
+[dependency-groups]
+dev = [
+    "prek>=0.5.4",
+    "pyrefly>=1.3.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+    "scipy-stubs>=1.18.1.1",
+    "types-pyyaml>=6.0.12.20260906",
+    "types-shapely>=2.1.0.20260728",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# Import sorting counts as formatting; the rest is ruff's default rule set.
+extend-select = ["I"]
+
+[tool.ruff.lint.per-file-ignores]
+# The tools report a malformed file as ValueError, even when the test is an isinstance.
+"walldye/tools/**" = ["TRY004"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["walldye"]
+
+[tool.pyrefly]
+project-includes = ["walldye"]
+python-version = "3.13"
+preset = "all"
+
+[tool.pyrefly.errors]
+# Fluent Path builders and argparse return values that statement calls discard by design.
+unused-call-result = false
