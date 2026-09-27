@@ -12,3 +12,10 @@
 __pycache__/
 .venv/
 .pytest_cache/
+
+# walldye output: `walldye build` and tests/python/fixtures/regen.py write these, and CI makes its own
+wallpapers/*/build/
+wallpapers/index.json
+tests/fixtures/
+src/lib/__fixtures__/collision/
+src/lib/__fixtures__/themes.json

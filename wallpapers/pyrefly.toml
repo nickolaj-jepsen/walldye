@@ -1,0 +1,3 @@
+# The type-check level for designs; the prek hook and CI run Pyrefly on them with this config.
+python-version = "3.13"
+preset = "default"

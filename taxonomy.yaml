@@ -1,0 +1,38 @@
+# Facet vocabulary for wallpapers/*/meta.yaml; the site's content schema rejects any other value.
+# Only `walldye review` adds values (accepted proposed_facets); agents never edit this file.
+technique:
+  - dither
+  - pixel
+  - glyph
+  - drafting
+  - instrument
+  - tiling
+  - simulation
+  - stipple
+  - field
+  - flat
+  - line
+subject:
+  - space
+  - landscape
+  - physics
+  - maps
+  - computing
+  - textile
+  - games
+  - maths
+  - flora-fauna
+  - machines
+  - architecture
+  - music
+  - sport
+lineage:
+  - early-computer-art
+  - op-art
+  - modernism
+  - creative-coding
+  - japanese-art
+  - patent-drawings
+  - scientific-illustration
+  - vintage-computers
+  - arcade-games

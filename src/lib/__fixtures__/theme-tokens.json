@@ -1,0 +1,174 @@
+{
+ "spec": "Theme token grammar (walldye/_theme.py parse_seeds, theme_token). A theme is a preset name (exact, case-sensitive) or three seeds as `bg-fg-accent`; the CLI also accepts `bg,fg,accent`, `bg=..,fg=..,accent=..` (keys in any order, exactly these three) and null or \"\" for fireproof, marked cli_only. Each seed is 3 or 6 hex digits with an optional #, any case, surrounding whitespace ignored, and normalises to uppercase #RRGGBB. valid: spec -> seeds and the canonical token (the preset name when the seeds equal a preset's, else lowercase bg-fg-accent without #). invalid: rejected everywhere.",
+ "valid": [
+  {
+   "spec": null,
+   "seeds": {
+    "bg": "#1C1B1A",
+    "fg": "#DAD8CE",
+    "accent": "#CF6A4C"
+   },
+   "token": "fireproof",
+   "cli_only": true
+  },
+  {
+   "spec": "",
+   "seeds": {
+    "bg": "#1C1B1A",
+    "fg": "#DAD8CE",
+    "accent": "#CF6A4C"
+   },
+   "token": "fireproof",
+   "cli_only": true
+  },
+  {
+   "spec": "nord",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": false
+  },
+  {
+   "spec": "flexoki-light",
+   "seeds": {
+    "bg": "#FFFCF0",
+    "fg": "#100F0F",
+    "accent": "#BC5215"
+   },
+   "token": "flexoki-light",
+   "cli_only": false
+  },
+  {
+   "spec": "2e3440-eceff4-88c0d0",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": false
+  },
+  {
+   "spec": "2E3440-ECEFF4-88c0D0",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": false
+  },
+  {
+   "spec": "#2e3440-#eceff4-#88c0d0",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": false
+  },
+  {
+   "spec": "2e3440,eceff4,88c0d0",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": true
+  },
+  {
+   "spec": " #2E3440 , #ECEFF4 , #88C0D0 ",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": true
+  },
+  {
+   "spec": "bg=#2e3440,fg=#eceff4,accent=#88c0d0",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": true
+  },
+  {
+   "spec": "accent=88C0D0, bg=2E3440, fg=ECEFF4",
+   "seeds": {
+    "bg": "#2E3440",
+    "fg": "#ECEFF4",
+    "accent": "#88C0D0"
+   },
+   "token": "nord",
+   "cli_only": true
+  },
+  {
+   "spec": "1c1b1a-dad8ce-cf6a4c",
+   "seeds": {
+    "bg": "#1C1B1A",
+    "fg": "#DAD8CE",
+    "accent": "#CF6A4C"
+   },
+   "token": "fireproof",
+   "cli_only": false
+  },
+  {
+   "spec": "fff-000-f80",
+   "seeds": {
+    "bg": "#FFFFFF",
+    "fg": "#000000",
+    "accent": "#FF8800"
+   },
+   "token": "ffffff-000000-ff8800",
+   "cli_only": false
+  },
+  {
+   "spec": "#aBc,DeF,123",
+   "seeds": {
+    "bg": "#AABBCC",
+    "fg": "#DDEEFF",
+    "accent": "#112233"
+   },
+   "token": "aabbcc-ddeeff-112233",
+   "cli_only": true
+  },
+  {
+   "spec": "1c1b1b-dad8ce-cf6a4c",
+   "seeds": {
+    "bg": "#1C1B1B",
+    "fg": "#DAD8CE",
+    "accent": "#CF6A4C"
+   },
+   "token": "1c1b1b-dad8ce-cf6a4c",
+   "cli_only": false
+  }
+ ],
+ "invalid": [
+  "Nord",
+  "nord,accent=#D08770",
+  "fireproof,bg=#000000",
+  "bg=#000,fg=#fff",
+  "bg=#000,fg=#fff,accent=#f00,accent_1=#111",
+  "bg=#000,fg=#fff,ui=#f00",
+  "bg=#000,fg=#fff,accent=#f00,bg=#111",
+  "bg=#000,fg=#fff,accent",
+  "000-fff",
+  "000-fff-f00-111",
+  "000,fff,f00,",
+  "gggggg-000000-ffffff",
+  "0000-ffffff-ffffff",
+  "ff-ffffff-ffffff",
+  "##fff-000-f00",
+  "fff-000-f00x",
+  "tokyo-night-x"
+ ]
+}
