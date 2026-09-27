@@ -1,0 +1,13 @@
+title: Squares shaking loose
+description: Twenty-nine columns of square outlines stay in order at the left and shake loose towards the right, where three strays lead to one filled-in square.
+technique: [drafting]
+subject: []
+lineage: [early-computer-art]
+sources:
+  - kind: inspiration
+    title: Schotter
+    author: Georg Nees
+    year: 1968
+    url: https://collections.vam.ac.uk/item/O221321/
+added: 2026-09-27
+model: claude-opus-5-5
