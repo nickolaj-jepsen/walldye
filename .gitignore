@@ -1,3 +1,18 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
 # environment variables
 .env
 .env.production
@@ -15,6 +30,10 @@ __pycache__/
 
 # walldye
 .walldye-review.json
+
+# tooling
+playwright-report/
+test-results/
 
 # walldye output: `walldye build` and tests/python/fixtures/regen.py write these, and CI makes its own
 wallpapers/*/build/
