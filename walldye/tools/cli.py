@@ -1,10 +1,11 @@
-"""walldye: scaffold, preview, check, build, render and sheet the wallpapers in
+"""walldye: scaffold, preview, check, build, render, review and sheet the wallpapers in
 wallpapers/<slug>/.
 
 Commands that take slugs need them named (or --all); only `themes` covers everything by
-default. --theme takes a preset name or bg-fg-accent hex seeds (also bg,fg,accent and
-bg=..,fg=..,accent=..). --variant names a version declared in design.py (`default` is the
-unnamed one); --set k=v overrides one param while exploring.
+default, and `review` defaults to the drafts. --theme takes a preset name or
+bg-fg-accent hex seeds (also bg,fg,accent and bg=..,fg=..,accent=..). --variant names a
+version declared in design.py (`default` is the unnamed one); --set k=v overrides one param
+while exploring.
 """
 
 import argparse
@@ -16,9 +17,9 @@ from typing import cast
 
 from walldye._aspect import aspect_label, supports
 from walldye._theme import DEFAULT_THEME, parse_seeds, theme_token
-from walldye.tools import common, listing, new, preview, sheet
+from walldye.tools import common, listing, new, preview, review, sheet
 
-COMMANDS = "new,preview,render,check,build,sheet,params,list,themes"
+COMMANDS = "new,preview,render,check,build,review,sheet,params,list,drop,themes"
 SET_REFUSED = "--set is for exploring; give the values a named variant in design.py"
 
 type Command = Callable[[argparse.Namespace], int]
@@ -161,6 +162,14 @@ def _cmd_build(a: argparse.Namespace) -> int:
     )
 
 
+def _cmd_review(a: argparse.Namespace) -> int:
+    slugs, everything = _items(a, "slugs"), cast("bool", a.all)
+    if everything and len(slugs) > 0:
+        raise common.UsageError("review takes slugs or --all, not both")
+    timeout, port = cast("float", a.timeout), cast("int", a.port)
+    return review.run(slugs, timeout, port, not a.no_open, everything)
+
+
 def _cmd_sheet(a: argparse.Namespace) -> int:
     seeds = cast("dict[str, str]", a.theme)
     slugs = common.slugs() if a.all else _items(a, "slugs")
@@ -182,6 +191,10 @@ def _cmd_params(a: argparse.Namespace) -> int:
 
 def _cmd_list(a: argparse.Namespace) -> int:
     return listing.run_list()
+
+
+def _cmd_drop(a: argparse.Namespace) -> int:
+    return review.drop(_items(a, "slugs"), cast("bool", a.yes))
 
 
 def _cmd_themes(a: argparse.Namespace) -> int:
@@ -284,6 +297,18 @@ def _parser() -> argparse.ArgumentParser:
     s.set_defaults(fn=_cmd_build, need_targets=True)
 
     s = sub.add_parser(
+        "review", help="decide drafts and edit their words in a localhost page; blocks until Apply"
+    )
+    s.add_argument("slugs", nargs="*", type=_slug, help="default: every draft piece or version")
+    s.add_argument("--all", action="store_true", help="every version of every piece, drafts first")
+    s.add_argument(
+        "--timeout", type=float, default=7200, help="seconds to wait for Apply (default 7200)"
+    )
+    s.add_argument("--port", type=int, default=0)
+    s.add_argument("--no-open", action="store_true", help="don't open a browser")
+    s.set_defaults(fn=_cmd_review)
+
+    s = sub.add_parser(
         "sheet",
         parents=[targets, theme, canvas, one, sets],
         help="contact sheet of built templates, or of one slug over --wedge/--seeds",
@@ -308,6 +333,13 @@ def _parser() -> argparse.ArgumentParser:
         "list", help="slug, title, description, draft, aspects and variants, tab-separated"
     )
     s.set_defaults(fn=_cmd_list)
+
+    s = sub.add_parser("drop", help="delete wallpapers/<slug>/ after confirmation")
+    s.add_argument("slugs", nargs="+", type=_slug)
+    s.add_argument(
+        "--yes", action="store_true", help="skip the y/N prompt (the owner already confirmed)"
+    )
+    s.set_defaults(fn=_cmd_drop)
 
     s = sub.add_parser("themes", help="list presets, or one theme's tokens")
     s.add_argument(

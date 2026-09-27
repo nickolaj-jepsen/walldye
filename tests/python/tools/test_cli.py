@@ -8,7 +8,7 @@ from tools_support import built, legacy, versions
 
 from walldye._aspect import SITE_ASPECTS
 from walldye._theme import PRESETS, TOKENS, derive_theme, parse_seeds, parse_theme
-from walldye.tools import build, check, cli, common, listing, new, preview, sheet
+from walldye.tools import build, check, cli, common, listing, new, preview, review, sheet
 
 # A ring everywhere; the dot only in the light regime, so light geometry differs.
 TINY = '''"""A ring with a dot that only the light version draws."""
@@ -409,3 +409,28 @@ def test_sheet_default_path(wallpapers, tmp_path, monkeypatch, capsys):
     with pytest.raises(SystemExit, match="nothing to put on a sheet"):
         sheet.run([], parse_seeds(None), 4, 64, None)
 
+
+# --- drop ---------------------------------------------------------------------------------------
+
+
+def test_drop(wallpapers, review_files, monkeypatch, capsys):
+    piece(wallpapers, "a")
+    piece(wallpapers, "b")
+    review.save_state({"a": {"status": "rejected"}, "b": {"note": "hm"}})
+    monkeypatch.setattr("builtins.input", lambda prompt: "n")
+    assert cli.main(["drop", "a"]) == 1
+    assert (wallpapers / "a").is_dir() and not (wallpapers / "index.json").exists()
+    monkeypatch.setattr("builtins.input", lambda prompt: "y")
+    assert cli.main(["drop", "a"]) == 0
+    assert not (wallpapers / "a").exists()
+    assert review.load_state() == {"b": {"note": "hm"}} and (wallpapers / "index.json").exists()
+
+    def no_prompt(prompt):
+        raise AssertionError("--yes must not prompt")
+
+    monkeypatch.setattr("builtins.input", no_prompt)
+    assert cli.main(["drop", "b", "--yes"]) == 0
+    assert not (wallpapers / "b").exists() and review.load_state() == {}
+    with pytest.raises(SystemExit) as e:
+        cli.main(["drop", "b"])
+    assert e.value.code == 2

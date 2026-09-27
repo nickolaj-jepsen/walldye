@@ -9,7 +9,7 @@ from tools_support import assert_recolours, built, legacy, seeds, versions
 from walldye import _check_themes
 from walldye._aspect import SITE_ASPECTS, canvas_size, template_name
 from walldye._theme import PRESETS, SEEDS
-from walldye.tools import build, coefs, common, hashing, listing
+from walldye.tools import build, coefs, common, hashing, listing, review
 from walldye.tools.tokenize import find_colours
 
 FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
@@ -341,6 +341,8 @@ def test_unreadable_siblings_are_left_out(wallpapers, capsys):
         ["syntax", "error"],
     ]
     assert captured.err.startswith("list: left out bad-yaml: ")
+    assert review.drafts() == ["collision", "syntax"]
+    assert capsys.readouterr().err.startswith("review: skipped bad-yaml: ")
 
 
 def test_published_skips_drafts(wallpapers, capsys):
