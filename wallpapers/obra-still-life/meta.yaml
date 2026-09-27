@@ -1,0 +1,18 @@
+title: Plaster still life
+description: Plaster cube, cone, sphere and cylinder on a table, ray-cast and dithered under light from the left.
+notes: |
+  The look follows Lucas Pope's *Return of the Obra Dinn*, which draws its 3D scenes in a dithered one-bit style after early Macintosh games. The solids use an ordered screen over five tone steps, so the light turns across them in even bands, while the table and wall get a finer, irregular grain. On light screens the drawing inks the shadows instead, like a pencil study of plaster casts.
+technique: [dither]
+subject: []
+lineage: [vintage-computers]
+sources:
+  - kind: inspiration
+    title: Return of the Obra Dinn
+    author: Lucas Pope
+    year: 2018
+    url: https://en.wikipedia.org/wiki/Return_of_the_Obra_Dinn
+  - kind: reference
+    topic: Atelier
+    url: https://en.wikipedia.org/wiki/Atelier
+added: 2026-09-27
+model: claude-opus-5-5

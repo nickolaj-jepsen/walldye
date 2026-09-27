@@ -1,0 +1,22 @@
+title: Dithered gas giant
+description: A banded gas giant in Stucki dither fills the lower right. Under its one lit belt, a storm oval is flecked with grain.
+notes: |
+  The bands are a sine of latitude, roughened by value noise stretched along them and strongest at the band edges. The storm swirls those sampling coordinates inside an ellipse, and the disc dims toward its limb.
+technique: [dither]
+subject: [space]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: JunoCam
+    author: NASA/JPL/SwRI
+    url: https://www.missionjuno.swri.edu/junocam/
+  - kind: reference
+    topic: Great Red Spot
+    url: https://en.wikipedia.org/wiki/Great_Red_Spot
+  - kind: reference
+    title: MECCA, a multiple-error correcting computation algorithm for bi-level image hardcopy reproduction
+    author: Peter Stucki
+    year: 1981
+    url: https://peterstucki.com/ibm-research-reports-peter-stucki/
+added: 2026-09-27
+model: claude-opus-5-5

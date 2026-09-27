@@ -1,0 +1,20 @@
+title: Dither specimen
+description: Eight dithering algorithms side by side on one tone ramp, labelled like a specimen plate and crossed by a single probe line.
+notes: |
+  Top to bottom: ordered dithering with 2x2 and 8x8 Bayer matrices, a 4x4 clustered-dot screen set at 45 degrees and a void-and-cluster mask, then Floyd–Steinberg, Atkinson and Jarvis–Judice–Ninke error diffusion, and Riemersma's dither, which carries its error along a Hilbert curve. Every ribbon starts from the same ramp, running from about a fifth to three fifths inked.
+
+  On a tall screen the plate is turned on its side, so the ramp rises up the screen.
+technique: [dither, drafting]
+subject: []
+lineage: []
+sources:
+  - kind: inspiration
+    title: Ditherpunk
+    author: Surma
+    year: 2021
+    url: https://surma.dev/things/ditherpunk/
+  - kind: reference
+    topic: Dither
+    url: https://en.wikipedia.org/wiki/Dither
+added: 2026-09-27
+model: claude-opus-5-5

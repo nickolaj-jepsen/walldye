@@ -1,0 +1,20 @@
+title: Pylons at dusk
+description: Three pylons at dusk, shot on a Game Boy Camera and printed in four shades on a hanging paper strip.
+notes: |
+  The Game Boy Camera and the Game Boy Printer came out in 1998. The camera took photos 128 by 112 pixels in four shades, and the printer put them on thermal paper. This print keeps that frame size and the four shades, dithered with a 4x4 Bayer matrix.
+technique: [dither, pixel]
+subject: [landscape]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    topic: Game Boy Camera
+    author: Nintendo
+    year: 1998
+    url: https://en.wikipedia.org/wiki/Game_Boy_Camera
+  - kind: reference
+    topic: Game Boy Printer
+    author: Nintendo
+    year: 1998
+    url: https://en.wikipedia.org/wiki/Game_Boy_Printer
+added: 2026-09-27
+model: claude-opus-5-5

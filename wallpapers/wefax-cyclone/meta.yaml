@@ -1,0 +1,23 @@
+title: Cyclone, line by line
+description: Line by line, a dithered satellite picture of a cyclone comes in. The line being written is lit above bare static.
+notes: |
+  NOAA's polar-orbiting weather satellites broadcast Automatic Picture Transmission (APT) at 137 MHz, two lines a second, so a ground station draws the picture from the top down while the satellite passes overhead. Each line opens with seven sync pulses, which stack into the striped strip down the left edge; the stepped column on the right is a simplified telemetry wedge. NOAA-15, the last satellite sending APT, was switched off in August 2025.
+technique: [dither, instrument]
+subject: [maps]
+lineage: []
+sources:
+  - kind: reference
+    topic: Automatic picture transmission
+    url: https://en.wikipedia.org/wiki/Automatic_picture_transmission
+  - kind: reference
+    title: How noaa-apt works
+    author: Martín Bernardi
+    url: https://noaa-apt.mbernardi.com.ar/how-it-works.html
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Pass in progress
+  complete:
+    label: Pass complete
+    description: A satellite picture of a cyclone, fully received in dithered cells, its lower arm trailing into scattered cloud.

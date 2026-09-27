@@ -1,0 +1,15 @@
+title: Pattern window
+description: A tall window throws a slanted patch of light across the floor, each row of panes in its own MacPaint fill.
+notes: |
+  Light through the top panes travels furthest into the room, so the patch on the floor is the window upside down, each row one pattern step denser than its pane. All the patterns share one grid, so their dots line up from wall to floor.
+technique: [dither, pixel]
+subject: [architecture]
+lineage: [vintage-computers]
+sources:
+  - kind: inspiration
+    topic: MacPaint
+    author: Bill Atkinson and Susan Kare
+    year: 1984
+    url: https://en.wikipedia.org/wiki/MacPaint
+added: 2026-09-27
+model: claude-opus-5-5

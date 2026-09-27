@@ -1,0 +1,12 @@
+title: Dithered dune
+description: A sunlit dune crest climbs from the lower left to the horizon in void-and-cluster dither.
+technique: [dither]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: reference
+    title: Void-and-cluster method for dither array generation
+    author: Robert Ulichney
+    year: 1993
+added: 2026-09-27
+model: claude-opus-5-5
