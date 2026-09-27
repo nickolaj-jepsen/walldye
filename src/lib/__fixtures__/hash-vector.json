@@ -1,0 +1,11 @@
+{
+ "definition": "sha256 over UTF-8 lines '<key>\\t<value>\\n' sorted by line; a file's key is its repo-relative posix path, its value the sha256 of its bytes.",
+ "files": {
+  "wallpapers/example/design.py": "\"\"\"Example.\"\"\"\n\nfrom walldye import ACCENT\n\n\ndef draw(s):\n    s.circle(960, 540, 100, fill=ACCENT)\n"
+ },
+ "lines": [
+  "themes\tdark,light"
+ ],
+ "text": "themes\tdark,light\nwallpapers/example/design.py\tc3c4c04abd3f85381088992cca26412249395202ff8465d8786fe48e7e3c03b6\n",
+ "sha256": "ebe62cfc9fb649184e632d9a5ced30d581662e40ffc028ff0968f650bb35a688"
+}

@@ -1,0 +1,33 @@
+[project]
+name = "walldye"
+version = "0.1.0"
+description = "Procedural SVG wallpapers recoloured from three seed colours."
+license = "GPL-3.0-or-later"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.5.3",
+    "pillow>=12.3.0",
+    "pyyaml>=6.0.3",
+    "resvg-py>=0.5.0",
+    "scikit-image>=0.26.0",
+    "scipy>=1.18.1",
+    "shapely>=2.1.2",
+]
+
+[project.scripts]
+walldye = "walldye.tools.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

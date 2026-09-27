@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>walldye review</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #100f0f;
+        --card: #1c1b1a;
+        --ui: #343331;
+        --fg: #dad8ce;
+        --muted: #878580;
+        --ok: #879a39;
+        --no: #d14d41;
+        --acc: #cf6a4c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          14px/1.4 system-ui,
+          sans-serif;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 10px 16px;
+        background: #100f0fee;
+        border-bottom: 1px solid var(--ui);
+      }
+      header .stats,
+      .help,
+      figcaption,
+      .meta {
+        color: var(--muted);
+      }
+      button {
+        background: var(--ui);
+        color: var(--fg);
+        border: 0;
+        border-radius: 6px;
+        padding: 6px 10px;
+        cursor: pointer;
+        font: inherit;
+      }
+      button.on {
+        outline: 2px solid var(--acc);
+      }
+      button.primary {
+        background: var(--acc);
+        color: #100f0f;
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+        gap: 12px;
+        padding: 16px;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 3px solid transparent;
+      }
+      .card.sel {
+        box-shadow: 0 0 0 2px var(--acc);
+      }
+      .card.approved {
+        border-color: var(--ok);
+      }
+      .card.rejected {
+        border-color: var(--no);
+        opacity: 0.5;
+      }
+      figure {
+        margin: 0;
+      }
+      figcaption {
+        font-size: 11px;
+        padding: 2px 4px;
+      }
+      .plates {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+      }
+      .plates img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: contain;
+        background: #000;
+        cursor: zoom-in;
+      }
+      .strip {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 6px 8px 0;
+      }
+      .strip img {
+        display: block;
+        height: 72px;
+        outline: 1px solid var(--ui);
+        cursor: zoom-in;
+      }
+      .bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px 0;
+      }
+      .bar .name {
+        font-family: ui-monospace, monospace;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bar button {
+        padding: 2px 8px;
+      }
+      .body {
+        padding: 0 8px;
+      }
+      .body p {
+        margin: 4px 0;
+      }
+      .title {
+        font-weight: 600;
+      }
+      .meta {
+        font-size: 12px;
+      }
+      .meta a {
+        color: inherit;
+      }
+      .facet {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin: 4px 0;
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+      }
+      .facet button {
+        padding: 1px 6px;
+        font-size: 12px;
+      }
+      .msg {
+        color: var(--no);
+        font-size: 12px;
+        min-height: 1em;
+      }
+      .card input {
+        width: calc(100% - 16px);
+        margin: 4px 8px 8px;
+        background: var(--bg);
+        color: var(--fg);
+        border: 1px solid var(--ui);
+        border-radius: 4px;
+        padding: 4px 6px;
+        font:
+          12px ui-monospace,
+          monospace;
+      }
+      #view {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        background: #000e;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      #view.open {
+        display: flex;
+      }
+      #view img {
+        max-width: 96vw;
+        max-height: 84vh;
+      }
+      #view .cap {
+        font-family: ui-monospace, monospace;
+        font-size: 16px;
+      }
+      #finished {
+        display: none;
+        padding: 40px;
+        font-size: 16px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>walldye review</strong><span class="stats" id="stats"></span>
+      <span>
+        <button data-f="all">All</button><button data-f="undecided">Undecided</button
+        ><button data-f="approved">Approved</button><button data-f="rejected">Rejected</button>
+      </span>
+      <button id="approveRest">Approve undecided</button>
+      <button id="done" class="primary">Done</button>
+      <span class="help"
+        >←/→ move · a approve · x reject · u undo · n note · Enter/Space enlarge · v next view ·
+        Esc close</span
+      >
+    </header>
+    <div class="grid" id="grid"></div>
+    <div id="finished"></div>
+    <div id="view">
+      <img id="big" alt="" />
+      <div class="cap" id="cap"></div>
+    </div>
+    <script>
+      // {cards: [{slug, title, description, sources, license, proposed: {facet: [value]}, dark, light,
+      //  lightCaption, strip: [{aspect, src}]}], state: {slug: {status, note, facets: {facet: {value: accept|decline}}}}}
+      const CFG = __CONFIG__;
+      const CARDS = CFG.cards;
+      const SLUGS = CARDS.map((c) => c.slug);
+      const BY_SLUG = Object.fromEntries(CARDS.map((c) => [c.slug, c]));
+      let state = CFG.state || {};
+      let filter = "all",
+        sel = 0,
+        viewIdx = 0,
+        saveTimer = null;
+      const grid = document.getElementById("grid");
+      const view = document.getElementById("view");
+      const status = (n) => (state[n] && state[n].status) || "undecided";
+      const views = (c) => [
+        { src: c.dark, cap: "dark template" },
+        { src: c.light, cap: c.lightCaption },
+        ...c.strip.map((s) => ({ src: s.src, cap: s.aspect })),
+      ];
+      const decision = (n, f, v) => state[n]?.facets?.[f]?.[v];
+      const pending = (n) =>
+        Object.entries(BY_SLUG[n].proposed).flatMap(([f, vs]) =>
+          vs.filter((v) => !decision(n, f, v)).map((v) => `${f}: ${v}`),
+        );
+
+      function save() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(
+          () => fetch("state", { method: "POST", body: JSON.stringify(state) }),
+          150,
+        );
+      }
+      function update(n, fn) {
+        const e = state[n] || {};
+        fn(e);
+        if (e.facets && !Object.keys(e.facets).length) delete e.facets;
+        if (e.status || e.note || e.facets) state[n] = e;
+        else delete state[n];
+        save();
+      }
+      const setNote = (n, note) => update(n, (e) => (note ? (e.note = note) : delete e.note));
+      // Approval is refused while proposed facets are undecided; returns whether the status changed.
+      function setStatus(n, v) {
+        if (v === "approved" && pending(n).length) return false;
+        update(n, (e) => (v ? (e.status = v) : delete e.status));
+        return true;
+      }
+      const blocked = (n) => flash(n, `decide the proposed facets first (${pending(n).join(", ")})`);
+      function setFacet(n, f, v, d) {
+        update(n, (e) => {
+          const fs = (e.facets ||= {});
+          const vs = (fs[f] ||= {});
+          if (vs[v] === d) delete vs[v];
+          else vs[v] = d;
+          if (!Object.keys(vs).length) delete fs[f];
+        });
+      }
+      function flash(n, text) {
+        const c = grid.querySelector(`[data-slug="${n}"] .msg`);
+        if (c) c.textContent = text;
+      }
+      const visible = () => SLUGS.filter((n) => filter === "all" || status(n) === filter);
+
+      function el(tag, cls, text) {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text != null) e.textContent = text;
+        return e;
+      }
+      function figure(src, cap, onclick) {
+        const f = el("figure");
+        const img = el("img");
+        img.loading = "lazy";
+        img.alt = "";
+        img.src = src;
+        img.onclick = onclick;
+        f.append(img, el("figcaption", null, cap));
+        return f;
+      }
+      function sourceLine(s) {
+        const who = [s.author, s.title, s.year].filter(Boolean).join(", ");
+        const span = el("span", null, `${s.kind || "source"}: ${who}`);
+        if (s.url) {
+          const a = el("a", null, " ↗");
+          a.href = s.url;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          span.append(a);
+        }
+        return span;
+      }
+
+      function card(c, i) {
+        const n = c.slug;
+        const root = el("div", `card ${status(n)}${i === sel ? " sel" : ""}`);
+        root.dataset.slug = n;
+        const pick = (k) => () => {
+          sel = i;
+          viewIdx = k;
+          open();
+        };
+        const vs = views(c);
+        const plates = el("div", "plates");
+        plates.append(figure(vs[0].src, vs[0].cap, pick(0)), figure(vs[1].src, vs[1].cap, pick(1)));
+        root.append(plates);
+        if (c.strip.length) {
+          const strip = el("div", "strip");
+          c.strip.forEach((s, k) => strip.append(figure(s.src, s.aspect, pick(k + 2))));
+          root.append(strip);
+        }
+        const bar = el("div", "bar");
+        const buttons = el("span");
+        for (const [v, label, key] of [
+          ["approved", "✓", "a"],
+          ["rejected", "✗", "x"],
+        ]) {
+          const b = el("button", null, label);
+          b.title = `${v.slice(0, -1)} (${key})`;
+          b.onclick = () => {
+            sel = i;
+            if (setStatus(n, status(n) === v ? null : v)) render();
+            else blocked(n);
+          };
+          buttons.append(b);
+        }
+        bar.append(el("span", "name", n), buttons);
+        root.append(bar);
+
+        const body = el("div", "body");
+        body.append(el("p", "title", c.title), el("p", null, c.description));
+        const meta = el("p", "meta", `licence ${c.license}`);
+        c.sources.forEach((s) => meta.append(el("br"), sourceLine(s)));
+        body.append(meta);
+        for (const [f, values] of Object.entries(c.proposed)) {
+          for (const v of values) {
+            const row = el("div", "facet", `proposed ${f}: ${v}`);
+            for (const d of ["accept", "decline"]) {
+              const b = el("button", decision(n, f, v) === d ? "on" : null, d);
+              b.onclick = () => {
+                sel = i;
+                setFacet(n, f, v, d);
+                render();
+              };
+              row.append(b);
+            }
+            body.append(row);
+          }
+        }
+        body.append(el("div", "msg"));
+        root.append(body);
+
+        const inp = el("input");
+        inp.placeholder = "note (why?)";
+        inp.spellcheck = false;
+        inp.value = (state[n] && state[n].note) || "";
+        inp.onfocus = () => (sel = i);
+        inp.oninput = () => setNote(n, inp.value.trim());
+        inp.onkeydown = (e) => {
+          if (e.key === "Enter" || e.key === "Escape") inp.blur();
+          e.stopPropagation();
+        };
+        root.append(inp);
+        return root;
+      }
+
+      function render() {
+        const names = visible();
+        sel = Math.min(sel, Math.max(0, names.length - 1));
+        grid.replaceChildren(...names.map((n, i) => card(BY_SLUG[n], i)));
+        const count = (v) => SLUGS.filter((n) => status(n) === v).length;
+        document.getElementById("stats").textContent =
+          `${SLUGS.length} total · ${count("approved")} approved · ${count("rejected")} rejected · ${count("undecided")} undecided`;
+        document
+          .querySelectorAll("[data-f]")
+          .forEach((b) => b.classList.toggle("on", b.dataset.f === filter));
+        if (view.classList.contains("open")) open();
+        grid.children[sel]?.scrollIntoView({ block: "nearest" });
+      }
+
+      function open() {
+        const n = visible()[sel];
+        if (!n) return close();
+        const vs = views(BY_SLUG[n]);
+        viewIdx = Math.min(viewIdx, vs.length - 1);
+        document.getElementById("big").src = vs[viewIdx].src;
+        const note = state[n] && state[n].note ? ` — “${state[n].note}”` : "";
+        document.getElementById("cap").textContent =
+          `${n} · ${vs[viewIdx].cap} — ${status(n)}${note}  (${sel + 1}/${visible().length})`;
+        view.classList.add("open");
+      }
+      function close() {
+        view.classList.remove("open");
+      }
+      view.onclick = close;
+
+      document.addEventListener("keydown", (e) => {
+        if (e.target.tagName === "INPUT" || e.ctrlKey || e.metaKey || e.altKey) return;
+        const names = visible(),
+          n = names[sel];
+        const step = (d) => {
+          sel = Math.max(0, Math.min(names.length - 1, sel + d));
+          render();
+        };
+        if (e.key === "ArrowRight" || e.key === "l") step(1);
+        else if (e.key === "ArrowLeft" || e.key === "h") step(-1);
+        else if ((e.key === "a" || e.key === "y") && n) {
+          const ok = setStatus(n, "approved");
+          if (ok && filter === "all") sel++;
+          render();
+          if (!ok) blocked(n);
+        } else if (e.key === "x" && n) {
+          setStatus(n, "rejected");
+          if (filter === "all") sel++;
+          render();
+        } else if (e.key === "u" && n) {
+          setStatus(n, null);
+          render();
+        } else if (e.key === "n" && n) {
+          e.preventDefault();
+          close();
+          grid.children[sel]?.querySelector("input").focus();
+        } else if (e.key === "v" && n) {
+          viewIdx = (viewIdx + 1) % views(BY_SLUG[n]).length;
+          open();
+        } else if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          if (view.classList.contains("open")) close();
+          else {
+            viewIdx = 0;
+            open();
+          }
+        } else if (e.key === "Escape") close();
+      });
+      document.querySelectorAll("[data-f]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            filter = b.dataset.f;
+            sel = 0;
+            render();
+          }),
+      );
+      document.getElementById("approveRest").onclick = () => {
+        SLUGS.forEach((n) => {
+          if (status(n) === "undecided" && !pending(n).length) setStatus(n, "approved");
+        });
+        render();
+      };
+      document.getElementById("done").onclick = async () => {
+        clearTimeout(saveTimer);
+        await fetch("state", { method: "POST", body: JSON.stringify(state) });
+        const res = await (await fetch("done", { method: "POST", body: "{}" })).json();
+        const list = (xs) => (xs.length ? xs.join(", ") : "none");
+        const lines = [
+          ...(res.error ? [`Error: ${res.error}`, ""] : []),
+          `Published (draft: false): ${list(res.published)}`,
+          `Refused: ${list(res.refused.map((r) => `${r.slug} (${r.reason})`))}`,
+          `Rejected: ${list(res.rejected.map((r) => r.slug))}`,
+          `Undecided: ${list(res.undecided)}`,
+          "",
+          "Review sent to the agent. You can close this tab.",
+        ];
+        grid.style.display = "none";
+        document.querySelector("header").style.display = "none";
+        const fin = document.getElementById("finished");
+        fin.textContent = lines.join("\n");
+        fin.style.display = "block";
+      };
+      render();
+    </script>
+  </body>
+</html>
