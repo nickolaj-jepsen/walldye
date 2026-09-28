@@ -21,21 +21,6 @@ SPDX-FileCopyrightText = "jolpica-f1 contributors"
 SPDX-License-Identifier = "CC-BY-NC-SA-4.0"
 
 [[annotations]]
-path = "wallpapers/racing-engine-orders/data/lap.json"
-SPDX-FileCopyrightText = "Formula One World Championship Limited (timing data, read with FastF1)"
-SPDX-License-Identifier = "LicenseRef-fan-work"
-
-[[annotations]]
-path = "wallpapers/racing-friction-circle/data/*.npy"
-SPDX-FileCopyrightText = "Formula One World Championship Limited (timing data, read with FastF1)"
-SPDX-License-Identifier = "LicenseRef-fan-work"
-
-[[annotations]]
-path = "wallpapers/racing-mille-miglia/data/route.json"
-SPDX-FileCopyrightText = "OpenStreetMap contributors"
-SPDX-License-Identifier = "ODbL-1.0"
-
-[[annotations]]
 path = "wallpapers/racing-monaco-tunnel/data/monaco.json"
 SPDX-FileCopyrightText = "OpenStreetMap contributors"
 SPDX-License-Identifier = "ODbL-1.0"
