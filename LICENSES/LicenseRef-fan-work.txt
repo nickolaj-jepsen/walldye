@@ -2,7 +2,8 @@ LicenseRef-fan-work
 
 This notice covers every folder under wallpapers/ whose meta.yaml sets
 `license: LicenseRef-fan-work`, together with the files generated from it
-(design.py, meta.yaml, data/ and build/).
+(design.py, meta.yaml, data/ and build/). Third-party data that REUSE.toml
+puts under its own licence keeps that licence.
 
 No licence is granted. You may not copy, modify or redistribute these files
 under the terms that cover the rest of this repository.

@@ -1,0 +1,16 @@
+# Third-party data inside a wallpaper folder keeps its upstream licence and notice, whatever the
+# folder's meta.yaml `license:` says (docs/design.md, Licensing). The texts are in LICENSES/.
+version = 1
+
+[[annotations]]
+path = "wallpapers/star-chart/data/*.json"
+SPDX-FileCopyrightText = "2015 Olaf Frohn (d3-celestial)"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "wallpapers/racing-spa-minisectors/data/spa.json"
+SPDX-FileCopyrightText = [
+  "Chair of Automotive Technology, Technical University of Munich (TUMFTM racetrack-database)",
+  "OpenStreetMap contributors",
+]
+SPDX-License-Identifier = "LGPL-3.0-only AND ODbL-1.0"
