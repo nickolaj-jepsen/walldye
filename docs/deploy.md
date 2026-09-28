@@ -18,14 +18,14 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 
 | Job | Does |
 |---|---|
-| `build` | Restores main's last build from the Actions cache, runs `walldye build --all --published`, saves the result back to the cache on `main`, lists the pieces whose templates changed, runs `regen.py`, `pnpm test` and `pnpm astro build`, uploads `dist/` and the e2e inputs, then checks the links in the meta.yaml files the change touches |
+| `build` | Restores main's last build from the Actions cache, runs `walldye build --all --published` (105 minutes at most), saves the result back to the cache on `main` even when the render failed or ran out of time, lists the pieces whose templates changed, runs `regen.py`, `pnpm test` and `pnpm astro build`, uploads `dist/` and the e2e inputs, then checks the links in the meta.yaml files the change touches |
 | `e2e` | Playwright on Chromium against that `dist/` |
-| `deploy` | After `build` and `e2e` pass: a push to `main` goes to production, and a pull request from a branch in this repository goes to a preview at `https://<branch>.walldye.pages.dev`. A comment on the PR links it and lists the pieces that draw differently from main's last build; later pushes edit it. Pull requests from forks never deploy, and manual runs build and test without deploying |
+| `deploy` | After `build` and `e2e` pass: a push to `main` goes to production, and a pull request from a branch in this repository goes to a preview at `https://<branch>.walldye.pages.dev`. A comment on the PR links it and lists the pieces that draw differently from main's last build; later pushes edit it. Each deploy is recorded in the GitHub environment `production` or `preview`. Pull requests from forks or Dependabot never deploy, since neither gets the secrets, and manual runs build and test without deploying |
 
-- A newer run cancels an older one on the same pull request or branch.
-- The deploy job has no checkout. It runs `wrangler pages deploy dist --project-name=walldye --branch=<branch> --commit-hash=<sha>` through `cloudflare/wrangler-action`, so wrangler gets the commit explicitly.
+- On a pull request a newer run cancels the older one. On `main` runs queue instead, so a push never throws away a render or a deploy in progress.
+- The deploy job has no checkout. It runs `wrangler pages deploy dist --project-name=walldye --branch=<branch> --commit-hash=<sha>` through `cloudflare/wrangler-action`, so wrangler gets the commit explicitly. Its `wranglerVersion` is pinned there.
 
-Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days, and the next run then renders the whole catalogue from scratch, hence the 120-minute timeout. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
+Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days, and the next run then renders the whole catalogue from scratch, hence the 120-minute timeout. A render cut short is saved as it stands, and the next run on `main` picks up from there: `walldye build` re-hashes every template it keeps and redraws what doesn't match. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
 
 ## What is set up
 
@@ -34,6 +34,8 @@ GitHub:
 - A ruleset keeps `main` from being deleted or force-pushed. Secret scanning with push protection and Dependabot alerts are on.
 - Fork pull requests run their workflows without the secrets and never deploy. Runs from outside contributors wait for approval (Settings > Actions > General).
 - Repository secrets: `CLOUDFLARE_API_TOKEN`, a token scoped to Account / Cloudflare Pages / Edit, and `CLOUDFLARE_ACCOUNT_ID`. Previews of branches in this repository need them too, so they are not limited to `main`.
+- Environments `production`, which only `main` may deploy to, and `preview`. They record the deploys and hold no secrets.
+- Every action in the workflows is pinned to a commit SHA. Dependabot (`.github/dependabot.yml`) bumps them in one pull request a month, taking only releases at least 7 days old. Its security updates are off, so vulnerabilities in npm or uv dependencies raise alerts, not pull requests.
 
 Cloudflare:
 - walldye.com is registered with Cloudflare Registrar, and its zone is in the account.
@@ -62,6 +64,7 @@ A push to `main` deploys only when `ci.yml` runs, and it skips docs-only changes
 - The www Worker: edit `infra/www-redirect/`, then run `, wrangler deploy` in that directory.
 - A renamed wallpaper: add `/<old-slug> /<new-slug> 301` to `public/_redirects`.
 - The API token: create a new one scoped to Account / Cloudflare Pages / Edit, store it with `gh secret set CLOUDFLARE_API_TOKEN`, then delete the old token in the dashboard.
+- wrangler in CI: bump `wranglerVersion` in `ci.yml`'s deploy job by hand; Dependabot doesn't see it.
 - A manual deploy of a local build, if CI is down: `pnpm build`, then `, wrangler pages deploy dist --project-name=walldye --branch=main`.
 
 ## Link checks

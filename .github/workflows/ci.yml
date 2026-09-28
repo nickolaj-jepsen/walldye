@@ -18,15 +18,16 @@ on:
 
 permissions: {}
 
-# A newer run supersedes an older one on the same PR or branch, including main.
+# A newer run supersedes an older one on the same PR. On main runs queue instead, so a push never
+# throws away a render or a deploy in progress.
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # A cold cache means rendering the whole catalogue, over an hour on a 2-core runner.
+    # A cold cache means rendering the whole catalogue from scratch.
     timeout-minutes: 120
     permissions:
       contents: read
@@ -34,18 +35,18 @@ jobs:
       changed: ${{ steps.compare.outputs.changed }}
       cold: ${{ steps.compare.outputs.cold }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           # History for the changed-meta.yaml diff; blobs stay lazy so this stays cheap.
           fetch-depth: 0
           filter: blob:none
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
       - run: uv sync --frozen
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
           cache: pnpm
@@ -53,7 +54,7 @@ jobs:
 
       # The newest build saved by main; `walldye build` redraws only what changed since.
       - id: restore
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: wallpapers/*/build
           key: builds-${{ github.run_id }}
@@ -63,9 +64,15 @@ jobs:
           # A piece removed since the cached build leaves a folder with no meta.yaml.
           for d in wallpapers/*/; do [ -e "$d/meta.yaml" ] || rm -rf "$d"; done
           find wallpapers -path '*/build/*' -name '*.svg' -print0 | xargs -0 -r sha256sum | sort > "$RUNNER_TEMP/before.txt"
-      - run: uv run walldye build --all --published
-      - if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/cache/save@v6
+      # Stops short of the job's timeout, so a render that runs long still saves what it drew.
+      - id: render
+        run: uv run walldye build --all --published
+        timeout-minutes: 105
+      # Saved even after a failed or timed-out render: build re-hashes every template it keeps.
+      - if: >-
+          always() && steps.render.outcome != 'skipped'
+          && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: wallpapers/*/build
           key: builds-${{ github.run_id }}-${{ github.run_attempt }}
@@ -83,7 +90,7 @@ jobs:
 
       - run: pnpm test
       - run: pnpm astro build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
           path: dist
@@ -91,7 +98,7 @@ jobs:
           retention-days: 1
       # What the Playwright specs read from the repo besides dist: slots.json, the reference
       # pieces' templates and the Python reference renders.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-inputs
           path: |
@@ -127,7 +134,7 @@ jobs:
           cat "$list"
           echo "count=$(wc -l < "$list")" >> "$GITHUB_OUTPUT"
       - if: steps.changed.outputs.count != '0'
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .lycheecache
           key: lychee-${{ github.sha }}
@@ -135,7 +142,7 @@ jobs:
       # lychee-action evals args, so file names go through --files-from rather than the command line.
       # Broken source links fail PRs; on main they are reported without blocking the deploy.
       - if: steps.changed.outputs.count != '0'
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
           args: >-
@@ -151,27 +158,27 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/cache@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-chromium
       # Browsers come from the cache when it hits; --with-deps still installs the system libraries.
       - run: pnpm exec playwright install --with-deps chromium
       # Test the dist that deploy will upload instead of building a second one.
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: e2e-inputs
           path: .
@@ -179,7 +186,7 @@ jobs:
         env:
           E2E_SKIP_BUILD: '1'
       - if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report
           path: |
@@ -190,26 +197,37 @@ jobs:
 
   deploy:
     needs: [build, e2e]
+    # Dependabot's pull requests get no Actions secrets, so they are tested but never deployed.
     if: >-
       github.event_name == 'push'
       || (github.event_name == 'pull_request'
-        && github.event.pull_request.head.repo.full_name == github.repository)
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.event.pull_request.user.login != 'dependabot[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Records each deploy on GitHub; production only accepts main.
+    environment:
+      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+      url: >-
+        ${{ github.event_name == 'push' && 'https://walldye.com'
+        || steps.deploy.outputs.pages-deployment-alias-url
+        || steps.deploy.outputs.deployment-url }}
     # Only for the preview comment; the job never checks out code.
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist
       # No checkout here, so wrangler can't read git and gets the commit explicitly.
       - id: deploy
-        uses: cloudflare/wrangler-action@v4
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Dependabot can't see this pin; bump it by hand.
+          wranglerVersion: '4.143.0'
           command: >-
             pages deploy dist --project-name=walldye
             --branch=${{ github.head_ref || github.ref_name }}

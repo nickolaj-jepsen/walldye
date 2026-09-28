@@ -1,0 +1,18 @@
+# Keeps the SHA-pinned actions in .github/workflows current: at most one open pull request, once a
+# month, with every action in it. Security updates are off, so vulnerabilities only raise alerts.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    # A release has a week to be pulled before it can reach a job that holds the Cloudflare token.
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
+    open-pull-requests-limit: 1
+    labels: []
+    commit-message:
+      prefix: ci
