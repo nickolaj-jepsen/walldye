@@ -376,7 +376,7 @@ Each starts a new subpath with `M` (so any number merge into one element) and re
 |---|---|---|
 | `rect(x, y, w, h)` | `M x y H x+w V y+h H x Z`; `ValueError` for negative `w` or `h` | `s.rect` 176 calls in 59 files |
 | `rrect(x, y, w, h, r)` | with `q = min(r, w/2, h/2)`: `M x+q y H x+w-q A q q 0 0 1 x+w y+q V y+h-q A q q 0 0 1 x+w-q y+h H x+q A q q 0 0 1 x y+h-q V y+q A q q 0 0 1 x+q y Z`; `q == 0` gives `rect` | 10 designs, 4 signatures |
-| `circle(c, r)` | `M cx+r cy A r r 0 1 1 cx-r cy A r r 0 1 1 cx+r cy Z`; nothing for `r == 0`; `ValueError` for `r < 0` | two-arc idiom 55 times in 41 files, plus 17 designs with a helper |
+| `circle(c, r)` | `M cx+r cy A r r 0 1 1 cx-r cy A r r 0 1 1 cx+r cy Z` with `c` and `r` first rounded to the path's `nd` decimals, so each half's ends stay a diameter apart (a radius written above half the chord bulges each half by about sqrt(2 r d)); `circle`, `ellipse` and `ring` share this; nothing for `r == 0`; `ValueError` for `r < 0` | two-arc idiom 55 times in 41 files, plus 17 designs with a helper |
 | `ellipse(c, rx, ry)` | as `circle` with `rx ry` | 9 `s.ellipse` calls |
 | `ring(c, r0, r1)` | `circle(c, r1)`, then the inner circle with both sweep flags 0, so the default fill rule leaves the hole; `ValueError` unless `0 <= r0 < r1` | 8 `ring` helpers |
 | `arc(c, r, *, deg=(a0, a1) \| rad=... \| bearing=...)` | `M p(r, a0) A r r 0 {large} {sweep} p(r, a1)`, with `sweep = a1 > a0` and `large = abs(a1 - a0) > pi`; `ValueError` when `a0 == a1` or `abs(a1 - a0) >= 2 pi` | 8 designs |

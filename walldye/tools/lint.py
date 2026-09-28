@@ -149,10 +149,15 @@ def svg(text: str) -> Lints:
 
 
 def colour_words(text: str) -> set[str]:
-    """Colour words in `text`, lowercased; ALL-CAPS words (token names like ACCENT_HI) are
-    not prose."""
+    """Colour words in `text` as written, lowercased, plurals included ("greys" matches via
+    "grey"); ALL-CAPS words (token names like ACCENT_HI) are not prose."""
     words: list[str] = re.findall(r"\b[A-Za-z]+\b", text)
-    return {w.lower() for w in words if w.lower() in COLOUR_WORDS and not w.isupper()}
+    prose = {w.lower() for w in words if not w.isupper()}
+    return {
+        w
+        for w in prose
+        if not COLOUR_WORDS.isdisjoint({w, w.removesuffix("s"), w.removesuffix("es")})
+    }
 
 
 def random_module(name: str) -> str | None:

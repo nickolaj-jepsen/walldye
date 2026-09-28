@@ -236,7 +236,10 @@ class Path:
         return self.V(fy + q).A(q, q, 0, 0, 1, fx + q, fy).Z()
 
     def _oval(self, c: Point, rx: float, ry: float, sweep: Literal[0, 1]) -> Self:
-        cx, cy = point(c, "circle")
+        # Snapped to the written grid so each half's ends are exactly 2 rx apart: a radius written
+        # above half the chord turns each half into a large arc that bulges by about sqrt(2 r d).
+        x, y = point(c, "circle")
+        cx, cy, rx, ry = (round(v, self._nd) for v in (x, y, rx, ry))
         self.M(cx + rx, cy).A(rx, ry, 0, 1, sweep, cx - rx, cy)
         return self.A(rx, ry, 0, 1, sweep, cx + rx, cy).Z()
 

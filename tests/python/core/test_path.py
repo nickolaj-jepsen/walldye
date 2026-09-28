@@ -97,6 +97,11 @@ def test_builder_basics():
         (P().rrect(0, 0, 20, 10, 99).M(0, 0), str(P().rrect(0, 0, 20, 10, 5).M(0, 0))),
         (P().circle((100, 50), 10), "M110 50A10 10 0 1 1 90 50A10 10 0 1 1 110 50Z"),
         (P().circle((100, 50), 0), ""),
+        # centre and radius snap to the grid, so each half's ends stay a diameter apart
+        (
+            P().circle((100.02, 50), 10.06),
+            "M110.1 50A10.1 10.1 0 1 1 89.9 50A10.1 10.1 0 1 1 110.1 50Z",
+        ),
         (P().ellipse((100, 50), 20, 10), "M120 50A20 10 0 1 1 80 50A20 10 0 1 1 120 50Z"),
         (
             P().ring((0, 0), 5, 10),
