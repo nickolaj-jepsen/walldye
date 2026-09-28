@@ -4,7 +4,9 @@ Everything draws through Canvas.pixel_path, so each path is marked for crisp exp
 grid origin is recorded on the document.
 """
 
+import collections
 import functools
+import operator
 import pickle
 from collections.abc import Callable, Hashable, Iterator, Mapping, Sequence
 from typing import Final, Literal, Unpack, final
@@ -476,23 +478,27 @@ def threshold_matrix(
     raise ValueError(f"threshold_matrix takes one of {', '.join(_ORDERED)}, got {method!r}")
 
 
-def _hilbert(order: int) -> Iterator[tuple[int, int]]:
+def _hilbert(order: int, cols: int, rows: int) -> list[tuple[int, int]]:
+    """The cells of a 2**order square Hilbert curve in curve order, those outside `cols` x
+    `rows` left out."""
     n = 1 << order
-    for d in range(n * n):
-        x = y = 0
-        t, s = d, 1
-        while s < n:
-            rx = 1 & (t // 2)
-            ry = 1 & (t ^ rx)
-            if ry == 0:
-                if rx == 1:
-                    x, y = s - 1 - x, s - 1 - y
-                x, y = y, x
-            x += s * rx
-            y += s * ry
-            t //= 4
-            s *= 2
-        yield x, y
+    t: _I = np.arange(n * n, dtype=np.int64)
+    x: _I = np.zeros_like(t)
+    y: _I = np.zeros_like(t)
+    s = 1
+    while s < n:
+        rx: _I = 1 & (t // 2)
+        ry: _I = 1 & (t ^ rx)
+        turn: NDArray[np.bool_] = ry == 0
+        flip: NDArray[np.bool_] = turn & (rx == 1)
+        x[flip], y[flip] = s - 1 - x[flip], s - 1 - y[flip]
+        x[turn], y[turn] = y[turn], x[turn]
+        x += s * rx
+        y += s * ry
+        t //= 4
+        s *= 2
+    keep = (x < cols) & (y < rows)
+    return list(zip(x[keep].tolist(), y[keep].tolist(), strict=True))
 
 
 def dither(
@@ -540,27 +546,32 @@ def dither(
         steps, ratio = 16, 1 / 16
         weights = [ratio ** (1 - i / (steps - 1)) for i in range(steps)]
         total = sum(weights)
-        hist = [0.0] * steps
-        for x, y in _hilbert(max(cols, rows).bit_length()):
-            if x >= cols or y >= rows:
-                continue
-            v = buf[y][x] + sum(h * w for h, w in zip(hist, weights, strict=True)) / total * 2
-            new = max(0, min(n, round(v)))
+        hist = collections.deque([0.0] * steps, maxlen=steps)
+        # sum() over floats compensates its rounding, so keep it rather than a running total
+        for x, y in _hilbert(max(cols, rows).bit_length(), cols, rows):
+            v = buf[y][x] + sum(map(operator.mul, hist, weights)) / total * 2
+            r = round(v)
+            new = 0 if r < 0 else min(r, n)
             out[y][x] = new
-            hist = [*hist[1:], buf[y][x] - new]
+            hist.append(buf[y][x] - new)
         return np.array(out, dtype=np.int64)
     taps, div = _DIFFUSION[method]
     for j in range(rows):
         rev = serpentine and j % 2 == 1
+        # the taps that land inside the field's rows, with their target row resolved; the
+        # same taps in the same order as a per-pixel check, so the sums round the same
+        live = [(-dx if rev else dx, buf[j + dy], wgt) for dx, dy, wgt in taps if j + dy < rows]
+        row, orow = buf[j], out[j]
         for i in range(cols - 1, -1, -1) if rev else range(cols):
-            old = buf[j][i]
-            new = max(0, min(n, round(old)))
-            out[j][i] = new
+            old = row[i]
+            r = round(old)
+            new = 0 if r < 0 else min(r, n)
+            orow[i] = new
             err = old - new
-            for dx, dy, wgt in taps:
-                x, y = i + (-dx if rev else dx), j + dy
-                if 0 <= x < cols and y < rows:
-                    buf[y][x] += err * wgt / div
+            for dx, target, wgt in live:
+                x = i + dx
+                if 0 <= x < cols:
+                    target[x] += err * wgt / div
     return np.array(out, dtype=np.int64)
 
 

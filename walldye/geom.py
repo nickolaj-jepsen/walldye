@@ -400,32 +400,43 @@ def poisson_disk(rect: Rect, radius: Num, rng: random.Random, *, k: int = 30) ->
     r = _rng(rng, "poisson_disk")
     cs = rad / math.sqrt(2)
     gw, gh = int(width / cs) + 1, int(height / cs) + 1
-    grid: list[list[tuple[float, float] | None]] = [[None] * gw for _ in range(gh)]
+    # Hot loop: a flat grid with a 2-cell border of None, so the 5x5 scan needs no clamping.
+    # Candidates are drawn as random.uniform draws them (a + (b - a) * random()), so the
+    # stream and the samples match the plain version bit for bit; keep `** 2`, as x * x
+    # rounds differently.
+    stride = gw + 4
+    grid: list[tuple[float, float] | None] = [None] * (stride * (gh + 4))
+    around = [
+        dy * stride + dx
+        for dy, dx in sorted(
+            ((dy, dx) for dy in range(-2, 3) for dx in range(-2, 3)),
+            key=lambda o: max(abs(o[0]), abs(o[1])),
+        )
+    ]
     first = (r.uniform(0, width), r.uniform(0, height))
     out, active = [first], [first]
-    grid[int(first[1] / cs)][int(first[0] / cs)] = first
+    grid[(int(first[1] / cs) + 2) * stride + int(first[0] / cs) + 2] = first
+    rand, randrange, cos, sin = r.random, r.randrange, math.cos, math.sin
+    turn, span, rr = 2 * math.pi - 0, 2 * rad - rad, rad * rad
     while len(active) > 0:
-        idx = r.randrange(len(active))
+        idx = randrange(len(active))
         px, py = active[idx]
         for _ in range(tries):
-            a, d = r.uniform(0, 2 * math.pi), r.uniform(rad, 2 * rad)
-            x, y = px + d * math.cos(a), py + d * math.sin(a)
+            a = 0 + turn * rand()
+            d = rad + span * rand()
+            x, y = px + d * cos(a), py + d * sin(a)
             if not (0 <= x < width and 0 <= y < height):
                 continue
-            gx, gy = int(x / cs), int(y / cs)
-            ok = True
-            for yy in range(max(0, gy - 2), min(gh, gy + 3)):
-                for xx in range(max(0, gx - 2), min(gw, gx + 3)):
-                    q = grid[yy][xx]
-                    if q is not None and (q[0] - x) ** 2 + (q[1] - y) ** 2 < rad * rad:
-                        ok = False
-                        break
-                if not ok:
+            c = (int(y / cs) + 2) * stride + int(x / cs) + 2
+            for o in around:
+                q = grid[c + o]
+                if q is not None and (q[0] - x) ** 2 + (q[1] - y) ** 2 < rr:
                     break
-            if ok:
-                grid[gy][gx] = (x, y)
-                out.append((x, y))
-                active.append((x, y))
+            else:
+                p = (x, y)
+                grid[c] = p
+                out.append(p)
+                active.append(p)
                 break
         else:
             active.pop(idx)

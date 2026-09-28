@@ -20,6 +20,8 @@ def real(v: object, what: str) -> float:
     Raises TypeError unless `v` is an int, float or numpy integer or float scalar; a bool is
     not a number here. The message starts with `what`.
     """
+    if type(v) is float:  # the hot case: every coordinate passes through here
+        return v
     if isinstance(v, bool) or not isinstance(v, NUM_TYPES):
         raise TypeError(f"{what} takes a number, got {v!r}")
     return float(v)
@@ -30,7 +32,7 @@ def num(v: object, what: str) -> float:
 
     Raises what real() raises, and ValueError when `v` is NaN or infinite.
     """
-    f = real(v, what)
+    f = v if type(v) is float else real(v, what)
     if not math.isfinite(f):
         raise ValueError(f"{what} takes a finite number, got {v!r}")
     return f
@@ -217,9 +219,12 @@ def _pair(o: object, what: str) -> tuple[float, float] | None:
     if not isinstance(o, (tuple, list)):
         return None
     pair: tuple[object, ...] | list[object] = o
-    if len(pair) != 2 or not all(_is_number(v) for v in pair):
+    if len(pair) != 2:
         return None
-    return num(pair[0], what), num(pair[1], what)
+    x, y = pair
+    if not (_is_number(x) and _is_number(y)):
+        return None
+    return num(x, what), num(y, what)
 
 
 class Rect(NamedTuple):

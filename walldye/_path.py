@@ -23,7 +23,9 @@ def fmt(v: object, nd: int, what: str = "number") -> str:
     """
     if type(v) is int:
         return str(v)
-    if isinstance(v, (float, np.floating)):
+    if type(v) is float:
+        f = v
+    elif isinstance(v, (float, np.floating)):
         f = float(v)
     elif isinstance(v, (int, np.integer)) and not isinstance(v, bool):
         return str(int(v))
@@ -31,6 +33,11 @@ def fmt(v: object, nd: int, what: str = "number") -> str:
         raise TypeError(f"{what} takes a number, got {v!r}")
     if not math.isfinite(f):
         raise ValueError(f"{what} takes a finite number, got {v!r}")
+    return _text(f, nd)
+
+
+def _text(f: float, nd: int) -> str:
+    """The finite float `f` as fmt() writes it."""
     s = f"{f:.{nd}f}"
     if "." in s:
         s = s.rstrip("0").rstrip(".")
@@ -421,9 +428,10 @@ class Path:
         rows = _points(pts, "poly").tolist()
         if len(rows) == 0:
             return self
-        n = self._n
+        # _points() checked every coordinate is a finite float, so skip fmt()'s checks
+        nd = self._nd
         self._parts.extend(
-            f"{'L' if i > 0 else 'M'}{n(x, 'poly')} {n(y, 'poly')}" for i, (x, y) in enumerate(rows)
+            f"{'L' if i > 0 else 'M'}{_text(x, nd)} {_text(y, nd)}" for i, (x, y) in enumerate(rows)
         )
         return self.Z() if closed else self
 
