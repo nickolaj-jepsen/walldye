@@ -190,10 +190,14 @@ test.describe('focus order', () => {
     expect(at(/^button#theme-button/)).toBeLessThan(at(/^input#q/));
     expect(at(/^input#q/)).toBeLessThan(at(/^input\[sort=newest\]/));
     expect(at(/^input\[sort=newest\]/)).toBeLessThan(at(/^input\[technique=/));
-    // One stop per radio group, then the plates in grid order.
+    // One stop per radio group, then the plates in grid order (as far as the walk goes).
     expect(names.filter((n) => n.startsWith('input[sort='))).toHaveLength(1);
-    expect(names.filter((n) => /^a (One-bit moon|Radar sweep|Schotter)/.test(n))).toEqual(['a One-bit moon', 'a Radar sweep', 'a Schotter, sideways']);
-    expect(at(/^a One-bit moon/)).toBeGreaterThan(at(/^input\[technique=/));
+    const titles = await page.locator('.grid > li').evaluateAll((lis) => lis.map((li) => `a ${(li as HTMLElement).dataset.title}`.slice(0, 42)));
+    const firstPlate = names.indexOf(titles[0]);
+    expect(firstPlate).toBeGreaterThan(at(/^input\[(technique|subject|lineage|other)=/));
+    const plates = names.slice(firstPlate);
+    expect(plates.length).toBeGreaterThanOrEqual(5);
+    expect(plates).toEqual(titles.slice(0, plates.length));
     for (const s of stops.slice(1)) {
       expect(s.visible, `${s.what} is off screen`).toBe(true);
       expect(s.ring, `${s.what} has no focus ring`).toBe(true);

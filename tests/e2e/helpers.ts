@@ -23,7 +23,7 @@ export interface Manifest {
 /** tests/fixtures/manifest.json: the Python reference renders and the resvg-py reference PNG. */
 export const MANIFEST = JSON.parse(readText('tests/fixtures/manifest.json')) as Manifest;
 
-/** Every M1 piece, in the index's default order (newest first, ties by slug). */
+/** Every M1 piece, the ones with Python reference renders under tests/fixtures. */
 export const M1 = ['dither-moon', 'radar-sweep', 'schotter'] as const;
 
 export interface Rgb {
@@ -95,34 +95,24 @@ export function maxSlotError(a: string, b: string): number {
   return ca.reduce((worst, c, i) => Math.max(worst, colourDistance(c, cb[i])), 0);
 }
 
-/** Text of the SVG each index plate shows, by slug. */
-export async function plateSvgs(page: Page): Promise<Record<string, string>> {
-  return page.evaluate(async () => {
-    const out: Record<string, string> = {};
-    for (const li of document.querySelectorAll<HTMLElement>('.grid > li')) {
-      const img = li.querySelector<HTMLImageElement>('.plate > img');
-      if (img) out[li.dataset.slug!] = await (await fetch(img.src)).text();
-    }
-    return out;
-  });
+/** Text of the SVG the index plate of `slug` shows, or null while it has no single loaded image. */
+export async function plateSvg(page: Page, slug: string): Promise<string | null> {
+  return page.evaluate(async (s) => {
+    const imgs = document.querySelectorAll<HTMLImageElement>(`.grid > li[data-slug="${s}"] .plate > img`);
+    if (imgs.length !== 1 || !imgs[0].complete) return null;
+    return (await fetch(imgs[0].src)).text();
+  }, slug);
 }
 
 /**
- * Waits until every index plate shows exactly one loaded image and, when `svgs` is given, until
- * each shows the expected SVG text (a blob: recolour, or the template itself when that is unchanged).
+ * Brings each plate of `svgs` near the view, where the index loads it, and waits until it shows
+ * exactly that SVG text (a blob: recolour, or the template itself when that is unchanged).
  */
-export async function platesSettled(page: Page, svgs?: Record<string, string>, count = 3): Promise<void> {
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        [...document.querySelectorAll('.grid .plate')].map((p) => {
-          const imgs = p.querySelectorAll<HTMLImageElement>(':scope > img');
-          return imgs.length === 1 && imgs[0].complete;
-        }),
-      ),
-    )
-    .toEqual(Array(count).fill(true));
-  if (svgs) await expect.poll(() => plateSvgs(page), { timeout: 10_000 }).toEqual(svgs);
+export async function platesSettled(page: Page, svgs: Record<string, string>): Promise<void> {
+  for (const [slug, svg] of Object.entries(svgs)) {
+    await page.locator(`.grid > li[data-slug="${slug}"]`).scrollIntoViewIfNeeded();
+    await expect.poll(async () => (await plateSvg(page, slug)) === svg, { message: `the ${slug} plate shows its recolour`, timeout: 10_000 }).toBe(true);
+  }
 }
 
 /**

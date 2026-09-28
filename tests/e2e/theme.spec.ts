@@ -18,7 +18,10 @@ test.describe('without JavaScript', () => {
     await page.goto('/');
     await expect(page.locator('#theme-button')).toBeHidden();
     await expect(page.locator('#facets')).toBeHidden();
-    await expect(page.locator('.grid .plate img')).toHaveCount(3);
+    // Every plate carries its <noscript> template.
+    const plates = await page.locator('.grid > li').count();
+    expect(plates).toBeGreaterThan(0);
+    await expect(page.locator('.grid .plate img')).toHaveCount(plates);
     expect(await page.locator('.grid .plate').first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(28, 27, 26)');
     await page.goto('/schotter');
     await expect(page.locator('.controls')).toBeHidden();
@@ -31,8 +34,7 @@ test.describe('theme', () => {
 
   test('a preset recolours the index and is saved', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.grid .plate > img')).toHaveCount(3);
-    // Fireproof shows the untouched templates.
+    // Plates near the view load; fireproof shows the untouched templates.
     await expect(page.locator('.grid .plate > img').first()).toHaveAttribute('src', /^\/t\/[0-9a-f]{12}\.svg$/);
 
     await page.click('#theme-button');

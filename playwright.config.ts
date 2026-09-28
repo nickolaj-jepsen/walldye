@@ -26,8 +26,9 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: PERF },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testIgnore: PERF },
     { name: 'webkit', use: { ...devices['Desktop Safari'] }, testIgnore: PERF },
-    // Timing runs alone, after the rest; `--project=perf --no-deps` runs it by itself.
-    { name: 'perf', use: { ...devices['Desktop Chrome'] }, testMatch: PERF, dependencies: ['chromium', 'firefox', 'webkit'] },
+    // Timing runs alone, after the rest; `--project=perf --no-deps` runs it by itself. No trace: recording
+    // one snapshots the whole index in the page on every action, a long task the site does not make.
+    { name: 'perf', use: { ...devices['Desktop Chrome'], trace: 'off' }, testMatch: PERF, dependencies: ['chromium', 'firefox', 'webkit'] },
   ],
   webServer: {
     command: `${process.env.E2E_SKIP_BUILD ? '' : 'pnpm astro build && '}pnpm astro preview --ignore-lock --host 127.0.0.1 --port ${port}`,
