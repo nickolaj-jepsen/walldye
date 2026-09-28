@@ -5,7 +5,7 @@ from core_support import load, load_file, spec, themes
 
 from walldye import ACCENT, MASK_WHITE, UI
 from walldye._document import Document
-from walldye._theme import parse_theme
+from walldye._theme import hex_to_rgb, parse_theme
 from walldye.tools.tokenize import find_colours, normalise, skeleton
 
 FIXTURES = ("rings", "veil", "pixels", "branchy")
@@ -44,7 +44,7 @@ REAL = sorted(ROOT.glob("wallpapers/*/design.py")) + sorted(
 @pytest.mark.parametrize("path", REAL, ids=lambda p: f"{p.parent.name}/{p.name}")
 def test_real_designs_serialise_like_fresh_draws(path):
     """The draw-once check for every piece and skill example: 16:9 in both regimes,
-    under the template theme, one basis theme and one probe."""
+    under the template theme, one held-out theme and one probe."""
     d = load_file(path)
     for regime in ("dark", "light"):
         doc = d.draw(spec(d, "default", "16:9", regime))
@@ -66,6 +66,21 @@ def test_slots_match_the_tokenizer(slug):
             assert doc.skeleton() == skeleton(svg)
             assert normalise(svg) == svg
         assert len(doc.colours()) == len(doc.hexes(themes(regime)[0]))
+
+
+@pytest.mark.parametrize("slug", FIXTURES)
+def test_coefs_are_the_hexes_before_rounding(slug):
+    d = load(slug)
+    for regime in ("dark", "light"):
+        doc = d.draw(spec(d, "default", "16:9", regime))
+        rows = doc.coefs()
+        assert len(rows) == len(doc.colours())
+        # themes()[0] may be fireproof, whose pinned tokens are not derived.
+        for tokens in themes(regime)[1:]:
+            bg, fg, accent = (hex_to_rgb(tokens[k]) for k in ("bg", "fg", "accent"))
+            for (a, b, c, *d_), h in zip(rows, doc.hexes(tokens), strict=True):
+                want = [a * bg[i] + b * fg[i] + c * accent[i] + d_[i] for i in range(3)]
+                assert max(abs(x - y) for x, y in zip(hex_to_rgb(h), want)) <= 2
 
 
 def test_light_documents_share_the_skeleton_unless_geometry_branches():

@@ -66,7 +66,7 @@ function checkBuild(root: string, slug: string, variant: string, lines: string[]
     return null;
   }
   if (lines !== null && slots.design_sha !== digest(variantLines(lines, variant))) {
-    problems.push(`${slug}: ${rel}slots.json has a stale design_sha (the design, its data or the meta.yaml themes changed): ${run}`);
+    problems.push(`${slug}: ${rel}slots.json has a stale design_sha (the design or its data changed): ${run}`);
   }
   if (named && slots.variant !== variant) {
     problems.push(`${slug}: ${rel}slots.json has variant ${JSON.stringify(slots.variant ?? null)}, not "${variant}": ${run}`);

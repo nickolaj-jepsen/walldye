@@ -2,10 +2,10 @@
  * The index page: facet filtering, search and sort with the state in the query string, live counts
  * and the results line (docs/site.md §6.4), and lazily recoloured plates (docs/design.md, Index).
  */
-import { tokenOf, regimeOf, type Seeds } from '../lib/theme';
+import { tokenOf, type Seeds } from '../lib/theme';
 import { currentSeeds, onThemeChange } from './current-theme';
 import { countFor, matches, ordered, parseQuery, serialiseQuery, type Filterable, type FilterState } from './filter';
-import { RETRY_MS, showPlate, showTemplate, syncDarkNotes } from './plates';
+import { RETRY_MS, showPlate, showTemplate } from './plates';
 
 interface Item extends Filterable {
   li: HTMLLIElement;
@@ -196,7 +196,6 @@ const io = new IntersectionObserver(
   { rootMargin: '100% 0px' },
 );
 
-syncDarkNotes(regimeOf(seeds) === 'light');
 for (const it of items) {
   if (!it.plate) continue;
   plateOf.set(it.li, it.plate);
@@ -207,7 +206,6 @@ for (const it of items) {
 onThemeChange((s) => {
   seeds = s;
   token = tokenOf(s);
-  syncDarkNotes(regimeOf(s) === 'light');
   todo.clear();
   for (const p of near) todo.add(p);
   pump();

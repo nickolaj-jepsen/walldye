@@ -53,7 +53,7 @@ describe('recolour matches the Python renders (b)', () => {
     expect(sha256(template), `${path} changed since the fixture was made`).toBe(sha);
     const picked = select(slotsOf(slug), aspect, seeds(theme));
     expect(picked.key).toBe(key);
-    const out = recolour(template, picked.entry, seeds(theme), { swap: picked.swap });
+    const out = recolour(template, picked.entry, seeds(theme));
     const want = read(render);
     expect(skeleton(out)).toBe(skeleton(want));
     expect(maxSlotError(out, want)).toBeLessThanOrEqual(2);
@@ -62,7 +62,7 @@ describe('recolour matches the Python renders (b)', () => {
   it('is byte-equal to the Python reference recolour', () => {
     const [slug, aspect, theme] = ['schotter', '16:9', 'nord'];
     const picked = select(slotsOf(slug), aspect, seeds(theme));
-    const out = recolour(read(`wallpapers/${slug}/build/${picked.entry.file}`), picked.entry, seeds(theme), { swap: picked.swap });
+    const out = recolour(read(`wallpapers/${slug}/build/${picked.entry.file}`), picked.entry, seeds(theme));
     expect(out).toBe(read(MANIFEST.resvg.svg));
   });
 });
@@ -82,7 +82,7 @@ describe('per-occurrence slots (f)', () => {
   it('recolours within 2 units with per-occurrence slots', () => {
     for (const [theme, want] of Object.entries(renders)) {
       const picked = select(slots, '16:9', seeds(theme));
-      const out = recolour(template, picked.entry, seeds(theme), { swap: picked.swap });
+      const out = recolour(template, picked.entry, seeds(theme));
       expect(skeleton(out)).toBe(skeleton(want));
       expect(maxSlotError(out, want), theme).toBeLessThanOrEqual(2);
     }
@@ -99,25 +99,14 @@ describe('per-occurrence slots (f)', () => {
 describe('template choice', () => {
   const entry = (file: string, n = 1): SlotsEntry => ({ file, sha256: '', n, coefs: [[1, 0, 0, 0, 0, 0]], occ: [0] });
   const both = { '16:9/dark': entry('16x9.svg'), '16:9/light': entry('16x9.light.svg') } as unknown as Slots;
-  const darkOnly = { '16:9/dark': entry('16x9.svg') } as unknown as Slots;
 
-  it('picks the regime entry, or the dark entry swapped for a dark-only piece', () => {
-    expect(pickTemplate(both, '16:9', 'light')).toMatchObject({ key: '16:9/light', swap: false });
-    expect(pickTemplate(both, '16:9', 'dark')).toMatchObject({ key: '16:9/dark', swap: false });
-    expect(pickTemplate(darkOnly, '16:9', 'light')).toMatchObject({ key: '16:9/dark', swap: true });
-    expect(pickTemplate(darkOnly, '16:9', 'dark')).toMatchObject({ key: '16:9/dark', swap: false });
-    expect(() => pickTemplate(darkOnly, '21:9', 'dark')).toThrow('no 21:9/dark entry');
-  });
-
-  it('applies swapped seeds to a dark-only piece under light seeds', () => {
-    const light = PRESETS['flexoki-light'];
-    const picked = select(darkOnly, '16:9', light);
-    expect(picked.seeds).toEqual({ bg: light.fg, fg: light.bg, accent: light.accent });
-    const template = '<svg><rect fill="#1C1B1A"/></svg>';
-    expect(recolour(template, picked.entry, light, { swap: true })).toBe('<svg><rect fill="#100F0F"/></svg>');
-    // Fireproof with bg and fg exchanged swaps back to fireproof: the untouched template.
-    const inverted = { bg: '#DAD8CE', fg: '#1C1B1A', accent: '#CF6A4C' };
-    expect(recolour(template, picked.entry, inverted, { swap: true })).toBe(template);
+  it("picks the entry of the seeds' regime", () => {
+    expect(pickTemplate(both, '16:9', 'light')).toMatchObject({ key: '16:9/light' });
+    expect(pickTemplate(both, '16:9', 'dark')).toMatchObject({ key: '16:9/dark' });
+    expect(select(both, '16:9', PRESETS['flexoki-light']).key).toBe('16:9/light');
+    expect(select(both, '16:9', PRESETS.nord).key).toBe('16:9/dark');
+    expect(() => pickTemplate(both, '21:9', 'dark')).toThrow('no 21:9/dark entry');
+    expect(() => pickTemplate({ '16:9/dark': entry('16x9.svg') } as unknown as Slots, '16:9', 'light')).toThrow('no 16:9/light entry');
   });
 
   it('falls back to the template when the slot count does not match', () => {

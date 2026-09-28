@@ -695,8 +695,8 @@ def meta(
     variants: Sequence[str] = ("default",),
 ) -> Lints:
     """(errors, warnings) for the meta.yaml `m` of `slug`, whose design declares `variants`
-    ("default" first): required copy, reserved slugs, boolean draft and ai_generated, themes,
-    source kinds, licence rules (a LICENSES/<licence>.txt for the resolved licence, and
+    ("default" first): required copy, reserved slugs, boolean draft and ai_generated, source
+    kinds, licence rules (a LICENSES/<licence>.txt for the resolved licence, and
     franchise for fan work), facets against `taxonomy` (skipped with a warning when None),
     proposed_facets outside drafts and the variants: rules; colour words in the copy warn."""
     errors: list[str] = []
@@ -709,11 +709,6 @@ def meta(
             errors.append(f"{key} must be true or false, not {m[key]!r}")
     if reserved(slug):
         errors.append(f"slug {slug!r} is reserved by the site")
-    themes = m.get("themes")
-    if themes is not None and themes not in (["dark", "light"], ["dark"]):
-        errors.append(f"themes must be [dark, light] or [dark], not {themes!r}")
-    if themes == ["dark"] and _text(m, "notes") == "":
-        warnings.append("themes: [dark] needs the reason (light ladder steps 2-3 tried) in notes")
     sources = _mappings(m.get("sources"))
     if sources is None:
         errors.append("sources must be a list of mappings")

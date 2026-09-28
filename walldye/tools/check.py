@@ -23,14 +23,14 @@ from typing import Final
 import numpy as np
 from numpy.typing import NDArray
 
-from walldye import _basis
+from walldye import _check_themes
 from walldye._aspect import canvas_size
 from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye.tools import common, hashing, knobs, lint
+from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialise_aspect
 from walldye.tools.common import Regime
-from walldye.tools.fit import TEMPLATE_THEMES, Entry, first_diff, fit_aspect, label
 
 HASH_SEED: Final = "4242"
 NEAR_CLONE: Final = 0.93
@@ -66,7 +66,6 @@ class Task:
     wallpapers: str
     slug: str
     variant: str
-    regimes: tuple[Regime, ...]
     paranoid: bool = False
     probes: Mapping[str, str] | None = None
 
@@ -111,12 +110,11 @@ class Report:
 @dataclass
 class Target:
     """A piece after the static steps: its report so far, its design (None when it failed to
-    load), its regimes and the variants to check."""
+    load) and the variants to check."""
 
     slug: str
     report: Report
     piece: common.Piece | None = None
-    regimes: tuple[Regime, ...] = ("dark", "light")
     variants: tuple[str, ...] = ()
 
 
@@ -127,7 +125,6 @@ def prepare(slug: str, variant: str | None = None) -> Target:
     t = Target(slug, Report(slug))
     try:
         meta = common.load_meta(slug)
-        t.regimes = common.regimes(meta)
     except (OSError, ValueError) as e:
         t.report.errors.append(str(e))
         return t
@@ -280,14 +277,12 @@ def source_checks(targets: Sequence[Target]) -> None:
         paths[path].report.errors += messages
 
 
-def probe_hashes(
-    docs: Mapping[tuple[str, Regime], Document], regimes: Sequence[Regime]
-) -> dict[str, str]:
+def probe_hashes(docs: Mapping[tuple[str, Regime], Document]) -> dict[str, str]:
     """slots.json `probes`: sha256 of the 16:9 dark document under fireproof, and of each
-    regime's 16:9 document under its first basis theme."""
+    regime's 16:9 document under its sample theme."""
     probes = {"fireproof": _sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
-    for regime in regimes:
-        probes[regime] = _sha(docs["16:9", regime], _basis.BASIS[regime][0])
+    for regime in common.REGIMES:
+        probes[regime] = _sha(docs["16:9", regime], _check_themes.SAMPLE[regime])
     return probes
 
 
@@ -297,7 +292,7 @@ def _sha(doc: Document, theme: common.Theme) -> str:
 
 def check_variant(task: Task) -> Result:
     """Check one (slug, variant): determinism (two in-process draws per native aspect and
-    regime, then a PYTHONHASHSEED subprocess), viewBox, the fit and its templates, the
+    regime, then a PYTHONHASHSEED subprocess), viewBox, the templates and their slot tables, the
     constant-slot rule, the template limits, pixel origins, probes, focus and the ink map,
     and with task.paranoid a fresh import per serialisation. A determinism failure stops it
     before any geometry step; so does an exception from the design."""
@@ -320,30 +315,43 @@ def _check(task: Task, r: Result) -> None:
     params = piece.params(variant)
     docs: dict[tuple[str, Regime], Document] = {}
     if task.probes is not None:
-        for regime in task.regimes:
+        for regime in common.REGIMES:
             docs["16:9", regime] = draw(piece, RenderSpec(variant, params, "16:9", regime))
-        r.probes = probe_hashes(docs, task.regimes)
+        r.probes = probe_hashes(docs)
         if r.probes == dict(task.probes):
             r.unchanged = True
             return
 
-    expected: dict[str, str] = {}
-    for aspect in piece.aspects:
-        for regime in task.regimes:
+    keys = {
+        (aspect, regime): common.key(slug, variant, aspect, regime)
+        for aspect in piece.aspects
+        for regime in common.REGIMES
+    }
+    # The fresh process draws while this one does; it only needs the keys.
+    fresh = _start_fresh(list(keys.values()))
+    try:
+        expected: dict[str, str] = {}
+        for (aspect, regime), k in keys.items():
             spec = RenderSpec(variant, params, aspect, regime)
             first = docs[aspect, regime] if (aspect, regime) in docs else draw(piece, spec)
             docs[aspect, regime] = first
-            tokens = common.tokens_of(_basis.BASIS[regime][0])
+            tokens = common.tokens_of(_check_themes.SAMPLE[regime])
             a, b = first.to_svg(tokens), draw(piece, spec).to_svg(tokens)
             if a != b:
                 r.errors.append(
                     f"{aspect} {regime}: two draws differ, {first_diff(a, b)}: does draw change"
                     " module-level state, or use randomness outside s.rng?"
                 )
-            expected[common.key(slug, variant, aspect, regime)] = hashing.sha256(a.encode())
-    if len(r.errors) > 0:
-        return
-    r.errors += _fresh_process(expected)
+            expected[k] = hashing.sha256(a.encode())
+        if len(r.errors) > 0:
+            return
+        out, err = fresh.communicate()
+        done = subprocess.CompletedProcess(fresh.args, fresh.wait(), out, err)
+    finally:
+        if fresh.returncode is None:
+            fresh.kill()
+            fresh.wait()
+    r.errors += _fresh_errors(done, expected)
     if len(r.errors) > 0:
         return
 
@@ -352,7 +360,9 @@ def _check(task: Task, r: Result) -> None:
         if (got := common.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
             r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
     for aspect in piece.aspects:
-        templates, entries, errors = fit_aspect({g: docs[aspect, g] for g in task.regimes}, aspect)
+        templates, entries, errors = serialise_aspect(
+            {g: docs[aspect, g] for g in common.REGIMES}, aspect
+        )
         r.templates.update(templates)
         r.entries.update(entries)
         r.errors += errors
@@ -361,10 +371,10 @@ def _check(task: Task, r: Result) -> None:
         r.errors += [f"{name}: {e}" for e in errors]
         r.warnings += [f"{name}: {w}" for w in warnings]
     for aspect in piece.aspects:
-        grids = [g for regime in task.regimes for g in docs[aspect, regime].pixel_grids]
+        grids = [g for regime in common.REGIMES for g in docs[aspect, regime].pixel_grids]
         r.warnings += [f"{aspect}: {w}" for w in lint.pixel_origins(grids)]
     r.cells = sorted({cell for doc in docs.values() for cell, _, _ in doc.pixel_grids})
-    r.probes = probe_hashes(docs, task.regimes)
+    r.probes = probe_hashes(docs)
     dark = r.templates.get("16x9.svg")
     if dark is not None:
         bg = common.background(dark)
@@ -374,17 +384,22 @@ def _check(task: Task, r: Result) -> None:
         r.errors += _paranoid(slug, variant, docs)
 
 
-def _fresh_process(expected: Mapping[str, str]) -> list[str]:
-    """Errors for the keys a `python -m walldye _hashes` subprocess under PYTHONHASHSEED
-    draws differently from `expected` {key: sha256}."""
-    run = subprocess.run(
-        [sys.executable, "-m", "walldye", "_hashes", str(common.WALLPAPERS), *expected],
+def _start_fresh(keys: Sequence[str]) -> subprocess.Popen[str]:
+    """A running `python -m walldye _hashes` subprocess under PYTHONHASHSEED for `keys`; read
+    it with communicate() and judge it with _fresh_errors()."""
+    return subprocess.Popen(
+        [sys.executable, "-m", "walldye", "_hashes", str(common.WALLPAPERS), *keys],
         env={**os.environ, "PYTHONHASHSEED": HASH_SEED},
         cwd=common.ROOT,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        check=False,
     )
+
+
+def _fresh_errors(run: subprocess.CompletedProcess[str], expected: Mapping[str, str]) -> list[str]:
+    """Errors for the keys the finished _start_fresh() subprocess `run` drew differently from
+    `expected` {key: sha256}."""
     if run.returncode != 0:
         return [f"determinism subprocess failed: {run.stderr.strip()[-600:]}"]
     try:
@@ -409,7 +424,7 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
     the shared document serialised under the same theme."""
     errors: list[str] = []
     for (aspect, regime), doc in docs.items():
-        rest = _basis.BASIS[regime] + _basis.PROBES[regime] + _basis.HELD_OUT[regime]
+        rest = _check_themes.PROBES[regime] + _check_themes.HELD_OUT[regime]
         for theme in [TEMPLATE_THEMES[regime], *rest]:
             tokens = common.tokens_of(theme)
             try:
@@ -431,7 +446,7 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
 def hashes_main(args: Sequence[str]) -> int:
     """`python -m walldye _hashes <wallpapers dir> <slug@variant@aspect@regime>...`: print a
     JSON object mapping each key to the sha256 of that draw serialised under the regime's
-    first basis theme, made in this process. Design errors propagate (non-zero exit)."""
+    sample theme, made in this process. Design errors propagate (non-zero exit)."""
     common.WALLPAPERS = Path(args[0])
     out: dict[str, str] = {}
     for k in args[1:]:
@@ -442,7 +457,7 @@ def hashes_main(args: Sequence[str]) -> int:
         spec = RenderSpec(
             variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
         )
-        out[k] = _sha(common.draw(piece, spec, cache=False), _basis.BASIS[spec.regime][0])
+        out[k] = _sha(common.draw(piece, spec, cache=False), _check_themes.SAMPLE[spec.regime])
     print(json.dumps(out))
     return 0
 
@@ -562,11 +577,7 @@ def run(
     for t in targets:
         lint_source(t)
     source_checks(targets)
-    tasks = [
-        Task(str(common.WALLPAPERS), t.slug, v, t.regimes, paranoid)
-        for t in targets
-        for v in t.variants
-    ]
+    tasks = [Task(str(common.WALLPAPERS), t.slug, v, paranoid) for t in targets for v in t.variants]
     results = run_tasks(check_variant, tasks, workers(jobs, len(tasks)))
     failed = 0
     for t in targets:

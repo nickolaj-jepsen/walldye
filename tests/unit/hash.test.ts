@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
-import { compareCodePoints, designSha, digest, lockedVersions, parseMeta, sha256, themes } from '../../src/lib/hash';
+import { compareCodePoints, designSha, digest, lockedVersions, parseMeta, sha256 } from '../../src/lib/hash';
 
 interface Vector {
   name: string;
@@ -27,7 +27,7 @@ afterAll(() => {
   for (const dir of temps) rmSync(dir, { recursive: true, force: true });
 });
 
-/** A repo holding `v`'s files, with a meta.yaml giving its themes line; the slug and variant its lines name. */
+/** A repo holding `v`'s files and a meta.yaml; the slug and the variant its lines name. */
 function materialise(v: Vector): { root: string; slug: string; variant: string } {
   const root = mkdtempSync(join(tmpdir(), 'walldye-hash-'));
   temps.push(root);
@@ -37,7 +37,7 @@ function materialise(v: Vector): { root: string; slug: string; variant: string }
   }
   const slug = Object.keys(v.files)[0].split('/')[1];
   const field = (key: string) => v.lines.find((l) => l.startsWith(`${key}\t`))?.slice(key.length + 1);
-  writeFileSync(join(root, 'wallpapers', slug, 'meta.yaml'), `themes: [${field('themes')}]\n`);
+  writeFileSync(join(root, 'wallpapers', slug, 'meta.yaml'), 'title: Example\n');
   return { root, slug, variant: field('variant') ?? 'default' };
 }
 
@@ -75,7 +75,7 @@ describe('design_sha', () => {
       writeFileSync(join(root, path), text);
     };
     put('wallpapers/moon/design.py', 'x = 1\n');
-    put('wallpapers/moon/meta.yaml', 'themes: [dark]\n');
+    put('wallpapers/moon/meta.yaml', 'title: Moon\n');
     put('wallpapers/moon/data/b.npy', 'b');
     put('wallpapers/moon/data/a.json', '[]');
     mkdirSync(join(root, 'wallpapers/moon/data/nested'));
@@ -83,7 +83,6 @@ describe('design_sha', () => {
       `wallpapers/moon/data/a.json\t${sha256('[]')}`,
       `wallpapers/moon/data/b.npy\t${sha256('b')}`,
       `wallpapers/moon/design.py\t${sha256('x = 1\n')}`,
-      'themes\tdark',
     ];
     expect(designSha(root, 'moon')).toBe(digest(lines));
     expect(designSha(root, 'moon', 'default')).toBe(digest(lines));
@@ -117,14 +116,6 @@ describe('hash inputs', () => {
       ['numpy', '2.5.3'],
       ['scipy', '1.18.1'],
     ]);
-  });
-
-  it('reads themes the way hashing.themes() does', () => {
-    expect(themes({})).toEqual(['dark', 'light']);
-    expect(themes({ themes: [] })).toEqual(['dark', 'light']);
-    expect(themes({ themes: null })).toEqual(['dark', 'light']);
-    expect(themes({ themes: ['dark'] })).toEqual(['dark']);
-    expect(themes(parseMeta('themes: [light, dark]') as Record<string, unknown>)).toEqual(['light', 'dark']);
   });
 
   it('parses meta.yaml like PyYAML safe_load (YAML 1.1 booleans, repeated keys)', () => {

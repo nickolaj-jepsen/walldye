@@ -3,7 +3,7 @@
 import numpy as np
 
 from walldye._theme import SEEDS, parse_seeds
-from walldye.tools import build, common, fit
+from walldye.tools import build, coefs, common
 from walldye.tools.tokenize import skeleton
 
 LEGACY_SOURCE = (
@@ -39,16 +39,17 @@ def seeds(theme) -> dict[str, str]:
 
 def assert_recolours(slug: str, theme, aspect: str = "16:9", variant: str = "default") -> None:
     """build.recolour of the committed template matches a fresh render: same skeleton, slots
-    within fit.MAX_ERROR."""
+    within coefs.MAX_ERROR."""
     slots = build.load_slots(slug, variant)
     assert slots is not None
     table = build.entries(slots)
-    k, applied = build.select(slots, aspect, seeds(theme))
+    s = seeds(theme)
+    k = build.select(slots, aspect, s)
     template = (common.build_dir(slug, variant) / table[k]["file"]).read_text()
-    got = build.recolour(template, table[k], applied)
-    want = common.render(slug, applied, aspect, variant)
+    got = build.recolour(template, table[k], s)
+    want = common.render(slug, s, aspect, variant)
     assert skeleton(got) == skeleton(want)
-    assert np.abs(fit.colours(got) - fit.colours(want)).max(initial=0) <= fit.MAX_ERROR
+    assert np.abs(coefs.colours(got) - coefs.colours(want)).max(initial=0) <= coefs.MAX_ERROR
 
 
 VERSION_LABELS = {

@@ -5,7 +5,7 @@
  * Before JS it is an empty 16:9 box on the plate ground; without JS a `<noscript>` shows the
  * untouched 16:9 template. Children (the crop window) go after it.
  */
-import { isDarkOnly, type Piece } from '../lib/content';
+import type { Piece } from '../lib/content';
 
 interface Props {
   piece: Piece;
@@ -27,7 +27,7 @@ const variants =
     : JSON.stringify(Object.fromEntries(p.versions.map((v) => [v.name, { templates: urls(v.templates), slots: v.slotsUrl, alt: v.description }])));
 ---
 
-<div class="plate" data-plate={p.slug} data-templates={JSON.stringify(urls(p.templates))} data-slots={p.slotsUrl} data-alt={p.description} data-variants={variants} data-dark-only={isDarkOnly(p) ? '' : undefined}><noscript><img src={p.templates['16:9/dark'].url} alt={p.description} width="1920" height="1080" loading={lazy ? 'lazy' : undefined} decoding="async" /></noscript><slot /></div>
+<div class="plate" data-plate={p.slug} data-templates={JSON.stringify(urls(p.templates))} data-slots={p.slotsUrl} data-alt={p.description} data-variants={variants}><noscript><img src={p.templates['16:9/dark'].url} alt={p.description} width="1920" height="1080" loading={lazy ? 'lazy' : undefined} decoding="async" /></noscript><slot /></div>
 
 <style>
   /* site.css sizes an `:empty` plate; one holding only its <noscript> (or the crop window) is still waiting for its image. */

@@ -385,8 +385,6 @@ LABELS = {"default": {"label": "Early"}, "late": {"label": "Late in the turn", "
         ("ok", {**GOOD, "title": ""}, (), "needs a title"),
         ("about", GOOD, (), "reserved"),
         ("sitemap-x", GOOD, (), "reserved"),
-        ("ok", {**GOOD, "themes": ["light"]}, (), "themes must be"),
-        ("ok", {**GOOD, "themes": ["dark"], "notes": "why"}, (), None),
         (
             "ok",
             {**GOOD, "sources": [{"kind": "recreation"}]},
@@ -516,7 +514,7 @@ def test_meta_rules(slug, meta, names, error, tmp_path, monkeypatch):
 
 
 def test_meta_warnings():
-    meta = {**GOOD, "description": "A terracotta disc on a Black ground.", "themes": ["dark"]}
+    meta = {**GOOD, "description": "A terracotta disc on a Black ground."}
     meta["variants"] = {
         "default": {"label": "Early"},
         "late": {"label": "Red dusk", "description": "A blue sea."},
@@ -524,7 +522,6 @@ def test_meta_warnings():
     _, warnings = lint.meta("ok", meta, None, NAMES)
     assert any("black, terracotta" in w for w in warnings)
     assert any("taxonomy.yaml not found" in w for w in warnings)
-    assert any("needs the reason" in w for w in warnings)
     assert (
         "colour words in variants: late: blue, red (describe the shape, without naming colours)"
         in warnings

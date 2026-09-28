@@ -4,7 +4,7 @@ walldye is a catalogue of desktop and phone wallpapers, each drawn by a small Py
 
 ## How the colours work
 
-A design never sees a colour value. It draws in symbolic theme colours (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then fits every colour in the resulting SVG as a linear mix of the three chosen colours. Those templates and their coefficients are committed, and the site recolours a wallpaper for any theme by rewriting its colours in the browser, without running the script. [docs/design.md](docs/design.md) has the details.
+A design never sees a colour value. It draws in symbolic theme colours (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then records every colour in the resulting SVG as a linear mix of the three chosen colours, read off the formula it was drawn with. Those templates and their coefficients are committed, and the site recolours a wallpaper for any theme by rewriting its colours in the browser, without running the script. [docs/design.md](docs/design.md) has the details.
 
 ## Running it locally
 

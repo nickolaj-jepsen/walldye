@@ -54,11 +54,6 @@ export function aspectLabel(aspect: string): string {
   return aspect.replace(':', 'x');
 }
 
-/** Whether a piece was made for dark themes only (meta.yaml `themes: [dark]`). */
-export function isDarkOnly(p: Piece): boolean {
-  return !(p.themes as readonly string[]).includes('light');
-}
-
 /** Whether a piece composes natively for every site aspect. */
 export function fitsAnyScreen(p: Piece): boolean {
   return SITE_ASPECTS.every((a) => p.aspects.includes(a));
@@ -68,7 +63,6 @@ export function fitsAnyScreen(p: Piece): boolean {
 export function otherValues(p: Piece): OtherValue[] {
   const out: OtherValue[] = [];
   if (p.sources.length) out.push('references');
-  if (!isDarkOnly(p)) out.push('light-themes');
   if (fitsAnyScreen(p)) out.push('any-screen');
   if (p.hasScript) out.push('source-code');
   out.push(p.ai_generated ? 'claude' : 'human-made');

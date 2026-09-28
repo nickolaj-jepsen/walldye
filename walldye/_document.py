@@ -3,8 +3,8 @@
 from collections.abc import Mapping, Sequence
 from typing import Final, Literal, final
 
-from ._colour import Colour, MaskColour, resolve
-from ._theme import is_light
+from ._colour import Colour, MaskColour, coefs, resolve
+from ._theme import Coefs, is_light
 
 type Regime = Literal["dark", "light"]
 type Fragment = str | Colour | MaskColour
@@ -68,6 +68,18 @@ class Document:
             if h is None:
                 h = memo[c] = resolve(c, tokens)
             out.append(h)
+        return out
+
+    def coefs(self) -> list[Coefs]:
+        """Each slot's Coefs in the document's regime (see _colour.coefs), in text order."""
+        light = self.regime == "light"
+        memo: dict[Colour | MaskColour, Coefs] = {}
+        out: list[Coefs] = []
+        for c in self._colours:
+            k = memo.get(c)
+            if k is None:
+                k = memo[c] = coefs(c, light)
+            out.append(k)
         return out
 
     def to_svg(self, tokens: Mapping[str, str]) -> str:

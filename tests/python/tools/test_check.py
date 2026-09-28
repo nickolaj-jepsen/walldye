@@ -8,7 +8,7 @@ import pytest
 from fixtures import regen
 from tools_support import built, legacy, versions
 
-from walldye import _basis
+from walldye import _check_themes
 from walldye.tools import build, check, common, hashing
 
 TEXT_SOURCE = (
@@ -30,9 +30,7 @@ def report(slug: str, **kw) -> check.Report:
     check.lint_source(t)
     check.source_checks([t])
     for v in t.variants:
-        t.report.add(
-            check.check_variant(check.Task(str(common.WALLPAPERS), slug, v, t.regimes, **kw))
-        )
+        t.report.add(check.check_variant(check.Task(str(common.WALLPAPERS), slug, v, **kw)))
     if t.piece is not None:
         check.siblings(
             t.report, t.piece.variant_names(), {v: r.ink for v, r in t.report.results.items()}
@@ -78,9 +76,7 @@ def test_check_catches(wallpapers, design, expected):
 
 def test_determinism_failure_stops_before_geometry(wallpapers):
     regen.install(wallpapers, "unseeded")
-    result = check.check_variant(
-        check.Task(str(wallpapers), "unseeded", "default", ("dark", "light"))
-    )
+    result = check.check_variant(check.Task(str(wallpapers), "unseeded", "default"))
     assert result.errors and all("two draws differ" in e for e in result.errors)
     assert result.templates == {} and result.entries == {} and result.ink is None
 
@@ -213,19 +209,34 @@ def test_tool_output_it_cannot_read_fails_every_file(wallpapers, monkeypatch):
     }
 
 
-def test_determinism_subprocess_failures_are_errors(wallpapers, monkeypatch):
+def test_determinism_subprocess_failures_are_errors(wallpapers):
     regen.install(wallpapers, "hash-seed")
-    task = check.Task(str(wallpapers), "hash-seed", "default", ("dark",))
+    task = check.Task(str(wallpapers), "hash-seed", "default")
     (error,) = check.check_variant(task).errors
     assert error.startswith("determinism subprocess failed: ")
     assert error.endswith("RuntimeError: only in the determinism subprocess")
     for stdout, want in (("[1]", "printed '[1]'"), ("oops", "printed 'oops'")):
-        monkeypatch.setattr(
-            check.subprocess,
-            "run",
-            lambda cmd, stdout=stdout, **kw: subprocess.CompletedProcess(cmd, 0, stdout, ""),
-        )
-        assert check._fresh_process({"k": "sha"}) == [f"determinism subprocess {want}"]
+        run = subprocess.CompletedProcess([], 0, stdout, "")
+        assert check._fresh_errors(run, {"k": "sha"}) == [f"determinism subprocess {want}"]
+
+
+def test_a_design_error_stops_the_determinism_subprocess(wallpapers, monkeypatch):
+    regen.install(wallpapers, "hash-seed")
+    started = []
+
+    def start(keys):
+        started.append(subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"]))
+        return started[-1]
+
+    def boom(piece, spec):
+        raise check.DesignError("boom")
+
+    monkeypatch.setattr(check, "_start_fresh", start)
+    monkeypatch.setattr(check, "draw", boom)
+    assert check.check_variant(check.Task(str(wallpapers), "hash-seed", "default")).errors == [
+        "boom"
+    ]
+    assert started[0].returncode is not None
 
 
 def test_paranoid_reports_a_failing_fresh_import(wallpapers, monkeypatch):
@@ -235,7 +246,7 @@ def test_paranoid_reports_a_failing_fresh_import(wallpapers, monkeypatch):
         raise ImportError(f"{slug} is gone")
 
     monkeypatch.setattr(common, "fresh", gone)
-    task = check.Task(str(wallpapers), "collision", "default", ("dark",), paranoid=True)
+    task = check.Task(str(wallpapers), "collision", "default", paranoid=True)
     assert check.check_variant(task).errors == [
         "fresh import failed: ImportError: collision is gone"
     ]
@@ -323,7 +334,7 @@ def test_variants_need_meta_labels(wallpapers):
 def test_slow_variants_warn(wallpapers, monkeypatch):
     regen.install(wallpapers, "collision")
     monkeypatch.setattr(check, "SLOW", 0.0)
-    result = check.check_variant(check.Task(str(wallpapers), "collision", "default", ("dark",)))
+    result = check.check_variant(check.Task(str(wallpapers), "collision", "default"))
     assert result.warnings[-1].startswith("the check took") and result.warnings[-1].endswith(
         "over 0 s"
     )
@@ -331,9 +342,7 @@ def test_slow_variants_warn(wallpapers, monkeypatch):
 
 def test_pixel_grids_give_cells_and_origin_warnings(wallpapers):
     regen.install(wallpapers, "pixels")
-    result = check.check_variant(
-        check.Task(str(wallpapers), "pixels", "default", ("dark", "light"))
-    )
+    result = check.check_variant(check.Task(str(wallpapers), "pixels", "default"))
     assert result.errors == [] and result.cells == [3.0]
     assert (
         "16:9: pixel grid origin (710.4, 442.8) is not a whole unit; snap it to the 3-unit cell grid"
@@ -357,7 +366,7 @@ def test_hashes_subprocess(wallpapers):
         from walldye._design import RenderSpec
 
         doc = common.draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
-        want = doc.to_svg(common.tokens_of(_basis.BASIS[regime][0]))
+        want = doc.to_svg(common.tokens_of(_check_themes.SAMPLE[regime]))
         assert got[k] == hashing.sha256(want.encode())
 
 

@@ -108,6 +108,25 @@ def is_light(bg: str, fg: str) -> bool:
     return luminance(bg) > luminance(fg)
 
 
+def _recipe(light: bool) -> dict[str, tuple[str, str, float]]:
+    """Every derived token as (x, y, t) for mix(x, y, t), where x and y name a seed or are the
+    pole beyond bg (#000000 in the dark regime, #FFFFFF in the light one)."""
+    beyond = "#FFFFFF" if light else "#000000"
+    # Thin grey structure reads fainter on paper than on a dark ground; widen the low steps.
+    boost = 1.6 if light else 1.0
+    return {
+        "bg_deep": ("bg", beyond, 0.15),
+        "black": ("bg", beyond, 0.43),
+        "accent_hi": ("accent", "fg", 0.28),
+        **{
+            k: ("bg", "fg", min(v * boost, 0.5) if k in ("bg_alt", "ui", "ui_alt", "ui_hi") else v)
+            for k, v in _GREY_T.items()
+        },
+        **{k: ("accent", "bg", v) for k, v in _ACCENT_T.items()},
+        "orange_dark": ("accent", "bg", _ACCENT_T["accent_1"]),
+    }
+
+
 def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
     """Full token dict from `seeds`: needs bg, fg, accent; any other token is an override."""
     missing = {"bg", "fg", "accent"} - seeds.keys()
@@ -118,24 +137,45 @@ def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
         raise ValueError(
             f"unknown theme tokens: {', '.join(sorted(unknown))} (known: {', '.join(TOKENS)})"
         )
-    bg, fg, accent = seeds["bg"], seeds["fg"], seeds["accent"]
-    dark = not is_light(bg, fg)
-    beyond = "#000000" if dark else "#FFFFFF"
-    # Thin grey structure reads fainter on paper than on a dark ground; widen the low steps.
-    boost = 1.0 if dark else 1.6
-    t = {
-        "bg_deep": mix(bg, beyond, 0.15),
-        "black": mix(bg, beyond, 0.43),
-        "accent_hi": mix(accent, fg, 0.28),
-        **{
-            k: mix(bg, fg, min(v * boost, 0.5) if k in ("bg_alt", "ui", "ui_alt", "ui_hi") else v)
-            for k, v in _GREY_T.items()
-        },
-        **{k: mix(accent, bg, v) for k, v in _ACCENT_T.items()},
-    }
-    t["orange_dark"] = t["accent_1"]
+    recipe = _recipe(is_light(seeds["bg"], seeds["fg"]))
+    t = {k: mix(seeds.get(x, x), seeds.get(y, y), v) for k, (x, y, v) in recipe.items()}
     t.update(seeds)
     return {k: t[k].upper() for k in TOKENS}
+
+
+# (a, b, c, dr, dg, db): a colour equal to a*bg + b*fg + c*accent + d per channel, with the
+# seeds and d in 0..255 channel units; a slots.json coefficient row.
+type Coefs = tuple[float, float, float, float, float, float]
+
+
+def blend_coefs(x: Coefs, y: Coefs, t: float) -> Coefs:
+    """mix() from `x` (t=0) to `y` (t=1) on Coefs, without its rounding."""
+    v = [p + (q - p) * t for p, q in zip(x, y, strict=True)]
+    return (v[0], v[1], v[2], v[3], v[4], v[5])
+
+
+def _end(name: str) -> Coefs:
+    if name in SEEDS:
+        a, b, c = (1.0 if name == s else 0.0 for s in SEEDS)
+        return (a, b, c, 0.0, 0.0, 0.0)
+    r, g, b = hex_to_rgb(name)
+    return (0.0, 0.0, 0.0, float(r), float(g), float(b))
+
+
+_COEFS: dict[bool, dict[str, Coefs]] = {
+    light: {
+        **{k: blend_coefs(_end(x), _end(y), v) for k, (x, y, v) in _recipe(light).items()},
+        **{s: _end(s) for s in SEEDS},
+    }
+    for light in (False, True)
+}
+
+
+def token_coefs(name: str, light: bool) -> Coefs:
+    """Token `name` of a derived theme in the light (or dark) regime as Coefs, exact before
+    derive_theme rounds it. Fireproof's pinned tokens have no such form. KeyError for an
+    unknown name."""
+    return _COEFS[light][name]
 
 
 def normalise_seed(c: str) -> str:

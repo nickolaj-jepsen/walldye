@@ -44,7 +44,7 @@ const names = (xs, sep = ', ') => xs.map(x => x.name ?? x.slug ?? x).join(sep)
 
 const str = { type: 'string' }
 const strs = { type: 'array', items: str }
-const LIGHT = { type: 'string', enum: ['tokens', 'choice', 'branch', 'opt-out'] }
+const LIGHT = { type: 'string', enum: ['tokens', 'choice', 'branch'] }
 const LEAD = {
   type: 'object',
   properties: {
@@ -367,8 +367,8 @@ const tool = () => `TOOLING (you are in the walldye repo; run every command from
 const LADDER = `LIGHT LADDER. Under light themes greys walk from BG towards FG, BG_DEEP is lighter than BG, and the dark accent steps turn into pale tints. Climb only as far as needed:
 1. tokens only (one template serves both regimes);
 2. a per-regime colour, e.g. STRUCT = by_regime(UI, MUTED), dark first (still one template);
-3. a geometry branch under \`if s.light:\` (costs a light template per native aspect and variant);
-4. \`themes: [dark]\` in meta.yaml, only after 2 and 3 were tried, with the reason in \`notes\`. Under light themes the site then shows the piece with bg and fg swapped.`
+3. a geometry branch under \`if s.light:\` (costs a light template per native aspect and variant).
+There is no dark-only opt-out: every piece has to hold up under light themes.`
 
 const VARIANTS = `VARIANTS (usually none). A variant is a named version of a piece that a visitor can switch to on its page, built for every aspect and regime. Propose one only where the piece has a natural one:
 - It must change what is depicted (a moon phase, a rule number, a reaction regime, the moment of a sweep), not nudge a value. A new seed counts only when the result shows something different; seed ladders are for \`walldye sheet <slug> --seeds 0..7\`, not for the site.
@@ -389,7 +389,7 @@ const COPY_RULES = `COPY RULES (the site publishes title, description, notes and
 const metaRules = () => `META.YAML (written by \`walldye new\`; keep draft, author, model and added as it wrote them):
 - title and description follow the COPY RULES below.
 - technique, subject, lineage: values from taxonomy.yaml only (${TAXONOMY}). A missing value goes under proposed_facets as {facet: [value]}; never edit taxonomy.yaml.
-- themes: [dark] and notes only at ladder step 4. Otherwise notes (optional Markdown) is for anything a visitor would want to know.
+- notes (optional Markdown) is for anything a visitor would want to know.
 - Leave sources: [] and add no license line. A later agent verifies the leads and writes the sources.
 ${COPY_RULES}`
 
@@ -532,7 +532,7 @@ For each design:
 5. Propose draft variants only where VARIANTS says the piece has a natural one.
 6. Fill meta.yaml as META.YAML says.
 7. \`uv run walldye check <slug>\` must end with "1/1 ok".
-Return one entry per design: status done or failed; size_kb of the 16:9 render if you measured it; light = the ladder step you ended on (tokens, choice, branch, opt-out); aspects = ["any"] or the aspects tuple in @design, as a list ([] for 16:9 only); variants = the names of the draft variants you proposed ([] for none); meta_ok = meta.yaml filled as META.YAML says and check reports no meta.yaml errors; notes = what you built, key decisions, anything the critic should know.
+Return one entry per design: status done or failed; size_kb of the 16:9 render if you measured it; light = the ladder step you ended on (tokens, choice, branch); aspects = ["any"] or the aspects tuple in @design, as a list ([] for 16:9 only); variants = the names of the draft variants you proposed ([] for none); meta_ok = meta.yaml filled as META.YAML says and check reports no meta.yaml errors; notes = what you built, key decisions, anything the critic should know.
 
 SPECS:
 ${spec(batch)}`, { label: `design:${names(batch, ',')}`, phase: 'Design', schema: BUILT }),
@@ -554,10 +554,9 @@ Look at ${REFS} first. For each design (${names(done)}):
 - One --crop X,Y,W,H into its busiest region, and --width 480 for the thumbnail read.
 - If design.py declares aspects, also --aspect 32:9 and --aspect 9:19.5.
 - For each variant in \`@design(variants=...)\`, a preview with --variant <name>.
-- If meta.yaml says themes: [dark], the site shows the piece under light themes with bg and fg swapped, so preview it with --theme 100f0f-fffcf0-bc5215 (flexoki-light swapped) instead of flexoki-light, and check that notes gives a real reason.
 - Read design.py and meta.yaml.
 Judge: does it read instantly; is the composition deliberate; is the accent a restrained event; are the greys quiet enough behind windows; is it clean at 4K (no artefacts, jaggies, awkward clipping, muddy tone steps); does it feel like a sibling of the reference set? Faint is the common failure, more than loud: call it out when the idea only shows up zoomed in.
-Light: does the flexoki-light render hold up (tone steps visible, the event still reads, no shadow that turned into a glare) and does the event survive nord's cool accent by shape and size? Is the ladder step the lowest that works, and was an opt-out earned? light_verdict is ok or fix; put light fixes in fixes, prefixed "light:".
+Light: does the flexoki-light render hold up (tone steps visible, the event still reads, no shadow that turned into a glare) and does the event survive nord's cool accent by shape and size? Is the ladder step the lowest that works? light_verdict is ok or fix; put light fixes in fixes, prefixed "light:".
 Variants: judge each proposed variant against VARIANTS. Does it change what is depicted, is it as strong as the default, and does it look different at thumbnail size? A variant that passes check can still be a nudge of one value: drop it if the subject did not change. Return one verdict per variant in variants (keep false with the reason drops it); [] when the design has none.
 Copy: check title, description, notes, variant labels and descriptions, and the docstring against the COPY RULES. Each copy_fixes entry quotes the replacement text.
 Score 1-10 for "would it sit proudly in the set as a daily wallpaper". verdict keep only for 8+ with no meaningful fixes; fix for fixable issues; rework if the approach fails. Fixes must be concrete (positions, sizes, tones, density), most important first.

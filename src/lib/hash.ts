@@ -15,7 +15,6 @@ import { parse } from 'yaml';
 import { DEFAULT_VARIANT } from './content';
 
 export const RENDER_DEPS = ['numpy', 'scipy', 'shapely', 'scikit-image'] as const;
-export const DEFAULT_THEMES = ['dark', 'light'];
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Hex sha256 of `data` (a string is hashed as UTF-8). */
@@ -39,14 +38,6 @@ export function digest(lines: readonly string[]): string {
 /** `<key>\t<sha256 of the file's bytes>`; `key` is the file's repo-relative posix path. */
 export function fileLine(root: string, key: string): string {
   return `${key}\t${sha256(readFileSync(join(root, key)))}`;
-}
-
-/** Python truthiness of a parsed YAML value. */
-function truthy(v: unknown): boolean {
-  if (Array.isArray(v) || typeof v === 'string') return v.length > 0;
-  if (v instanceof Map) return v.size > 0;
-  if (v !== null && typeof v === 'object' && !(v instanceof Date)) return Object.keys(v).length > 0;
-  return Boolean(v);
 }
 
 /** meta.yaml text parsed the way PyYAML's safe_load reads it (YAML 1.1; duplicate keys, last wins). */
@@ -91,17 +82,6 @@ export function isLegacy(root: string, slug: string): boolean {
   throw new Error(`${d} has neither design.py nor source.svg`);
 }
 
-/** The regimes a meta.yaml declares (`themes:`), DEFAULT_THEMES when absent or empty. */
-export function themes(meta: Record<string, unknown>): string[] {
-  const v = meta.themes;
-  if (!truthy(v)) return [...DEFAULT_THEMES];
-  const list = typeof v === 'string' ? Array.from(v) : v;
-  if (!Array.isArray(list) || !list.every((t) => typeof t === 'string')) {
-    throw new Error(`themes must be a list of names, not ${JSON.stringify(v)}`);
-  }
-  return list;
-}
-
 /** Names of the regular files directly inside wallpapers/<slug>/data/, in code point order; [] without one. */
 export function dataFiles(root: string, slug: string): string[] {
   const dir = join(pieceDir(root, slug), 'data');
@@ -112,17 +92,12 @@ export function dataFiles(root: string, slug: string): string[] {
     .sort(compareCodePoints);
 }
 
-/**
- * Hash lines of a piece: design.py (or source.svg and palette.yaml), every file in data/, and
- * `themes\t<sorted, comma-joined>`.
- */
+/** Hash lines of a piece: design.py (or source.svg and palette.yaml) and every file in data/. */
 export function designLines(root: string, slug: string): string[] {
   const names = isLegacy(root, slug) ? ['source.svg', 'palette.yaml'] : ['design.py'];
-  const sorted = [...themes(loadMeta(root, slug))].sort(compareCodePoints);
   return [
     ...names.map((n) => fileLine(root, `wallpapers/${slug}/${n}`)),
     ...dataFiles(root, slug).map((n) => fileLine(root, `wallpapers/${slug}/data/${n}`)),
-    `themes\t${sorted.join(',')}`,
   ];
 }
 

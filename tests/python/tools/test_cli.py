@@ -212,13 +212,13 @@ def test_preview_prints_lint_lines(wallpapers, tmp_path, monkeypatch, capsys):
     assert lines[4] == "lint: 1 error(s), 3 warning(s)"
 
 
-def test_preview_dark_only_and_undeclared_aspect(wallpapers, tmp_path, monkeypatch, capsys):
-    piece(wallpapers, "flat", FLAT, themes=["dark"])
+def test_preview_undeclared_aspect(wallpapers, tmp_path, monkeypatch, capsys):
+    piece(wallpapers, "flat", FLAT)
     monkeypatch.setenv("WALLDYE_PREVIEW", str(tmp_path))
     assert cli.main(["preview", "flat", "--aspect", "21:9", "--width", "200"]) == 0
     out = capsys.readouterr().out
     assert "warning: flat declares aspects=('16:9',); rendered 21:9 anyway" in out
-    assert "light geometry: n/a (themes: [dark])" in out
+    assert "light geometry: same as dark" in out
 
 
 def test_preview_legacy_piece(wallpapers, tmp_path, monkeypatch, capsys):
@@ -346,7 +346,7 @@ def test_themes_prints_tokens(capsys):
 
 def test_sheet_recolours_through_slots(wallpapers, tmp_path, capsys):
     piece(wallpapers, "tiny")
-    piece(wallpapers, "flat", FLAT, themes=["dark"], notes="Squares only.")
+    piece(wallpapers, "flat", FLAT)
     versions(wallpapers)
     piece(wallpapers, "unbuilt")
     built(capsys, "tiny", "flat", "versions")

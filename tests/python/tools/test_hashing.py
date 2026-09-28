@@ -12,15 +12,12 @@ def test_design_lines(wallpapers):
     design = (wallpapers / "collision/design.py").read_bytes()
     assert hashing.design_lines("collision") == [
         f"wallpapers/collision/design.py\t{hashing.sha256(design)}",
-        "themes\tdark,light",
     ]
-    legacy(wallpapers, themes="[dark]")
+    legacy(wallpapers)
     assert [line.split("\t")[0] for line in hashing.design_lines("old")] == [
         "wallpapers/old/source.svg",
         "wallpapers/old/palette.yaml",
-        "themes",
     ]
-    assert hashing.design_lines("old")[-1] == "themes\tdark"
 
 
 def test_data_files_and_variants_join_the_design_sha(wallpapers):
@@ -30,7 +27,6 @@ def test_data_files_and_variants_join_the_design_sha(wallpapers):
     assert lines[1:] == [
         f"wallpapers/data/data/b.txt\t{hashing.sha256(b'x\n')}",
         f"wallpapers/data/data/points.json\t{hashing.sha256(points.encode())}",
-        "themes\tdark,light",
     ]
     default = hashing.design_sha("data")
     assert default == hashing.digest(lines)
@@ -52,7 +48,7 @@ def test_hash_vector_fixture():
         assert hashing.sha256(v["text"].encode()) == v["sha256"]
     variant = fixture["vectors"][1]
     assert "wallpapers/example/data/points.json" in variant["files"]
-    assert variant["lines"] == ["themes\tdark,light", "variant\tlate"]
+    assert variant["lines"] == ["variant\tlate"]
 
 
 def test_hash_vector_is_design_sha(wallpapers):
@@ -70,7 +66,7 @@ def test_hash_vector_is_design_sha(wallpapers):
 def test_render_lib_lines():
     lines = hashing.render_lib_lines()
     keys = [line.split("\t")[0] for line in lines]
-    assert "walldye/__init__.py" in keys and "walldye/_basis.py" in keys
+    assert "walldye/__init__.py" in keys and "walldye/_check_themes.py" in keys
     assert not any(k.startswith("walldye/tools/") or "__pycache__" in k for k in keys)
     assert [line for line in lines if line.startswith("dep\t")] == [
         f"dep\t{name}=={importlib.metadata.version(name)}"

@@ -77,7 +77,6 @@ export const UNLISTED: Record<TaxonomyFacet, readonly string[]> = {
 /** Computed facets (the "Other" group): query value -> label. */
 export const OTHER_LABELS = {
   references: 'has references',
-  'light-themes': 'works in light themes',
   'any-screen': 'fits any screen',
   'source-code': 'has source code',
   claude: 'made with Claude',

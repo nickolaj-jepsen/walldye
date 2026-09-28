@@ -51,6 +51,7 @@ DOC_CACHE: Final = 16
 
 type Crop = tuple[float, float, float, float]
 type Regime = Literal["dark", "light"]
+REGIMES: Final[tuple[Regime, ...]] = ("dark", "light")
 type Meta = dict[str, object]
 type Theme = str | Mapping[str, str] | tuple[str, str, str]
 _SLUG: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -142,11 +143,6 @@ def load_meta(slug: str) -> Meta:
 def is_draft(meta: Meta) -> bool:
     """Whether meta.yaml `meta` marks its piece a draft: only `draft: true` does."""
     return meta.get("draft") is True
-
-
-def regimes(meta: Meta) -> tuple[Regime, ...]:
-    """("dark",) for a `themes: [dark]` piece, else ("dark", "light")."""
-    return ("dark",) if meta.get("themes") == ["dark"] else ("dark", "light")
 
 
 def meta_variants(meta: Meta) -> dict[str, dict[str, object]]:

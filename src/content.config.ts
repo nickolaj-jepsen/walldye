@@ -109,9 +109,6 @@ const wallpaper = z
     lineage: facetList('lineage'),
     sources: z.array(source).default([]),
     added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'added must be a date like 2026-09-27'),
-    themes: z
-      .union([z.tuple([z.literal('dark'), z.literal('light')]), z.tuple([z.literal('dark')])])
-      .default(['dark', 'light']),
     author: z.string().trim().min(1),
     ai_generated: z.boolean().default(false),
     model: z.string().optional(),
@@ -204,10 +201,8 @@ function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn:
   const dir = join(WALLPAPERS, slug);
   const main = readBuild(slug, join(dir, 'build'));
   const aspects = SITE_ASPECTS.filter((a) => main.templates[`${a}/dark`]);
-  const light = Array.isArray(meta.themes) ? meta.themes.includes('light') : true;
-  if (aspects.some((a) => light !== Boolean(main.templates[`${a}/light`]))) {
-    throw new Error(`${main.slotsPath} does not match themes in meta.yaml: run walldye build ${slug}`);
-  }
+  const unlit = aspects.find((a) => !main.templates[`${a}/light`]);
+  if (unlit) throw new Error(`${main.slotsPath} has no ${unlit}/light template: run walldye build ${slug}`);
 
   const description = typeof meta.description === 'string' ? meta.description.trim() : '';
   const versions: z.infer<typeof version>[] = [];

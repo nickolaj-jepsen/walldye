@@ -215,7 +215,7 @@ test.describe('detail', () => {
     await page.click('[data-action=copy-source]');
     await expect(page.locator('[data-action=copy-source]')).toHaveText('Copied');
     const text = await page.evaluate(() => navigator.clipboard.readText());
-    expect(text.startsWith('"""Nees')).toBe(true);
+    expect(text.startsWith('"""A band of square outlines')).toBe(true);
     expect(text).toContain('def draw(');
   });
 });

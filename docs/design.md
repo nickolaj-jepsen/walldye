@@ -24,7 +24,7 @@ walldye/
                               # the core's implementation
   _aspect.py                  # SITE_ASPECTS, canvas sizes, template names
   _theme.py                   # presets, derive_theme, is_light, parse_theme
-  _basis.py                   # the basis, held-out and probe themes for the fit
+  _check_themes.py            # the held-out, probe and sample themes the checks serialise under
   font.py                     # Spleen bitmap glyphs (BSD-2-Clause)
   __main__.py                 # `python -m walldye`, used by the determinism subprocess
   tools/                      # the CLI, check, build, review; outside the render-lib hash
@@ -37,7 +37,7 @@ wallpapers/<slug>/
     16x9.svg                  # the default version's fireproof template
     16x9.light.svg            # rendered under flexoki-light, only when light geometry differs
     <aspect>[.light].svg      # the other aspects the design composes for
-    slots.json                # hashes, focus, cells, probes, and the fit per template
+    slots.json                # hashes, focus, cells, probes, and the slot coefficients per template
     <variant>/                # one directory per named variant, laid out the same way
 wallpapers/index.json         # generated summary of every built piece
 wallpapers/.render-lib.sha256 # generated hash of the render inputs
@@ -59,7 +59,7 @@ infra/www-redirect/           # the www to apex Worker
 - `fireproof` pins all 21 tokens by hand, well off the derived values (the accent ramp by up to 21 units).
   - Exact fireproof seeds, compared as uppercase `#RRGGBB`, resolve to the pinned preset everywhere: the site serves the template untouched, the site CSS uses the pinned table, and the CLI resolves `--theme 1c1b1a-dad8ce-cf6a4c` to `fireproof`.
   - Any other seeds use the derived model, so a 1-unit edit next to fireproof moves the accent ramp by up to 21 units. The picker does not mark fireproof as special.
-  - Fireproof is never a fit input.
+  - Fireproof is not in the held-out set: its pinned tokens have no coefficients to check.
 - `--theme` accepts only a preset name or three seeds. Per-token overrides are rejected: the site could not reproduce them.
 
 ### Theme token
@@ -103,23 +103,21 @@ Internal links carry no `?t=`; "Copy link" always includes it. The inline `<head
 
 ## Recolouring pipeline
 
-- Every output colour is `a*bg + b*fg + c*accent + d` (scalars a, b, c and a constant RGB vector d), with one coefficient set per regime. `mix()` is linear, so this is exact up to 8-bit rounding. The browser recolours a template by rewriting its colours from these coefficients; it never runs Python.
-- Render model: a design is drawn once per (variant, aspect, regime) into a document, and that document is serialised under every theme the fit and the checks need (api.md §10.4). The per-theme work is only resolving colours. `walldye check --paranoid` also redraws from a fresh import for every theme and requires identical output.
-- Basis:
-  - `walldye build` serialises each regime's document under a committed basis of 8 themes per regime, generated once from a fixed seed. Build asserts a condition number of at most 15 for the stacked seed matrix. A basis of four presets missed held-out themes by up to 13 units.
-  - Held-out set: every preset except fireproof; corner themes (#000000/#FFFFFF extremes, accent==fg, accent==bg, a bg/fg luminance gap of about 0.05); and seeded random themes per regime.
-  - Two probe themes per regime join the checks but not the fit. One sets bg, fg and accent (almost) equal, which collapses every token; the other makes token hex strings sort opposite to fireproof's.
-  - The fireproof-pinned render is skeleton-checked against the basis and never fitted.
-- Coefficients are fitted per colour occurrence (a slot), not per hex value. The same fireproof hex can come from different formulas, through rounding in adjacent fade steps, and per-occurrence slots are exact and cost nothing.
-- Held-out themes must be predicted within 2 RGB units, or build fails.
-- Constant slots: there is no mask special case in the browser. A hardcoded colour fits as a constant slot (a=b=c=0) and recolours to itself. `walldye check` allows a constant slot only inside `<mask>` or `<clipPath>`, or in a gradient or pattern referenced only from those. A theme-dependent slot inside a mask is an error, and any other constant slot counts as hardcoded and fails. The API makes both mistakes hard to write: the only constant colours are `MASK_WHITE`, `MASK_BLACK` and mixes of the two, which only a mask surface accepts, and a mask surface rejects theme colours. The rule is the backstop, and it is what catches legacy SVGs.
+- Every output colour is `a*bg + b*fg + c*accent + d` (scalars a, b, c and a constant RGB vector d), with one coefficient set per regime. Every token is a linear mix of the seeds within a regime and `mix()` is linear, so this is exact up to 8-bit rounding. The browser recolours a template by rewriting its colours from these coefficients; it never runs Python.
+- Render model: a design is drawn once per (variant, aspect, regime) into a document, and that document is serialised under every theme the checks need (api.md §10.4). The per-theme work is only resolving colours. `walldye check --paranoid` also redraws from a fresh import for every theme and requires identical output.
+- Coefficients:
+  - Build reads each slot's coefficients off its colour's formula (`Document.coefs()`, api.md §10.2): a token's come from the recipe `derive_theme` uses, a `mix` blends its two sides, `by_regime` takes its regime's side, and a mask colour is constant. Build used to fit them by least squares over a basis of 8 random themes per regime; the formula gives them exactly, with no basis to keep well-conditioned.
+  - They are exact before rounding, but every token and every `mix` rounds to 8 bits once, so a long chain of mixes drifts from them. The held-out check catches that drift: each regime's document is serialised under every preset except fireproof, corner themes (#000000/#FFFFFF extremes, accent==fg, accent==bg, a bg/fg luminance gap of about 0.05) and seeded random themes (`walldye/_check_themes.py`), and every slot must be predicted within 2 RGB units, or build fails. It samples rather than bounds: the `rounding` test fixture, 18 nested mixes, misses by 4 units, and 12 of them pass the held-out set yet miss by 4 elsewhere. On the catalogue the worst slot over 200 random themes per piece is 1 unit, where the fit reached 2.
+  - Two probe themes per regime join the serialisation checks. One sets bg, fg and accent (almost) equal, which collapses every token; the other makes token hex strings sort opposite to fireproof's.
+  - The fireproof-pinned render is only skeleton-checked. Its tokens are not derived, so exact fireproof seeds get the template untouched rather than a prediction.
+- Coefficients are per colour occurrence (a slot), not per hex value. The same fireproof hex can come from different formulas, through rounding in adjacent fade steps, and per-occurrence slots are exact and cost nothing.
+- Constant slots: there is no mask special case in the browser. A mask colour has a=b=c=0 and recolours to itself. `walldye check` allows a constant slot only inside `<mask>` or `<clipPath>`, or in a gradient or pattern referenced only from those. A theme-dependent slot inside a mask is an error, and any other constant slot counts as hardcoded and fails. The API makes both mistakes hard to write: the only constant colours are `MASK_WHITE`, `MASK_BLACK` and mixes of the two, which only a mask surface accepts, and a mask surface rejects theme colours. The rule is the backstop, and it is what catches legacy SVGs.
 - Light ladder, in order of preference:
   1. Tokens only.
   2. A per-regime colour, `by_regime(UI, MUTED)`, which keeps one template.
   3. A geometry branch on `s.light`, which costs a light template per aspect and variant.
-  4. `themes: [dark]`, only after steps 2 and 3 were tried, with the reason in `notes`.
-- A `themes: [dark]` piece under light seeds is shown with the visitor's bg and fg swapped, through the dark coefficients. That is a valid dark theme, so it equals a real render within 2 units. The caption says "Made for dark themes, shown here with your colours swapped", and export does the same: the run command, the export file-name token and the rasteriser's background all use the swapped theme (`<fg>-<bg>-<accent>`), so `walldye render` needs no swap logic. `themes` is either `[dark, light]` or `[dark]`.
-- Legacy pieces, whose scripts were lost, are `source.svg` plus `palette.yaml`, which maps each distinct hex to a token or a two-token mix. Build cuts source.svg into a document at its colour slots, gives each slot its mapped formula, and fits it like any other document (api.md §12.4). Legacy pieces have only the default version, at 16:9.
+- Every piece is built for both regimes. A `themes: [dark]` opt-out, shown under light seeds with bg and fg swapped, was removed in September 2026 when no piece used it.
+- Legacy pieces, whose scripts were lost, are `source.svg` plus `palette.yaml`, which maps each distinct hex to a token or a two-token mix. Build cuts source.svg into a document at its colour slots, gives each slot its mapped formula, and builds it like any other document (api.md §12.4). Legacy pieces have only the default version, at 16:9.
 - Slot tokenizer: one spec, with a fixture shared by Python and TypeScript.
   - It matches colour values only in paint contexts: the attributes fill, stroke, stop-color, flood-color, lighting-color and color, and the same properties inside `style=` and `<style>`.
   - Values are hex3, hex6 or named. `none`, `currentColor` and `url(...)` are skipped; a bare-hex regex would rewrite `url(#ad1)`.
@@ -165,12 +163,12 @@ A variant is a named version of a piece that a visitor can switch to on its page
 ### Hashes
 
 - Each hash is the sha256 of lines `<key>\t<value>`, sorted, each ending in a newline; for a file the key is its repo-relative posix path and the value the sha256 of its bytes.
-- `design_sha` (in slots.json) covers design.py (or source.svg and palette.yaml), every file in `data/`, and a `themes\t<sorted list>` line from meta.yaml. A named variant's `design_sha` adds the line `variant\t<name>`; the default's has none (api.md §13.2).
+- `design_sha` (in slots.json) covers design.py (or source.svg and palette.yaml) and every file in `data/`. A named variant's `design_sha` adds the line `variant\t<name>`; the default's has none (api.md §13.2).
 - The render-lib hash (`wallpapers/.render-lib.sha256`) covers:
   - the git-tracked files under `walldye/`, except `walldye/tools/**` and `__pycache__`;
   - `dep\t<name>==<version>` lines for numpy, scipy, shapely and scikit-image, read from uv.lock;
   - a `python\t<.python-version>` line.
-- slots.json also stores `probes`: the sha256 of the fireproof render and of one basis render per regime. When the render-lib hash changes, `walldye build --all` re-renders only the probes of each variant. If they match, it restamps the hash; otherwise it re-renders and refits that variant.
+- slots.json also stores `probes`: the sha256 of the fireproof render and of one render per regime under its sample theme. When the render-lib hash changes, `walldye build --all` re-renders only the probes of each variant. If they match, it restamps the hash; otherwise it re-renders and rebuilds that variant.
 - `.gitattributes` sets `* text=auto eol=lf`. The hash test vectors (one plain design, one with a data file and a variant line) are asserted by both pytest and vitest.
 
 ### CI checks
@@ -194,7 +192,7 @@ The same CI job also runs ruff's format check, vitest and `astro build`, and a s
 3. Determinism, per variant, aspect and regime: two in-process draws must serialise identically, and one subprocess per piece and variant under `PYTHONHASHSEED=4242` (`python -m walldye _hashes`) must reproduce every hash. A failure stops the check before any geometry step.
 4. `viewBox="0 0 W H"`, exact per aspect.
 5. Templates: the dark template is the fireproof serialisation; the light regime shares it when the two documents' skeletons match, and otherwise gets a flexoki-light template.
-6. The fit per regime over the basis: held-out error at most 2 units, and every probe theme serialises.
+6. The slot coefficients per regime: held-out error at most 2 units, and every probe theme serialises.
 7. The constant-slot rule.
 8. Errors: `<text>`, any `<filter>`, any `<image>`, more than 1 MB or 20k elements. The API cannot emit the first three; the check is a backstop.
 9. Variant siblings: the ink-map rule above. Ink maps and `focus` measure the distance from the template's own background. Only pairs with a freshly checked side are compared: with `--variant`, that variant against the other variants' committed templates; in a build, the variants it re-checks.
@@ -216,7 +214,7 @@ vitest (`tests/unit/`):
 - The TypeScript derive_theme is byte-equal to the themes.json fixture.
 - The contrast guard holds over the presets and 1,000 random triples.
 - The tokenizer, theme-token and hash fixtures are shared with pytest.
-- A synthetic design where two roles collide on one fireproof hex: per-hex fitting fails and per-occurrence fitting passes.
+- A synthetic design where two roles collide on one fireproof hex: a slot table keyed by hex misses by more than 2 units, and the per-occurrence one passes.
 - The copy lint (Copy rules), the meta.yaml variants schema, check-artifacts and the export geometry.
 
 Playwright (`tests/e2e/`), on Chromium for pull requests and on Chromium, Firefox and WebKit for pushes to main and manual runs, against the built site, plus a second site built from a generated catalogue with named variants for the version tests:
@@ -246,7 +244,6 @@ sources:
     url: https://...         # optional for every kind
     lang: de                 # optional language of a foreign title
 added: 2026-09-27
-themes: [dark, light]        # the default; part of design_sha
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5       # only when ai_generated
@@ -271,7 +268,7 @@ variants:                    # only when design.py declares named variants
 - A source's `title` names a work, and the site sets it in italics. A maker with no single work is an `author` with no title, and a genre, style, place or phenomenon is a `reference`, shown only among the footnotes.
 - URLs are optional. When present, the agent fetches them before writing them, and CI checks them with a link checker.
 - The content loader's zod schema (`src/content.config.ts`) checks facets against taxonomy.yaml, the licence rules, facet labels and reserved slugs. Agents never add facet values: they write `proposed_facets`, allowed only while `draft: true`. In `walldye review`, accepting one appends it to taxonomy.yaml and moves it into the piece's facets, and approval is refused while any remain. The owner can also add a value there. Either way review asks for its label and writes it to `src/lib/labels.ts`, so the site build never meets a value without one.
-- Computed facets, with the labels visitors see: "has source code" (has a script), "fits any screen" (composes for every aspect), "works in light themes" (themes include light), "has references" (any source), "made with Claude" and "human-made" (ai_generated). An entry that matches every piece or none is hidden.
+- Computed facets, with the labels visitors see: "has source code" (has a script), "fits any screen" (composes for every aspect), "has references" (any source), "made with Claude" and "human-made" (ai_generated). An entry that matches every piece or none is hidden.
 - Facet values are slugs. The site shows a plain-words label for each from `src/lib/labels.ts` (drafting is "technical drawing", glyph "text characters"). The lineage facet is headed "Inspired by"; homage and fan-work have no filter entry.
 - `wallpapers/index.json` summarises every built piece (`aspects`, `draft`, `license`, `title` and the named `variants`) for consumers outside the site; build, review and drop regenerate it, and CI checks it (api.md §13.5).
 
@@ -329,7 +326,7 @@ variants:                    # only when design.py declares named variants
 
   It uses the preset name when the seeds match one. Legacy pieces say "The script for this wallpaper has been lost." instead.
 - `f` toggles fullscreen, and does nothing when `requestFullscreen` is unavailable. It ignores fields, sliders, focused code regions, editable content and modified keys, and the page does not advertise it. There is no navigation between neighbours: no previous and next links, no arrow keys, no `?from=`.
-- Accessibility: alt text is the description; `:focus-visible` gets a 2px accent outline guarded to 3:1; reduced motion turns off the recolour fade; the dark-only note is visible text.
+- Accessibility: alt text is the description; `:focus-visible` gets a 2px accent outline guarded to 3:1; reduced motion turns off the recolour fade.
 
 ### About
 

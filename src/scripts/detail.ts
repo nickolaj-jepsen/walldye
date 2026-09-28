@@ -8,8 +8,7 @@
  * `16x10`, left out for 16:9) and `crop` (the crop position, 0..1).
  */
 import { aspectLabel, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, downloadName, EXPORT_SIZES, FORMATS, SITE_ASPECTS, type Aspect } from '../lib/content';
-import { appliedSeeds } from '../lib/recolour';
-import { regimeOf, tokenOf, type Seeds } from '../lib/theme';
+import { tokenOf } from '../lib/theme';
 import { copyText, flash } from './clipboard';
 import { currentSeeds, onThemeChange } from './current-theme';
 import { canEncodeWebp, prefetchRasteriser, rasteriseSvg, save, type RasterFormat } from './export';
@@ -28,7 +27,7 @@ import {
   withinLimits,
   type ExportShape,
 } from './export-svg';
-import { getSlots, recoloured, RETRY_MS, showPlate, showTemplate, swapsFor, syncDarkNotes } from './plates';
+import { getSlots, recoloured, RETRY_MS, showPlate, showTemplate } from './plates';
 
 const plate = document.querySelector<HTMLElement>('.spread .plate');
 const cropWindow = plate?.querySelector<HTMLElement>(':scope > .crop') ?? null;
@@ -118,12 +117,6 @@ function sizePx(): [number, number] {
   return [w, h];
 }
 
-/** The seeds the export is drawn with (bg and fg swapped for a dark-only piece under light seeds) and their token. */
-function exportTheme(): { seeds: Seeds; token: string } {
-  const seeds = appliedSeeds(currentSeeds(), plate ? swapsFor(plate, sourceAspect(), currentSeeds()) : false);
-  return { seeds, token: tokenOf(seeds) };
-}
-
 // ---- rendering the panel ----
 
 function sizeLabel(value: string): HTMLLabelElement {
@@ -180,7 +173,7 @@ function placeCrop(): void {
 }
 
 function renderNames(): void {
-  const { token } = exportTheme();
+  const token = tokenOf(currentSeeds());
   const s = shape();
   const f = format();
   const [w, h] = sizePx();
@@ -323,9 +316,7 @@ addEventListener('online', () => {
   loadSlots();
 });
 
-syncDarkNotes(regimeOf(currentSeeds()) === 'light');
-onThemeChange((seeds) => {
-  syncDarkNotes(regimeOf(seeds) === 'light');
+onThemeChange(() => {
   renderPlate();
   renderNames();
 });
@@ -424,8 +415,7 @@ async function runExport(): Promise<void> {
     const slots = await getSlots(slotsUrl);
     const r = await recoloured(plate, sourceAspect(), seeds);
     const svg = Array.isArray(slots.cells) && slots.cells.length ? crispPixels(r.svg) : r.svg;
-    const exportSeeds = appliedSeeds(seeds, r.swap);
-    const token = tokenOf(exportSeeds);
+    const token = tokenOf(seeds);
     const [w, h] = sizePx();
     const name = downloadName(slug, variant, token, f, `${w}x${h}`, aspect, !s.native);
     if (f.value === 'svg') {
@@ -433,7 +423,7 @@ async function runExport(): Promise<void> {
       save(new Blob([svgExport(svg, s, piece.title, about)], { type: 'image/svg+xml' }), name);
     } else {
       const raster = rasterSvg(svg, s, w, h);
-      save(await rasteriseSvg(raster.svg, exportSeeds.bg, f.value as RasterFormat), name);
+      save(await rasteriseSvg(raster.svg, seeds.bg, f.value as RasterFormat), name);
     }
   } catch {
     if (exportError) exportError.textContent = 'The file could not be made.';

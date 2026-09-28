@@ -108,11 +108,6 @@ export function templatesOf(plate: HTMLElement): Record<string, string> {
   }
 }
 
-/** Whether a dark-only piece shows with bg and fg swapped: it has no light template for `aspect` and the seeds are light. */
-export function swapsFor(plate: HTMLElement, aspect: string, seeds: Seeds): boolean {
-  return regimeOf(seeds) === 'light' && !(`${aspect}/light` in templatesOf(plate));
-}
-
 function isFireproof(s: Seeds): boolean {
   const f = PRESETS.fireproof;
   return s.bg === f.bg && s.fg === f.fg && s.accent === f.accent;
@@ -130,11 +125,11 @@ interface Source {
 }
 
 /**
- * `plate`'s `aspect` template recoloured for `seeds`: the SVG text, the template URL, whether the text
- * is the template unchanged, and whether bg and fg were swapped (a dark-only piece under light seeds).
- * Rejects when the slots or template cannot be loaded or the piece has no template for `aspect`.
+ * `plate`'s `aspect` template recoloured for `seeds`: the SVG text, the template URL and whether the
+ * text is the template unchanged. Rejects when the slots or template cannot be loaded or the piece has
+ * no template for `aspect`.
  */
-export async function recoloured(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<{ svg: string; url: string; untouched: boolean; swap: boolean }> {
+export async function recoloured(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<{ svg: string; url: string; untouched: boolean }> {
   const s = normaliseSeeds(seeds);
   const urls = templatesOf(plate);
   const slots = await getSlots(plate.dataset.slots ?? '');
@@ -142,11 +137,11 @@ export async function recoloured(plate: HTMLElement, aspect: string, seeds: Seed
   const url = urls[picked.key];
   if (!url) throw new Error(`no ${picked.key} template`);
   const tpl = await getTemplate(url);
-  // A template whose URL does not carry its slots hash is not the one the coefficients were fitted to.
-  if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) return { svg: tpl.svg, url, untouched: true, swap: picked.swap };
+  // A template whose URL does not carry its slots hash is not the one the coefficients were made for.
+  if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) return { svg: tpl.svg, url, untouched: true };
   await yieldToMain();
-  const svg = recolour(tpl, picked.entry, s, { swap: picked.swap });
-  return { svg, url, untouched: svg === tpl.svg, swap: picked.swap };
+  const svg = recolour(tpl, picked.entry, s);
+  return { svg, url, untouched: svg === tpl.svg };
 }
 
 async function sourceFor(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<Source> {
@@ -241,25 +236,11 @@ export function showPlate(plate: HTMLElement, aspect: string, seeds: Seeds): Pro
 }
 
 /**
- * Shows `plate`'s untouched `aspect` template for the regime of `seeds` (the dark one when there is no
- * light one), without slots.json: the stand-in while a recolour cannot be loaded. The image keeps the
- * alt text even when the template itself fails to load. Supersedes like showPlate.
+ * Shows `plate`'s untouched `aspect` template for the regime of `seeds`, without slots.json: the
+ * stand-in while a recolour cannot be loaded. The image keeps the alt text even when the template itself
+ * fails to load. Supersedes like showPlate.
  */
 export async function showTemplate(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<void> {
-  const urls = templatesOf(plate);
-  const url = urls[`${aspect}/${regimeOf(seeds)}`] ?? urls[`${aspect}/dark`];
+  const url = templatesOf(plate)[`${aspect}/${regimeOf(seeds)}`];
   if (url) await show(plate, aspect, async () => ({ url, blob: false }));
-}
-
-/** Shows or hides the dark-only notes for `light` seeds; an index link's description includes its note only while shown. */
-export function syncDarkNotes(light: boolean): void {
-  for (const note of document.querySelectorAll<HTMLElement>('[data-dark-note]')) {
-    note.hidden = !light;
-    const link = note.closest('a');
-    if (!link || !note.id) continue;
-    const ids = (link.getAttribute('aria-describedby') ?? '').split(/\s+/).filter((id) => id && id !== note.id);
-    if (light) ids.unshift(note.id);
-    if (ids.length) link.setAttribute('aria-describedby', ids.join(' '));
-    else link.removeAttribute('aria-describedby');
-  }
 }

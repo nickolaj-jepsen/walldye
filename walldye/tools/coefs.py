@@ -1,8 +1,9 @@
-"""Slot fitting: every colour occurrence ("slot") of a template as out = a*bg + b*fg + c*accent + d.
+"""Slot coefficients: every colour occurrence ("slot") of a template as out = a*bg + b*fg +
+c*accent + d.
 
-Per regime, the design's document is serialised under that regime's basis themes
-(walldye._basis); each slot's six coefficients [a, b, c, dr, dg, db] are fitted by least
-squares over the basis, with seeds and d in 0..255 channel units. The browser evaluates
+Per regime, each slot's six coefficients [a, b, c, dr, dg, db] come from its colour's formula
+(Document.coefs), with seeds and d in 0..255 channel units, and are checked against renders
+under the held-out themes (walldye._check_themes). The browser evaluates
 `((a*bg + b*fg) + c*accent) + d` per channel, rounds half to even and clamps to 0..255.
 """
 
@@ -15,9 +16,9 @@ from typing import Final, TypedDict
 import numpy as np
 from numpy.typing import NDArray
 
-from walldye import _basis
+from walldye import _check_themes
 from walldye._aspect import template_name
-from walldye._basis import Theme
+from walldye._check_themes import Theme
 from walldye._document import Document
 from walldye._theme import SEEDS, hex_to_rgb, rgb_to_hex, theme_token
 from walldye.tools.common import Regime, tokens_of
@@ -35,7 +36,7 @@ type Chain = tuple[tuple[str, str | None], ...]
 
 
 class Entry(TypedDict):
-    """One template's fit, as slots.json stores it (minus the sha256 build adds)."""
+    """One template's slot table, as slots.json stores it (minus the sha256 build adds)."""
 
     file: str
     n: int
@@ -56,16 +57,6 @@ def rgb(hexes: Sequence[str]) -> Floats:
 def colours(svg: str) -> Floats:
     """(n, 3) float RGB of the slots of `svg`, in document order."""
     return rgb([c for _, _, c in find_colours(svg)])
-
-
-def fit(themes: Sequence[Theme], renders: Sequence[Floats]) -> Floats:
-    """Least-squares coefficients, shape (n, 6), of the n slots whose colours under
-    `themes[i]` are `renders[i]` (n, 3); rows are [a, b, c, dr, dg, db], d in 0..255 units."""
-    a = _basis.seed_matrix(list(themes))
-    # Row (theme, channel) of the stacked outputs lines up with the same row of seed_matrix.
-    y: Floats = np.concatenate([r.T for r in renders]) / 255
-    x: Floats = np.linalg.lstsq(a, y, rcond=None)[0]
-    return np.hstack([x[:3].T, x[3:].T * 255])
 
 
 def compact(coefs: Floats) -> tuple[list[list[float]], list[int]]:
@@ -170,7 +161,7 @@ def first_diff(a: str, b: str) -> str:
 
 
 def slot_rule(svg: str, rows: Sequence[Sequence[float]], occ: Sequence[int]) -> list[str]:
-    """Constant-slot rule errors for template `svg` with fitted `rows`/`occ`: a constant slot
+    """Constant-slot rule errors for template `svg` with slot table `rows`/`occ`: a constant slot
     is allowed only in mask content (see mask_bound), a theme-dependent one never is."""
     spans = find_colours(svg)
     table = np.array(rows, dtype=np.float64).reshape(-1, 6)
@@ -195,18 +186,18 @@ def slot_rule(svg: str, rows: Sequence[Sequence[float]], occ: Sequence[int]) -> 
     ]
 
 
-def fit_aspect(
+def serialise_aspect(
     docs: Mapping[Regime, Document], aspect: str
 ) -> tuple[dict[str, str], dict[str, Entry], list[str]]:
-    """Fit one native aspect of a design, given its document per regime ("dark", optionally
-    "light").
+    """The templates and slot entries of one native aspect of a design, given its document
+    per regime.
 
     The dark template is the dark document under fireproof; the light regime shares it when
     the two documents' skeletons match, else gets its own template under flexoki-light. Each
-    regime's slots are fitted over its basis and must predict every held-out theme within
-    MAX_ERROR units; the template and probe serialisations must tokenize to the document's
-    own slots. Returns (templates {file name: svg}, entries {"<aspect>/<regime>": Entry},
-    errors); a regime whose serialisations disagree with its document gets no entry.
+    regime's slot coefficients must predict every held-out theme within MAX_ERROR units; the
+    template and probe serialisations must tokenize to the document's own slots. Returns
+    (templates {file name: svg}, entries {"<aspect>/<regime>": Entry}, errors); a regime whose
+    serialisations disagree with its document gets no entry.
     """
     templates: dict[str, str] = {}
     entries: dict[str, Entry] = {}
@@ -216,7 +207,7 @@ def fit_aspect(
         ref_theme = TEMPLATE_THEMES[regime]
         own = doc.skeleton()
         differ = [
-            (label(t), s) for t in (ref_theme, *_basis.PROBES[regime])
+            (label(t), s) for t in (ref_theme, *_check_themes.PROBES[regime])
             if (s := skeleton(doc.to_svg(tokens_of(t)))) != own
         ]  # fmt: skip
         if len(differ) > 0:
@@ -233,8 +224,7 @@ def fit_aspect(
             name = template_name(aspect, light=True)
             templates[name] = doc.to_svg(tokens_of(ref_theme))
 
-        basis = _basis.BASIS[regime]
-        rows, occ = compact(fit(basis, [rgb(doc.hexes(tokens_of(t))) for t in basis]))
+        rows, occ = compact(np.array(doc.coefs(), dtype=np.float64).reshape(-1, 6))
         table = (
             np.array(rows, dtype=np.float64).reshape(-1, 6)[occ]
             if len(occ) > 0
@@ -242,7 +232,7 @@ def fit_aspect(
         )
         # (error, theme, slot, actual, predicted) per held-out theme off by more than MAX_ERROR
         misses: list[tuple[float, Theme, int, str, str]] = []
-        for t in _basis.HELD_OUT[regime]:
+        for t in _check_themes.HELD_OUT[regime]:
             actual, predicted = rgb(doc.hexes(tokens_of(t))), predict(table, t)
             err: Floats = np.abs(predicted - actual).max(axis=1, initial=0)
             if float(err.max(initial=0)) > MAX_ERROR:
@@ -254,9 +244,9 @@ def fit_aspect(
             worst, t, i, a_hex, p_hex = max(misses, key=lambda m: m[0])
             line = _line(templates[name], find_colours(templates[name])[i][0])
             errors.append(
-                f"{aspect} {regime}: {len(misses)} of {len(_basis.HELD_OUT[regime])} held-out themes miss by more than {MAX_ERROR} units; "
+                f"{aspect} {regime}: {len(misses)} of {len(_check_themes.HELD_OUT[regime])} held-out themes miss by more than {MAX_ERROR} units; "
                 f"worst {label(t)}, off by {worst:.0f} at the slot on line {line} of {name} ({a_hex}, predicted {p_hex}): "
-                "colour arithmetic that is not a linear mix of tokens?"
+                "rounding piled up through mixes of mixes?"
             )
         errors += [f"{aspect} {regime}: {e}" for e in slot_rule(templates[name], rows, occ)]
         entries[f"{aspect}/{regime}"] = {"file": name, "n": len(occ), "coefs": rows, "occ": occ}

@@ -389,7 +389,6 @@ abbr {
   container-type: inline-size;
   background: var(--seed-bg);
 }
-[data-regime="light"] .plate[data-dark-only] { background: var(--seed-fg); }
 /* Drawn inside the plate: grid rows use content-visibility, whose paint containment clips outside strokes. */
 .plate::after {
   content: "";
@@ -413,7 +412,7 @@ abbr {
 
 .label-s { margin-top: calc(2 * var(--u)); font-size: var(--fs-2); line-height: calc(3 * var(--u)); }
 .label-s .t { display: block; font-size: var(--fs-ui); font-weight: calc(var(--wt) + 100); color: var(--text); }
-.label-s .v, .label-s .x, .label-s .a { display: block; color: var(--text-2); }
+.label-s .v, .label-s .a { display: block; color: var(--text-2); }
 .grid a:hover .t, .grid a:focus-visible .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 .grid a:focus-visible { outline: none; }
 .grid a:focus-visible .plate::after { box-shadow: inset 0 0 0 2px var(--focus); }
@@ -777,7 +776,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   .filter > summary .state { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .filter > summary .state::after { content: " +" / ""; font-family: var(--mono); }
   .filter[open] > summary .state::after { content: " \2212" / ""; }
-  /* Two columns only where an entry like "works in light themes" fits one; one on phones. */
+  /* Two columns only where an entry like "technical drawing" fits one; one on phones. */
   .filter .facets { padding-top: calc(2 * var(--u)); columns: 2 16rem; column-gap: calc(4 * var(--u)); }
   .filter .facets > * { break-inside: avoid; }
 

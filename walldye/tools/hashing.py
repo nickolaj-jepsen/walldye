@@ -37,15 +37,13 @@ def data_files(slug: str) -> list[Path]:
 
 
 def design_lines(slug: str) -> list[str]:
-    """Hash lines of a piece: design.py (or source.svg and palette.yaml), every file in data/,
-    and `themes\\t<sorted regimes>` from meta.yaml."""
+    """Hash lines of a piece: design.py (or source.svg and palette.yaml) and every file in
+    data/."""
     d = common.piece_dir(slug)
     names = ["source.svg", "palette.yaml"] if common.is_legacy(slug) else ["design.py"]
-    regimes = ",".join(sorted(common.regimes(common.load_meta(slug))))
     return [
         *(file_line(f"wallpapers/{slug}/{n}", d / n) for n in names),
         *(file_line(f"wallpapers/{slug}/data/{p.name}", p) for p in data_files(slug)),
-        f"themes\t{regimes}",
     ]
 
 

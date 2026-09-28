@@ -7,7 +7,7 @@ import { colourDistance, decodeRgb, MANIFEST, maxSlotError, pixelDiff, pixelHex,
 /** What the index plate for `slug` should show under `seeds`: the committed 16:9 template through the TS recolour. */
 function expected(slug: string, seeds: Seeds): string {
   const picked = select(slotsOf(slug), '16:9', seeds);
-  return recolour(readText(`wallpapers/${slug}/build/${picked.entry.file}`), picked.entry, seeds, { swap: picked.swap });
+  return recolour(readText(`wallpapers/${slug}/build/${picked.entry.file}`), picked.entry, seeds);
 }
 
 /** The Python render of `slug` at 16:9 under `theme`, from tests/fixtures. */

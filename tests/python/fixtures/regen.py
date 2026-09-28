@@ -16,15 +16,13 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-import numpy as np
 import resvg_py
 import yaml
 from PIL import Image
 
-from walldye import _basis
 from walldye._aspect import aspect_label, canvas_size
-from walldye._theme import SEEDS, parse_seeds
-from walldye.tools import build, common, fit, hashing
+from walldye._theme import parse_seeds
+from walldye.tools import build, common, hashing
 from walldye.tools.tokenize import find_colours
 
 HERE = Path(__file__).parent
@@ -47,24 +45,24 @@ RESVG = ("schotter", "16:9", "nord", 960)
 DEFINITION = (
     "sha256 over UTF-8 lines '<key>\\t<value>\\n' sorted by line; a file's key is its"
     " repo-relative posix path, its value the sha256 of its bytes. design_sha covers design.py"
-    " (or source.svg and palette.yaml), every file in data/ and a themes line, plus a"
-    " 'variant\\t<name>' line for a named variant."
+    " (or source.svg and palette.yaml) and every file in data/, plus a 'variant\\t<name>' line"
+    " for a named variant."
 )
-# name -> (files, lines): "design" is v1's vector unchanged; "variant-with-data" adds a data
-# file and a named variant's line.
+# name -> (files, lines): "design" is a plain design; "variant-with-data" adds a data file and
+# a named variant's line.
 HASH_VECTORS: dict[str, tuple[dict[str, str], list[str]]] = {
     "design": (
         {
             "wallpapers/example/design.py": '"""Example."""\n\nfrom walldye import ACCENT\n\n\ndef draw(s):\n    s.circle(960, 540, 100, fill=ACCENT)\n',
         },
-        ["themes\tdark,light"],
+        [],
     ),
     "variant-with-data": (
         {
             "wallpapers/example/design.py": '"""Example."""\n\nfrom walldye import ACCENT, Canvas, P, design\n\n\n@design()\ndef draw(s: Canvas) -> None:\n    s.fill(P().dots(s.data("points.json"), 12), ACCENT)\n',
             "wallpapers/example/data/points.json": "[[960, 540], [1200, 300]]\n",
         },
-        ["themes\tdark,light", "variant\tlate"],
+        ["variant\tlate"],
     ),
 }
 
@@ -90,22 +88,22 @@ def install(
     return slug
 
 
-def per_hex(slug: str, regime: str = "dark") -> dict[str, object]:
-    """The slot table a per-hex fit gives `slug` at 16:9: one coefficient row per distinct
-    fireproof hex, fitted jointly over every slot showing it (the mean of their colours)."""
-    template = [c for _, _, c in find_colours(common.render(slug, "fireproof"))]
-    hexes = list(dict.fromkeys(template))
-    basis = _basis.BASIS[regime]
-    renders = []
-    for t in basis:
-        colours = fit.colours(common.render(slug, dict(zip(SEEDS, t, strict=True))))
-        renders.append(
-            np.array(
-                [colours[[i for i, c in enumerate(template) if c == h]].mean(axis=0) for h in hexes]
-            )
-        )
-    rows, _ = fit.compact(fit.fit(basis, renders))
-    return {"n": len(template), "coefs": rows, "occ": [hexes.index(c) for c in template]}
+def per_hex(slug: str) -> dict[str, object]:
+    """The built dark 16:9 slot table of `slug` keyed by fireproof hex instead of by
+    occurrence: each distinct template hex takes the coefficients of its first slot."""
+    slots = build.load_slots(slug)
+    assert slots is not None, f"{slug} is not built"
+    entry = build.entries(slots)["16:9/dark"]
+    template = [c for _, _, c in find_colours((common.build_dir(slug) / entry["file"]).read_text())]
+    first: dict[str, int] = {}
+    for i, c in enumerate(template):
+        first.setdefault(c, i)
+    hexes = list(first)
+    return {
+        "n": len(template),
+        "coefs": [entry["coefs"][entry["occ"][first[h]]] for h in hexes],
+        "occ": [hexes.index(c) for c in template],
+    }
 
 
 def hash_vector() -> str:
@@ -178,8 +176,7 @@ def references_current() -> bool:
 def references() -> dict[str, str | bytes]:
     """tests/fixtures/ for the committed builds of REFERENCE_PIECES, path relative to it -> content.
 
-    - `<slug>/<aspect>.<theme>.svg`: a Python render under each RECOLOUR_THEMES theme, with the
-      seeds build.select applies (bg and fg swapped for a dark-only piece under light seeds);
+    - `<slug>/<aspect>.<theme>.svg`: a Python render under each RECOLOUR_THEMES theme;
     - `resvg/`: the RESVG recolour as SVG and its resvg-py PNG;
     - `manifest.json`: what each file is, and the design_sha and template sha256 it was made from.
     """
@@ -193,9 +190,10 @@ def references() -> dict[str, str | bytes]:
         pieces[slug] = {"design_sha": slots["design_sha"]}
         for aspect in dict.fromkeys(k.split("/")[0] for k in table):
             for theme in RECOLOUR_THEMES:
-                key, applied = build.select(slots, aspect, parse_seeds(theme))
+                seeds = parse_seeds(theme)
+                key = build.select(slots, aspect, seeds)
                 rel = f"{slug}/{aspect_label(aspect)}.{theme}.svg"
-                out[rel] = common.render(slug, applied, aspect)
+                out[rel] = common.render(slug, seeds, aspect)
                 renders.append({
                     "slug": slug, "aspect": aspect, "theme": theme, "entry": key,
                     "template": _rel(common.build_dir(slug) / table[key]["file"]), "sha256": table[key]["sha256"],
@@ -205,18 +203,19 @@ def references() -> dict[str, str | bytes]:
     slots = build.load_slots(slug)
     assert slots is not None, f"{slug} is not built"
     table = build.entries(slots)
-    key, applied = build.select(slots, aspect, parse_seeds(theme))
+    seeds = parse_seeds(theme)
+    key = build.select(slots, aspect, seeds)
     svg = build.recolour(
-        (common.build_dir(slug) / table[key]["file"]).read_text(), table[key], applied
+        (common.build_dir(slug) / table[key]["file"]).read_text(), table[key], seeds
     )
     w, h = canvas_size(aspect)
     height = round(width * h / w)
     name = f"resvg/{slug}.{aspect_label(aspect)}.{theme}"
     out[f"{name}.svg"] = svg
-    out[f"{name}.png"] = _png(svg, width, height, applied["bg"])
+    out[f"{name}.png"] = _png(svg, width, height, seeds["bg"])
     resvg = {
         "svg": _rel(REFERENCE / f"{name}.svg"), "png": _rel(REFERENCE / f"{name}.png"),
-        "width": width, "height": height, "background": applied["bg"],
+        "width": width, "height": height, "background": seeds["bg"],
         "resvg_py": importlib.metadata.version("resvg-py"),
     }  # fmt: skip
     manifest = {"themes": RECOLOUR_THEMES, "pieces": pieces, "renders": renders, "resvg": resvg}

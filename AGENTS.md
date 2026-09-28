@@ -1,6 +1,6 @@
 # walldye
 
-walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colours, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates, which are committed, and fits a linear recolouring for every colour in them from three seed colours (bg, fg, accent). The Astro site at walldye.com uses those fits to show every piece in the visitor's colours and to export it as SVG, PNG, WebP or JPEG.
+walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colours, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates, which are committed, and records every colour in them as a linear mix of three seed colours (bg, fg, accent), read off the formula it was drawn with. The Astro site at walldye.com uses those mixes to show every piece in the visitor's colours and to export it as SVG, PNG, WebP or JPEG.
 
 ## Docs
 
@@ -46,7 +46,7 @@ On NixOS the Python wheels need `programs.nix-ld.enable`; there is no devShell.
 ## Rules
 
 - Never edit anything in `wallpapers/*/build/` by hand. Only `walldye build` writes there, and `pnpm check-artifacts` catches hand edits.
-- After changing a `design.py`, a `data/` file, the `themes:` line or the `variants:` of a `meta.yaml`, or anything in the library, run `uv run walldye build` for the affected pieces and commit its output with the change. Run `uv run walldye build --verify` before committing.
+- After changing a `design.py`, a `data/` file, the `variants:` of a `meta.yaml`, or anything in the library, run `uv run walldye build` for the affected pieces and commit its output with the change. Run `uv run walldye build --verify` before committing.
 - The render-lib hash covers the files under `walldye/` that git tracks, so `git add` a new library module (`git add -N` is enough) before `walldye build --all`, or the stamp misses it and CI fails.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/design.md` and the voice in `docs/site.md` §7: no colour names, no theme roles as nouns, no internal terms, no evaluative adjectives.
 - Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.

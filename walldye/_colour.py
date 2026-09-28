@@ -13,7 +13,7 @@ from typing import Final, Literal, NoReturn, Self, final, overload, override
 import numpy as np
 from numpy.typing import NDArray
 
-from ._theme import TOKENS, is_light
+from ._theme import TOKENS, Coefs, blend_coefs, is_light, token_coefs
 from ._theme import mix as hex_mix
 from ._vec import Num, real
 
@@ -307,3 +307,17 @@ def resolve(c: Colour | MaskColour, tokens: Mapping[str, str]) -> str:
         return hex_mix(resolve(f[1], tokens), resolve(f[2], tokens), f[3])
     light = is_light(tokens["bg"], tokens["fg"])
     return resolve(f[2] if light else f[1], tokens)
+
+
+def coefs(c: Colour | MaskColour, light: bool) -> Coefs:
+    """`c` in the light (or dark) regime as Coefs (see _theme.Coefs): what resolve() gives
+    under any theme of that regime, except for the rounding it applies per token and per mix."""
+    f = c._formula
+    if f[0] == 0:
+        return token_coefs(TOKENS[f[1]], light)
+    if f[0] == 1:
+        level = float(f[1])
+        return (0.0, 0.0, 0.0, level, level, level)
+    if f[0] == 2:
+        return blend_coefs(coefs(f[1], light), coefs(f[2], light), f[3])
+    return coefs(f[2] if light else f[1], light)

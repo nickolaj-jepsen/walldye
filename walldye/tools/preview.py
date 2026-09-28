@@ -70,8 +70,6 @@ def file_name(slug: str, variant: str, token: str, aspect: str, overrides: Seque
 
 
 def _light_geometry(slug: str, spec: RenderSpec) -> str:
-    if common.regimes(common.load_meta(slug)) == ("dark",):
-        return "n/a (themes: [dark])"
     piece = common.load(slug)
     dark, light = (
         common.draw(piece, RenderSpec(spec.variant, spec.params, spec.aspect, r))

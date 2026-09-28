@@ -74,7 +74,7 @@ All of `walldye/` except `tools/` feeds the render-lib hash.
 | `_document.py` | `Document` and the serialiser |
 | `_design.py` | `design`, `Design`, `RenderSpec` |
 | `_aspect.py` | `Aspect`, `SHORT`, `SITE_ASPECTS`, `TEMPLATE_NAME`, `canvas_size`, `supports`, `native_aspects`, `aspect_label`, `template_name`, `parse_template_name` |
-| `_theme.py`, `_basis.py` | the theme model (hex `mix`, `derive_theme`, `is_light`, `parse_theme`, the presets) and the fit themes, typed for Pyrefly `all` |
+| `_theme.py`, `_check_themes.py` | the theme model (hex `mix`, `derive_theme`, `token_coefs`, `is_light`, `parse_theme`, the presets) and the themes build checks templates under, typed for Pyrefly `all` |
 | `font.py` | Spleen glyph tables (BSD-2-Clause header kept) |
 
 ### `walldye.tools`
@@ -730,15 +730,16 @@ class Document:
     def colours(self) -> tuple[Colour | MaskColour, ...]  # one per slot, in text order
     def skeleton(self) -> str
     def hexes(self, tokens: Mapping[str, str]) -> list[str]
+    def coefs(self) -> list[Coefs]
     def to_svg(self, tokens: Mapping[str, str]) -> str
 ```
 
 - A document is its serialised text cut at every colour: `parts` has one more entry than `colours`, and `to_svg` is `parts[0] + hex(colours[0]) + parts[1] + ...`. `ValueError` if the lengths do not fit. The serialiser builds documents this way, and legacy pieces build them directly from `source.svg` (§12.4).
 - `to_svg(tokens)` resolves each colour under the 21-token dict (§4.4) and returns the SVG text. It raises `ValueError` when the tokens belong to the other regime than the document; build never serialises a dark document under light seeds.
-- `hexes(tokens)` is the list of resolved `#RRGGBB` values. Invariant, tested: it equals `[c for _, _, c in tokenize.find_colours(doc.to_svg(tokens))]`, so the fit can skip re-tokenising.
+- `hexes(tokens)` is the list of resolved `#RRGGBB` values. Invariant, tested: it equals `[c for _, _, c in tokenize.find_colours(doc.to_svg(tokens))]`, so the held-out check can skip re-tokenising.
+- `coefs()` is each slot's `Coefs`, `(a, b, c, dr, dg, db)` with `a*bg + b*fg + c*accent + d` its colour under any theme of the document's regime (seeds and `d` in 0..255 units), which build writes to slots.json. It is exact up to the rounding `resolve` applies once per token and once per `mix`: `_colour.coefs` walks the formula, and `_theme.token_coefs` gives each derived token from the same recipe `derive_theme` uses. Fireproof's pinned tokens are not derived, so its exact seeds get the template untouched rather than a prediction.
 - `skeleton()` is `"#".join(parts)`, and equals `tokenize.skeleton(doc.to_svg(t))` for every theme `t`.
 - The output is already normalised (uppercase `#RRGGBB`), so `tokenize.normalise(svg) == svg`.
-- Slot coefficients could be computed exactly from the formulas; the build uses the least-squares fit instead.
 
 ### 10.3 SVG format
 
@@ -757,10 +758,10 @@ One element per line, a trailing newline, no XML declaration. `<defs>` appears o
 
 ### 10.4 The render model
 
-A design is drawn once per (variant, aspect, regime), and each document is serialised under every theme that needs it: the template theme, the 8 basis themes, the 2 probes and the held-out set of that regime. `walldye check` of a two-regime piece therefore draws 6 times per aspect and variant (a draw, an in-process repeat and a subprocess repeat per regime), and serialises 48 times (27 dark, 21 light).
+A design is drawn once per (variant, aspect, regime), and each document is serialised under every theme that needs it: the template theme, the 2 probes and the held-out set of that regime. `walldye check` therefore draws 6 times per aspect and variant (a draw, an in-process repeat and a subprocess repeat per regime), and serialises 32 times (19 dark, 13 light).
 
 - The light regime shares the dark template when `light_doc.skeleton() == dark_doc.skeleton()`. That holds for tokens and `by_regime` (light ladder steps 1 and 2); a geometry branch on `s.light` (step 3) gives a `.light.svg` per aspect.
-- Geometry cannot vary with the theme, because nothing in `draw` can read a colour value. Probe themes keep testing the fit and the constant-slot rule; the skeleton comparison stays as a cheap assertion.
+- Geometry cannot vary with the theme, because nothing in `draw` can read a colour value. Probe themes keep testing serialisation and the constant-slot rule; the skeleton comparison stays as a cheap assertion.
 - `walldye check --paranoid` also imports design.py afresh and redraws for every serialisation, requiring byte-equal output. It is for library changes and occasional `--all` sweeps, and costs a full draw per theme.
 - There is no disk cache for heavy pure work yet (design.md, Not done yet).
 
@@ -973,7 +974,7 @@ def near_clones(slugs: Sequence[str]) -> None
 ### 12.2 Keys and the determinism subprocess
 
 - Every cache, file and subprocess key comes from `(slug, variant, aspect, regime)`: `f"{slug}@{variant}@{aspect}@{regime}"`.
-- `python -m walldye _hashes <wallpapers dir> <key>...` prints a JSON object mapping each key to the sha256 of `draw(spec).to_svg(tokens of BASIS[regime][0])`, made in that process. Check runs it once per (piece, variant) task with `PYTHONHASHSEED=4242`.
+- `python -m walldye _hashes <wallpapers dir> <key>...` prints a JSON object mapping each key to the sha256 of `draw(spec).to_svg(tokens of SAMPLE[regime])`, made in that process. Check runs it once per (piece, variant) task with `PYTHONHASHSEED=4242`.
 
 ### 12.3 Process pool
 
@@ -1008,10 +1009,10 @@ wallpapers/<slug>/
 ### 13.2 Hashes
 
 - A hash is sha256 over `<key>\t<value>` lines, sorted, each ending in a newline.
-- `design_lines(slug)` are a line per design file (design.py, or source.svg and palette.yaml), a line `wallpapers/<slug>/data/<name>\t<sha256>` for every file in `data/`, and `themes\t<sorted regimes>` from meta.yaml.
+- `design_lines(slug)` are a line per design file (design.py, or source.svg and palette.yaml) and a line `wallpapers/<slug>/data/<name>\t<sha256>` for every file in `data/`.
 - `design_sha(slug, variant)` is the digest of `design_lines(slug)`, plus the line `variant\t<name>` for a named variant. The default variant's `design_sha` has no variant line. Variant values live in design.py, which the design line already covers.
 - The render-lib hash covers the git-tracked files under `walldye/` except `tools/` and `__pycache__`, the pinned versions of numpy, scipy, shapely and scikit-image from uv.lock, and `.python-version` (design.md, Hashes).
-- `src/lib/__fixtures__/hash-vector.json`, which `tests/python/fixtures/regen.py` generates and pytest and vitest both read, is `{"definition": ..., "vectors": [...]}`. Each vector is `{name, files, lines, text, sha256}`, where `files` maps repo paths to contents, `lines` are the non-file lines, `text` the exact digested text and `sha256` its digest. The two vectors: `"design"`, a plain design, and `"variant-with-data"`, with `wallpapers/example/design.py` and `wallpapers/example/data/points.json`, and the lines `themes\tdark,light` and `variant\tlate`.
+- `src/lib/__fixtures__/hash-vector.json`, which `tests/python/fixtures/regen.py` generates and pytest and vitest both read, is `{"definition": ..., "vectors": [...]}`. Each vector is `{name, files, lines, text, sha256}`, where `files` maps repo paths to contents, `lines` are the non-file lines, `text` the exact digested text and `sha256` its digest. The two vectors: `"design"`, a plain design, and `"variant-with-data"`, with `wallpapers/example/design.py` and `wallpapers/example/data/points.json`, and the line `variant\tlate`.
 
 ### 13.3 slots.json
 
@@ -1386,10 +1387,10 @@ On the site: `/radar-sweep?v=late` once review approves it, exported as `radar-s
 
 Every test file passes ruff, and the library passes Pyrefly `all`. `uv run pytest` runs the Python suites; `pnpm test` runs vitest.
 
-- `tests/python/core/`: colour equality, hashing (the same hash in a subprocess with another `PYTHONHASHSEED`), ordering and `str`/`format` errors, canonical forms, `mix` range and type errors, the `Colour`/`MaskColour` separation; `resolve` against `_theme.mix` chains for every preset and random themes, `by_regime`, `ladder` and `Ladder.rung`, `token`; `Vec` arithmetic with and without numpy, `Rect`, the angle keywords, `polar` and the ufunc-safe maths; path goldens for every command and primitive, `fmt` edge cases, arc flags and `shape`; `Params` class-creation errors, instance validation and `describe`, with a Pyrefly run over a planted-mistakes fixture (`typing/`) proving the type errors of §15.3; every `Canvas` validation error, attribute order, buckets, sub-surface sequencing and ids, gradients, `pixel_path`, `data()` and the stream table in §7.2; `Document` invariants and draw-once equivalence (one document serialised under N themes equals N fresh draws, for the fixture designs and for every piece and skill example at 16:9); `Noise`, scalar and array.
+- `tests/python/core/`: colour equality, hashing (the same hash in a subprocess with another `PYTHONHASHSEED`), ordering and `str`/`format` errors, canonical forms, `mix` range and type errors, the `Colour`/`MaskColour` separation; `resolve` against `_theme.mix` chains for every preset and random themes, `by_regime`, `ladder` and `Ladder.rung`, `token`; `Vec` arithmetic with and without numpy, `Rect`, the angle keywords, `polar` and the ufunc-safe maths; path goldens for every command and primitive, `fmt` edge cases, arc flags and `shape`; `Params` class-creation errors, instance validation and `describe`, with a Pyrefly run over a planted-mistakes fixture (`typing/`) proving the type errors of §15.3; every `Canvas` validation error, attribute order, buckets, sub-surface sequencing and ids, gradients, `pixel_path`, `data()` and the stream table in §7.2; `Document` invariants (`coefs()` within 2 units of `hexes()` under every check theme) and draw-once equivalence (one document serialised under N themes equals N fresh draws, for the fixture designs and for every piece and skill example at 16:9); `Noise`, scalar and array.
 - `tests/python/helpers/`: each helper in §11 against hand-computed cases; `glyphs` anchoring, flip, grouping and the origins it records; `text_width`; and the helpers used inside a design.
 - `tests/python/fixtures/v1_pins/`: outputs of the earlier library's `Noise`, `poisson_disk`, `noise_grid`, `blue_noise`, `dither` and `threshold_matrix`, pinned once by the scripts beside them, so the current helpers keep drawing what the designs were tuned on. `blue_noise`'s cache must leave the generator where an uncached call would.
-- `tests/python/tools/`: the loader (import once, module name, errors), `--set` parsing and warnings, `params` output, wedge and seed ranges, the variant build layout and stale cleanup, per-variant `design_sha` against the hash vector, `index.json` variants and unbuilt pieces left out, `check --variant` against committed siblings, the meta.yaml rules, every lint rule in §15.1 on the fixture designs in `tests/python/fixtures/designs/`, the `_hashes` subprocess keys, `--paranoid` catching a design that leaks module state, the process pool giving the same output as `--jobs 1`, the fit, the tokenizer, themes, and `test_typing.py` (§15.3).
+- `tests/python/tools/`: the loader (import once, module name, errors), `--set` parsing and warnings, `params` output, wedge and seed ranges, the variant build layout and stale cleanup, per-variant `design_sha` against the hash vector, `index.json` variants and unbuilt pieces left out, `check --variant` against committed siblings, the meta.yaml rules, every lint rule in §15.1 on the fixture designs in `tests/python/fixtures/designs/`, the `_hashes` subprocess keys, `--paranoid` catching a design that leaks module state, the process pool giving the same output as `--jobs 1`, the slot coefficients and the held-out check, the tokenizer, themes, and `test_typing.py` (§15.3).
 - `tests/python/fixtures/regen.py` regenerates the fixtures shared with the site (`src/lib/__fixtures__/`) and the Python renders the TypeScript recolouring is checked against (`tests/fixtures/`), after a build that changes them.
 - `tests/unit/` (vitest) and `tests/e2e/` (Playwright): design.md (Tests).
 

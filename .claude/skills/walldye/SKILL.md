@@ -108,8 +108,8 @@ Stop at the first step that gives a good flexoki-light render:
 2. A per-regime colour, `STRUCT = by_regime(UI, MUTED)` (dark first). One template still
    serves both regimes.
 3. A geometry branch under `if s.light:`. Build adds a light template per native aspect.
-4. `themes: [dark]` in meta.yaml, only after steps 2 and 3 were tried, with the reason in
-   `notes`.
+
+There is no dark-only opt-out: every piece has to hold up under light themes.
 
 references/themes.md has the details.
 
@@ -152,7 +152,6 @@ Keep the keys `walldye new` wrote, in that order, and add no comments: review re
   is an inspiration: the piece may keep its spirit but makes two or three deliberate departures,
   as schotter does (docs/design.md, "What a piece may draw"). Game and franchise pieces use `LicenseRef-fan-work` plus
   `franchise: {title, owner}`; ask the owner before using it.
-- `themes`: leave it out (dark and light) unless the ladder reached step 4.
 - `variants`: only when design.py declares named variants. The keys are exactly `default`
   plus the declared names. Each needs a `label` (one to four plain words naming what that
   version shows, unique within the piece); a named variant may add a `description`, shown

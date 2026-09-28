@@ -78,7 +78,7 @@ The query string uses the form's own GET serialisation: `q=<text>`, `sort=title`
 | `data-facets` | space-separated `facet:value` pairs, the computed `other:*` included (`facetPairs()`) |
 | `data-search` | normalised title, description and source authors and titles (`searchText()`) |
 
-Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-describedby` listing `v-<slug>` when the piece has published versions and `a-<slug>` when there is an attribution. Add `x-<slug>` to it only while the dark-only note is visible. The href never changes. Then come `figure`, the `.plate` of the default version (see Plate box below), and `figcaption` holding `h2#t-<slug>`, `span.v#v-<slug>` ("N versions", only when the piece has published named variants; N counts the default; under `astro dev` draft versions count too and the text ends in " (N draft)"), `span.x#x-<slug>[data-dark-note][hidden]` (dark-only pieces only) and `span.a#a-<slug>`.
+Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-describedby` listing `v-<slug>` when the piece has published versions and `a-<slug>` when there is an attribution. The href never changes. Then come `figure`, the `.plate` of the default version (see Plate box below), and `figcaption` holding `h2#t-<slug>`, `span.v#v-<slug>` ("N versions", only when the piece has published named variants; N counts the default; under `astro dev` draft versions count too and the text ends in " (N draft)") and `span.a#a-<slug>`.
 
 ## Plate box (index and detail, `src/components/PlateBox.astro`)
 
@@ -86,14 +86,13 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 <div class="plate" data-plate="dither-moon"
      data-templates='{"16:9/dark":"/t/9c3c8499b388.svg","16:9/light":"/t/e26df4754421.svg"}'
      data-slots="/t/a1422a6b6f79.slots.json" data-alt="…description…"
-     [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…"},"late":{…}}'] [data-dark-only]>
+     [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…"},"late":{…}}']>
   <noscript><img src="/t/9c3c8499b388.svg" alt="…" width="1920" height="1080" …></noscript>
   <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div> -->
 </div>
 ```
 
 - `data-templates` is JSON from the slots.json key (`<aspect>/<regime>`) to a template URL. Index plates carry only the `16:9/*` keys, and the detail spread carries every key.
-  - A dark-only piece has no `*/light` keys and carries `data-dark-only`. Under light seeds, use the `*/dark` template and coefficients with bg and fg swapped. The CSS then gives the plate the `--seed-fg` ground.
   - The URL hash is `sha256[:12]` of the template bytes and equals `slots[key].sha256.slice(0, 12)`.
   - Under the exact fireproof seeds, use the template URL itself as `img.src`, untouched.
 - `data-slots` is the piece's `build/slots.json`, byte for byte: `focus` `[x, y]`, `cells`, and per key `{file, sha256, n, coefs, occ}`. It is fetched once per piece. If `n` does not match, show the untouched template.
@@ -113,7 +112,6 @@ The detail page keeps its own state in the query string: `v=<variant>` (the vers
 |---|---|---|
 | `.spread .plate` | Plate box with every aspect | |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it while a cropped shape is selected. Set `data-axis`, and position it in % of the plate (docs/site.md §6.6). |
-| `#dark-note` | `p.attr[data-dark-note][hidden]` | Dark-only pieces only. Show it under light seeds. |
 | `#desc` | `p.desc` | The default version's description. Set it to the shown version's (`data-variants[name].alt`). |
 
 There are no neighbour links and no arrow-key shortcuts (docs/design.md, Detail); the label ends with the facts list. `f` toggles fullscreen on the plate.
@@ -145,7 +143,7 @@ There are no neighbour links and no arrow-key shortcuts (docs/design.md, Detail)
 |---|---|---|
 | `[data-action=copy-source]` | "Copy" | Copy `#raw-source`. |
 | `#raw-source` | `template` | The design.py text. |
-| `#run-render[data-slug]` | `span` holding the whole `uv run walldye render …` command | Set its text to `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg` (`renderCommand()`), using the preset name when the seeds match a preset, and the swapped token for a dark-only piece under light seeds. |
+| `#run-render[data-slug]` | `span` holding the whole `uv run walldye render …` command | Set its text to `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg` (`renderCommand()`), using the preset name when the seeds match a preset. |
 
 Script-less pieces have `p.lost` in place of the listing and run command, and none of these hooks.
 

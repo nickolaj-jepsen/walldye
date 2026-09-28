@@ -6,7 +6,7 @@ import json
 import re
 import sys
 
-from walldye import _basis, _theme
+from walldye import _check_themes, _theme
 from walldye._params import KnobInfo, describe
 from walldye.tools import check, common
 
@@ -121,9 +121,9 @@ def _entry(seeds: dict[str, str]) -> dict[str, object]:
 
 def fixture() -> dict[str, object]:
     """The TS port's reference data: every preset, FIXTURE_PER_REGIME random seed triples per
-    regime from _basis.generate(FIXTURE_SEED, ...), and EDGE_CASES, each as {seeds, light,
+    regime from _check_themes.generate(FIXTURE_SEED, ...), and EDGE_CASES, each as {seeds, light,
     tokens} with tokens in TOKENS order (fireproof's exact seeds resolve to its pinned table)."""
-    random = _basis.generate(FIXTURE_SEED, FIXTURE_PER_REGIME)
+    random = _check_themes.generate(FIXTURE_SEED, FIXTURE_PER_REGIME)
     return {
         "presets": {name: _entry(_theme.parse_seeds(name)) for name in _theme.PRESETS},
         "random": {

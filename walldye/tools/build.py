@@ -11,12 +11,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TypedDict
 
-from walldye import _basis
 from walldye._aspect import SITE_ASPECTS, TEMPLATE_NAME, parse_template_name
 from walldye._design import RenderSpec
 from walldye._theme import PRESETS, SEEDS, hex_to_rgb, is_light, normalise_seed, rgb_to_hex
 from walldye.tools import check, common, hashing, lint
-from walldye.tools.fit import TEMPLATE_THEMES, first_diff
+from walldye.tools.coefs import TEMPLATE_THEMES, first_diff
 from walldye.tools.tokenize import find_colours, substitute
 
 _FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
@@ -174,14 +173,14 @@ def _plan(slug: str, variant: str | None, lib_sha: str, stamped: str | None, for
         except ValueError as e:
             print(f"{_name(slug, v)}: {e}; rebuilding")
             old = None
-        task = check.Task(str(common.WALLPAPERS), slug, v, t.regimes)
+        task = check.Task(str(common.WALLPAPERS), slug, v)
         if old is not None and _current(slug, v, old, plan.shas[v]):
             if stamped == lib_sha:
                 plan.current.append(v)
                 continue
             probes = common.as_dict(old.get("probes"))
             known = {} if probes is None else {k: str(x) for k, x in probes.items()}
-            task = check.Task(task.wallpapers, slug, v, t.regimes, probes=known)
+            task = check.Task(task.wallpapers, slug, v, probes=known)
         plan.tasks.append(task)
     return plan
 
@@ -204,9 +203,8 @@ def run(
     `variant`, build/ directories that are not declared variants are removed. The render-lib
     hash is restamped only after a run that covered every piece without failures. With
     `verify`, run verify_templates() on `slugs` (every piece when none are named) instead.
-    Returns 1 if any piece failed or a basis' condition number exceeds _basis.MAX_COND
-    (nothing built), 2 if there is nothing to build, else 0. UsageError for an undeclared
-    `variant`.
+    Returns 1 if any piece failed, 2 if there is nothing to build, else 0. UsageError for an
+    undeclared `variant`.
     """
     if verify:
         return verify_templates(common.slugs() if all or len(slugs) == 0 else slugs, jobs)
@@ -214,13 +212,6 @@ def run(
     if len(targets) == 0:
         print("nothing to build: name a slug or pass --all", file=sys.stderr)
         return 2
-    for regime, basis in _basis.BASIS.items():
-        if (cond := _basis.condition_number(basis)) > _basis.MAX_COND:
-            print(
-                f"the {regime} basis has condition number {cond:.1f}, over {_basis.MAX_COND}: fits would be unstable",
-                file=sys.stderr,
-            )
-            return 1
     lib_sha, stamped = hashing.render_lib_sha(), hashing.stamped_render_lib_sha()
     plans = [_plan(slug, variant, lib_sha, stamped, force) for slug in targets]
     # Static steps for what is checked afresh, and for pieces that already failed (a design
@@ -389,27 +380,20 @@ def write_index() -> None:
     )
 
 
-def select(
-    slots: Mapping[str, object], aspect: str, seeds: Mapping[str, str]
-) -> tuple[str, dict[str, str]]:
-    """(key, seeds to apply) for recolouring a piece at `aspect` under `seeds` ({bg, fg,
-    accent}): key is the slots.json entry "<aspect>/<regime>" for the seeds' regime, except
-    that a dark-only piece under light seeds uses its dark entry with bg and fg swapped.
-    KeyError if the piece has no entry for `aspect`."""
-    s = {k: normalise_seed(seeds[k]) for k in SEEDS}
-    if is_light(s["bg"], s["fg"]):
-        if f"{aspect}/light" in slots:
-            return f"{aspect}/light", s
-        s = {"bg": s["fg"], "fg": s["bg"], "accent": s["accent"]}
-    k = f"{aspect}/dark"
+def select(slots: Mapping[str, object], aspect: str, seeds: Mapping[str, str]) -> str:
+    """The slots.json entry "<aspect>/<regime>" for recolouring a piece at `aspect` under
+    `seeds` ({bg, fg, accent}), in the seeds' regime. KeyError if the piece has no such
+    entry."""
+    light = is_light(normalise_seed(seeds["bg"]), normalise_seed(seeds["fg"]))
+    k = f"{aspect}/{'light' if light else 'dark'}"
     if k not in slots:
         raise KeyError(f"no {k} entry in slots.json")
-    return k, s
+    return k
 
 
 def recolour(template_svg: str, entry: SlotsEntry, seeds: Mapping[str, str]) -> str:
-    """The browser's recolour: `template_svg` (the file `entry` names, with `entry` and
-    `seeds` as select() returns them) with slot i set to coefs[occ[i]] = [a, b, c, dr, dg, db]
+    """The browser's recolour: `template_svg` (the file `entry` names, `entry` the one
+    select() picks for `seeds`) with slot i set to coefs[occ[i]] = [a, b, c, dr, dg, db]
     evaluated per channel as ((a*bg + b*fg) + c*accent) + d, rounded half to even and
     clamped. Exact fireproof seeds return the template unchanged, and so does a template
     whose slot count is not entry["n"] (the browser's fallback)."""

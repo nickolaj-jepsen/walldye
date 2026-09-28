@@ -5,7 +5,7 @@ import pytest
 from fixtures import regen
 from PIL import Image
 
-from walldye import _basis, _theme
+from walldye import _check_themes, _theme
 from walldye._aspect import (
     SITE_ASPECTS,
     TEMPLATE_NAME,
@@ -144,6 +144,21 @@ def test_derive_theme_matches_wallgen():
         assert list(derive_theme(seeds).values()) == tokens, seeds
 
 
+def test_token_coefs_are_derive_theme_before_rounding():
+    r = random.Random(7)
+    for _ in range(200):
+        seeds = {k: f"#{r.getrandbits(24):06X}" for k in SEEDS}
+        light = _theme.is_light(seeds["bg"], seeds["fg"])
+        rgb = {k: _theme.hex_to_rgb(v) for k, v in seeds.items()}
+        for name, got in derive_theme(seeds).items():
+            a, b, c, *d = _theme.token_coefs(name, light)
+            want = [
+                a * rgb["bg"][i] + b * rgb["fg"][i] + c * rgb["accent"][i] + d[i] for i in range(3)
+            ]
+            # derive_theme rounds once, so each channel is within half a unit (plus float noise).
+            assert all(abs(g - w) <= 0.5 + 1e-9 for g, w in zip(_theme.hex_to_rgb(got), want)), name
+
+
 # --- aspects ----------------------------------------------------------------------
 
 
@@ -200,27 +215,21 @@ def test_template_name_rejects(name):
         parse_template_name(name)
 
 
-# --- fit basis ---------------------------------------------------------------------
+# --- check themes ------------------------------------------------------------------
 
 
-def test_basis_is_the_documented_generation():
-    assert _basis.generate(_basis.BASIS_SEED, 8) == _basis.BASIS
-    assert _basis.generate(_basis.HELD_OUT_SEED, 4) == _basis._HELD_OUT_RANDOM
-    for seed in range(_basis.BASIS_SEED):
-        g = _basis.generate(seed, 8)
-        assert max(_basis.condition_number(v) for v in g.values()) > _basis.MAX_COND
+def test_held_out_is_the_documented_generation():
+    assert _check_themes.generate(_check_themes.HELD_OUT_SEED, 4) == _check_themes._HELD_OUT_RANDOM
 
 
 @pytest.mark.parametrize("regime", ["dark", "light"])
-def test_basis_sets(regime):
+def test_check_theme_sets(regime):
     fireproof = tuple(FIREPROOF_SEEDS.values())
-    assert len(_basis.BASIS[regime]) == 8
-    assert _basis.condition_number(_basis.BASIS[regime]) <= _basis.MAX_COND
-    themes = _basis.BASIS[regime] + _basis.HELD_OUT[regime] + _basis.PROBES[regime]
-    assert all(_basis.regime(t) == regime for t in themes)
+    themes = _check_themes.HELD_OUT[regime] + _check_themes.PROBES[regime]
+    assert all(_check_themes.regime(t) == regime for t in themes)
     assert all(theme_token(dict(zip(SEEDS, t, strict=True))) != "fireproof" for t in themes)
     assert fireproof not in themes
-    assert not set(_basis.BASIS[regime]) & set(_basis.HELD_OUT[regime] + _basis.PROBES[regime])
+    assert _check_themes.SAMPLE[regime] in _check_themes.HELD_OUT[regime]
     presets = {
         n
         for n in PRESETS
@@ -228,14 +237,9 @@ def test_basis_sets(regime):
         and _theme.is_light(PRESETS[n]["bg"], PRESETS[n]["fg"]) == (regime == "light")
     }
     assert presets <= {
-        theme_token(dict(zip(SEEDS, t, strict=True))) for t in _basis.HELD_OUT[regime]
+        theme_token(dict(zip(SEEDS, t, strict=True))) for t in _check_themes.HELD_OUT[regime]
     }
-    assert len(_basis.HELD_OUT[regime]) == len(presets) + 4 + 4
-
-
-def test_seed_matrix_shape():
-    m = _basis.seed_matrix([("#FF0000", "#00FF00", "#0000FF")])
-    assert m.tolist() == [[1, 0, 0, 1, 0, 0], [0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 0, 1]]
+    assert len(_check_themes.HELD_OUT[regime]) == len(presets) + 4 + 4
 
 
 # --- rasterising -------------------------------------------------------------------

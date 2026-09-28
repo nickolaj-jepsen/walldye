@@ -150,7 +150,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 - It is set like a book index: 20px entries in `--text-2` with dot leaders and mono counts, under 19px small-caps legends. Each 32px row is one full-width target. Entries are lowercase and sorted by label.
 - The groups are Technique, Subject, "Inspired by" (the lineage facet) and Other. Labels come from `src/lib/labels.ts`; taxonomy.yaml keeps the slugs. homage and fan-work get no entry: the caption's "after ..." line and the fan-tribute line already cover them.
-- Other holds the computed facets: "has references", "works in light themes", "fits any screen", "has source code", "made with Claude" and "human-made". An entry that matches every piece or none is left out, since it cannot narrow the grid.
+- Other holds the computed facets: "has references", "fits any screen", "has source code", "made with Claude" and "human-made". An entry that matches every piece or none is left out, since it cannot narrow the grid.
 - Counts are live. Each shows how many pieces its box would add given the other checked boxes (OR within a facet, AND across facets). A box that would add none is disabled: box and leader at 0.75 opacity, the term in `--text-dim`, the count hidden.
 - The results line is the page's one live region (`role=status`, set after the first render, and written only when its text changes). It shows at every width and reads "234 wallpapers" or "4 of 234 wallpapers" in plain text with lining figures. When nothing matches, "Try fewer filters or a shorter search." appears under it. "clear" shows while anything is checked or searched; it is a `type=reset` button tied to the form by `form=`.
 - From 60rem up the disclosure is held open and its summary hidden. On phones it starts closed, and the summary shows "Filter", the active terms and a plus or minus sign whose alternative text is empty.
@@ -161,8 +161,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 `src/components/Plate.astro` and `PlateBox.astro`.
 
 - One `<li>` per piece: a link named by its title (`aria-labelledby`) around a figure. The image's alt text is the description.
-- The caption is a tombstone: the title (an `h2`), "N versions" when the piece has published named variants ("(N draft)" is added in `astro dev`), the dark-only note when it applies ("Made for dark themes, shown here with your colours swapped"), then the attribution. `aria-describedby` points at the version count and the attribution.
-- A dark-only piece under light colours gets `data-dark-only`, and its plate ground becomes `--seed-fg` to match its swapped render.
+- The caption is a tombstone: the title (an `h2`), "N versions" when the piece has published named variants ("(N draft)" is added in `astro dev`), then the attribution. `aria-describedby` points at the version count and the attribution.
 - Before JavaScript runs, a plate is an empty 16:9 box on `--seed-bg`, with a `<noscript>` image of the untouched template.
 - Grid items use `content-visibility: auto` with an intrinsic block size only, so the track can still shrink to 320px (WCAG 1.4.10).
 - The frame is an inset box-shadow on `.plate::after`. Keyboard focus draws a 2px inset ring on the plate and underlines the title.
@@ -178,7 +177,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 ### 6.7 Label
 
-- In order: the title, the dark-only note, the attribution with its footnote markers, the description at 22px, the credit, a licence line when there is one, and the facts.
+- In order: the title, the attribution with its footnote markers, the description at 22px, the credit, a licence line when there is one, and the facts.
 - Every row after the 48px title is a whole 32px line, so the label shares baselines with the controls.
 - The credit is "Made with Claude Opus 5.5", taken from meta.yaml's `author`, or "Made by" and a name for a human-made piece. Figures in the name take lining numerals.
 - A CC0 piece shows no licence. A fan work shows the disclaimer from design.md (Metadata) under the credit, and any other licence shows its plain-words line from `LICENCE_LINES` in `src/lib/labels.ts` (a CC BY recreation: "Free to use, with credit as given above."). No licence names or identifiers appear.

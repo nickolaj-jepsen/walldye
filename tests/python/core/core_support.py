@@ -5,7 +5,7 @@ import itertools
 import sys
 from pathlib import Path
 
-from walldye import _basis, _theme
+from walldye import _check_themes, _theme
 from walldye._design import Design, RenderSpec
 from walldye._params import Params
 
@@ -44,9 +44,9 @@ def tokens(theme: tuple[str, str, str]) -> dict[str, str]:
 
 def themes(regime: str) -> list[dict[str, str]]:
     """Every theme the tools serialise a document of `regime` under: its template preset, the
-    basis, the held-out set and the probes."""
+    held-out set and the probes (the sample theme is one of the held-out set)."""
     template = _theme.parse_theme("fireproof" if regime == "dark" else "flexoki-light")
-    rest = _basis.BASIS[regime] + _basis.HELD_OUT[regime] + _basis.PROBES[regime]
+    rest = _check_themes.HELD_OUT[regime] + _check_themes.PROBES[regime]
     return [template, *(tokens(t) for t in rest)]
 
 

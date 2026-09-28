@@ -20,7 +20,6 @@ description: Three rings around a point.
 added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
-themes: [dark]
 draft: false
 `;
 
@@ -48,7 +47,7 @@ const write = (dir: string, rel: string, text: string) => {
 };
 
 /** Writes `variant`'s templates and slots.json into the piece's build directory, as `walldye build` would. */
-function build(dir: string, slug: string, variant: string, aspects: string[], light: boolean, shift: number): void {
+function build(dir: string, slug: string, variant: string, aspects: string[], shift: number): void {
   const rel = variant === 'default' ? `wallpapers/${slug}/build` : `wallpapers/${slug}/build/${variant}`;
   const slots: Record<string, unknown> = { design_sha: digest(variantLines(designLines(dir, slug), variant)) };
   if (variant !== 'default') slots.variant = variant;
@@ -60,7 +59,7 @@ function build(dir: string, slug: string, variant: string, aspects: string[], li
     const n = findColours(text).length;
     const entry = { file, sha256: sha256(text), n, coefs: [[1, 0, 0, 0, 0, 0]], occ: Array(n).fill(0) };
     slots[`${aspect}/dark`] = entry;
-    if (light) slots[`${aspect}/light`] = entry;
+    slots[`${aspect}/light`] = entry;
   }
   write(dir, `${rel}/slots.json`, `${JSON.stringify(slots)}\n`);
 }
@@ -77,8 +76,7 @@ const INDEX = {
 };
 
 /**
- * A git repo whose committed artifacts are current: `rings`, one version at 16:9 for dark themes,
- * and `moon`, with a data file and two named variants at 16:9 and 10:16. `track` stages walldye/ as
+ * A git repo whose committed artifacts are current: `rings`, one version at 16:9, and `moon`, with a data file and two named variants at 16:9 and 10:16. `track` stages walldye/ as
  * CI's checkout has it.
  */
 function repo(track = true): string {
@@ -95,10 +93,10 @@ function repo(track = true): string {
   write(dir, 'wallpapers/moon/design.py', '"""Moon."""\n');
   write(dir, 'wallpapers/moon/data/points.json', '[[0, 0], [1, 1]]\n');
   write(dir, 'wallpapers/moon/meta.yaml', MOON_META);
-  build(dir, 'rings', 'default', ['16:9'], false, 0);
-  build(dir, 'moon', 'default', ['16:9', '10:16'], true, 0);
-  build(dir, 'moon', 'late', ['16:9', '10:16'], true, -300);
-  build(dir, 'moon', 'open-sea', ['16:9', '10:16'], true, 300);
+  build(dir, 'rings', 'default', ['16:9'], 0);
+  build(dir, 'moon', 'default', ['16:9', '10:16'], 0);
+  build(dir, 'moon', 'late', ['16:9', '10:16'], -300);
+  build(dir, 'moon', 'open-sea', ['16:9', '10:16'], 300);
   write(dir, 'wallpapers/index.json', `${JSON.stringify(INDEX, null, 2)}\n`);
   execFileSync('git', ['init', '-q'], { cwd: dir });
   if (track) execFileSync('git', ['add', 'walldye'], { cwd: dir });
@@ -118,7 +116,7 @@ afterAll(() => {
   for (const dir of temps) rmSync(dir, { recursive: true, force: true });
 });
 
-const STALE = 'has a stale design_sha (the design, its data or the meta.yaml themes changed)';
+const STALE = 'has a stale design_sha (the design or its data changed)';
 
 describe('check-artifacts', () => {
   it('passes on a current repo, with walldye/ tracked and with it untracked', () => {
@@ -141,12 +139,6 @@ describe('check-artifacts', () => {
     const added = repo();
     write(added, 'wallpapers/moon/data/extra.txt', 'x\n');
     expect(checkArtifacts(added)).toEqual(stale);
-  });
-
-  it('fails when meta.yaml changes the themes', () => {
-    const dir = repo();
-    edit(dir, 'wallpapers/rings/meta.yaml', (t) => t.replace('themes: [dark]', 'themes: [dark, light]'));
-    expect(checkArtifacts(dir)).toEqual([`rings: build/slots.json ${STALE}: run walldye build rings`]);
   });
 
   it('fails when a template is edited by hand, in any version', () => {

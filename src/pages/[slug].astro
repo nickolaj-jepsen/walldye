@@ -6,7 +6,7 @@ import Footnotes from '../components/Footnotes.astro';
 import PlateBox from '../components/PlateBox.astro';
 import SourceCode from '../components/SourceCode.astro';
 import Base from '../layouts/Base.astro';
-import { captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery, isDarkOnly } from '../lib/content';
+import { captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery } from '../lib/content';
 import { LICENCE_LINES, TAKEDOWN_CONTACT, UNLISTED, facetLabel, type TaxonomyFacet } from '../lib/labels';
 import { DEFAULT_LICENSE, FAN_WORK } from '../lib/meta';
 
@@ -50,7 +50,6 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
   <div class="below">
     <div class="label">
       <h1>{p.title}</h1>
-      {isDarkOnly(p) && <p class="attr" id="dark-note" data-dark-note hidden>Made for dark themes, shown here with your colours swapped</p>}
       {captionSources(p) && <p class="attr"><Attribution piece={p} refs /></p>}
       <p class="desc" id="desc">{p.description}</p>
       <p class="credit">{credit.map((c) => (c.lnum ? <span class="lnum">{c.text}</span> : c.text))}</p>

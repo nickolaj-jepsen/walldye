@@ -6,14 +6,14 @@ import pytest
 from fixtures import regen
 from tools_support import assert_recolours, built, legacy, seeds, versions
 
-from walldye import _basis
+from walldye import _check_themes
 from walldye._aspect import SITE_ASPECTS, canvas_size, template_name
 from walldye._theme import PRESETS, SEEDS
-from walldye.tools import build, check, common, fit, hashing, listing, review
+from walldye.tools import build, check, coefs, common, hashing, listing, review
 from walldye.tools.tokenize import find_colours
 
 FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
-ALL_HELD_OUT = _basis.HELD_OUT["dark"] + _basis.HELD_OUT["light"]
+ALL_HELD_OUT = _check_themes.HELD_OUT["dark"] + _check_themes.HELD_OUT["light"]
 
 
 def slots(slug: str, variant: str = "default") -> dict[str, object]:
@@ -47,8 +47,10 @@ def test_collision_builds_and_recolours(wallpapers, capsys):
     assert s["cells"] == [] and s["focus"] == [0.5, 0.5]
     assert s["probes"] == {
         "fireproof": hashing.sha256(template.encode()),
-        "dark": hashing.sha256(common.render("collision", _basis.BASIS["dark"][0]).encode()),
-        "light": hashing.sha256(common.render("collision", _basis.BASIS["light"][0]).encode()),
+        **{
+            r: hashing.sha256(common.render("collision", _check_themes.SAMPLE[r]).encode())
+            for r in ("dark", "light")
+        },
     }
     table = build.entries(s)
     for regime in ("dark", "light"):
@@ -80,18 +82,17 @@ def test_recolour_evaluates_like_predict():
     for _ in range(20):
         theme = tuple(f"#{r.getrandbits(24):06X}" for _ in range(3))
         got = build.recolour(template, entry, dict(zip(SEEDS, theme, strict=True)))
-        assert (fit.colours(got) == fit.predict(np.array(rows), theme)).all()
+        assert (coefs.colours(got) == coefs.predict(np.array(rows), theme)).all()
 
 
 def test_select():
     both = {"16:9/dark": {}, "16:9/light": {}}
-    assert build.select(both, "16:9", seeds("nord")) == ("16:9/dark", seeds("nord"))
-    light = seeds("flexoki-light")
-    assert build.select(both, "16:9", light) == ("16:9/light", light)
-    swapped = {"bg": light["fg"], "fg": light["bg"], "accent": light["accent"]}
-    assert build.select({"16:9/dark": {}}, "16:9", light) == ("16:9/dark", swapped)
+    assert build.select(both, "16:9", seeds("nord")) == "16:9/dark"
+    assert build.select(both, "16:9", seeds("flexoki-light")) == "16:9/light"
     with pytest.raises(KeyError):
-        build.select(both, "21:9", light)
+        build.select(both, "21:9", seeds("nord"))
+    with pytest.raises(KeyError):
+        build.select({"16:9/dark": {}}, "16:9", seeds("flexoki-light"))
 
 
 def test_entries_are_validated():
@@ -115,22 +116,6 @@ def test_light_branch_gets_its_own_template(wallpapers, capsys):
     assert "A100 100" not in light and "A100 100" in common.render("light-branch", "nord")
     for theme in ["solarized-light", "nord", *ALL_HELD_OUT]:
         assert_recolours("light-branch", theme)
-
-
-def test_dark_only_piece_recolours_light_seeds_swapped(wallpapers, capsys):
-    regen.install(wallpapers, "light-branch", "dark-only", themes=["dark"], notes="Too bright.")
-    regen.install(wallpapers, "light-branch", "both")
-    assert hashing.design_sha("dark-only") != hashing.design_sha("both")
-    built(capsys, "dark-only")
-    s = slots("dark-only")
-    assert [k for k in s if "/" in k] == ["16:9/dark"]
-    assert set(s["probes"]) == {"fireproof", "dark"}
-    assert sorted(p.name for p in common.build_dir("dark-only").iterdir()) == [
-        "16x9.svg",
-        "slots.json",
-    ]
-    for theme in ["flexoki-light", "solarized-light", *_basis.HELD_OUT["light"]]:
-        assert_recolours("dark-only", theme)
 
 
 def test_any_aspect_pixel_design(wallpapers, capsys):
@@ -240,14 +225,6 @@ def test_a_failing_variant_writes_nothing_for_the_piece(wallpapers, capsys):
 
 
 # --- check failures and skips ---------------------------------------------------------
-
-
-def test_build_refuses_an_ill_conditioned_basis(wallpapers, capsys, monkeypatch):
-    regen.install(wallpapers, "collision")
-    monkeypatch.setitem(_basis.BASIS, "light", [("#000000", "#000000", "#000000")] * 8)
-    assert build.run(["collision"]) == 1
-    assert "the light basis has condition number" in capsys.readouterr().err
-    assert not common.build_dir("collision").exists()
 
 
 def test_failed_check_writes_nothing(wallpapers, capsys):
@@ -541,10 +518,10 @@ def test_reference_renders_are_current():
 def test_reference_renders_recolour(ref):
     """vitest (b) on the Python side: recolouring the committed template matches the reference render."""
     s = slots(ref["slug"])
-    k, applied = build.select(s, ref["aspect"], seeds(ref["theme"]))
+    k = build.select(s, ref["aspect"], seeds(ref["theme"]))
     assert k == ref["entry"]
     table = build.entries(s)
-    got = build.recolour((common.ROOT / ref["template"]).read_text(), table[k], applied)
+    got = build.recolour((common.ROOT / ref["template"]).read_text(), table[k], seeds(ref["theme"]))
     want = (common.ROOT / ref["render"]).read_text()
-    assert fit.colours(got).shape == fit.colours(want).shape
-    assert np.abs(fit.colours(got) - fit.colours(want)).max(initial=0) <= fit.MAX_ERROR
+    assert coefs.colours(got).shape == coefs.colours(want).shape
+    assert np.abs(coefs.colours(got) - coefs.colours(want)).max(initial=0) <= coefs.MAX_ERROR

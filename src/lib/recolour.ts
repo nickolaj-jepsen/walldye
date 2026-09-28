@@ -31,11 +31,10 @@ export interface PreparedTemplate {
   parts: string[];
 }
 
-/** The entry to recolour with; `swap` means apply the seeds with bg and fg exchanged. */
+/** The entry to recolour with and its slots.json key. */
 export interface Picked {
   key: string;
   entry: SlotsEntry;
-  swap: boolean;
 }
 
 /** Whether `value` looks like a slots.json template entry. */
@@ -48,33 +47,18 @@ export function entries(slots: Slots): [string, SlotsEntry][] {
   return Object.entries(slots).filter((e): e is [string, SlotsEntry] => isEntry(e[1]));
 }
 
-/**
- * The entry for `aspect` (like "16:9") in `regime`: "<aspect>/<regime>", except that a piece without a
- * light entry (a `themes: [dark]` piece) uses its dark entry with `swap` under light seeds.
- * Throws when the piece has no dark entry for `aspect`.
- */
+/** The entry "<aspect>/<regime>" for `aspect` (like "16:9"); throws when the piece has none. */
 export function pickTemplate(slots: Slots, aspect: string, regime: Regime): Picked {
-  const light = `${aspect}/light`;
-  if (regime === 'light' && Object.hasOwn(slots, light) && isEntry(slots[light])) {
-    return { key: light, entry: slots[light], swap: false };
-  }
-  const key = `${aspect}/dark`;
-  const entry = slots[key];
+  const key = `${aspect}/${regime}`;
+  const entry = Object.hasOwn(slots, key) ? slots[key] : undefined;
   if (!isEntry(entry)) throw new Error(`no ${key} entry in slots.json`);
-  return { key, entry, swap: regime === 'light' };
+  return { key, entry };
 }
 
-/** `seeds` normalised, with bg and fg exchanged when `swap`: the theme a picked entry is evaluated under. */
-export function appliedSeeds(seeds: Seeds, swap = false): Seeds {
+/** Python build.select(): the picked entry for `seeds`, in their regime. */
+export function select(slots: Slots, aspect: string, seeds: Seeds): Picked {
   const s = normaliseSeeds(seeds);
-  return swap ? { bg: s.fg, fg: s.bg, accent: s.accent } : s;
-}
-
-/** Python build.select(): the picked entry for `seeds` plus the seeds to apply (swapped when the entry needs it). */
-export function select(slots: Slots, aspect: string, seeds: Seeds): Picked & { seeds: Seeds } {
-  const s = normaliseSeeds(seeds);
-  const picked = pickTemplate(slots, aspect, isLight(s.bg, s.fg) ? 'light' : 'dark');
-  return { ...picked, seeds: appliedSeeds(s, picked.swap) };
+  return pickTemplate(slots, aspect, isLight(s.bg, s.fg) ? 'light' : 'dark');
 }
 
 /** `svg` split at its colour slots, for repeated recolour() calls. */
@@ -85,17 +69,16 @@ export function prepareTemplate(svg: string): PreparedTemplate {
 const FIREPROOF = PRESETS.fireproof;
 
 /**
- * `template` (the file `entry` names) recoloured for `seeds`, with bg and fg exchanged first when
- * `opts.swap` (see pickTemplate). Slot i becomes coefs[occ[i]] = [a, b, c, dr, dg, db] evaluated per
- * channel as ((a*bg + b*fg) + c*accent) + d, rounded half to even and clamped.
+ * `template` (the file `entry` names) recoloured for `seeds`. Slot i becomes coefs[occ[i]] =
+ * [a, b, c, dr, dg, db] evaluated per channel as ((a*bg + b*fg) + c*accent) + d, rounded half to even
+ * and clamped.
  *
- * Returns the template unchanged for exact fireproof seeds (after any swap), and as the fallback when
- * its slot count is not `entry.n` or `entry.occ` does not index `entry.coefs` once per slot.
- * Throws on an invalid seed.
+ * Returns the template unchanged for exact fireproof seeds, and as the fallback when its slot count is
+ * not `entry.n` or `entry.occ` does not index `entry.coefs` once per slot. Throws on an invalid seed.
  */
-export function recolour(template: string | PreparedTemplate, entry: SlotsEntry, seeds: Seeds, opts: { swap?: boolean } = {}): string {
+export function recolour(template: string | PreparedTemplate, entry: SlotsEntry, seeds: Seeds): string {
   const prepared = typeof template === 'string' ? prepareTemplate(template) : template;
-  const s = appliedSeeds(seeds, opts.swap);
+  const s = normaliseSeeds(seeds);
   const n = prepared.parts.length - 1;
   const fireproof = s.bg === FIREPROOF.bg && s.fg === FIREPROOF.fg && s.accent === FIREPROOF.accent;
   if (fireproof || n !== entry.n || entry.occ.length !== n || entry.occ.some((o) => !Array.isArray(entry.coefs[o]))) {

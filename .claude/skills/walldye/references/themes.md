@@ -56,7 +56,7 @@ A theme is in the light regime when its bg is strictly brighter than its fg (WCA
 a tie counts as dark). A design is drawn once per regime, and `s.light` says which one; it is
 the only theme fact a design can read. Build keeps one template per aspect, written under
 fireproof, adds a `.light.svg` written under flexoki-light only where the light drawing
-differs, and fits how every colour in them moves with the seeds. Within a regime the geometry
+differs, and records how every colour in them moves with the seeds. Within a regime the geometry
 cannot change with the theme; between regimes it may, at a cost.
 
 Tokens invert on light themes: greys walk toward a dark fg, the accent ramp fades toward a
@@ -73,9 +73,9 @@ render needs help, climb this ladder and stop at the first step that works:
 3. A geometry branch under `if s.light:` (examples/dither-moon.py inks its shadows instead
    of its highlights). Build then writes a `.light.svg` for every native aspect and variant,
    so the piece has twice the templates to build, commit and keep correct.
-4. `themes: [dark]` in meta.yaml, only after steps 2 and 3 were tried, with the reason in
-   `notes` in plain words. Under light seeds the site then shows the piece with the visitor's
-   bg and fg swapped and a caption saying it was made for dark themes.
+
+There is no dark-only opt-out: every piece is built for both regimes and has to hold up in
+both.
 
 `walldye preview` prints `regime: dark|light` and `light geometry: same as dark` or
 `differs from dark`, so every preview says whether a design is on step 3.

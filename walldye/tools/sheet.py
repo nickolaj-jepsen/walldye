@@ -20,9 +20,9 @@ PAD, LABEL = 8, 22
 
 def themed(slug: str, seeds: dict[str, str], variant: str = "default", aspect: str = "16:9") -> str:
     """A variant's committed template at `aspect` recoloured to `seeds` the way the site does
-    it: build.select picks the slots.json entry (dark-only pieces swap bg and fg under light
-    seeds) and build.recolour applies it; fireproof's exact seeds return the dark template
-    untouched. KeyError if slots.json lacks the entry, FileNotFoundError when not built."""
+    it: build.select picks the slots.json entry and build.recolour applies it; fireproof's
+    exact seeds return the dark template untouched. KeyError if slots.json lacks the entry,
+    FileNotFoundError when not built."""
     from walldye.tools.build import entries, load_slots, recolour, select
 
     slots = load_slots(slug, variant)
@@ -32,8 +32,8 @@ def themed(slug: str, seeds: dict[str, str], variant: str = "default", aspect: s
     d = common.build_dir(slug, variant)
     if theme_token(seeds) == "fireproof":
         return (d / table[f"{aspect}/dark"]["file"]).read_text()
-    k, applied = select(slots, aspect, seeds)
-    return recolour((d / table[k]["file"]).read_text(), table[k], applied)
+    k = select(slots, aspect, seeds)
+    return recolour((d / table[k]["file"]).read_text(), table[k], seeds)
 
 
 def _grid(cells: Sequence[tuple[str, Image.Image]], cols: int, thumb: int) -> Image.Image:
