@@ -127,10 +127,19 @@ describe('sizes', () => {
 
 describe('renderCommand', () => {
   it('names the aspect, the crop and the output like the SVG download', () => {
-    expect(renderCommand('schotter', 'fireproof', { aspect: '16:9', native: true, t: 0 })).toBe('uv run walldye render schotter --theme fireproof -o schotter-fireproof-16x9.svg');
-    expect(renderCommand('moon', 'nord', { aspect: '9:19.5', native: true, t: 0 })).toBe('uv run walldye render moon --theme nord --aspect 9:19.5 -o moon-nord-9x19.5.svg');
-    expect(renderCommand('schotter', '0a0a0a-f0f0f0-ff0000', { aspect: '21:9', native: false, t: 0.5 })).toBe(
+    expect(renderCommand('schotter', 'default', 'fireproof', { aspect: '16:9', native: true, t: 0 })).toBe('uv run walldye render schotter --theme fireproof -o schotter-fireproof-16x9.svg');
+    expect(renderCommand('moon', 'default', 'nord', { aspect: '9:19.5', native: true, t: 0 })).toBe('uv run walldye render moon --theme nord --aspect 9:19.5 -o moon-nord-9x19.5.svg');
+    expect(renderCommand('schotter', 'default', '0a0a0a-f0f0f0-ff0000', { aspect: '21:9', native: false, t: 0.5 })).toBe(
       'uv run walldye render schotter --theme 0a0a0a-f0f0f0-ff0000 --crop 0,128.571,1920,822.857 -o schotter-0a0a0a-f0f0f0-ff0000-21x9-crop.svg',
+    );
+  });
+
+  it('names a named variant after the slug, in the flag and the output', () => {
+    expect(renderCommand('radar-sweep', 'open-sea', 'nord', { aspect: '10:16', native: true, t: 0 })).toBe(
+      'uv run walldye render radar-sweep --variant open-sea --theme nord --aspect 10:16 -o radar-sweep--open-sea-nord-10x16.svg',
+    );
+    expect(renderCommand('schotter', 'late', 'fireproof', { aspect: '21:9', native: false, t: 0.5 })).toBe(
+      'uv run walldye render schotter --variant late --theme fireproof --crop 0,128.571,1920,822.857 -o schotter--late-fireproof-21x9-crop.svg',
     );
   });
 });

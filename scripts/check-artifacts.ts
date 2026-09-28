@@ -5,18 +5,21 @@
  *   pnpm check-artifacts [root]
  *
  * Checks, for the repo at `root` (default: this checkout):
- * 1. every piece's design_sha and the render-lib hash against slots.json and wallpapers/.render-lib.sha256;
- * 2. every template's sha256 (and slot count) against slots.json, and no template missing from it;
- * 3. wallpapers/index.json against meta.yaml and slots.json;
- * 4. `checked: <walldye version>` in every slots.json.
+ * 1. every version's design_sha against its slots.json, and the render-lib hash against wallpapers/.render-lib.sha256;
+ * 2. every template's sha256 (and slot count) against its slots.json, and no template missing from it;
+ * 3. a build/<variant>/ for each named variant in meta.yaml, with the default's set of templates, and
+ *    no other directory in build/;
+ * 4. wallpapers/index.json against meta.yaml and slots.json, listing exactly the built pieces;
+ * 5. `checked: <walldye version>` in every slots.json.
  * Prints each problem and exits 1 if there are any.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { designSha, loadMeta, renderLibSha, sha256, slugs, stampedRenderLibSha } from '../src/lib/hash';
-import { isDraft, licenseOf } from '../src/lib/meta';
+import { DEFAULT_VARIANT, SITE_ASPECTS } from '../src/lib/content';
+import { designLines, digest, loadMeta, renderLibSha, sha256, slugs, stampedRenderLibSha, variantLines } from '../src/lib/hash';
+import { isDraft, licenseOf, namedVariants, variantsMeta, type NamedVariant } from '../src/lib/meta';
 import { entries, type Slots } from '../src/lib/recolour';
 import { findColours } from '../src/lib/tokenize';
 
@@ -40,57 +43,98 @@ function readSlots(path: string): Slots {
   return slots as Slots;
 }
 
-function checkPiece(root: string, slug: string, version: string, problems: string[]): string[] | null {
+/**
+ * Checks one version's build directory (build/ for the default, build/<variant>/ otherwise) against
+ * `lines`, the piece's hash lines (null when they could not be read). Returns its template keys
+ * sorted, or null when it has no readable slots.json.
+ */
+function checkBuild(root: string, slug: string, variant: string, lines: string[] | null, version: string, problems: string[]): string[] | null {
   const run = `run walldye build ${slug}`;
-  const build = join(root, 'wallpapers', slug, 'build');
-  let current: string | null = null;
-  try {
-    current = designSha(root, slug);
-  } catch (e) {
-    problems.push(`${slug}: ${(e as Error).message}`);
-  }
-  const path = join(build, 'slots.json');
+  const named = variant !== DEFAULT_VARIANT;
+  const rel = named ? `build/${variant}/` : 'build/';
+  const dir = join(root, 'wallpapers', slug, rel);
+  const path = join(dir, 'slots.json');
   if (!existsSync(path)) {
-    problems.push(`${slug}: not built (no build/slots.json): ${run}`);
+    problems.push(`${slug}: ${rel}slots.json is missing: ${run}`);
     return null;
   }
   let slots: Slots;
   try {
     slots = readSlots(path);
   } catch (e) {
-    problems.push(`${slug}: build/slots.json: ${(e as Error).message}: ${run}`);
+    problems.push(`${slug}: ${rel}slots.json: ${(e as Error).message}: ${run}`);
     return null;
   }
-  if (current !== null && slots.design_sha !== current) {
-    problems.push(`${slug}: design_sha differs from the design and meta.yaml themes: ${run}`);
+  if (lines !== null && slots.design_sha !== digest(variantLines(lines, variant))) {
+    problems.push(`${slug}: ${rel}slots.json has a stale design_sha (the design, its data or the meta.yaml themes changed): ${run}`);
+  }
+  if (named && slots.variant !== variant) {
+    problems.push(`${slug}: ${rel}slots.json has variant ${JSON.stringify(slots.variant ?? null)}, not "${variant}": ${run}`);
+  } else if (!named && slots.variant !== undefined) {
+    problems.push(`${slug}: build/slots.json has variant ${JSON.stringify(slots.variant)}, but the default's has none: ${run}`);
   }
   if (slots.checked !== version) {
-    problems.push(`${slug}: slots.json was checked by walldye ${JSON.stringify(slots.checked ?? null)}, not ${version}: ${run}`);
+    problems.push(`${slug}: ${rel}slots.json was checked by walldye ${JSON.stringify(slots.checked ?? null)}, not ${version}: ${run}`);
   }
+  // A light entry often names the dark template; each file is reported once.
   const listed = new Set<string>();
-  const aspects: string[] = [];
+  const keys: string[] = [];
   for (const [key, entry] of entries(slots)) {
-    const aspect = key.split('/')[0];
-    if (!aspects.includes(aspect)) aspects.push(aspect);
+    keys.push(key);
+    const seen = listed.has(entry.file);
     listed.add(entry.file);
-    const file = join(build, entry.file);
+    const file = join(dir, entry.file);
     if (!existsSync(file)) {
-      problems.push(`${slug}: build/${entry.file} (${key}) is missing: ${run}`);
+      if (!seen) problems.push(`${slug}: ${rel}${entry.file} (${key}) is missing: ${run}`);
       continue;
     }
     const bytes = readFileSync(file);
     if (sha256(bytes) !== entry.sha256) {
-      problems.push(`${slug}: build/${entry.file} does not match its sha256 in slots.json (edited by hand?): ${run}`);
+      if (!seen) problems.push(`${slug}: ${rel}${entry.file} does not match its sha256 in slots.json (edited by hand?): ${run}`);
     } else {
       const n = findColours(bytes.toString('utf8')).length;
-      if (n !== entry.n) problems.push(`${slug}: build/${entry.file} has ${n} colour slots, slots.json says ${entry.n} for ${key}`);
+      if (n !== entry.n) problems.push(`${slug}: ${rel}${entry.file} has ${n} colour slots, slots.json says ${entry.n} for ${key}`);
     }
   }
-  if (!aspects.includes('16:9')) problems.push(`${slug}: slots.json has no 16:9 template: ${run}`);
-  for (const name of existsSync(build) ? readdirSync(build).sort() : []) {
-    if (TEMPLATE_NAME.test(name) && !listed.has(name)) problems.push(`${slug}: build/${name} is not in slots.json: ${run}`);
+  if (!keys.some((k) => k.startsWith('16:9/'))) problems.push(`${slug}: ${rel}slots.json has no 16:9 template: ${run}`);
+  for (const name of readdirSync(dir).sort()) {
+    if (TEMPLATE_NAME.test(name) && !listed.has(name)) problems.push(`${slug}: ${rel}${name} is not in slots.json: ${run}`);
   }
-  return aspects;
+  return keys.sort();
+}
+
+/**
+ * Checks every version of a built piece; `named` are the variants its meta.yaml lists. Returns the
+ * default version's aspects in SITE_ASPECTS order, or null when build/slots.json cannot be read.
+ */
+function checkPiece(root: string, slug: string, named: NamedVariant[], version: string, problems: string[]): string[] | null {
+  const run = `run walldye build ${slug}`;
+  let lines: string[] | null = null;
+  try {
+    lines = designLines(root, slug);
+  } catch (e) {
+    problems.push(`${slug}: ${(e as Error).message}`);
+  }
+  const keys = checkBuild(root, slug, DEFAULT_VARIANT, lines, version, problems);
+  for (const { name } of named) {
+    const got = checkBuild(root, slug, name, lines, version, problems);
+    if (keys && got && got.join() !== keys.join()) {
+      problems.push(`${slug}: build/${name}/ has templates for ${got.join(', ')}, build/ for ${keys.join(', ')}: ${run}`);
+    }
+  }
+  const build = join(root, 'wallpapers', slug, 'build');
+  const names = new Set(named.map((v) => v.name));
+  for (const d of existsSync(build) ? readdirSync(build, { withFileTypes: true }) : []) {
+    if (d.isDirectory() && !names.has(d.name)) problems.push(`${slug}: build/${d.name}/ is not a variant in meta.yaml: ${run}`);
+  }
+  return keys && SITE_ASPECTS.filter((a) => keys.some((k) => k.startsWith(`${a}/`)));
+}
+
+/** `value` as JSON with every object's keys sorted, so two values compare by content. */
+function canonical(value: unknown): string {
+  return JSON.stringify(value, (_, v: unknown) =>
+    typeof v === 'object' && v !== null && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v,
+  );
 }
 
 /** index.json text as walldye build writes it (Python json.dumps, indent 2), keys in `index` order. */
@@ -98,6 +142,14 @@ function indexText(index: Map<string, object>): string {
   if (!index.size) return '{}\n';
   const body = [...index].map(([slug, v]) => `  ${JSON.stringify(slug)}: ${JSON.stringify(v, null, 2).replace(/\n/g, '\n  ')}`);
   return `{\n${body.join(',\n')}\n}\n`;
+}
+
+interface IndexEntry {
+  aspects: string[];
+  draft: boolean;
+  license: unknown;
+  title: unknown;
+  variants: Record<string, { draft: boolean; label: string }>;
 }
 
 /** Every problem with the committed artifacts of the repo at `root`; [] when all are current. */
@@ -111,20 +163,41 @@ export function checkArtifacts(root: string): string[] {
     problems.push('the render inputs (walldye/, uv.lock, .python-version) changed since wallpapers/.render-lib.sha256: run walldye build --all');
   }
 
-  const expected = new Map<string, { aspects: string[]; draft: boolean; license: unknown; title: unknown }>();
+  // Only built pieces belong in index.json; an unbuilt one is a problem of its own.
+  const expected = new Map<string, IndexEntry>();
+  const unbuilt = new Set<string>();
+  const pieces = slugs(root);
   let complete = true;
-  for (const slug of slugs(root)) {
-    const aspects = checkPiece(root, slug, version, problems);
-    let meta: Record<string, unknown>;
+  for (const slug of pieces) {
+    let meta: Record<string, unknown> | null = null;
     try {
       meta = loadMeta(root, slug);
     } catch (e) {
       problems.push(`${slug}: ${(e as Error).message}`);
       complete = false;
+    }
+    if (meta?.variants !== undefined) {
+      const parsed = variantsMeta.safeParse(meta.variants);
+      for (const issue of parsed.error?.issues ?? []) {
+        problems.push(`${slug}: meta.yaml variants${issue.path.map((p) => `.${String(p)}`).join('')}: ${issue.message}`);
+      }
+    }
+    if (!existsSync(join(root, 'wallpapers', slug, 'build', 'slots.json'))) {
+      problems.push(`${slug}: not built (no build/slots.json): run walldye build ${slug}`);
+      unbuilt.add(slug);
       continue;
     }
+    const named = meta ? namedVariants(meta) : [];
+    const aspects = checkPiece(root, slug, named, version, problems);
     if (aspects === null) complete = false;
-    expected.set(slug, { aspects: aspects ?? [], draft: isDraft(meta), license: licenseOf(meta), title: meta.title ?? null });
+    if (!meta) continue;
+    expected.set(slug, {
+      aspects: aspects ?? [],
+      draft: isDraft(meta),
+      license: licenseOf(meta),
+      title: meta.title ?? null,
+      variants: Object.fromEntries(named.map((v) => [v.name, { draft: v.draft, label: typeof v.label === 'string' ? v.label : '' }])),
+    });
   }
 
   const indexPath = join(root, 'wallpapers', 'index.json');
@@ -142,7 +215,8 @@ export function checkArtifacts(root: string): string[] {
   }
   const before = problems.length;
   for (const slug of Object.keys(index)) {
-    if (!expected.has(slug)) problems.push(`wallpapers/index.json lists ${slug}, which has no meta.yaml: run walldye build`);
+    if (!pieces.includes(slug)) problems.push(`wallpapers/index.json lists ${slug}, which has no meta.yaml: run walldye build`);
+    else if (unbuilt.has(slug)) problems.push(`wallpapers/index.json lists ${slug}, which is not built: run walldye build ${slug}`);
   }
   for (const [slug, want] of expected) {
     const got = index[slug];
@@ -150,9 +224,9 @@ export function checkArtifacts(root: string): string[] {
       problems.push(`wallpapers/index.json leaves out ${slug}: run walldye build ${slug}`);
       continue;
     }
-    for (const field of ['draft', 'license', 'title', 'aspects'] as const) {
+    for (const field of ['draft', 'license', 'title', 'aspects', 'variants'] as const) {
       if (field === 'aspects' && !want.aspects.length) continue;
-      if (JSON.stringify(got[field] ?? null) !== JSON.stringify(want[field])) {
+      if (canonical(got[field] ?? null) !== canonical(want[field])) {
         const source = field === 'aspects' ? 'slots.json' : 'meta.yaml';
         problems.push(
           `wallpapers/index.json: ${slug} ${field} is ${JSON.stringify(got[field] ?? null)}, ${source} says ${JSON.stringify(want[field])}: run walldye build ${slug}`,

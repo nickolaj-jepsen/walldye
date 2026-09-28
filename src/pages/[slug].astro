@@ -52,7 +52,7 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
       <h1>{p.title}</h1>
       {isDarkOnly(p) && <p class="attr" id="dark-note" data-dark-note hidden>Made for dark themes, shown here with your colours swapped</p>}
       {captionSources(p) && <p class="attr"><Attribution piece={p} refs /></p>}
-      <p class="desc">{p.description}</p>
+      <p class="desc" id="desc">{p.description}</p>
       <p class="credit">{credit.map((c) => (c.lnum ? <span class="lnum">{c.text}</span> : c.text))}</p>
       {fanWork && <p class="licence">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact {TAKEDOWN_CONTACT} for takedown.</p>}
       {licenceLine && <p class="licence">{licenceLine}</p>}

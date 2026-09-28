@@ -1,11 +1,29 @@
 {
- "definition": "sha256 over UTF-8 lines '<key>\\t<value>\\n' sorted by line; a file's key is its repo-relative posix path, its value the sha256 of its bytes.",
- "files": {
-  "wallpapers/example/design.py": "\"\"\"Example.\"\"\"\n\nfrom walldye import ACCENT\n\n\ndef draw(s):\n    s.circle(960, 540, 100, fill=ACCENT)\n"
- },
- "lines": [
-  "themes\tdark,light"
- ],
- "text": "themes\tdark,light\nwallpapers/example/design.py\tc3c4c04abd3f85381088992cca26412249395202ff8465d8786fe48e7e3c03b6\n",
- "sha256": "ebe62cfc9fb649184e632d9a5ced30d581662e40ffc028ff0968f650bb35a688"
+ "definition": "sha256 over UTF-8 lines '<key>\\t<value>\\n' sorted by line; a file's key is its repo-relative posix path, its value the sha256 of its bytes. design_sha covers design.py (or source.svg and palette.yaml), every file in data/ and a themes line, plus a 'variant\\t<name>' line for a named variant.",
+ "vectors": [
+  {
+   "name": "design",
+   "files": {
+    "wallpapers/example/design.py": "\"\"\"Example.\"\"\"\n\nfrom walldye import ACCENT\n\n\ndef draw(s):\n    s.circle(960, 540, 100, fill=ACCENT)\n"
+   },
+   "lines": [
+    "themes\tdark,light"
+   ],
+   "text": "themes\tdark,light\nwallpapers/example/design.py\tc3c4c04abd3f85381088992cca26412249395202ff8465d8786fe48e7e3c03b6\n",
+   "sha256": "ebe62cfc9fb649184e632d9a5ced30d581662e40ffc028ff0968f650bb35a688"
+  },
+  {
+   "name": "variant-with-data",
+   "files": {
+    "wallpapers/example/design.py": "\"\"\"Example.\"\"\"\n\nfrom walldye import ACCENT, Canvas, P, design\n\n\n@design()\ndef draw(s: Canvas) -> None:\n    s.fill(P().dots(s.data(\"points.json\"), 12), ACCENT)\n",
+    "wallpapers/example/data/points.json": "[[960, 540], [1200, 300]]\n"
+   },
+   "lines": [
+    "themes\tdark,light",
+    "variant\tlate"
+   ],
+   "text": "themes\tdark,light\nvariant\tlate\nwallpapers/example/data/points.json\tc9710844337e5ca2e8f7f66e6db9c0681eea731cce2e1565fa6360d59c5ca426\nwallpapers/example/design.py\tbdadc22afb3fe7d2c6282b100906b9f0330e324c54540d369b112c7df30321c6\n",
+   "sha256": "d4bd255470784e448b29004547757bc217f1c4fb4fb87933eab4814765361e3d"
+  }
+ ]
 }

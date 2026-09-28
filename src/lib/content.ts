@@ -10,6 +10,9 @@ import { FACET_LEGENDS, TAXONOMY_FACETS, UNLISTED, facetLabel, type Facet, type 
 export type Piece = CollectionEntry<'wallpapers'>['data'];
 export type Source = Piece['sources'][number];
 
+/** What the tools and `?v=` call the version design.py draws without a named variant. */
+export const DEFAULT_VARIANT = 'default';
+
 /** Aspect ratios the site offers (walldye.SITE_ASPECTS, same order). */
 export const SITE_ASPECTS = ['16:9', '16:10', '21:9', '32:9', '9:19.5', '10:16'] as const;
 export type Aspect = (typeof SITE_ASPECTS)[number];
@@ -183,8 +186,30 @@ export function lineCount(text: string): number {
   return text.replace(/\n$/, '').split('\n').length;
 }
 
-/** Export file name (docs/design.md, Export): `<slug>-<token>-<w>x<h>.<ext>`, or for SVG `<slug>-<token>-<aspect>[-crop].svg`. */
-export function downloadName(slug: string, token: string, format: (typeof FORMATS)[number], size: string, aspect: string, cropped: boolean): string {
-  if (format.value === 'svg') return `${slug}-${token}-${aspectLabel(aspect)}${cropped ? '-crop' : ''}.svg`;
-  return `${slug}-${token}-${size}.${format.ext}`;
+/**
+ * The versions the detail page offers, the default included, and how many of them are drafts. The
+ * loader keeps draft variants only in `astro dev`, so a production build counts published ones.
+ */
+export function versionCount(p: Piece): { versions: number; drafts: number } {
+  return { versions: Math.max(1, p.versions.length), drafts: p.versions.filter((v) => v.draft).length };
+}
+
+/** `<slug>`, or `<slug>--<variant>` for a named variant; neither contains `--`, so the name splits back. */
+export function fileStem(slug: string, variant: string): string {
+  return variant === DEFAULT_VARIANT ? slug : `${slug}--${variant}`;
+}
+
+/** Export file name (docs/design.md, Export): `<stem>-<token>-<w>x<h>.<ext>`, or for SVG `<stem>-<token>-<aspect>[-crop].svg`, the stem from fileStem. */
+export function downloadName(
+  slug: string,
+  variant: string,
+  token: string,
+  format: (typeof FORMATS)[number],
+  size: string,
+  aspect: string,
+  cropped: boolean,
+): string {
+  const stem = fileStem(slug, variant);
+  if (format.value === 'svg') return `${stem}-${token}-${aspectLabel(aspect)}${cropped ? '-crop' : ''}.svg`;
+  return `${stem}-${token}-${size}.${format.ext}`;
 }

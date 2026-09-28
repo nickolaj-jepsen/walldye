@@ -18,13 +18,6 @@ export const TOKENS = [
 export type Token = (typeof TOKENS)[number];
 export type Tokens = Record<Token, string>;
 
-/** walldye.GREYS order: black to muted. */
-export const GREYS: readonly Token[] = ['black', 'bg_deep', 'bg', 'bg_alt', 'ui', 'ui_alt', 'ui_hi', 'muted'];
-/** walldye.ACCENTS order: bg-ward to accent, the ramp most designs step through. */
-export const ACCENTS: readonly Token[] = [
-  'accent_8', 'accent_7', 'accent_6', 'accent_5', 'accent_4', 'accent_3', 'accent_2', 'accent_1', 'accent',
-];
-
 const GREY_T: readonly (readonly [Token, number])[] = [
   ['bg_alt', 0.063], ['ui', 0.126], ['ui_alt', 0.189], ['ui_hi', 0.31], ['muted', 0.563], ['fg_alt', 0.816],
 ];

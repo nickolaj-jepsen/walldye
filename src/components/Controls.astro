@@ -1,11 +1,11 @@
 ---
 /**
- * The detail page's "Colours and export" column (SPEC 6.9), rendered for fireproof at 16:9 with
- * the default size and format; the client keeps it in step with the theme and the choices made
- * (src/scripts/DOM.md).
+ * The detail page's controls column (SPEC 6.9): the versions when the piece has named variants,
+ * then colours and export, rendered for the default version, fireproof, 16:9 and the default size
+ * and format; the client keeps it in step with the theme and the choices made (src/scripts/DOM.md).
  */
 import { DEFAULT_PRESET } from './presets';
-import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, EXPORT_SIZES, FORMATS, SITE_ASPECTS, downloadName, type Piece } from '../lib/content';
+import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, EXPORT_SIZES, FORMATS, SITE_ASPECTS, downloadName, type Piece } from '../lib/content';
 
 interface Props {
   piece: Piece;
@@ -19,10 +19,20 @@ const seeds = [
 const sizes = EXPORT_SIZES['16:9'];
 const size = sizes[DEFAULT_SIZE_INDEX];
 const format = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!;
-const file = downloadName(p.slug, DEFAULT_PRESET.name, format, size, '16:9', false);
+const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, size, '16:9', false);
 ---
 
-<section class="controls" aria-label="Colours and export">
+<section class="controls" aria-label={p.versions.length ? 'Versions, colours and export' : 'Colours and export'}>
+  {
+    p.versions.length > 0 && (
+      <section aria-labelledby="versions-h">
+        <h2 id="versions-h" class="sc">Versions</h2>
+        <div class="seg versions" id="versions" role="radiogroup" aria-labelledby="versions-h">
+          {p.versions.map((v) => <label><input type="radio" name="v" value={v.name} checked={v.name === DEFAULT_VARIANT} /><span>{v.label}</span></label>)}
+        </div>
+      </section>
+    )
+  }
   <section aria-labelledby="theme-h">
     <h2 id="theme-h" class="sc">Colours</h2>
     <ul class="seedlist">
@@ -43,6 +53,11 @@ const file = downloadName(p.slug, DEFAULT_PRESET.name, format, size, '16:9', fal
 </section>
 
 <style>
+  /* One version per line, like the index's facet entries; the current one is underlined like every other current choice. */
+  .versions {
+    flex-direction: column;
+    align-items: start;
+  }
   /* A format or size the browser cannot make (the client disables it) fades to the guarded --text-dim. */
   .seg :global(input:disabled + span) {
     color: var(--text-dim);

@@ -1,12 +1,13 @@
 /**
- * The detail page: the recoloured plate, the crop window for shapes the piece has no template for,
- * the export panel, the run command, the copy button for the source, and the unadvertised `f` key
- * for fullscreen. docs/design.md, Detail, Aspect ratios and Export; src/scripts/DOM.md.
+ * The detail page: the version switcher, the recoloured plate, the crop window for shapes the piece
+ * has no template for, the export panel, the run command, the copy button for the source, and the
+ * unadvertised `f` key for fullscreen. docs/design.md, Detail, Aspect ratios and Export;
+ * src/scripts/DOM.md.
  *
- * The page's own query string holds `shape` (e.g. `16x10`, left out for 16:9) and `crop` (the crop
- * position, 0..1).
+ * The page's own query string holds `v` (the version, left out for the default), `shape` (e.g.
+ * `16x10`, left out for 16:9) and `crop` (the crop position, 0..1).
  */
-import { aspectLabel, DEFAULT_SIZE_INDEX, downloadName, EXPORT_SIZES, FORMATS, SITE_ASPECTS, type Aspect } from '../lib/content';
+import { aspectLabel, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, downloadName, EXPORT_SIZES, FORMATS, SITE_ASPECTS, type Aspect } from '../lib/content';
 import { appliedSeeds } from '../lib/recolour';
 import { regimeOf, tokenOf, type Seeds } from '../lib/theme';
 import { copyText, flash } from './clipboard';
@@ -44,6 +45,9 @@ const downloadKey = downloadBtn?.querySelector<HTMLElement>('.k') ?? null;
 const fileName = document.getElementById('download-name');
 const exportError = document.getElementById('export-error');
 const runRender = document.getElementById('run-render');
+const versionsEl = document.getElementById('versions');
+const versionRadios = [...(versionsEl?.querySelectorAll<HTMLInputElement>('input[name=v]') ?? [])];
+const desc = document.getElementById('desc');
 
 const slug = plate?.dataset.plate ?? '';
 const params = new URLSearchParams(location.search);
@@ -61,17 +65,39 @@ function screenPx(): [number, number] {
 }
 const screenAspect = nearestAspect(...screenPx());
 
-const slotsUrl = plate?.dataset.slots ?? '';
+/** A version's plate data from the plate's `data-variants`. */
+interface VersionData {
+  templates: Record<string, string>;
+  slots: string;
+  alt: string;
+}
+
+/** The plate's versions by name, the default included; {} for a piece without named variants. */
+const versions: Record<string, VersionData> = (() => {
+  try {
+    return JSON.parse(plate?.dataset.variants ?? '{}') as Record<string, VersionData>;
+  } catch {
+    return {};
+  }
+})();
+
+let slotsUrl = plate?.dataset.slots ?? '';
 let focus: [number, number] = [0.5, 0.5];
 let cells: number[] = [];
 
 // ---- state ----
 
+let variant = DEFAULT_VARIANT;
 let aspect: Aspect = '16:9';
 /** Crop position along the moving axis; NaN until known (the focus arrives with slots.json). */
 let t = NaN;
+/** Whether the visitor placed the crop (range, drag or `?crop=`); otherwise it follows the version's focus. */
+let cropPlaced = false;
 let size = '';
-let slotsLoaded = false;
+/** The slots.json whose focus and cells are in use. */
+let loadedSlots = '';
+/** Whether the address has been written since the page loaded; it then follows every change. */
+let urlWritten = false;
 
 function shape(): ExportShape {
   return { aspect, native: nativeOf(aspect), t: Number.isFinite(t) ? t : 0.5 };
@@ -158,8 +184,8 @@ function renderNames(): void {
   const s = shape();
   const f = format();
   const [w, h] = sizePx();
-  if (fileName) fileName.textContent = downloadName(slug, token, f, `${w}x${h}`, aspect, !s.native);
-  if (runRender) runRender.textContent = renderCommand(slug, token, s);
+  if (fileName) fileName.textContent = downloadName(slug, variant, token, f, `${w}x${h}`, aspect, !s.native);
+  if (runRender) runRender.textContent = renderCommand(slug, variant, token, s);
   if (cellNote) {
     const widths = f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(s, w, h));
     cellNote.hidden = !widths;
@@ -185,7 +211,7 @@ function renderPlate(): void {
   if (!plate) return;
   const a = sourceAspect();
   const seeds = currentSeeds();
-  const key = `${a} ${tokenOf(seeds)}`;
+  const key = `${variant} ${a} ${tokenOf(seeds)}`;
   if (key === shownKey) return;
   shownKey = key;
   clearTimeout(plateRetry);
@@ -203,9 +229,10 @@ function renderPlate(): void {
 }
 
 function syncUrl(): void {
+  urlWritten = true;
   const url = new URL(location.href);
-  url.searchParams.delete('shape');
-  url.searchParams.delete('crop');
+  for (const key of ['v', 'shape', 'crop']) url.searchParams.delete(key);
+  if (variant !== DEFAULT_VARIANT) url.searchParams.set('v', variant);
   if (aspect !== '16:9') url.searchParams.set('shape', aspectLabel(aspect));
   if (!nativeOf(aspect) && Number.isFinite(t)) url.searchParams.set('crop', num(t, 3));
   if (url.href !== location.href) history.replaceState(history.state, '', url.href);
@@ -215,22 +242,48 @@ function syncUrl(): void {
 function setAspect(next: Aspect, keepSize: string): void {
   const sameAxis = !nativeOf(aspect) && !nativeOf(next) && cropAxis(aspect) === cropAxis(next);
   aspect = next;
-  if (!nativeOf(next) && !sameAxis) t = slotsLoaded ? focusPosition(next, focus) : NaN;
+  if (!nativeOf(next) && !sameAxis) {
+    t = loadedSlots ? focusPosition(next, focus) : NaN;
+    cropPlaced = false;
+  }
   renderSizes(keepSize);
   renderShape();
   renderPlate();
 }
 
+/**
+ * Makes `name` (a key of `versions`) the version on show: the plate's templates, slots and alt text,
+ * the description and the radio. The caller renders; the focus and cells follow once its slots.json loads.
+ */
+function useVariant(name: string): void {
+  const v = versions[name];
+  if (!plate || !v) return;
+  variant = name;
+  plate.dataset.templates = JSON.stringify(v.templates);
+  plate.dataset.slots = v.slots;
+  plate.dataset.alt = v.alt;
+  for (const img of plate.querySelectorAll<HTMLImageElement>(':scope > img')) img.alt = v.alt;
+  if (desc) desc.textContent = v.alt;
+  for (const r of versionRadios) r.checked = r.value === name;
+  slotsUrl = v.slots;
+}
+
 // ---- initial state ----
 
 {
+  // An unknown version, or a draft one outside `astro dev`, is not in `versions`: the default stays.
+  const v = params.get('v');
+  if (v && Object.hasOwn(versions, v)) useVariant(v);
   const wanted = params.get('shape')?.replace('x', ':') ?? null;
   // Only a plain decimal: Number() alone would take "0x1" and "", parseFloat "0.9junk".
   const rawCrop = params.get('crop') ?? '';
   const crop = /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(rawCrop) ? Number(rawCrop) : NaN;
   if (isAspect(wanted)) aspect = wanted;
   else if (phone && withinLimits(...screenPx())) aspect = screenAspect;
-  if (Number.isFinite(crop) && crop >= 0 && crop <= 1) t = crop;
+  if (Number.isFinite(crop) && crop >= 0 && crop <= 1) {
+    t = crop;
+    cropPlaced = true;
+  }
   const phoneScreen = phone && aspect === screenAspect;
   renderSizes(phoneScreen ? 'screen' : '');
   renderShape();
@@ -239,21 +292,26 @@ function setAspect(next: Aspect, keepSize: string): void {
 
 let slotsFailures = 0;
 let slotsRetry = 0;
-/** Reads the crop focus and cell sizes from slots.json, retrying a failed fetch. */
+/**
+ * Reads the crop focus and cell sizes from the version's slots.json, retrying a failed fetch. A crop
+ * the visitor has not placed moves to the focus.
+ */
 function loadSlots(): void {
-  if (!slotsUrl || slotsLoaded) return;
+  const url = slotsUrl;
+  if (!url || loadedSlots === url) return;
   clearTimeout(slotsRetry);
-  getSlots(slotsUrl).then(
+  getSlots(url).then(
     (slots) => {
-      if (slotsLoaded) return;
-      slotsLoaded = true;
-      focus = Array.isArray(slots.focus) ? [Number(slots.focus[0]), Number(slots.focus[1])] : focus;
+      if (url !== slotsUrl || loadedSlots === url) return;
+      loadedSlots = url;
+      focus = Array.isArray(slots.focus) ? [Number(slots.focus[0]), Number(slots.focus[1])] : [0.5, 0.5];
       cells = Array.isArray(slots.cells) ? slots.cells.map(Number).filter((c) => c > 0) : [];
-      if (!Number.isFinite(t) && !nativeOf(aspect)) t = focusPosition(aspect, focus);
+      if (!nativeOf(aspect) && !cropPlaced) t = focusPosition(aspect, focus);
       renderShape();
+      if (urlWritten) syncUrl();
     },
     () => {
-      if (slotsFailures < RETRY_MS.length) slotsRetry = window.setTimeout(loadSlots, RETRY_MS[slotsFailures++]);
+      if (url === slotsUrl && slotsFailures < RETRY_MS.length) slotsRetry = window.setTimeout(loadSlots, RETRY_MS[slotsFailures++]);
     },
   );
 }
@@ -273,6 +331,17 @@ onThemeChange((seeds) => {
 });
 
 // ---- panel events ----
+
+versionsEl?.addEventListener('change', (e) => {
+  const input = e.target as HTMLInputElement;
+  if (input.name !== 'v' || !Object.hasOwn(versions, input.value)) return;
+  useVariant(input.value);
+  slotsFailures = 0;
+  renderNames();
+  renderPlate();
+  loadSlots();
+  syncUrl();
+});
 
 panel?.addEventListener('change', (e) => {
   const input = e.target as HTMLInputElement;
@@ -294,6 +363,7 @@ panel?.addEventListener('change', (e) => {
 
 range?.addEventListener('input', () => {
   t = Number(range.value);
+  cropPlaced = true;
   placeCrop();
   renderNames();
   syncUrl();
@@ -336,6 +406,9 @@ const piece = {
   })(),
 };
 
+/** "walldye.com/<slug>", with `?v=<variant>` for a named variant. */
+const address = () => (variant === DEFAULT_VARIANT ? piece.address : `${piece.address}?v=${variant}`);
+
 let busy = false;
 
 async function runExport(): Promise<void> {
@@ -354,10 +427,10 @@ async function runExport(): Promise<void> {
     const exportSeeds = appliedSeeds(seeds, r.swap);
     const token = tokenOf(exportSeeds);
     const [w, h] = sizePx();
-    const name = downloadName(slug, token, f, `${w}x${h}`, aspect, !s.native);
+    const name = downloadName(slug, variant, token, f, `${w}x${h}`, aspect, !s.native);
     if (f.value === 'svg') {
-      const desc = [piece.address, piece.licence, `theme ${token}`].filter(Boolean).join(' · ');
-      save(new Blob([svgExport(svg, s, piece.title, desc)], { type: 'image/svg+xml' }), name);
+      const about = [address(), piece.licence, `theme ${token}`].filter(Boolean).join(' · ');
+      save(new Blob([svgExport(svg, s, piece.title, about)], { type: 'image/svg+xml' }), name);
     } else {
       const raster = rasterSvg(svg, s, w, h);
       save(await rasteriseSvg(raster.svg, exportSeeds.bg, f.value as RasterFormat), name);

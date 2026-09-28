@@ -413,7 +413,7 @@ abbr {
 
 .label-s { margin-top: calc(2 * var(--u)); font-size: var(--fs-2); line-height: calc(3 * var(--u)); }
 .label-s .t { display: block; font-size: var(--fs-ui); font-weight: calc(var(--wt) + 100); color: var(--text); }
-.label-s .x, .label-s .a { display: block; color: var(--text-2); }
+.label-s .v, .label-s .x, .label-s .a { display: block; color: var(--text-2); }
 .grid a:hover .t, .grid a:focus-visible .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 .grid a:focus-visible { outline: none; }
 .grid a:focus-visible .plate::after { box-shadow: inset 0 0 0 2px var(--focus); }

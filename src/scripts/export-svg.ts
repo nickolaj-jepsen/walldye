@@ -2,7 +2,7 @@
  * Pure geometry and SVG rewriting for the detail page's crop window and export (docs/design.md,
  * Aspect ratios and Export). Boxes are in template canvas units; a crop is always of the 16:9 canvas.
  */
-import { aspectLabel, CANVAS, SITE_ASPECTS, type Aspect } from '../lib/content';
+import { aspectLabel, CANVAS, DEFAULT_VARIANT, fileStem, SITE_ASPECTS, type Aspect } from '../lib/content';
 
 export interface Box {
   x: number;
@@ -177,17 +177,19 @@ export function rasterSvg(svg: string, shape: ExportShape, width: number, height
 }
 
 /**
- * The `uv run walldye render` command for this shape and crop (docs/design.md, Detail). It draws the
- * same picture as the SVG download; the file differs in the crop's rounding (3 decimals here, 4 in the
- * download) and has no `<title>`/`<desc>`.
+ * The `uv run walldye render` command for this version, shape and crop (docs/design.md, Detail);
+ * `--variant` only for a named variant. It draws the same picture as the SVG download; the file
+ * differs in the crop's rounding (3 decimals here, 4 in the download) and has no `<title>`/`<desc>`.
  */
-export function renderCommand(slug: string, token: string, shape: ExportShape): string {
-  const parts = ['uv run walldye render', slug, '--theme', token];
+export function renderCommand(slug: string, variant: string, token: string, shape: ExportShape): string {
+  const parts = ['uv run walldye render', slug];
+  if (variant !== DEFAULT_VARIANT) parts.push('--variant', variant);
+  parts.push('--theme', token);
   if (shape.native && shape.aspect !== '16:9') parts.push('--aspect', shape.aspect);
   if (!shape.native) {
     const b = cropBox(shape.aspect, shape.t);
     parts.push('--crop', [b.x, b.y, b.w, b.h].map((v) => num(v, 3)).join(','));
   }
-  parts.push('-o', `${slug}-${token}-${aspectLabel(shape.aspect)}${shape.native ? '' : '-crop'}.svg`);
+  parts.push('-o', `${fileStem(slug, variant)}-${token}-${aspectLabel(shape.aspect)}${shape.native ? '' : '-crop'}.svg`);
   return parts.join(' ');
 }

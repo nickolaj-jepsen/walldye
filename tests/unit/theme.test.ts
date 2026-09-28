@@ -2,13 +2,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  ACCENTS,
   contrast,
   cssVars,
   deriveTheme,
   DIM,
   FIREPROOF,
-  GREYS,
   GUARDED,
   guard,
   isLight,
@@ -21,6 +19,7 @@ import {
   roundHalfEven,
   themeTokens,
   tokenOf,
+  TOKENS,
   type Seeds,
 } from '../../src/lib/theme';
 
@@ -157,18 +156,11 @@ function resolveVars(props: Record<string, string>): Record<string, string> {
 }
 
 describe('token order', () => {
-  // walldye/__init__.py builds GREYS from a literal tuple and ACCENTS as accent_8..accent_1 then accent.
-  const py = readFileSync(`${ROOT}walldye/__init__.py`, 'utf8');
-
-  it('GREYS follows walldye.GREYS', () => {
-    const tuple = /GREYS = \[\s*THEME\[k\] for k in \(([^)]*)\)\s*\]/.exec(py);
+  it('TOKENS follows walldye._theme.TOKENS', () => {
+    const py = readFileSync(`${ROOT}walldye/_theme.py`, 'utf8');
+    const tuple = /^TOKENS = \(([^)]*)\)/m.exec(py);
     expect(tuple).not.toBeNull();
-    expect([...tuple![1].matchAll(/"(\w+)"/g)].map((m) => m[1])).toEqual(GREYS);
-  });
-
-  it('ACCENTS follows walldye.ACCENTS', () => {
-    expect(py).toContain('ACCENTS = [THEME[f"accent_{i}"] for i in range(8, 0, -1)] + [THEME["accent"]]');
-    expect(ACCENTS).toEqual([...Array.from({ length: 8 }, (_, i) => `accent_${8 - i}`), 'accent']);
+    expect([...tuple![1].matchAll(/"(\w+)"/g)].map((m) => m[1])).toEqual([...TOKENS]);
   });
 });
 

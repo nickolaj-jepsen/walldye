@@ -12,6 +12,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { DEFAULT_VARIANT } from './content';
 
 export const RENDER_DEPS = ['numpy', 'scipy', 'shapely', 'scikit-image'] as const;
 export const DEFAULT_THEMES = ['dark', 'light'];
@@ -101,16 +102,38 @@ export function themes(meta: Record<string, unknown>): string[] {
   return list;
 }
 
-/** Hash lines of a piece: design.py (or source.svg and palette.yaml) plus `themes\t<sorted, comma-joined>`. */
+/** Names of the regular files directly inside wallpapers/<slug>/data/, in code point order; [] without one. */
+export function dataFiles(root: string, slug: string): string[] {
+  const dir = join(pieceDir(root, slug), 'data');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isFile())
+    .map((d) => d.name)
+    .sort(compareCodePoints);
+}
+
+/**
+ * Hash lines of a piece: design.py (or source.svg and palette.yaml), every file in data/, and
+ * `themes\t<sorted, comma-joined>`.
+ */
 export function designLines(root: string, slug: string): string[] {
   const names = isLegacy(root, slug) ? ['source.svg', 'palette.yaml'] : ['design.py'];
   const sorted = [...themes(loadMeta(root, slug))].sort(compareCodePoints);
-  return [...names.map((n) => fileLine(root, `wallpapers/${slug}/${n}`)), `themes\t${sorted.join(',')}`];
+  return [
+    ...names.map((n) => fileLine(root, `wallpapers/${slug}/${n}`)),
+    ...dataFiles(root, slug).map((n) => fileLine(root, `wallpapers/${slug}/data/${n}`)),
+    `themes\t${sorted.join(',')}`,
+  ];
 }
 
-/** slots.json `design_sha` of a piece as it is now. */
-export function designSha(root: string, slug: string): string {
-  return digest(designLines(root, slug));
+/** A version's hash lines: the piece's `lines`, plus `variant\t<name>` for a named variant. */
+export function variantLines(lines: readonly string[], variant: string): string[] {
+  return variant === DEFAULT_VARIANT ? [...lines] : [...lines, `variant\t${variant}`];
+}
+
+/** slots.json `design_sha` of a piece's `variant` as it is now. */
+export function designSha(root: string, slug: string, variant = DEFAULT_VARIANT): string {
+  return digest(variantLines(designLines(root, slug), variant));
 }
 
 function gitFiles(root: string, ...flags: string[]): string[] {

@@ -10,7 +10,7 @@ Each page loads its module with a processed `<script>`; Astro bundles and dedupl
 |---|---|---|
 | `src/scripts/site.ts` | `src/layouts/Base.astro`, after `<Picker />` | Theme button, shared-theme line, picker, "Copy link", the detail colour list |
 | `src/scripts/index.ts` | `src/pages/index.astro` | Filters, results line, lazily recoloured plates |
-| `src/scripts/detail.ts` | `src/pages/[slug].astro` | Plate, crop window, export panel, run command, the `f` key, "Copy" |
+| `src/scripts/detail.ts` | `src/pages/[slug].astro` | Versions, plate, crop window, export panel, run command, the `f` key, "Copy" |
 
 They share `current-theme.ts` (the applied seeds), `plates.ts` (fetch limit, template cache, recolour and image swap), `filter.ts` and `export-svg.ts` (pure, unit-tested), `export.ts` with the module worker `export-worker.ts` and `raster.ts` (resvg-wasm, PNG), and `clipboard.ts`.
 
@@ -78,14 +78,15 @@ The query string uses the form's own GET serialisation: `q=<text>`, `sort=title`
 | `data-facets` | space-separated `facet:value` pairs, the computed `other:*` included (`facetPairs()`) |
 | `data-search` | normalised title, description and source authors and titles (`searchText()`) |
 
-Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-describedby=a-<slug>` when there is an attribution. Add `x-<slug>` to it only while the dark-only note is visible. The href never changes. Then come `figure`, the `.plate` (see Plate box below), and `figcaption` holding `h2#t-<slug>`, `span.x#x-<slug>[data-dark-note][hidden]` (dark-only pieces only) and `span.a#a-<slug>`.
+Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-describedby` listing `v-<slug>` when the piece has published versions and `a-<slug>` when there is an attribution. Add `x-<slug>` to it only while the dark-only note is visible. The href never changes. Then come `figure`, the `.plate` of the default version (see Plate box below), and `figcaption` holding `h2#t-<slug>`, `span.v#v-<slug>` ("N versions", only when the piece has published named variants; N counts the default; under `astro dev` draft versions count too and the text ends in " (N draft)"), `span.x#x-<slug>[data-dark-note][hidden]` (dark-only pieces only) and `span.a#a-<slug>`.
 
 ## Plate box (index and detail, `src/components/PlateBox.astro`)
 
 ```html
 <div class="plate" data-plate="dither-moon"
      data-templates='{"16:9/dark":"/t/9c3c8499b388.svg","16:9/light":"/t/e26df4754421.svg"}'
-     data-slots="/t/a1422a6b6f79.slots.json" data-alt="…description…" [data-dark-only]>
+     data-slots="/t/a1422a6b6f79.slots.json" data-alt="…description…"
+     [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…"},"late":{…}}'] [data-dark-only]>
   <noscript><img src="/t/9c3c8499b388.svg" alt="…" width="1920" height="1080" …></noscript>
   <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div> -->
 </div>
@@ -97,13 +98,14 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
   - Under the exact fireproof seeds, use the template URL itself as `img.src`, untouched.
 - `data-slots` is the piece's `build/slots.json`, byte for byte: `focus` `[x, y]`, `cells`, and per key `{file, sha256, n, coefs, occ}`. It is fetched once per piece. If `n` does not match, show the untouched template.
 - `data-alt` is the description. Put it in the `alt` of the `<img>` you insert.
+- `data-variants` (detail spread only, and only for a piece with versions) maps each version's name, `default` first, to its `templates`, `slots` and `alt`, shaped like the three attributes above. The server renders the default into those attributes; switching versions copies another entry into them, so everything reading the plate follows. Every version has the same keys in `templates`.
 - Insert `<img alt width height decoding="async" data-aspect>` as a child of `.plate`, before any `.crop`; the `<noscript>` may stay. `width` and `height` are the template canvas and `data-aspect` its aspect: the detail plate shows the chosen shape's own template when the piece has one, centred in the 16:9 box, and the page's CSS frames it (`.plate::before`) from `data-aspect`. A new image fades in over the old one, which is then removed. Until the plate holds an `<img>`, `PlateBox.astro` gives it the same rounded-up 16:9 height the image will take, so inserting the image moves nothing.
 - When the template or slots.json fails to load, an empty plate gets the untouched template (`showTemplate()`), which keeps the alt text even if it fails too, and the recolour is retried after `RETRY_MS` and on the `online` event.
 - `/t/*` is served `immutable`.
 
 ## Detail (`src/pages/[slug].astro`)
 
-The detail page keeps its own state in the query string: `shape=<w>x<h>` (the aspect label, left out for 16:9) and `crop=<0..1>` (only for a cropped shape). Both are written with `history.replaceState` when the visitor changes them, never for the phone default.
+The detail page keeps its own state in the query string: `v=<variant>` (the version, left out for the default), `shape=<w>x<h>` (the aspect label, left out for 16:9) and `crop=<0..1>` (only for a cropped shape). They are written with `history.replaceState` when the visitor changes them, never for the phone default. A `v` that names no version on the page (unknown, or a draft outside `astro dev`) shows the default.
 
 ### Spread and label
 
@@ -112,13 +114,15 @@ The detail page keeps its own state in the query string: `shape=<w>x<h>` (the as
 | `.spread .plate` | Plate box with every aspect | |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it while a cropped shape is selected. Set `data-axis`, and position it in % of the plate (SPEC 6.6). |
 | `#dark-note` | `p.attr[data-dark-note][hidden]` | Dark-only pieces only. Show it under light seeds. |
+| `#desc` | `p.desc` | The default version's description. Set it to the shown version's (`data-variants[name].alt`). |
 
 There are no neighbour links and no arrow-key shortcuts (docs/design.md, Detail); the label ends with the facts list. `f` toggles fullscreen on the plate.
 
-### Colours and export (`src/components/Controls.astro`)
+### Versions, colours and export (`src/components/Controls.astro`)
 
 | Hook | Element | Notes |
 |---|---|---|
+| `#versions` | `div.seg.versions[role=radiogroup]`, in the first section, headed "Versions" | Only for a piece with versions. One `label > input[type=radio][name=v][value=<name>] + span` per version, the default (checked) first, then meta.yaml order. Choosing one swaps the plate data from `data-variants`, sets `#desc` and the image alt, reloads the focus and cells from that version's slots.json (moving a crop the visitor has not placed), renames the download and the run command, and writes `v`. Theme, shape and a placed crop are kept. |
 | `.seedlist [data-seed=bg\|fg\|accent]` | `span.mono` | Set the text to the uppercase `#RRGGBB` seed. |
 | `button[popovertarget=picker]` | "Change" | Native. |
 | `[data-action=copy-link]` | "Copy link" | As in the picker, plus `crop` when it is set. |
@@ -133,7 +137,7 @@ There are no neighbour links and no arrow-key shortcuts (docs/design.md, Detail)
 | `#cell-note` | `span.hint.lnum[hidden]` | For pieces with grid cells (`cells` in slots.json), raster formats only: shown when cells land on uneven pixel widths at the chosen size. |
 | `#download` | `button.download` | Runs the export. Its `.k` reads "Preparing…" and it carries `aria-busy` while an export runs. |
 | `#export-error` | `span.msg.err` in a polite live row | Says the file could not be made when an export fails. |
-| `#download-name` | `span.mono` | The file name, from `downloadName()` in `src/lib/content.ts`. |
+| `#download-name` | `span.mono` | The file name, from `downloadName()` in `src/lib/content.ts`: `<slug>[--<variant>]-…`. The SVG download's `<desc>` names `walldye.com/<slug>[?v=<variant>]`. |
 
 ### Source code (`src/components/SourceCode.astro`)
 
@@ -141,10 +145,10 @@ There are no neighbour links and no arrow-key shortcuts (docs/design.md, Detail)
 |---|---|---|
 | `[data-action=copy-source]` | "Copy" | Copy `#raw-source`. |
 | `#raw-source` | `template` | The design.py text. |
-| `#run-render[data-slug]` | `span` holding the whole `uv run walldye render …` command | Set its text to `uv run walldye render <slug> --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>-<token>-<aspect>.svg`, using the preset name when the seeds match a preset, and the swapped token for a dark-only piece under light seeds. |
+| `#run-render[data-slug]` | `span` holding the whole `uv run walldye render …` command | Set its text to `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg` (`renderCommand()`), using the preset name when the seeds match a preset, and the swapped token for a dark-only piece under light seeds. |
 
 Script-less pieces have `p.lost` in place of the listing and run command, and none of these hooks.
 
 ## Shared helpers
 
-`src/lib/content.ts` has no Node or Astro runtime imports, so client code can import from it: `SITE_ASPECTS`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `aspectLabel`, `normaliseSearch`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset). `src/lib/labels.ts` has the facet labels.
+`src/lib/content.ts` has no Node or Astro runtime imports, so client code can import from it: `SITE_ASPECTS`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `normaliseSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset). `src/lib/labels.ts` has the facet labels.

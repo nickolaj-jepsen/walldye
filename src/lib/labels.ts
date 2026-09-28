@@ -72,11 +72,8 @@ export function facetLabel(facet: Facet, value: string): string | undefined {
   return FACET_LABELS[facet][value];
 }
 
-/**
- * Where takedown requests for fan works go, shown in the fan-work line. Unset until the owner
- * chooses it (docs/design.md, Owner actions); a published fan-work piece fails the build meanwhile.
- */
-export const TAKEDOWN_CONTACT: string | undefined = undefined;
+/** Where takedown requests for fan works go, shown in the fan-work line (docs/design.md, Metadata). */
+export const TAKEDOWN_CONTACT = 'takedown@walldye.com';
 
 /**
  * The plain-words line under the credit for licences other than the default (CC0-1.0, which

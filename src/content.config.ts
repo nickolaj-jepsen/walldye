@@ -1,24 +1,21 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { defineCollection } from 'astro:content';
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
 import YAML from 'yaml';
-import { SITE_ASPECTS } from './lib/content';
-import { DEFAULT_LICENSE, FAN_WORK, isDraft, licenseOf } from './lib/meta';
-import {
-  FACET_LABELS,
-  LICENCE_LINES,
-  TAKEDOWN_CONTACT,
-  TAXONOMY_FACETS,
-  UNLISTED,
-  type TaxonomyFacet,
-} from './lib/labels';
+import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
+import { DEFAULT_LICENSE, FAN_WORK, isDraft, licenseOf, namedVariants, variantsMeta } from './lib/meta';
+import { FACET_LABELS, LICENCE_LINES, TAXONOMY_FACETS, UNLISTED, type TaxonomyFacet } from './lib/labels';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
 const ROOT = resolve('.');
-const WALLPAPERS = join(ROOT, 'wallpapers');
+// The e2e tests point WALLDYE_WALLPAPERS at a generated catalogue with named variants.
+const WALLPAPERS = resolve(process.env.WALLDYE_WALLPAPERS || join(ROOT, 'wallpapers'));
+
+/** `path` relative to the project root, with forward slashes; the endpoints read files by it. */
+const rootPath = (path: string) => relative(ROOT, path).split(sep).join('/');
 
 /** Slugs that would shadow a site route or file (walldye/tools/lint.py reserved()). */
 const RESERVED = new Set(['about', 'index', 't', 'og', 'fonts', '404', 'robots', 'favicon']);
@@ -65,13 +62,38 @@ const source = z
   .refine((s) => s.title || s.author, { message: 'a source needs a title or an author' });
 
 const template = z.object({
-  /** File name inside build/. */
+  /** File name inside its build directory. */
   file: z.string(),
-  /** Repo-relative path of the file. */
+  /** Path of the file from the project root. */
   path: z.string(),
   /** Served copy: /t/<sha256[:12]>.svg. */
   url: z.string(),
 });
+
+/** What the loader reads from one build directory: build/ for the default, build/<variant>/ for a named variant. */
+const build = {
+  /** Templates by slots.json key, `<aspect>/<regime>`. */
+  templates: z.record(z.string(), template),
+  /** Served copy of the slots.json: /t/<sha256[:12]>.slots.json. */
+  slotsUrl: z.string(),
+  /** Path of the slots.json from the project root. */
+  slotsPath: z.string(),
+  /** Ink-weighted centroid of the 16:9 template, each 0..1. */
+  focus: z.tuple([z.number(), z.number()]),
+};
+
+/** One version of a piece: the default or a named variant, with its meta.yaml copy and its build. */
+const version = z
+  .object({
+    /** `default` or the variant name. */
+    name: z.string(),
+    label: z.string(),
+    /** The variant's own description, else the piece's. */
+    description: z.string(),
+    draft: z.boolean(),
+    ...build,
+  })
+  .strict();
 
 /**
  * One wallpaper: meta.yaml (docs/design.md, Metadata) validated against taxonomy.yaml, the
@@ -97,6 +119,7 @@ const wallpaper = z
     franchise: z.object({ title: z.string().min(1), owner: z.string().min(1) }).strict().optional(),
     draft: z.boolean().default(false),
     proposed_facets: z.record(z.string(), z.array(z.string())).default({}),
+    variants: variantsMeta.optional(),
 
     // Attached by the loader, not read from meta.yaml.
     slug: z.string(),
@@ -108,12 +131,13 @@ const wallpaper = z
     script: z.string().nullable(),
     /** Aspects the piece composes natively, in SITE_ASPECTS order; the rest are crops of 16:9. */
     aspects: z.array(z.string()).min(1),
-    /** Templates by slots.json key, `<aspect>/<regime>`. */
-    templates: z.record(z.string(), template),
-    /** Served copy of build/slots.json: /t/<sha256[:12]>.slots.json. */
-    slotsUrl: z.string(),
-    /** Ink-weighted centroid of the 16:9 template, each 0..1. */
-    focus: z.tuple([z.number(), z.number()]),
+    /** The default version's build, which the index, the social card and nixos show. */
+    ...build,
+    /**
+     * The versions a visitor can switch between, the default first and then the named variants in
+     * meta.yaml order, draft ones only in `astro dev`; [] when no named variant is shown.
+     */
+    versions: z.array(version),
   })
   .strict()
   .superRefine((m, ctx) => {
@@ -126,7 +150,6 @@ const wallpaper = z
     if (m.licence && !existsSync(join(ROOT, 'LICENSES', `${m.licence}.txt`))) issue(`license ${m.licence} has no LICENSES/${m.licence}.txt`, ['license']);
     if (m.license === FAN_WORK) {
       if (!m.franchise) issue(`license ${FAN_WORK} needs franchise: {title, owner}`, ['franchise']);
-      if (!TAKEDOWN_CONTACT) issue('fan-work pieces need TAKEDOWN_CONTACT in src/lib/labels.ts', ['license']);
     } else if (m.licence && m.licence !== DEFAULT_LICENSE && !LICENCE_LINES[m.licence]) {
       issue(`license ${m.licence} needs a plain-words line in LICENCE_LINES (src/lib/labels.ts)`, ['license']);
     }
@@ -143,51 +166,86 @@ type SlotsEntry = { file: string; sha256: string; n: number };
 
 const sha256 = (data: Buffer | string) => createHash('sha256').update(data).digest('hex');
 
-/** The attached fields for one folder, read from build/ and design.py; throws naming the file when build/ is stale. */
-function attach(slug: string, meta: Record<string, unknown>) {
-  const dir = join(WALLPAPERS, slug);
-  const rel = (...parts: string[]) => ['wallpapers', slug, ...parts].join('/');
-  const slotsPath = join(dir, 'build', 'slots.json');
-  if (!existsSync(slotsPath)) throw new Error(`${rel('build', 'slots.json')} is missing: run walldye build ${slug}`);
+/** The templates, slots.json and focus of one build directory; throws naming the file when it is stale. */
+function readBuild(slug: string, dir: string) {
+  const run = `run walldye build ${slug}`;
+  const slotsPath = join(dir, 'slots.json');
+  if (!existsSync(slotsPath)) throw new Error(`${rootPath(slotsPath)} is missing: ${run}`);
   const slotsBytes = readFileSync(slotsPath);
   const slots = JSON.parse(slotsBytes.toString('utf8')) as Record<string, unknown>;
-
   const templates: Record<string, z.infer<typeof template>> = {};
-  const aspects: string[] = [];
   for (const aspect of SITE_ASPECTS) {
     for (const regime of ['dark', 'light'] as const) {
       const key = `${aspect}/${regime}`;
       const entry = slots[key] as SlotsEntry | undefined;
       if (!entry) continue;
-      const file = join(dir, 'build', entry.file);
-      if (!existsSync(file)) throw new Error(`${rel('build', entry.file)} is missing: run walldye build ${slug}`);
+      const file = join(dir, entry.file);
+      if (!existsSync(file)) throw new Error(`${rootPath(file)} is missing: ${run}`);
       const hash = sha256(readFileSync(file));
-      if (hash !== entry.sha256) throw new Error(`${rel('build', entry.file)} differs from slots.json: run walldye build ${slug}`);
-      templates[key] = { file: entry.file, path: rel('build', entry.file), url: `/t/${hash.slice(0, 12)}.svg` };
-      if (regime === 'dark') aspects.push(aspect);
+      if (hash !== entry.sha256) throw new Error(`${rootPath(file)} differs from slots.json: ${run}`);
+      templates[key] = { file: entry.file, path: rootPath(file), url: `/t/${hash.slice(0, 12)}.svg` };
     }
   }
-  if (!templates['16:9/dark']) throw new Error(`${rel('build', 'slots.json')} has no 16:9/dark template: run walldye build ${slug}`);
+  if (!templates['16:9/dark']) throw new Error(`${rootPath(slotsPath)} has no 16:9/dark template: ${run}`);
+  return {
+    templates,
+    slotsUrl: `/t/${sha256(slotsBytes).slice(0, 12)}.slots.json`,
+    slotsPath: rootPath(slotsPath),
+    focus: (Array.isArray(slots.focus) ? slots.focus : [0.5, 0.5]) as [number, number],
+  };
+}
+
+/**
+ * The attached fields for one folder, read from build/, each shown variant's build/<variant>/ and
+ * design.py. Draft variants are read only in `dev`, where one that is not built yet is skipped with
+ * a warning; anything else stale throws naming the file.
+ */
+function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn: (message: string) => void) {
+  const dir = join(WALLPAPERS, slug);
+  const main = readBuild(slug, join(dir, 'build'));
+  const aspects = SITE_ASPECTS.filter((a) => main.templates[`${a}/dark`]);
   const light = Array.isArray(meta.themes) ? meta.themes.includes('light') : true;
-  for (const aspect of aspects) {
-    if (light !== Boolean(templates[`${aspect}/light`])) {
-      throw new Error(`${rel('build', 'slots.json')} does not match themes in meta.yaml: run walldye build ${slug}`);
+  if (aspects.some((a) => light !== Boolean(main.templates[`${a}/light`]))) {
+    throw new Error(`${main.slotsPath} does not match themes in meta.yaml: run walldye build ${slug}`);
+  }
+
+  const description = typeof meta.description === 'string' ? meta.description.trim() : '';
+  const versions: z.infer<typeof version>[] = [];
+  // A malformed variants: is the schema's to report; the versions would only repeat it.
+  if (variantsMeta.safeParse(meta.variants).success) {
+    const keys = Object.keys(main.templates).sort().join(', ');
+    for (const v of namedVariants(meta)) {
+      if (v.draft && !dev) continue;
+      let named;
+      try {
+        named = readBuild(slug, join(dir, 'build', v.name));
+        const got = Object.keys(named.templates).sort().join(', ');
+        if (got !== keys) throw new Error(`${named.slotsPath} has templates for ${got}, not ${keys} like build/slots.json: run walldye build ${slug}`);
+      } catch (e) {
+        if (!v.draft) throw e;
+        warn(`skipping draft variant ${slug} ${v.name}: ${(e as Error).message}`);
+        continue;
+      }
+      const own = typeof v.description === 'string' ? v.description.trim() : '';
+      versions.push({ name: v.name, label: String(v.label).trim(), description: own || description, draft: v.draft, ...named });
+    }
+    if (versions.length) {
+      const { label } = (meta.variants as Record<string, { label: string }>)[DEFAULT_VARIANT];
+      versions.unshift({ name: DEFAULT_VARIANT, label: label.trim(), description, draft: false, ...main });
     }
   }
 
   const scriptPath = join(dir, 'design.py');
   const hasScript = existsSync(scriptPath);
   const licence = licenseOf(meta);
-  const focus = Array.isArray(slots.focus) ? slots.focus : [0.5, 0.5];
   return {
     slug,
     licence: typeof licence === 'string' ? licence : '',
     hasScript,
     script: hasScript ? readFileSync(scriptPath, 'utf8') : null,
     aspects,
-    templates,
-    slotsUrl: `/t/${sha256(slotsBytes).slice(0, 12)}.slots.json`,
-    focus,
+    ...main,
+    versions,
   };
 }
 
@@ -215,8 +273,9 @@ function typesetNotes(html: string): string {
 
 /**
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
- * templates and their content-hashed URLs, design.py and the resolved licence. Drafts load only
- * in `astro dev`; notes Markdown is rendered into the entry (`render(entry)`).
+ * templates and their content-hashed URLs, the same for each named variant, design.py and the
+ * resolved licence. Draft pieces and draft variants load only in `astro dev`; notes Markdown is
+ * rendered into the entry (`render(entry)`).
  */
 function wallpapers(): Loader {
   return {
@@ -232,7 +291,7 @@ function wallpapers(): Loader {
           .map((d) => d.name)
           .sort();
         for (const slug of slugs) {
-          const filePath = `wallpapers/${slug}/meta.yaml`;
+          const filePath = rootPath(join(WALLPAPERS, slug, 'meta.yaml'));
           let meta: Record<string, unknown>;
           try {
             meta = (YAML.parse(readFileSync(join(ROOT, filePath), 'utf8')) ?? {}) as Record<string, unknown>;
@@ -243,7 +302,7 @@ function wallpapers(): Loader {
           if (isDraft(meta) && !dev) continue;
           let attached;
           try {
-            attached = attach(slug, meta);
+            attached = attach(slug, meta, dev, (message) => logger.warn(message));
           } catch (e) {
             // A draft mid-build must not take the dev server down.
             if (isDraft(meta)) {

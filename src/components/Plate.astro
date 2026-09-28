@@ -1,8 +1,8 @@
 ---
-/** One index entry (SPEC 6.5): the plate, then a tombstone caption of title, dark-only note and attribution. */
+/** One index entry (SPEC 6.5): the default version's plate, then a tombstone caption of title, version count, dark-only note and attribution. */
 import Attribution from './Attribution.astro';
 import PlateBox from './PlateBox.astro';
-import { captionSources, facetPairs, isDarkOnly, searchText, type Piece } from '../lib/content';
+import { captionSources, facetPairs, isDarkOnly, searchText, versionCount, type Piece } from '../lib/content';
 
 interface Props {
   piece: Piece;
@@ -10,11 +10,13 @@ interface Props {
 const { piece: p } = Astro.props;
 const s = p.slug;
 const attributed = Boolean(captionSources(p));
+const { versions, drafts } = versionCount(p);
+const described = [versions > 1 && `v-${s}`, attributed && `a-${s}`].filter(Boolean).join(' ') || undefined;
 ---
 
 <li data-slug={s} data-title={p.title} data-added={p.added} data-facets={facetPairs(p).join(' ')} data-search={searchText(p)}>
-  <a href={`/${s}`} aria-labelledby={`t-${s}`} aria-describedby={attributed ? `a-${s}` : undefined}><figure>
+  <a href={`/${s}`} aria-labelledby={`t-${s}`} aria-describedby={described}><figure>
     <PlateBox piece={p} only169 lazy />
-    <figcaption class="label-s"><h2 class="t" id={`t-${s}`}>{p.title}</h2>{isDarkOnly(p) && <span class="x" id={`x-${s}`} data-dark-note hidden>Made for dark themes, shown here with your colours swapped</span>}{attributed && <span class="a" id={`a-${s}`}><Attribution piece={p} /></span>}</figcaption>
+    <figcaption class="label-s"><h2 class="t" id={`t-${s}`}>{p.title}</h2>{versions > 1 && <span class="v lnum" id={`v-${s}`}>{versions} versions{drafts > 0 && ` (${drafts} draft)`}</span>}{isDarkOnly(p) && <span class="x" id={`x-${s}`} data-dark-note hidden>Made for dark themes, shown here with your colours swapped</span>}{attributed && <span class="a" id={`a-${s}`}><Attribution piece={p} /></span>}</figcaption>
   </figure></a>
 </li>
