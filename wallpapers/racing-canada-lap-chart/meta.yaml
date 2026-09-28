@@ -1,0 +1,23 @@
+title: Montreal lap chart
+description: The 2011 Canadian Grand Prix as a lap chart, broken where rain halted the race for two hours. Jenson Button's fall to last and climb to the win are lit.
+notes: |
+  Each line is one car, stepping between race positions at the end of every lap, from the grid on the left to the flag on the right. The race started behind the safety car on a wet track and was stopped for over two hours in heavy rain; the chart breaks there, and the dotted rows are the positions held through the stoppage. The bars under the lap axis mark the laps run behind the safety car, a dot on a line marks a pit stop or a drive-through, and a line that ends in a dot is a car that retired. A line that stops a lap short is a car that finished a lap down.
+
+  Button made five pit stops and served a drive-through for speeding behind the safety car. On lap 37 he touched Fernando Alonso at turn 3, pitted with a puncture and fell to 21st and last. Button's line is drawn faintly until then and lit from there. Sebastian Vettel was leading on the final lap when he ran wide at turn 6, and Button went by to win. The positions come from jolpica-f1, a community-run archive of Formula 1 results that carries on the Ergast database.
+technique: [line, instrument]
+subject: [sport]
+lineage: []
+sources:
+  - kind: data
+    topic: jolpica-f1
+    url: https://github.com/jolpica/jolpica-f1
+  - kind: reference
+    topic: 2011 Canadian Grand Prix
+    url: https://en.wikipedia.org/wiki/2011_Canadian_Grand_Prix
+added: 2026-09-28
+model: claude-opus-5-5
+franchise:
+  title: Formula 1
+  owner: Formula One Group
+draft: true
+proposed_facets: {}
