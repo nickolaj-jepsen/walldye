@@ -1,0 +1,24 @@
+title: Chladni figure
+description: 'Sand marks the still lines of a vibrating plate: two diagonals and a ring of small loops around a lit one.'
+notes: |
+  Ernst Chladni bowed the edges of sand-covered plates and drew the figures the sand made where the plate stood still. This plate follows a common approximation for a square plate, cos(nπx) cos(mπy) − cos(mπx) cos(nπy), where n and m count half-waves across it. When both are odd the diagonals and midlines always stay still, and a larger pair sounds a higher note.
+technique: [stipple]
+subject: [physics, music]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    title: Entdeckungen über die Theorie des Klanges
+    author: Ernst Chladni
+    year: 1787
+    url: https://commons.wikimedia.org/wiki/File:Ernst_Florens_Friedrich_Chladni_-_Entdeckungen_%C3%BCber_die_Theorie_des_Klanges_-_1787.pdf
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Middle note
+  low:
+    label: Lower note
+    description: At a lower note, sand on the square plate traces diagonals, midlines and edge arcs around one wide loop.
+  high:
+    label: Higher note
+    description: A higher note shakes the sand into a lattice of small loops along the plate's diagonals and midlines.

@@ -1,0 +1,14 @@
+title: CRT scanlines
+description: Bowed scanlines on a curved tube face swell into one round lit patch up and right of centre.
+technique: [stipple]
+subject: [computing]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    topic: Scan line
+    url: https://en.wikipedia.org/wiki/Scan_line
+  - kind: reference
+    topic: Hatching
+    url: https://en.wikipedia.org/wiki/Hatching
+added: 2026-09-27
+model: claude-opus-5-5

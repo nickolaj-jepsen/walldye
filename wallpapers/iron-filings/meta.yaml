@@ -1,0 +1,27 @@
+title: Iron filings
+description: Iron filings bristle at the ends of a tilted bar magnet and chain from pole to pole.
+notes: |
+  Faraday fixed patterns like this on waxed paper in 1851. Here each stroke is turned along the field of point poles set just inside each magnet's ends, and the strokes gather on curves where the Stokes stream function is constant.
+technique: [field]
+subject: [physics]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    topic: Michael Faraday's iron filings
+    author: Michael Faraday
+    year: 1851
+    url: https://www.rigb.org/explore-science/explore/collection/michael-faradays-iron-filings
+  - kind: reference
+    topic: Stokes stream function
+    url: https://en.wikipedia.org/wiki/Stokes_stream_function
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Bar magnet
+  repelling:
+    label: Like poles facing
+    description: Two bar magnets lie end to end with their north poles facing, so the filings between them turn aside and stream out sideways.
+  horseshoe:
+    label: Horseshoe magnet
+    description: Iron filings drawn as short strokes bridge the two tips of a horseshoe magnet and fan out around its arms.

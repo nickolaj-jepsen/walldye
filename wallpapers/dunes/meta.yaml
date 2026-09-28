@@ -1,0 +1,17 @@
+title: Dune crest
+description: Contour lines crowd toward the brink of a dune above a shadowed slip face. The crest catches light only near the summit.
+notes: |
+  The ripples trace a field that measures distance down from the crest. Their spacing widens further down the slope, and smooth noise bends them out of line. A second set, half a step apart, fills in only beside the brink, each reaching a different distance into the slope.
+technique: [field]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Desert Air
+    author: George Steinmetz
+    url: https://en.wikipedia.org/wiki/George_Steinmetz
+  - kind: reference
+    topic: Dune
+    url: https://en.wikipedia.org/wiki/Dune
+added: 2026-09-27
+model: claude-opus-5-5

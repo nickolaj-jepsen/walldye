@@ -1,0 +1,17 @@
+title: Sun glitter
+description: Rows of dashes shorten toward a half-set sun. The ones beneath it are lit as a widening glitter path.
+notes: |
+  Each dash stands for one wave facet. Only the facets tilted to throw the light back at the eye catch it, so the lit ones gather in a band under the disc that widens as the water comes closer. The empty sky over a level horizon follows Hiroshi Sugimoto's *Seascapes* photographs.
+technique: [stipple]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Seascapes
+    author: Hiroshi Sugimoto
+    url: https://www.sugimotohiroshi.com/seascapes-1
+  - kind: reference
+    topic: Sun glitter
+    url: https://en.wikipedia.org/wiki/Sun_glitter
+added: 2026-09-27
+model: claude-opus-5-5

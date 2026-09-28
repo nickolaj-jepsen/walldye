@@ -1,0 +1,15 @@
+title: Eclipse contours
+description: Inside a heavy ring, noise contours bunch where a disc's surface drops away. A faint ring sits outside.
+technique: [field]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    topic: Marching squares
+    url: https://en.wikipedia.org/wiki/Marching_squares
+  - kind: reference
+    topic: FBM
+    author: Inigo Quilez
+    url: https://iquilezles.org/articles/fbm/
+added: 2026-09-27
+model: claude-opus-5-5

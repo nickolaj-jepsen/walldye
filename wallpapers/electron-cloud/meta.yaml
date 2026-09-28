@@ -1,0 +1,24 @@
+title: Electron cloud
+description: 'Hydrogen''s 3d orbital as sampled points: a lobe above the nucleus, one below, and a ring between.'
+notes: |
+  Each dot is a random point, drawn more often where the electron is more likely to be found, then thinned so that no two sit too close. The dots pack closer and step up in tone where more of the cloud lies behind them.
+
+  The faint axes carry a tick every five Bohr radii. Larger orbitals are drawn at a smaller scale, so their ticks sit closer together.
+technique: [stipple]
+subject: [physics]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    topic: Hydrogen atom
+    url: https://en.wikipedia.org/wiki/Hydrogen_atom
+  - kind: reference
+    topic: Atomic orbital
+    url: https://en.wikipedia.org/wiki/Atomic_orbital
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: 3d orbital
+  4f:
+    label: 4f orbital
+    description: Hydrogen's 4f orbital in sampled stipple, six lobes set evenly around the nucleus.

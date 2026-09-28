@@ -1,0 +1,19 @@
+title: Sunflower head
+description: Dots on Vogel's spiral build a sunflower head in the lower right. Five rosettes are lit along one Fibonacci ray.
+notes: |
+  Each floret sits at a distance from the centre proportional to the square root of its number, turned 137.5 degrees from the one before: a full turn divided by φ². At that angle the florets numbered 377, 610, 987, 1,597 and 2,584, all Fibonacci numbers, land close to one straight ray. Each of them is picked out with its six nearest neighbours.
+
+  The centre sits just off the screen, so the smallest florets are cut off, and the rim fades out in four steps.
+technique: [stipple]
+subject: [flora-fauna, maths]
+lineage: []
+sources:
+  - kind: reference
+    title: A better way to construct the sunflower head
+    author: Helmut Vogel
+    year: 1979
+  - kind: reference
+    topic: Fermat's spiral
+    url: https://en.wikipedia.org/wiki/Fermat%27s_spiral
+added: 2026-09-27
+model: claude-opus-5-5
