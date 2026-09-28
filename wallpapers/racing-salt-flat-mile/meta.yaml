@@ -1,0 +1,38 @@
+title: Bonneville timed mile
+description: The Bonneville speed course at eye level, its guide line crossing the salt's polygon ridges towards Floating Island. The first timed mile, a sliver in perspective, is lit.
+notes: |
+  The International Racetrack on the Bonneville Salt Flats runs from southwest to northeast and points almost straight at Floating Island, 27 km away, with the Silver Island Mountains to its left. The skyline comes from Shuttle Radar Topography Mission elevations, seen from 1.7 m above the salt and allowing for the curve of the earth, which puts the salt's own horizon about 5 km off.
+
+  The course was first marked with a broad painted line down its centre, later with one along each side, and after 2009 with flags and cones. At Speed Week the timed miles usually run from the second mile to the fifth. The first of them is lit, seen from 25 m short of the two-mile marker, and the whole mile takes up less of the picture than the 20 m of line at the viewer's feet.
+
+  The salt dries into polygons roughly 1 to 3 m across and builds up ridges along the cracks.
+technique: [tiling, line]
+subject: [sport, landscape]
+lineage: []
+sources:
+  - kind: data
+    topic: International Racetrack
+    author: OpenStreetMap contributors
+    url: https://www.openstreetmap.org/way/10179260
+  - kind: data
+    topic: Floating Island
+    author: OpenStreetMap contributors
+    url: https://www.openstreetmap.org/node/356672716
+  - kind: data
+    topic: Shuttle Radar Topography Mission
+    url: https://www.opentopodata.org/datasets/srtm/
+  - kind: reference
+    topic: Bonneville Speedway
+    url: https://en.wikipedia.org/wiki/Bonneville_Speedway
+  - kind: reference
+    title: Hydrology and surface morphology of the Bonneville Salt Flats and Pilot Valley Playa, Utah
+    author: Gregory C. Lines
+    year: 1979
+    url: https://www.usgs.gov/publications/hydrology-and-surface-morphology-bonneville-salt-flats-and-pilot-valley-playa-utah
+  - kind: reference
+    topic: Bonneville Salt Flats & Speedway historical marker
+    url: https://utahhistoricalmarkers.org/era/start20th/bonneville-salt-flats-speedway/
+added: 2026-09-28
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}
