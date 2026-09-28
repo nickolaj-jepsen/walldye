@@ -1,4 +1,4 @@
-"""Molnár's Interruptions: a grid of randomly turned strokes broken by clearings, with order found in the largest."""
+"""A grid of randomly turned strokes broken by clearings; strokes at each rim swing round it, and order is found in the largest."""
 
 import math
 
@@ -11,6 +11,7 @@ from walldye.field import cells, gauss, noise_grid
 # grid pitch, stroke length, least margin, pitch of the ordered sub-grid
 PITCH, SEG, M, SUB = 30, 24, 40, 34
 NOISE_SEED = 33
+RIM = 1.6  # cells over which the rim's pull on stroke angles fades
 # (fx, fy, radius) of the clearings: the hero that holds the ordered strokes, a secondary echo,
 # three small ones. Portrait keeps the diagonal from the hero down to the echo.
 LANDSCAPE = (
@@ -64,6 +65,12 @@ def draw(s: Canvas) -> None:
 
     strokes = P()
     ang = rng.uniform(0, math.pi, X.shape)
+    # near a clearing a stroke swings towards the rim's tangent, fully at the rim, fading over RIM cells
+    d = ndimage.distance_transform_edt(~void)
+    gy, gx = np.gradient(ndimage.gaussian_filter(field, 1.5))
+    tangent = np.arctan2(gy, gx) + math.pi / 2
+    pull = np.exp(-np.clip(d - 1, 0, None) / RIM)
+    ang = tangent + (1 - pull) * (ang - math.pi / 2)
     for j, i in zip(*np.nonzero(~void), strict=True):
         c, half = Vec(X[j, i], Y[j, i]), polar((0, 0), SEG / 2, rad=ang[j, i])
         strokes.M(c - half).L(c + half)

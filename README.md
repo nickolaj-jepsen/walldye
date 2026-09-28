@@ -76,3 +76,5 @@ With [Claude Code](https://claude.com/claude-code) in this repository, ask for a
 | Third-party data in `wallpapers/<slug>/data/` | Its upstream licence, with the notice in [REUSE.toml](REUSE.toml) |
 
 Pieces licensed `LicenseRef-fan-work` are unofficial fan tributes to games and other franchises, not affiliated with or endorsed by their owners. No licence is granted for those folders; [LICENSES/LicenseRef-fan-work.txt](LICENSES/LicenseRef-fan-work.txt) has the terms. Rights holders who want one taken down can write to takedown@walldye.com.
+
+Before basing a piece on someone else's work, read "What a piece may draw" in [docs/design.md](docs/design.md#what-a-piece-may-draw). In short: techniques and ideas are free, only public-domain or openly licensed works are redrawn, and a work still in copyright can inspire a piece but is never copied.

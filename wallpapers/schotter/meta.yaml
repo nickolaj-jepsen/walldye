@@ -1,10 +1,10 @@
-title: Schotter, sideways
+title: Squares shaking loose
 description: Twenty-nine columns of square outlines stay in order at the left and shake loose towards the right, where three strays lead to one filled-in square.
 technique: [drafting]
 subject: []
-lineage: [homage, early-computer-art]
+lineage: [early-computer-art]
 sources:
-  - kind: recreation
+  - kind: inspiration
     title: Schotter
     author: Georg Nees
     year: 1968
@@ -13,5 +13,4 @@ added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
-license: CC0-1.0
 draft: false

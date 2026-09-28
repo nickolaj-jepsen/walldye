@@ -1,12 +1,12 @@
-title: String on pegs
-description: A taut string winds around ten of twelve pegs on a lattice of small rings, cutting inside three.
+title: Band and string
+description: A taut string winds round a staggered block of ten pegs, pulled inside two of them, with a looser band stretched round the whole block.
 notes: |
-  After Dmitri Cherniak's *Ringers* (2021). The winding is picked from 4,000 random tours of the pegs: tours whose string runs close to itself, grazes a peg it passes, or leaves one of the largest pegs outside are dropped, and of the rest the longest loop without one overlong straight run is kept.
+  A string wound round pegs of different sizes is the idea behind Dmitri Cherniak's generative series. Here the pegs sit in staggered rows on a triangular lattice, and a second, slacker band holds the block together. The winding is picked from 12,000 random tours: tours whose string runs close to itself, grazes a peg it passes, or leaves one of the largest pegs outside are dropped, and of the rest the longest loop without one overlong straight run is kept.
 technique: [flat, line]
 subject: []
 lineage: [homage, creative-coding]
 sources:
-  - kind: recreation
+  - kind: inspiration
     title: Ringers
     author: Dmitri Cherniak
     year: 2021
@@ -15,5 +15,4 @@ added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
-license: CC0-1.0
 draft: false

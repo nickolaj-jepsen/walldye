@@ -1,12 +1,12 @@
-title: Interruptions
-description: Randomly turned short strokes fill a grid with five clearings. In the largest, fourteen lie parallel.
+title: Eddies in a field of strokes
+description: Randomly turned short strokes fill a grid with five clearings, and the strokes at each rim swing round it. In the largest clearing, fourteen lie parallel.
 notes: |
-  Vera Molnár's *Interruptions* series (1968–69) starts from a grid of straight lines of equal length, each turned at random, then erases the lines in random patches. This version keeps the grid and the erased patches, and sets a small block of parallel strokes inside the largest one.
+  The field takes the idea of Vera Molnár's *Interruptions*: a grid of equal lines, each turned at random, with patches left empty. Here the clearings pull on their surroundings. A stroke at a rim lies along it, and the pull fades over the next row or two, so each clearing sits in a faint eddy. Inside the largest, a small block of strokes lies parallel.
 technique: [line]
 subject: []
 lineage: [homage, early-computer-art]
 sources:
-  - kind: recreation
+  - kind: inspiration
     title: Interruptions
     author: Vera Molnár
     year: 1968
@@ -15,5 +15,4 @@ added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
-license: CC0-1.0
 draft: false

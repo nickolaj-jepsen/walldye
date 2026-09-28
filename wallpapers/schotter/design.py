@@ -1,4 +1,4 @@
-"""Nees' Schotter on its side: square outlines whose random jitter and tilt grow column by column, until one escapes."""
+"""A band of square outlines whose random jitter and tilt grow column by column, until one escapes."""
 
 from walldye import ACCENT, ACCENT_6, UI, UI_ALT, Canvas, P, Vec, design
 

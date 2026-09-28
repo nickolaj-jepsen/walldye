@@ -146,7 +146,9 @@ Keep the keys `walldye new` wrote, in that order, and add no comments: review re
   WebFetch before writing it, and keep it only when the page loads and shows what you cite.
   Never write a URL from memory.
 - `license`: leave it out for the CC0-1.0 default. A recreation needs an explicit one from
-  the owner. Game and franchise pieces use `LicenseRef-fan-work` plus
+  the owner. Recreate only public-domain or openly licensed works. A work still in copyright
+  is an inspiration: the piece may keep its spirit but makes two or three deliberate departures,
+  as schotter does (docs/design.md, "What a piece may draw"). Game and franchise pieces use `LicenseRef-fan-work` plus
   `franchise: {title, owner}`; ask the owner before using it.
 - `themes`: leave it out (dark and light) unless the ladder reached step 4.
 - `variants`: only when design.py declares named variants. The keys are exactly `default`

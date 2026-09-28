@@ -1,12 +1,12 @@
-title: Axis-parallel walk
-description: A line of horizontal and vertical steps tangles inside a square, then escapes through one wall to a filled square.
+title: Breakout walk
+description: A line of horizontal and vertical steps tangles inside a square, fainter the older it is, then escapes through one wall to a filled square.
 notes: |
-  Georg Nees plotted *Achsenparalleler Irrweg* (axis-parallel maze) in 1964, from an ALGOL program on a Zuse Graphomat Z 64. This walk takes longer strides, and after about 500 steps it leaves by the far wall.
+  The walk comes from Georg Nees' early plotter drawing *Achsenparalleler Irrweg* (axis-parallel maze): steps that alternate between horizontal and vertical, each of random length, inside a square. This one takes longer strides and fades with age, so its oldest steps are barely there and the last few before it leaves stand out. After about 500 steps it breaks out by the far wall.
 technique: [line]
 subject: []
 lineage: [homage, early-computer-art]
 sources:
-  - kind: recreation
+  - kind: inspiration
     title: Achsenparalleler Irrweg
     author: Georg Nees
     year: 1964
@@ -15,5 +15,4 @@ added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
-license: CC0-1.0
 draft: false

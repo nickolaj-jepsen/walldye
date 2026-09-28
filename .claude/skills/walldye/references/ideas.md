@@ -31,7 +31,7 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 
 ## ASCII, glyph & TUI
 
-- **glyph-donut** (built) — a donut.c homage, a lit torus frozen mid-spin in luminance glyphs; torus off-centre and large; map N·L to a density ramp such as `" .:-=+*#%@"`, brightest glyphs in accent.
+- **glyph-donut** (built) — a lit ASCII torus tipped nearly on edge and leaning diagonally, in its own 12-character ramp, the rim glint in accent.
 - **glyph-fire** — the demoscene fire effect in shade-block glyphs licking up from the bottom edge into sparse sparks; bottom quarter only; classic cooling-buffer sim mapped to the shade blocks ` ░▒▓█`.
 - **glyph-hexdump** (built) — an xxd view of a binary (offset column, 16 hex columns, ASCII gutter) in quiet greys, with one selected byte run in accent; full-bleed but dim.
 - **glyph-mandel** (built) — the Mandelbrot set as 1980s ASCII art, escape time mapped to density glyphs, interior blank, boundary band in accent; coarse cell grid, set off-centre.
@@ -75,12 +75,12 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 
 ## Systems art & plotter canon
 
-- **schotter** (built) — Nees' Schotter on its side, a band of square outlines shaking apart left to right with one square escaping in accent; disorder grows as `t**1.7`.
-- **interruptions** (built) — Molnar's Interruptions, a field of randomly rotated short strokes broken by noise voids, with ordered accent strokes inside the largest void.
-- **des-ordres** — Molnar's (Dés)Ordres, a grid of concentric jittered squares, one cell's innermost square in accent; tremble increases toward one corner.
+- **schotter** (built) — a band of square outlines shaking apart left to right with one square escaping in accent; disorder grows column by column.
+- **interruptions** (built) — a grid of randomly turned strokes with clearings whose rim strokes swing into eddies; ordered accent strokes inside the largest.
+- **des-ordres** — a grid of concentric jittered squares, one cell's innermost square in accent; tremble increases toward one corner. Make the composition our own: a Molnár series is still in copyright.
 - **hypercube** (built) — a 6-cube in its Coxeter-plane projection, with one geodesic through the centre traced in accent after Manfred Mohr; a crystalline hairline lattice.
 - **ribbons** (built) — Fidenza-style ribbons on a gentle flow field that never collide, with a small school in accent; collision-checked streamlines at varying widths.
-- **pegs** (built) — Cherniak's Ringers, one taut accent string wound around a cluster of grey pegs of different sizes; the string is the convex-hull-ish tour.
+- **pegs** (built) — a taut accent string wound round mixed-size pegs in staggered 3-4-3 rows, a looser band stretched round the whole block.
 - **one-line** (built) — a crescent moon drawn as one unbroken line, a TSP tour through light-weighted stipples; tone comes from how tightly the line folds.
 - **ten-print** — the 10 PRINT maze of random ╱ ╲ diagonals in grey, with one connected path through it traced in accent; full-bleed but thin and dim.
 - **truchet-loop** — Smith-style Truchet quarter-arc tiles forming meandering loops; one closed loop in accent; flood-fill the arc graph to find a loop of the right length.
@@ -164,11 +164,11 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 
 ## Poster geometry & op-art
 
-- **beethoven-arcs** (built) — concentric rings broken into rhythmic arc segments after Müller-Brockmann's Beethoven poster, the core rings in accent; `arc_band` per segment.
+- **beethoven-arcs** (built) — concentric rings of three short notes and a long one, each ring a beat later so the rests wind outward; one long note lit.
 - **red-wedge** (built) — a thin accent wedge piercing a grey disc after Lissitzky, with a few constructivist fragments along its vector; keep the wedge slim.
-- **movement-squares** (built) — a Riley-style checker frieze whose columns compress to accent slivers at a fold.
-- **riley-fall** (built) — a Riley Fall curtain of chirped sine lines on one side with a single accent vein.
-- **prism** (built) — a grey ray splitting through a hollow prism into a fan of bands stepping down the accent ramp.
+- **movement-squares** (built) — a four-row checker frieze with two folds, a shallow one and a deep one, the deep fold's slivers lit.
+- **riley-fall** (built) — a curtain of horizontal wavy lines rippling faster to the right, each lagging the one below, one line lit.
+- **prism** (dropped) — a ray splitting through a prism into a fan of bands; dropped because the layout followed a famous album cover.
 - **rothko** (built) — a Rothko colour field, stacked soft-edged grey blocks breathing on a warm ground; feathered edges come from many stacked low-opacity rects.
 - **delaunay-drift** — a sparse Delaunay mesh drifting in from one corner and thinning to nothing, with one small faceted accent gem.
 
@@ -192,7 +192,7 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 - **battlezone-horizon** (built) — a Battlezone vector horizon of jagged ranges, an erupting wireframe volcano with a few accent embers, and a two-arc crescent moon.
 - **tempest-web** (built) — a Tempest playfield, a 16-lane star tube narrowing to its far rim with one lane lit in accent.
 - **pong** (built) — Pong paused mid-rally, grey paddles, a dashed net and an accent ball bouncing off the top wall on a dotted arc.
-- **tetris-well** (built) — a quiet Tetris well, a grey settled stack with an accent T hanging above its dashed ghost.
+- **tetris-well** (dropped) — a Tetris well with a hanging T; dropped because the look of the well is protected (*Tetris Holding v. Xio*). Don't redraw it.
 - **shusaku** (built) — a historic Go game at a famous move, all stones grey except the one that decided it; real game records give it authenticity.
 
 ## Developer & desktop

@@ -1,11 +1,11 @@
-"""Nake's Hommage à Paul Klee: random-walk bands cut into cells by verticals and crossed diagonals, some hatched, under a small score of circles."""
+"""Random-walk bands cut into cells by verticals and crossed diagonals, some hatched, with a sun setting into them in six steps."""
 
 import itertools
 import math
 from typing import NamedTuple
 
 import numpy as np
-from shapely.geometry import MultiLineString, Point, Polygon
+from shapely.geometry import Point, Polygon
 
 from walldye import ACCENT, ACCENT_2, UI, UI_ALT, UI_HI, Canvas, P, Vec, clamp, design, lerp
 from walldye.geom import hatch
@@ -14,7 +14,11 @@ X0, X1, Y0 = 180, 1430, 420  # left and right ends of the bands, and the top ban
 GAPS = (45, 130, 70, 110, 85, 100)  # spacing of the seven band lines, shuffled
 HATCH = 6  # hatch pitch, and the least gap between a hatch line and a cut
 MAX_COS = math.cos(math.radians(12))  # a diagonal meets a band line at 12 degrees or more
-RADII = (58, 80, 44, 30, 22, 14)  # the filled circle, then the outlines
+SUN, STEPS = 44, 6  # sun radius; positions along its path, the last one filled
+PATH = (
+    (0.2, -250),
+    (0.72, -14),
+)  # path ends: fraction of the band width, offset from the top line (negative is above)
 
 
 class Cell(NamedTuple):
@@ -112,31 +116,20 @@ def draw(s: Canvas) -> None:
             for seg in hatch(inside(cell), HATCH, deg=90):
                 x, (ya, yb) = seg[0, 0], sorted(seg[:, 1])
                 (lit if cell == accent else hatched).M(x, ya + 1.5).L(x, yb - 1.5)
+    # the sun drops faster as it nears the bands and sets behind the top line
+    (fa, ha), (fb, hb) = PATH
+    path = []
+    for k in range(STEPS):
+        u = k / (STEPS - 1)
+        x = lerp(X0, X1, lerp(fa, fb, u))
+        path.append(Vec(x, at(0, x).y + lerp(ha, hb, u * u)))
+    *trail, sun = path
+    sky = Polygon([(X0, 0), *zip(*lines[0], strict=True), (X1, 0)])
+    s.fill(P().shape(Point(sun).buffer(SUN, 64).intersection(sky)), ACCENT)
     s.stroke(hatched, UI, 1.2)
     s.stroke(lit, ACCENT_2, 1.5)
     s.stroke(edges, UI_ALT, 1.5, join="round")
-
-    across = MultiLineString(cuts)
-    rails = MultiLineString([list(zip(*line, strict=True)) for line in lines])
-    circles: list[tuple[Vec, float]] = []
-    while len(circles) < len(RADII):
-        rad = RADII[len(circles)]
-        if circles:
-            o = Vec(r.uniform(X0 + 60, X1 - 60), r.uniform(Y0 - 150, Y0 + gaps[0] + 40))
-            gap = Point(o).distance(rails)
-            # outlines never knot with a cut, and either clearly straddle a band line or clear it
-            if Point(o).distance(across) < rad + 8 or rad - 12 < gap < rad + 8:
-                continue
-        else:
-            # the filled circle floats clear above the right half of the block
-            o = Vec(r.uniform(X0 + 820, X1 - 110), r.uniform(Y0 - 110, Y0 - 50))
-            if Point(o).distance(rails) < rad + 14:
-                continue
-        if all(abs(o - q) > rad + rq + 24 for q, rq in circles):
-            circles.append((o, rad))
-    (disc, rad), *rest = circles
-    s.fill(P().circle(disc, rad), ACCENT)
     rings = P()
-    for q, rq in rest:
-        rings.circle(q, rq)
+    for q in trail:
+        rings.circle(q, SUN)
     s.stroke(rings, UI_HI, 1.5)

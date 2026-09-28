@@ -88,7 +88,7 @@ test.describe('detail', () => {
     expect(dl.suggestedFilename()).toBe('schotter-nord-9x19.5-crop.svg');
     const svg = buf.toString('utf8');
     expect(svg).toMatch(/^<svg [^>]*viewBox="0 0 498\.4615 1080" width="498\.4615" height="1080"/);
-    expect(svg).toContain('<title>Schotter, sideways</title><desc>walldye.com/schotter · CC0-1.0 · theme nord</desc>');
+    expect(svg).toContain('<title>Squares shaking loose</title><desc>walldye.com/schotter · CC0-1.0 · theme nord</desc>');
     expect(svg).toContain('#2E3440');
     expect(svg).not.toContain('#1C1B1A');
   });

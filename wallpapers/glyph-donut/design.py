@@ -1,4 +1,4 @@
-"""After donut.c: a torus frozen mid-spin, z-buffered onto a character grid and shaded with a twelve-step ASCII luminance ramp."""
+"""A leaning torus, z-buffered onto a character grid and shaded with a twelve-step ASCII luminance ramp."""
 
 import numpy as np
 from numpy.typing import NDArray
@@ -22,7 +22,7 @@ from walldye.pixel import glyphs
 
 type Vec3 = NDArray[np.float64]
 
-RAMP = ".,-~:;=!*#$@"  # donut.c's ramp, darkest to brightest
+RAMP = ".`-:;+=*o%#@"  # darkest to brightest
 # One tone per ramp step: two quiet bands, then UI_HI and three accent-ladder steps on top.
 # Thin glyph strokes read fainter on a light ground, so light themes lift the two bands, and
 # the first accent step, which ACCENT_4 would leave paler than the UI_HI step below it.
@@ -31,7 +31,8 @@ WARM = by_regime(ACCENT_4, ACCENT_2)
 TONES: tuple[Colour, ...] = (LOW,) * 4 + (MID,) * 4 + (UI_HI, WARM, ACCENT_1, ACCENT)
 CW, CH = 8, 16  # 8x16 font at px=1
 COLS, ROWS = 120, 60  # scratch grid, trimmed to the torus before it is placed
-TILT = 0.65  # radians about x, tipping the near rim towards the viewer
+TILT = 1.25  # radians about x, tipping the near rim towards the viewer
+ROLL = -0.9  # radians in the screen plane, so the ring leans
 K = 600  # projection scale in px
 SAMPLES = (500, 1400)  # around the tube, around the ring
 
@@ -42,7 +43,7 @@ def unit(v: tuple[float, float, float]) -> Vec3:
     return a / np.linalg.norm(a)
 
 
-LIGHT = unit((-0.55, 0.6, -0.6))
+LIGHT = unit((-0.4, 0.45, -0.8))
 GLINT = unit((-0.6, 0.5, -0.62))  # highlight direction, aimed at the upper-left outer rim
 
 
@@ -58,6 +59,9 @@ def draw(s: Canvas) -> None:
     ca, sa = np.cos(TILT), np.sin(TILT)
     y, z = y * ca - z * sa, y * sa + z * ca
     ny, nz = ny * ca - nz * sa, ny * sa + nz * ca
+    cr, sr = np.cos(ROLL), np.sin(ROLL)
+    x, y = x * cr - y * sr, x * sr + y * cr
+    nx, ny = nx * cr - ny * sr, nx * sr + ny * cr
     ooz = 1 / (z + 7)
     i = ((COLS * CW / 2 + K * ooz * x) // CW).astype(int)
     j = ((ROWS * CH / 2 - K * ooz * y) // CH).astype(int)

@@ -231,15 +231,15 @@ Running Playwright:
 ## Metadata (`meta.yaml`)
 
 ```yaml
-title: Schotter, sideways
+title: Squares shaking loose
 description: A band of squares shaking apart left to right; one escapes.
 notes: |                     # optional Markdown, shown on the detail page
   ...
 technique: [drafting]        # facets, checked against taxonomy.yaml
 subject: []
-lineage: [homage, early-computer-art]
+lineage: [early-computer-art]
 sources:
-  - kind: recreation         # recreation | inspiration | reference | data
+  - kind: inspiration        # recreation | inspiration | reference | data
     title: Schotter
     author: Georg Nees
     year: 1968
@@ -438,6 +438,17 @@ Loading imports `wallpapers/<slug>/design.py` once per process and draws it for 
 - Third-party data files keep their upstream licence, and `REUSE.toml` gives each one's notice: star-chart's star positions come from d3-celestial (BSD-3-Clause), and racing-spa-minisectors' centreline from the TUMFTM racetrack database (LGPL-3.0), which took it from OpenStreetMap (ODbL). The pieces' Sources credit them.
 - `LICENSES/` holds GPL-3.0-or-later.txt, CC0-1.0.txt, CC-BY-4.0.txt, LicenseRef-fan-work.txt, BSD-2-Clause.txt, BSD-3-Clause.txt, LGPL-3.0-only.txt, ODbL-1.0.txt and OFL-1.1.txt, named by SPDX id. The README has the table of what is licensed how.
 - `walldye/font.py` carries `SPDX-FileCopyrightText: 2018-2024 Frederic Cambus` and `SPDX-License-Identifier: BSD-2-Clause`. The fonts in `src/assets/fonts/` are under the SIL OFL 1.1, with both copyright notices in `src/assets/fonts/OFL.txt`.
+
+### What a piece may draw
+
+A piece is released as CC0 only when everything in it is ours to give away. The owner lives in the EU, where there is no fair use and copyright runs 70 years after the author's death. A CC0 label on someone else's work would tell visitors they can sell prints of it. These rules keep the realistic worst case at a takedown request. They are the owner's policy, not legal advice.
+
+- Styles, techniques, algorithms, genres and ideas are free to use. Credit the work that suggested one as `kind: inspiration`, and the piece stays CC0.
+- `kind: recreation`, which redraws one specific work, is only for works that are public domain in both the EU and the US (US federal works such as NASA's count) or under an open licence. A recreation of an attribution-licensed work takes that work's licence, as nix-snowflake does.
+- Works still in copyright are never redrawn. A piece may stay recognisably in a work's spirit, keeping its visual idea and feel, but it makes two or three deliberate departures of its own: orientation, proportion, count, where the change happens, a focal point, or an added element. schotter is the model: a grid of squares coming loose, turned sideways, with strays leading to one filled square. Someone who knows the original should think "in the spirit of it", not "that is it". The title is not the work's title, the notes may say which idea is taken and what is done differently, and the work is credited as an inspiration. In September 2026 the pieces after Riley, Albers, Müller-Brockmann, Molnár, Nake, Nees, Cherniak and Sloane were reworked this way.
+- Some looks stay off limits even as inspiration: game looks that courts have protected (a court held the Tetris well protectable in *Tetris Holding v. Xio*, 2012) and single famous images such as album covers. tetris-well and prism were dropped for this reason.
+- Game and franchise pieces are `LicenseRef-fan-work`, and only with the owner's approval. They stay non-commercial, the site carries no ads, and takedown@walldye.com must reach the owner. Prefer drawing a subject over copying its assets: traced official renders, textures and logos come closer to redistribution than a depiction does. A rights holder's request is honoured by `walldye drop`.
+- Third-party data keeps its upstream licence (above). Credit it as `kind: data`.
 
 ## Hosting and analytics
 

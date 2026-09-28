@@ -1,8 +1,8 @@
-"""After Nees' Achsenparalleler Irrweg: a random walk of alternating horizontal and vertical steps tangles inside a square until its last steps break out through one wall to a filled square."""
+"""A walk of alternating horizontal and vertical steps tangles inside a square, fading with age, until its last steps break out through one wall to a filled square."""
 
 from itertools import count
 
-from walldye import ACCENT, UI, Canvas, P, design
+from walldye import ACCENT, BG, UI, UI_HI, Canvas, P, design, mix
 from walldye.geom import Affine
 
 HALF = 340  # the walk stays inside a square of side 2 * HALF around the frame's origin
@@ -10,6 +10,9 @@ MIN_STEPS = 470
 EXIT_LO, EXIT_HI = -100, 60  # where on the far wall the walk may break out
 # tail: hesitant jogs off the far wall, then one confident run into the square
 JOGS, DROPS, RUN = (10, 18, 30, 50), (54, 30, 16, 8), 260
+# the knot's steps in age bands, oldest first, each a step stronger
+AGES = ((0.0, 0.35), (0.35, 0.7), (0.7, 0.9), (0.9, 1.0))
+TONES = (mix(BG, UI, 0.35), mix(BG, UI, 0.65), UI, UI_HI)
 REACH = 0.66  # the run ends at least this far along the long side, so wide screens get a longer run
 
 
@@ -51,6 +54,10 @@ def draw(s: Canvas) -> None:
     x = max(x + RUN, REACH * max(s.w, s.h) - along)
     tail.append((x, y))
     end = frame((x, y))
-    s.stroke(P().poly(frame.apply(knot)), UI, 1.4, join="miter")
+    pts = frame.apply(knot)
+    for (a, b), tone in zip(AGES, TONES, strict=True):
+        s.stroke(
+            P().poly(pts[round(a * len(pts)) : round(b * len(pts)) + 1]), tone, 1.4, join="miter"
+        )
     s.stroke(P().poly(frame.apply(tail)), ACCENT, 2.4, join="miter")
     s.fill(P().rect(end.x - 6, end.y - 6, 12, 12), ACCENT)

@@ -1,12 +1,12 @@
 title: ASCII donut
-description: A spinning torus in twelve ASCII characters, from dots on its shaded underside to at-signs where the light hits the rim.
+description: A torus tipped steeply and leaning to one side, drawn in twelve ASCII characters, from dots on its shaded side to at-signs where the light catches its rim.
 notes: |
-  After Andy Sloane's *donut.c*, the obfuscated C program that spins a torus in a terminal. As in that program, every point on the surface is projected onto the character grid, the nearest point in each cell wins, and the angle between the surface and the light picks one of the characters `.,-~:;=!*#$@`. A second, tighter highlight puts the glint on the outer rim.
+  The technique is the one Andy Sloane's *donut.c* made famous: every point on the surface is projected onto the character grid, the nearest point in each cell wins, and the angle between the surface and the light picks a character. This torus doesn't spin. It is tipped nearly on edge and leans in the frame, shaded with its own ramp, `` .`-:;+=*o%#@ ``, and a second, tighter highlight puts the glint on the outer rim.
 technique: [glyph]
 subject: [computing]
 lineage: [homage, creative-coding]
 sources:
-  - kind: recreation
+  - kind: inspiration
     title: donut.c
     author: Andy Sloane
     year: 2006
@@ -20,5 +20,4 @@ added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
-license: CC0-1.0
 draft: false
