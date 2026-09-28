@@ -32,6 +32,7 @@ __pycache__/
 .walldye-review.json
 
 # tooling
+.wrangler/
 playwright-report/
 test-results/
 .lycheecache
