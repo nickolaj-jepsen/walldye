@@ -267,10 +267,10 @@ variants:                    # only when design.py declares named variants
   - The site shows: "Unofficial fan tribute, not affiliated with or endorsed by {franchise.owner}. {franchise.title} and its characters are trademarks of their owners. Non-commercial; contact takedown@walldye.com for takedown.", with the address as a `mailto:` link.
   - `LICENSES/LicenseRef-fan-work.txt` says the same: no licence is granted; each piece is an unofficial fan tribute; trademarks belong to their owners; non-commercial use only; takedown requests go to takedown@walldye.com.
 - Variants: the keys of `variants:` are exactly `default` plus the names declared in design.py. Every entry needs a `label`, a few plain words naming the version. A named variant may add a `description`, shown instead of the piece's when that version is on screen, and `draft`.
-- Drafts live on main. Agents write `draft: true` folders and variants, `walldye review` flips approved ones to `draft: false`, and rejected pieces are deleted with `walldye drop` after the owner confirms. The site shows drafts only in `astro dev`.
+- Drafts live on main. Agents write `draft: true` folders and variants, `walldye review` flips approved ones to `draft: false` (and can set a published piece or version back to `draft: true`), and rejected pieces are deleted with `walldye drop` after the owner confirms. The site shows drafts only in `astro dev`.
 - A source's `title` names a work, and the site sets it in italics. A maker with no single work is an `author` with no title, and a genre, style, place or phenomenon is a `reference`, shown only among the footnotes.
 - URLs are optional. When present, the agent fetches them before writing them, and CI checks them with a link checker.
-- The content loader's zod schema (`src/content.config.ts`) checks facets against taxonomy.yaml, the licence rules, facet labels and reserved slugs. Agents never add facet values: they write `proposed_facets`, allowed only while `draft: true`. In `walldye review`, accepting one appends it to taxonomy.yaml and moves it into the piece's facets, and approval is refused while any remain.
+- The content loader's zod schema (`src/content.config.ts`) checks facets against taxonomy.yaml, the licence rules, facet labels and reserved slugs. Agents never add facet values: they write `proposed_facets`, allowed only while `draft: true`. In `walldye review`, accepting one appends it to taxonomy.yaml and moves it into the piece's facets, and approval is refused while any remain. The owner can also add a value there. Either way review asks for its label and writes it to `src/lib/labels.ts`, so the site build never meets a value without one.
 - Computed facets, with the labels visitors see: "has source code" (has a script), "fits any screen" (composes for every aspect), "works in light themes" (themes include light), "has references" (any source), "made with Claude" and "human-made" (ai_generated). An entry that matches every piece or none is hidden.
 - Facet values are slugs. The site shows a plain-words label for each from `src/lib/labels.ts` (drafting is "technical drawing", glyph "text characters"). The lineage facet is headed "Inspired by"; homage and fan-work have no filter entry.
 - `wallpapers/index.json` summarises every built piece (`aspects`, `draft`, `license`, `title` and the named `variants`) for consumers outside the site; build, review and drop regenerate it, and CI checks it (api.md §13.5).
@@ -422,14 +422,14 @@ For about ten or more pieces in one run. Research agents propose ideas per lens,
 | `render` | one SVG to the working directory or `-o`, never into `build/` |
 | `check` | the gate above |
 | `build` | check, then write `build/`, slots.json and index.json; `--verify` diffs without writing |
-| `review` | a localhost page for approving drafts and draft variants; blocks until Done |
+| `review` | a localhost page that goes through versions one at a time to keep, drop or unpublish them and edit their words and facets; blocks until Apply |
 | `sheet` | contact sheets of committed templates, or of one piece over `--wedge` and `--seeds` |
 | `params` | a design's params, ranges and variants |
 | `list` | slug, title, description, draft, aspects and variants, tab-separated |
 | `drop` | delete a piece after the owner confirms |
 | `themes` | the presets; `--json` writes the vitest fixture |
 
-Loading imports `wallpapers/<slug>/design.py` once per process and draws it for every version, aspect and regime; the design's folder is not on `sys.path`. The environment variables are `WALLDYE_THEME` and `WALLDYE_PREVIEW` (default `<tmp>/walldye`). `--set k=v` overrides one param in preview, render and sheet for exploring, and build refuses it, because published values belong in a named variant. The rasteriser is resvg-py; Inkscape is an optional `--renderer` for debugging. Review keeps its state in the gitignored `.walldye-review.json`, never renders missing SVGs, and never edits design.py: a rejected variant keeps `draft: true` with the note and is removed from design.py by hand.
+Loading imports `wallpapers/<slug>/design.py` once per process and draws it for every version, aspect and regime; the design's folder is not on `sys.path`. The environment variables are `WALLDYE_THEME` and `WALLDYE_PREVIEW` (default `<tmp>/walldye`). `--set k=v` overrides one param in preview, render and sheet for exploring, and build refuses it, because published values belong in a named variant. The rasteriser is resvg-py; Inkscape is an optional `--renderer` for debugging. Review keeps its state in the gitignored `.walldye-review.json`, writes nothing else until Apply, never renders missing SVGs, and never edits design.py: a rejected variant keeps `draft: true` with the note and is removed from design.py by hand.
 
 ## Licensing
 
@@ -468,7 +468,7 @@ A piece is released as CC0 only when everything in it is ours to give away. The 
 
 - The nixos cutover. The owner's nixos configuration still keeps its own copy of the older wallpaper scripts and backgrounds. The plan is for it to take this repository as a `flake = false` input, read `wallpapers/index.json` (dropping drafts and ignoring `variants`) and rasterise only the default version's `build/16x9.svg`, plus `build/10x16.svg` or a 10:16 crop around `focus` for portrait monitors. It is out of scope so far, and nothing here waits for it.
 - geometry.svg and unknown.svg, two older backgrounds in the nixos configuration that predate Claude, are not in the catalogue until their provenance is confirmed. unknown.svg is an Illustrator export resembling the Unknown Pleasures plot and is likely third-party.
-- The owner's review of the imported catalogue is still open. Six pieces are drafts: glyph-terrain, and five `-branch` pieces (eclipse-contours, hitomezashi, patent-lamp, pixel-invaders and ribbons) that are rewrites of the piece of the same name. Review keeps one of each pair and `drop` deletes the other; a surviving `-branch` folder is renamed to the plain slug. Forty proposed versions are drafts too.
+- The owner's review of the imported catalogue is still open; `walldye review --all` goes through all of it, over as many sittings as it takes. glyph-terrain is a draft, and so are 39 proposed versions.
 - The GitHub repository is private. The About page and every "Run it yourself" command point at it, so it has to be public when the site goes live.
 - Nothing has been deployed to production yet: main does not have this work, so walldye.com answers 404 until it lands there (deploy.md).
 - A disk cache for heavy pure work is deferred. brain-coral reruns a 9-second reaction-diffusion on every draw, which bounds `walldye check --all` at about ten minutes on 16 cores.

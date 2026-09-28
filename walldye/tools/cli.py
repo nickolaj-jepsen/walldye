@@ -163,9 +163,11 @@ def _cmd_build(a: argparse.Namespace) -> int:
 
 
 def _cmd_review(a: argparse.Namespace) -> int:
-    return review.run(
-        _items(a, "slugs"), cast("float", a.timeout), cast("int", a.port), not a.no_open
-    )
+    slugs, everything = _items(a, "slugs"), cast("bool", a.all)
+    if everything and len(slugs) > 0:
+        raise common.UsageError("review takes slugs or --all, not both")
+    timeout, port = cast("float", a.timeout), cast("int", a.port)
+    return review.run(slugs, timeout, port, not a.no_open, everything)
 
 
 def _cmd_sheet(a: argparse.Namespace) -> int:
@@ -299,10 +301,13 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--force", action="store_true", help="rebuild even when slots.json is current")
     s.set_defaults(fn=_cmd_build, need_targets=True)
 
-    s = sub.add_parser("review", help="approve drafts in a localhost page; blocks until Done")
+    s = sub.add_parser(
+        "review", help="decide drafts and edit their words in a localhost page; blocks until Apply"
+    )
     s.add_argument("slugs", nargs="*", type=_slug, help="default: every draft piece or version")
+    s.add_argument("--all", action="store_true", help="every version of every piece, drafts first")
     s.add_argument(
-        "--timeout", type=float, default=7200, help="seconds to wait for Done (default 7200)"
+        "--timeout", type=float, default=7200, help="seconds to wait for Apply (default 7200)"
     )
     s.add_argument("--port", type=int, default=0)
     s.add_argument("--no-open", action="store_true", help="don't open a browser")

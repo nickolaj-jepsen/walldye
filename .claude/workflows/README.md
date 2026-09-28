@@ -27,7 +27,7 @@ Start it by asking Claude to run the `wallpaper-batch` workflow, for example wit
 6. Sources: one agent per three pieces fetches every lead, drops the ones that don't check out, and writes `sources:`.
 7. Copy: one agent edits all new titles, descriptions, notes and docstrings side by side.
 8. Build: if a piece now has a `kind: recreation` source and `licenses` has no answer for it, the run stops here with `status: "needs-license"` and the steps to finish by hand. Otherwise one agent writes the `license:` lines, runs `walldye build` over the pieces and then `walldye build --verify`.
-9. Review: `walldye review <slugs>` on port 8742 (the log prints the URL), waiting until the owner presses Done, then one agent turns the decisions into `lessons`. Review approves each draft variant on its own.
+9. Review: `walldye review <slugs>` on port 8742 (the log prints the URL), waiting until the owner presses Apply, then one agent turns the decisions, notes and the owner's own edits to the copy into `lessons`. Review decides each draft version on its own.
 
 The drafts are built twice, once before the set pass and again at the end, because `walldye check --similar` and `walldye sheet` read `build/16x9.svg`, and rework and copy change some pieces after the first build. Sources are fetched only after the set pass, which skips fetching for pieces it drops and keeps `kind: recreation` out of `meta.yaml` until the licence question.
 

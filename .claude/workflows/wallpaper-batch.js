@@ -291,7 +291,11 @@ const REVIEWED = {
     undecided: strs,
     notes: {
       type: 'array',
-      items: { type: 'object', properties: { slug: str, note: str }, required: ['slug', 'note'] },
+      items: { type: 'object', properties: { slug: str, variant: str, note: str }, required: ['slug', 'note'] },
+    },
+    edits: {
+      type: 'array',
+      items: { type: 'object', properties: { slug: str, variant: str, field: str, before: {}, after: {} }, required: ['slug', 'field'] },
     },
     published: strs,
     refused: {
@@ -801,7 +805,7 @@ if (pending.length) {
       `Add \`license: <id>\` to each one's wallpapers/<slug>/meta.yaml${licensed.length ? `, and to ${licensed.map(l => `${l.slug} (${l.license})`).join(', ')} as args.licenses asked` : ''}.`,
       `uv run walldye build ${survivors.join(' ')}   (with run_in_background; it checks the pieces in parallel)`,
       'uv run walldye build --verify   (with run_in_background)',
-      `uv run walldye review ${survivors.join(' ')}   (with run_in_background; it blocks until the owner presses Done)`,
+      `uv run walldye review ${survivors.join(' ')}   (with run_in_background; it blocks until the owner presses Apply)`,
       'Confirm with the owner before dropping any rejected piece; commit the folders and wallpapers/index.json (drafts land on main as draft: true).',
     ],
   }
@@ -840,12 +844,12 @@ let lessons = null
 if (A.review === false) {
   log('Review skipped (args.review is false)')
 } else if (built.length) {
-  log(`Review page for ${built.length} drafts: http://127.0.0.1:${REVIEW_PORT}/ (it waits until the owner presses Done, at most 2 hours)`)
-  review = await agent(`Start the owner's review of new wallpaper drafts and wait for it to finish. You are in the walldye repo. \`walldye review\` serves a page on localhost, opens the browser, and blocks until the owner presses Done (at most 2 hours), then prints a JSON summary.
+  log(`Review page for ${built.length} drafts: http://127.0.0.1:${REVIEW_PORT}/ (it waits until the owner presses Apply, at most 2 hours)`)
+  review = await agent(`Start the owner's review of new wallpaper drafts and wait for it to finish. You are in the walldye repo. \`walldye review\` serves a page on localhost, opens the browser, and blocks until the owner presses Apply (at most 2 hours), then prints a JSON summary.
 1. Start it with Bash run_in_background: \`uv run walldye review ${built.join(' ')} --port ${REVIEW_PORT} > ${WORK}/review.out 2>&1\`. The owner was told this port. Only if it fails because the port is taken, start it again with --port 0; the URL it prints is then the one to return.
 2. Wait without ending your turn. Repeat \`timeout 580 tail --pid=$(pgrep -of '[w]alldye review') -f /dev/null; tail -c 6000 ${WORK}/review.out\` with a 600000 ms Bash timeout until the output ends with the JSON summary (it has a "finished" key). Never kill the process: the owner is deciding.
 3. If there is no background Bash, run \`uv run walldye review ${built.join(' ')} --port ${REVIEW_PORT} --timeout 570\` in the foreground instead (600000 ms timeout), and repeat it with \`--no-open\` added until "finished" is true or 2 hours have passed. Decisions persist between runs.
-Return the summary: url (from the first output line), finished, approved, rejected, undecided, notes as [{slug, note}], published, refused and error. If review exits at once (for example "not built: ..."), return finished false with that message as error.`, { label: 'review', phase: 'Review', schema: REVIEWED, effort: 'low' })
+Return the summary: url (from the first output line), finished, approved, rejected, undecided, notes as [{slug, variant, note}], edits as [{slug, variant, field, before, after}], published, refused and error. If review exits at once (for example "not built: ..."), return finished false with that message as error.`, { label: 'review', phase: 'Review', schema: REVIEWED, effort: 'low' })
   if (!review) log('The review agent returned nothing')
 
   if (review && (review.approved.length || review.rejected.length)) {
@@ -853,7 +857,8 @@ Return the summary: url (from the first output line), finished, approved, reject
     const res = await agent(`Turn the owner's review of a wallpaper batch into lessons for the next batch: what kinds of pieces survived, what kinds died, and why. Be specific about subjects, techniques and composition. Write a short plain paragraph or two, no colour names, in the manner of:
 "Kept: instruments and science pieces (radar, oscilloscope, Smith chart), quiet textures with a small accent event (Penrose, hitomezashi), crisp patent-style technical drawings, a few bold graphics. Loves dither, pixel art and glyph art. Rejected: big saturated flat accent masses, clip-art-ish illustrations (single tree, iceberg, snowflake), maximalist low-poly landscapes, busy full-sheet blueprints."
 ${LESSONS}
-REVIEW: ${json({ approved: review.approved, rejected: review.rejected, notes: review.notes ?? [] })}
+The owner may also have rewritten titles, descriptions or facets in the review (edits); say what those rewrites teach about the copy they want.
+REVIEW: ${json({ approved: review.approved, rejected: review.rejected, notes: review.notes ?? [], edits: review.edits ?? [] })}
 PIECES: ${json(reviewed.map(s => ({ slug: s, concept: pieces[s].idea.concept, facets: pieces[s].idea.facets, critic_score: pieces[s].score })))}`, { label: 'lessons', phase: 'Review', schema: LESSONS_OUT, effort: 'low' })
     lessons = res?.lessons ?? null
   }

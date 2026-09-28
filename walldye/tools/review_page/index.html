@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>walldye review</title>
+    <link rel="stylesheet" href="review.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="top">
+        <div class="where">
+          <span id="title" class="title"></span>
+          <span id="version" class="version"></span>
+          <span id="badge" class="badge"></span>
+        </div>
+        <div class="controls">
+          <div id="shapes" class="shapes" role="group" aria-label="Screen shape"></div>
+          <label class="theme">Theme <select id="theme"></select></label>
+        </div>
+        <div class="progress">
+          <span id="count"></span>
+          <button id="keys" type="button" title="Keys (?)">Keys</button>
+          <button id="finish" type="button" class="primary">Done</button>
+        </div>
+      </header>
+      <main id="stage" class="stage">
+        <img id="img" alt="" />
+        <p id="missing" class="missing" hidden>Not built for this shape.</p>
+        <p id="showing" class="showing" hidden></p>
+      </main>
+      <aside id="side" class="side"></aside>
+      <footer class="queue">
+        <div id="squares" class="squares"></div>
+        <p id="toast" class="toast" aria-live="polite"></p>
+      </footer>
+    </div>
+    <section id="summary" class="overlay" hidden></section>
+    <section id="help" class="overlay help" hidden>
+      <div class="sheet">
+        <h2>Keys</h2>
+        <dl>
+          <dt><kbd>←</kbd> <kbd>→</kbd></dt>
+          <dd>Previous and next</dd>
+          <dt><kbd>↑</kbd> <kbd>↓</kbd></dt>
+          <dd>Screen shape</dd>
+          <dt><kbd>T</kbd> <kbd>Shift T</kbd></dt>
+          <dd>Next and previous theme</dd>
+          <dt>Hold <kbd>Space</kbd></dt>
+          <dd>Show the default version instead</dd>
+          <dt><kbd>K</kbd></dt>
+          <dd>Keep, then go to the next undecided</dd>
+          <dt><kbd>X</kbd></dt>
+          <dd>Drop or unpublish, then say why and press <kbd>Enter</kbd></dd>
+          <dt><kbd>U</kbd></dt>
+          <dd>Undo the decision</dd>
+          <dt><kbd>N</kbd></dt>
+          <dd>Write a note</dd>
+          <dt><kbd>F</kbd></dt>
+          <dd>Fill the screen</dd>
+          <dt>Click the picture</dt>
+          <dd>Actual pixels at 2560 wide; move the mouse to look around</dd>
+          <dt><kbd>Esc</kbd></dt>
+          <dd>Back out of any of these</dd>
+        </dl>
+        <button type="button" data-close>Close</button>
+      </div>
+    </section>
+    <script>
+      const CFG = __CONFIG__;
+    </script>
+    <script src="review.js"></script>
+  </body>
+</html>

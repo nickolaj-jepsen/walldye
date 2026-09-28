@@ -75,10 +75,12 @@ flags.
    thumbnail nearly matches yours. Before committing, run `uv run walldye build --verify` over
    all pieces; a `DRIFT` line means a committed render changed and needs a look first.
 10. `uv run walldye review <slug>` with `run_in_background`. It serves a local page, blocks
-    until the owner presses Done, then prints JSON with the approved, rejected (with notes),
-    published and refused slugs, and the same for variants. Act on the notes. Review never
-    edits design.py: remove a rejected variant from design.py and meta.yaml by hand. Confirm
-    with the owner before `uv run walldye drop <slug> --yes` on a reject.
+    until the owner presses Apply, then prints JSON: the approved, rejected and undecided
+    versions, notes, what was published, unpublished or refused, and the owner's own edits to
+    the words and facets (`edits`, `new_facets`; see docs/api.md §14.4). Act on the notes, and
+    read the edits: they show the copy the owner wants. Review never edits design.py: remove a
+    rejected variant from design.py and meta.yaml by hand. Confirm with the owner before
+    `uv run walldye drop <slug> --yes` on a reject; an unpublished piece is not a reject.
 
 ## Geometry rules
 

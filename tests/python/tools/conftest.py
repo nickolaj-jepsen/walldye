@@ -14,9 +14,10 @@ def wallpapers(tmp_path, monkeypatch):
 
 @pytest.fixture
 def review_files(tmp_path, monkeypatch):
-    """Review state and taxonomy.yaml in a scratch repo."""
+    """Review state, taxonomy.yaml and labels.ts in a scratch repo."""
     files = tmp_path / "repo"
     files.mkdir()
     monkeypatch.setattr(review, "STATE_FILE", files / ".walldye-review.json")
+    monkeypatch.setattr(review, "LABELS", files / "labels.ts")
     monkeypatch.setattr(common, "TAXONOMY", files / "taxonomy.yaml")
     return files

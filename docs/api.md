@@ -1073,7 +1073,7 @@ Run as `uv run walldye <command>`; `-h` on any command lists its flags. Commands
 | `render <slug>` | `--theme`, `--aspect`, `--crop`, `--variant`, `--set`, `-o PATH` (or `-o -` for stdout); the default output is `./<slug>[--<variant>]-<token>-<aspect>[-crop].svg`, never into `build/` |
 | `check [<slug>... \| --all]` | `--variant NAME` (default: all variants), `--jobs N`, `--paranoid`, `--similar`. Runs the steps in design.md (`walldye check`), including ruff and Pyrefly on the design files (§15), and warns for each named variant value outside its knob's soft range. The sibling rule compares only pairs with a fresh side, ink maps measured from each template's own background: with `--variant`, that variant's fresh 16:9 dark template with the committed `16x9.svg` of each other variant, skipping, with a note, those that have none yet, as `--similar` does |
 | `build [<slug>... \| --all]` | `--variant NAME` (default: all), `--jobs N`, `--force` (rebuild even when slots.json is current), `--verify` (re-render every variant's committed templates and diff, writing nothing). `--set` is refused with `error: --set is for exploring; give the values a named variant in design.py` |
-| `review [<slug>...]` | `--port`, `--timeout` (default 7200 s), `--no-open`. Serves a localhost page and blocks until Done, then prints JSON with the decisions. A strip of native aspects and one of variants per card; approving sets `draft: false` in meta.yaml, per piece and per variant, and regenerates index.json. Review never edits design.py |
+| `review [<slug>... \| --all]` | `--port`, `--timeout` (default 7200 s), `--no-open`. Serves a localhost page that goes through the versions one at a time and blocks until Apply, then prints JSON (§14.4). Review never edits design.py |
 | `sheet [<slug>... \| --all]` | `--theme`, `--aspect`, `--variant`, `--set`, `--wedge k=SPEC` (repeatable), `--seeds A..B`, `--cols`, `--thumb`, `-o PATH` |
 | `params <slug>` | the params schema and the variants; `--json` for scripts |
 | `list` | slug, title, description, draft, native aspects and named variants (comma-joined, empty when none), tab-separated |
@@ -1104,6 +1104,21 @@ def draw(s: Canvas) -> None:
 ```
 
 It passes ruff and Pyrefly as written.
+
+### 14.4 `walldye review`
+
+The queue has one step per version. Without slugs it holds the unpublished versions of every piece, with slugs every version of those pieces in the order given, and with `--all` every version, unpublished ones first; a piece's versions keep meta.yaml order. A version is published when its piece is not `draft: true` and, for a named variant, its entry is not either.
+
+A step shows its version in any preset theme and any built aspect, recoloured the way `sheet` does it, with the default version on a held key for comparison, a fullscreen view and a 1:1 zoom (a 16:9 piece 2560 px wide). The sidebar decides the step and edits the piece's title, description, notes and facets and the version's label and description. Proposed facets are accepted or declined there, and a facet value that taxonomy.yaml lacks needs a label, the words visitors read. `lint.meta` runs on the edited meta.yaml as it changes.
+
+Decisions and edits are saved to the gitignored `.walldye-review.json` as they are made, so a review resumes at the first undecided step: `{slug: {versions: {name: {status: keep|drop, note}}, edits: {title, description, notes, technique, subject, lineage, variants: {name: {label, description}}}, facets: {facet: {value: accept|decline}}, labels: {facet: {value: label}}}}`. Only Apply, after a summary of what it will write, changes the repo:
+
+- Keep on an unpublished version sets `draft: false`, on the piece for the default version and on its `variants:` entry for a named one. Drop on a published version sets `draft: true`, which for the default hides the whole piece. Drop on an unpublished version writes nothing, and the named versions of a dropped unpublished piece are not asked about.
+- Edits and facet decisions go to meta.yaml. A new facet value is appended to taxonomy.yaml and its label to `FACET_LABELS` in `src/lib/labels.ts`. index.json is rewritten.
+- A piece is refused, and nothing of it written, when an edit adds a lint error, a new facet value has no label, or it would be published with proposed facets undecided.
+- Afterwards each written piece keeps only its decisions and notes in the state file, and an unpublished version loses its status, so the next review asks about it again.
+
+The JSON printed at the end has `approved`, `rejected` (`[{slug, note}]`) and `undecided` over the unpublished default versions, `variants` with the same three over the unpublished named ones (`[{slug, variant, note?}]`), and `notes` (`[{slug, variant, note}]`) over every step. Then what Apply wrote: `published`, `published_variants` and `unpublished` (`[{slug, variant}]`), `refused` (`[{slug, reason}]`), `edits` (`[{slug, variant, field, before, after}]`) and `new_facets` (`[{facet, value, label}]`). `finished` is false after a timeout or an `error`. An unpublished piece is never a reason to delete it; `drop` stays a separate step the owner confirms.
 
 ## 15. Lint, typing and formatting
 
