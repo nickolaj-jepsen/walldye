@@ -29,3 +29,8 @@ SPDX-License-Identifier = "LicenseRef-fan-work"
 path = "wallpapers/racing-friction-circle/data/*.npy"
 SPDX-FileCopyrightText = "Formula One World Championship Limited (timing data, read with FastF1)"
 SPDX-License-Identifier = "LicenseRef-fan-work"
+
+[[annotations]]
+path = "wallpapers/racing-mille-miglia/data/route.json"
+SPDX-FileCopyrightText = "OpenStreetMap contributors"
+SPDX-License-Identifier = "ODbL-1.0"
