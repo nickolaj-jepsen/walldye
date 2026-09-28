@@ -1,0 +1,29 @@
+title: Drag racing tree
+description: A drag strip's starting lights in pixel LEDs at a handicap start. One lane's go lamp is lit, and the other lane's staging bulbs are still on.
+notes: |
+  Drag racers call the starting lights the Christmas tree. Each lane has its own column: a pair of small pre-stage bulbs over a pair of stage bulbs, then three countdown lamps, the go lamp and the foul lamp. Trees label the pairs Pre-Stage and Stage, though at NHRA's national events a split ring of small lamps replaced them in 2011.
+
+  In bracket racing each driver predicts a time for the run, and the slower car gets its go lamp earlier by the difference. Here that car has just pulled out of the staging beams, and its staging bulbs have gone out. The faster car still sits staged, waiting for its countdown.
+technique: [pixel]
+subject: [sport]
+lineage: []
+sources:
+  - kind: reference
+    topic: Christmas tree (drag racing)
+    url: https://en.wikipedia.org/wiki/Christmas_tree_(drag_racing)
+  - kind: reference
+    title: Happy Birthday, Christmas Tree
+    author: Phil Burgess
+    year: 2013
+    url: https://www.nhra.com/news/2013/happy-birthday-christmas-tree
+  - kind: reference
+    title: NHRA 101
+    author: NHRA
+    url: https://www.nhra.com/nhra-101
+  - kind: reference
+    topic: Bracket racing
+    url: https://en.wikipedia.org/wiki/Bracket_racing
+added: 2026-09-28
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}
