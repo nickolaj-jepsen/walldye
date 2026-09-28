@@ -1,0 +1,45 @@
+name: Python
+
+# pytest and Pyrefly, for changes to the library, its tests, the designs or the environment.
+on:
+  push:
+    branches: [main]
+    paths: &python
+      - 'walldye/**'
+      - 'tests/python/**'
+      - 'wallpapers/*/design.py'
+      - 'wallpapers/pyrefly.toml'
+      - '.claude/skills/walldye/SKILL.md'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.python-version'
+      - '.github/workflows/python.yml'
+  pull_request:
+    paths: *python
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: python-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Pyrefly, the library at the strictest preset
+        run: uv run pyrefly check
+      - name: Pyrefly, the designs at the design level
+        run: uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py
+      - run: uv run pytest
