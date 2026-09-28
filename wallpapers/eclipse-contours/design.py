@@ -1,15 +1,14 @@
-"""Contour lines of an fBm noise field, traced by marching squares and clipped to a disc inside two rings."""
+"""Noise contour lines confined to a disc inside two rings: an fBm field traced by marching squares and clipped."""
 
 import numpy as np
 from numpy.typing import NDArray
 
-from walldye import ACCENT, ACCENT_4, BG, UI, Canvas, P, Vec, design, ladder
+from walldye import ACCENT, ACCENT_4, BG, UI, Canvas, P, design, ladder
 from walldye.field import iso_lines, sample_field
 
-R, CELL = 330, 6  # disc radius; field lattice spacing
-# The noise-plane point under the disc centre. The lattice sits on multiples of CELL in that
-# plane, so the 16:9 render samples the same field the 1920-wide original did.
-PLANET = Vec(1240, 540)
+R, CELL = 330, 6  # disc radius; field sample spacing
+SPAN = 420  # px per noise unit
+AT = (1240 / SPAN, 540 / SPAN)  # the noise-plane point under the disc centre
 LEVELS = [-0.3 + k * 0.035 for k in range(18)]
 # one tone per level, skipping the near-background end of the ladder so every line reads
 TONES = ladder((BG, ACCENT_4, ACCENT), len(LEVELS) + 4)[4:]
@@ -17,22 +16,22 @@ TONES = ladder((BG, ACCENT_4, ACCENT), len(LEVELS) + 4)[4:]
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # about 0.65 along the long axis (clear of left-side windows), below the clock on a phone
-    c = s.pick(landscape=(PLANET.x / 1920, 0.5), portrait=(0.5, 0.6))
+    # about 0.65 along the long axis (clear of the left-side windows on a desktop, below the
+    # clock on a phone), centred on the short axis
+    c = s.pick(landscape=(0.646, 0.5), portrait=(0.5, 0.6))
     noise = s.noise(7)
-    # sample only the disc's box plus two cells, so every aspect shows the same planet
-    reach = R + 2 * CELL
-    x0, y0 = (PLANET.x - reach) // CELL * CELL, (PLANET.y - reach) // CELL * CELL
-    n = int(np.ceil((PLANET.x + reach - x0) / CELL))
+    # Sample only the disc's bounding box, relative to its centre, so every aspect shows the
+    # same planet.
+    half = int(np.ceil((R + 2 * CELL) / CELL))
 
     def height(i: NDArray[np.int64], j: NDArray[np.int64]) -> NDArray[np.float64]:
-        x, y = x0 + i * CELL, y0 + j * CELL
-        d = np.hypot(x - PLANET.x, y - PLANET.y) / R
-        # past 0.85 R the field falls away, bunching the lines against the rim like a limb
-        return noise.fbm(x / 420, y / 420, 4) - 0.9 * np.maximum(0.0, d - 0.85)
+        dx, dy = (i - half) * CELL, (j - half) * CELL
+        d = np.hypot(dx, dy) / R
+        # the negative falloff past 0.85 R bunches the lines against the rim, like a limb
+        return noise.fbm(AT[0] + dx / SPAN, AT[1] + dy / SPAN, 4) - 0.9 * np.maximum(0.0, d - 0.85)
 
-    field = sample_field(height, n, n)
-    origin = c - PLANET + (x0, y0)
+    field = sample_field(height, 2 * half, 2 * half)
+    origin = c - (half * CELL, half * CELL)
     with s.clip() as disc:
         disc.add(P().circle(c, R))
     with (

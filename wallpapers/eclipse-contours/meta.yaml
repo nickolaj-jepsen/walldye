@@ -1,5 +1,5 @@
 title: Eclipse contours
-description: Contours of a noise field crowd at a disc's rim like a planet's edge. One thick ring and one thin enclose it.
+description: Inside a heavy ring, noise contours bunch where a disc's surface drops away. A faint ring sits outside.
 technique: [field]
 subject: [space]
 lineage: []
@@ -7,6 +7,10 @@ sources:
   - kind: reference
     title: Marching squares
     url: https://en.wikipedia.org/wiki/Marching_squares
+  - kind: reference
+    title: FBM
+    author: Inigo Quilez
+    url: https://iquilezles.org/articles/fbm/
 added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true

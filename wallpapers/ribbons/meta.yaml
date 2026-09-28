@@ -1,7 +1,7 @@
 title: Ribbons
-description: Ribbons of mixed widths trace a flow field without touching, a school of five picked out high on the right.
+description: Mostly edge to edge, ribbons of mixed widths follow a flow field without touching. Five high on the right are lit.
 notes: |
-  The layout follows Tyler Hobbs's *Fidenza*. Each ribbon is a streamline of a Perlin noise field, grown both ways from a starting point until it comes within a fixed gap of a neighbour or leaves the frame. The school is laid first and the ribbons that start near the middle next, so most run edge to edge. Towards the left edge the field turns less, and the current enters almost level.
+  The method comes from Tyler Hobbs's *Fidenza*. Each ribbon is a streamline of a Perlin noise field, grown both ways from its starting point until it comes within a set gap of a neighbour. The school is laid first with a wider gap around it, then the ribbons that start near the middle, so most cross the whole frame. Towards the left edge the field turns less and the current enters almost level. On narrow screens the school shortens and moves inwards so both of its ragged ends stay in view.
 technique: [field]
 subject: []
 lineage: [creative-coding]
@@ -21,3 +21,4 @@ author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
 draft: false
+proposed_facets: {}
