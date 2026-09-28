@@ -1,0 +1,21 @@
+title: Main bus split-off
+description: Eight Factorio belts in plan view. A splitter sends half of one up a lit branch to a gear assembler.
+notes: |
+  The bus follows the recommended spacing of two free tiles for every group of four belts, which leaves room for underground belts to surface and for other lines to cross.
+technique: [drafting]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: "Tutorial:Main bus"
+    author: Factorio Wiki
+    url: https://wiki.factorio.com/Tutorial:Main_bus
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Factorio
+  owner: Wube Software
+draft: false

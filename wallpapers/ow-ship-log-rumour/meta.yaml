@@ -1,0 +1,26 @@
+title: Ship log, rumour mode
+description: 'The Outer Wilds ship log in rumour mode: dithered photos on explored cards, question marks on the rest.'
+notes: |
+  Card positions and links follow the game's own rumour-mode layout for this stretch of the log. Each photo is the game's small card image, resampled and ordered-dithered into square cells.
+technique: [instrument]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: Outer Wilds
+    author: Mobius Digital
+    year: 2019
+    url: https://en.wikipedia.org/wiki/Outer_Wilds
+  - kind: reference
+    title: Ship Log
+    author: Outer Wilds New Horizons
+    url: https://nh.outerwildsmods.com/guides/ship-log/
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Outer Wilds
+  owner: Mobius Digital
+draft: false

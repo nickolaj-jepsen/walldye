@@ -1,0 +1,31 @@
+title: E1M1 BSP splits
+description: Quake's Slipgate Complex cut by nine levels of BSP split planes, beside a lit node path to the exit leaf.
+notes: |
+  John Romero built E1M1 for *Quake* in 1996. This plan comes from the map source he released in 2006, compiled with ericw-tools. Lines mark the vertical split planes near the root of the BSP tree, the top two levels standing out more. Dashes fill the canal and a sparse dot screen fills the slime. North points right, or up on a tall screen.
+
+  The column at the side is the path through the tree from its root to the leaf holding the level exit. Each stub is the branch not taken and ends in a square for solid space, a ring for an empty leaf or a dot for a further split. Diamonds mark splits on angled planes.
+technique: [line, drafting]
+subject: [games, maps]
+lineage: [fan-work]
+sources:
+  - kind: data
+    title: Quake map sources
+    author: John Romero
+    year: 2006
+    url: https://rome.ro/news/2016/2/14/quake-map-sources-released
+  - kind: reference
+    title: 'E1M1: The Slipgate Complex'
+    url: https://quakewiki.org/wiki/e1m1
+  - kind: reference
+    title: ericw-tools
+    author: Eric Wasylishen
+    url: https://github.com/ericwa/ericw-tools
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Quake
+  owner: id Software
+draft: false

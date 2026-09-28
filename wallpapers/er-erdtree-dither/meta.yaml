@@ -1,0 +1,29 @@
+title: Erdtree over Limgrave
+description: The Erdtree over Limgrave in dithered cells, its twisted trunk lit from within. Stormveil and a ruined aqueduct stand in the mist.
+notes: |
+  The scene follows the view of the Erdtree across Limgrave in *Elden Ring*, with Stormveil Castle on its cliff to the west, a ruined aqueduct in between and a crowned tower before the trunk. The castle and ruins are placed by hand; the strands of the crown grow at random from the fork of the trunk.
+technique: [dither]
+subject: [games, landscape]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Erdtree
+    author: Eldenpedia
+    url: https://eldenring.wiki.gg/wiki/Erdtree
+  - kind: reference
+    title: Limgrave
+    author: Eldenpedia
+    url: https://eldenring.wiki.gg/wiki/Limgrave
+  - kind: reference
+    title: Stormveil Castle
+    author: Eldenpedia
+    url: https://eldenring.wiki.gg/wiki/Stormveil_Castle
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Elden Ring
+  owner: FromSoftware
+draft: false

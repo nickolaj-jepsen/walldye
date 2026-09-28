@@ -1,0 +1,32 @@
+title: Supernova front
+description: A dithered supernova front sweeps an Outer Wilds orbit chart, leaving the Hourglass Twins and Timber Hearth as empty outlines.
+notes: |
+  Orbit radii, moon orbits and body sizes come from the game's own data, with the bodies drawn smaller so they stay visible as dots. Where each planet sits on its orbit is a free choice.
+technique: [dither]
+subject: [games, space]
+lineage: [fan-work]
+sources:
+  - kind: data
+    title: OW_CommonResources Planet.cs
+    author: PacificEngine
+    url: https://github.com/PacificEngine/OW_CommonResources/blob/master/Game/State/Planet.cs
+  - kind: inspiration
+    title: Outer Wilds
+    author: Mobius Digital
+    year: 2019
+    url: https://en.wikipedia.org/wiki/Outer_Wilds
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Outer Wilds
+  owner: Mobius Digital
+draft: false
+variants:
+  default: {label: Past Timber Hearth}
+  early:
+    label: Past the Twins
+    description: Moments into the supernova, the dithered front has just passed the Hourglass Twins, and Timber Hearth is still whole.
+    draft: true

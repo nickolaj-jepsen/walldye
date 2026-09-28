@@ -1,0 +1,31 @@
+title: Square sunset
+description: The square Minecraft sun sets behind stepped hills and one oak, its halo dithered under flat clouds.
+notes: |
+  In *Minecraft* the sun and the moon are flat square textures on opposite sides of the sky, so as the sun sets in the west the moon comes up in the east. The hills are four ridges of whole blocks, one behind the other, and the oak stands side-on on a small plateau of the second ridge from the back.
+technique: [pixel, dither]
+subject: [games, landscape]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Sun
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Sun
+  - kind: reference
+    title: Moon
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Moon
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Minecraft
+  owner: Mojang Studios
+draft: false
+variants:
+  default: {label: Sunset}
+  moonrise:
+    label: Moonrise
+    description: Night over stepped block hills, with the square Minecraft moon risen on the left and stars across the sky.
+    draft: true

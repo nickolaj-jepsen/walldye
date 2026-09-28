@@ -1,0 +1,31 @@
+title: Open-wheeler elevation
+description: A 2022-era Formula 1 car dimensioned in side elevation, with a detail cut through its rear wing.
+notes: |
+  The body follows side-on photos of the Ferrari F1-75 and the Mercedes W13, two of the first cars built to the 2022 rules, which brought ground effect back to Formula 1 along with 18-inch wheels. Every wing element is a NACA four-digit section, turned upside down so it presses the car onto the track. Dimensions are in millimetres, and the streamlines in detail A are sketched rather than simulated.
+technique: [drafting]
+subject: [sport, machines]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: reference
+    title: 2022 Formula 1 Technical Regulations
+    author: FIA
+    year: 2022
+    url: https://www.fia.com/sites/default/files/fia_2022_formula_1_technical_regulations_-_issue_13_-_2022-08-16.pdf
+  - kind: reference
+    title: Ferrari F1-75
+    url: https://en.wikipedia.org/wiki/Ferrari_F1-75
+  - kind: reference
+    title: Mercedes-AMG F1 W13 E Performance
+    url: https://en.wikipedia.org/wiki/Mercedes-AMG_F1_W13_E_Performance
+  - kind: reference
+    title: NACA airfoil
+    url: https://en.wikipedia.org/wiki/NACA_airfoil
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Formula 1
+  owner: Formula One Group
+draft: false

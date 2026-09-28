@@ -1,0 +1,24 @@
+title: Spa mini-sectors
+description: Spa-Francorchamps in square dots, cut into 24 mini-sectors, with the fastest run from Eau Rouge to Les Combes lit.
+notes: |
+  Formula 1 live timing splits each lap into three sectors and those into mini-sectors, and lights up the fastest time through each. The centreline comes from the TUMFTM racetrack database. The lap and its sector times are made up, though they add up.
+technique: [glyph, instrument]
+subject: [sport, maps]
+lineage: [fan-work]
+sources:
+  - kind: data
+    title: racetrack-database
+    author: TUMFTM
+    url: https://github.com/TUMFTM/racetrack-database
+  - kind: reference
+    title: Circuit de Spa-Francorchamps
+    url: https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Formula 1
+  owner: Formula One Group
+draft: false

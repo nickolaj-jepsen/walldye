@@ -1,0 +1,36 @@
+title: Starfall patent sheet
+description: 'Two patent figures: Radahn''s greatsword with field lines for its gravity crest, and a crater under a filled-in falling star.'
+notes: |
+  Figure 1 follows the Starscourge Greatsword from *Elden Ring*: a curved blade, a crossguard of curling scrolls, and the gravity crest Radahn engraved on it, drawn as a dipole field with a web fanning from each end.
+
+  Figure 2 is a section through the crater that opens near Fort Haight in Limgrave once Radahn is defeated, with west on the left. The numbers mark the nucleus, a field loop, the tip-side web, the crossguard, the star, rubble held up over the bowl and a waterfall down the terraces.
+technique: [drafting]
+subject: [games]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: reference
+    title: Starscourge Greatsword
+    author: Eldenpedia
+    url: https://eldenring.wiki.gg/wiki/Starscourge_Greatsword
+  - kind: reference
+    title: Starscourge Radahn
+    author: Eldenpedia
+    url: https://eldenring.wiki.gg/wiki/Starscourge_Radahn
+  - kind: reference
+    title: Nokron, Eternal City
+    author: Eldenpedia
+    url: https://eldenring.wiki.gg/wiki/Nokron,_Eternal_City
+  - kind: reference
+    title: Elden Ring
+    author: FromSoftware
+    year: 2022
+    url: https://en.wikipedia.org/wiki/Elden_Ring
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Elden Ring
+  owner: FromSoftware
+draft: false

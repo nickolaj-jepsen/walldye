@@ -1,0 +1,27 @@
+title: Pollution cloud
+description: Pollution from a small Factorio smelting base spreads in chunk-sized steps and has reached two of three biter nests.
+notes: |
+  Factorio tracks pollution per chunk of 32 by 32 tiles and spreads it to neighbouring chunks. Trees soak some of it up, and biter spawners that absorb it send attacks.
+technique: [simulation]
+subject: [games, maps]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Pollution
+    author: Factorio Wiki
+    url: https://wiki.factorio.com/Pollution
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Factorio
+  owner: Wube Software
+draft: false
+variants:
+  default: {label: Two nests reached}
+  later:
+    label: All three reached
+    description: Later on, a Factorio base's pollution has spread in chunk-sized steps to all three biter nests.
+    draft: true

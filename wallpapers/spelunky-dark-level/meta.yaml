@@ -1,0 +1,30 @@
+title: Spelunky dark level
+description: One wall torch lights a Spelunky level in pixel art, showing only the blocks, ladder and back wall inside its dithered circle.
+notes: |
+  The two rooms follow layouts from the Mines room generator in the *Spelunky Classic* source, with each chance block settled: a main room on the left, and a side room with a high wall and a ladder on the right. The torch is drawn after the wall torch in *Spelunky 2*.
+technique: [pixel, dither]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: inspiration
+    title: Spelunky
+    author: Derek Yu
+    year: 2008
+    url: https://en.wikipedia.org/wiki/Spelunky
+  - kind: reference
+    title: scrRoomGen, from the Spelunky Classic source
+    author: Derek Yu
+    url: https://github.com/yancharkin/SpelunkyClassicHD/blob/master/scripts/scrRoomGen/scrRoomGen.gml
+  - kind: reference
+    title: Spelunky Generator Lessons
+    author: Darius Kazemi
+    url: https://tinysubversions.com/spelunkyGen/
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Spelunky
+  owner: Mossmouth
+draft: false

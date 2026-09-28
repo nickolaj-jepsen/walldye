@@ -1,0 +1,34 @@
+title: Spire card patent sheet
+description: Slay the Spire's three card frames as patent figures, the attack card's energy orb filled in.
+notes: |
+  The frames follow the Ironclad's Bash, Defend and Inflame cards from *Slay the Spire*. Each card type has its own portrait: a shield point for attacks, a rounded rectangle for skills and an oval for powers.
+technique: [drafting]
+subject: [games]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: reference
+    title: Bash
+    author: Slay the Spire Wiki
+    url: https://slaythespire.wiki.gg/wiki/Bash
+  - kind: reference
+    title: Defend (Ironclad)
+    author: Slay the Spire Wiki
+    url: https://slaythespire.wiki.gg/wiki/Defend_(Ironclad)
+  - kind: reference
+    title: Inflame
+    author: Slay the Spire Wiki
+    url: https://slaythespire.wiki.gg/wiki/Inflame
+  - kind: reference
+    title: Slay the Spire
+    author: Mega Crit
+    year: 2019
+    url: https://en.wikipedia.org/wiki/Slay_the_Spire
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Slay the Spire
+  owner: Mega Crit
+draft: false

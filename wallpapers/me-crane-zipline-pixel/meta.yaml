@@ -1,0 +1,22 @@
+title: Zipline over the rooftops
+description: In coarse pixels, Faith from Mirror's Edge rides a zipline between rooftops while a tower crane lifts a beam.
+notes: |
+  In *Mirror's Edge* the objects a runner can use light up as Faith nears them, so a route reads at a glance. Here the cable is lit that way, and the crane's jib and load carry a fainter trace of it.
+technique: [pixel]
+subject: [games, architecture]
+lineage: [fan-work]
+sources:
+  - kind: inspiration
+    title: Mirror's Edge
+    author: DICE
+    year: 2008
+    url: https://en.wikipedia.org/wiki/Mirror%27s_Edge
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Mirror's Edge
+  owner: Electronic Arts
+draft: false

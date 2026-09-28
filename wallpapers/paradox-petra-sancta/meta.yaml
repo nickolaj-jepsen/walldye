@@ -1,0 +1,38 @@
+title: De Clare arms, hatched
+description: The de Clare arms hatched in Petra Sancta's system on a compass-built shield, beside a key to all seven tinctures.
+notes: |
+  Silvester Petra Sancta's *Tesserae gentilitiae* (1638) gave each heraldic tincture a texture, so arms could be engraved in a single ink. Here the field is the metal or, drawn as dots, and the chevronels are gules, drawn as upright lines. The key beside the shield runs through all seven tinctures in his order, metals first.
+
+  The shield is the classic heater: each side of its base is an arc centred on the opposite flank, with the shield's width as its radius. The chevronels follow the proportions of the Clare blazon on Wikimedia Commons. The de Clare earls of Hertford bore these arms, and *Crusader Kings* gives its dynasties coats of arms taken from medieval heraldry.
+technique: [drafting, stipple]
+subject: [games]
+lineage: [scientific-illustration, fan-work]
+sources:
+  - kind: reference
+    title: Tesserae gentilitiae
+    author: Silvester Petra Sancta
+    year: 1638
+  - kind: reference
+    title: Hatching (heraldry)
+    url: https://en.wikipedia.org/wiki/Hatching_(heraldry)
+  - kind: reference
+    title: Blazon of the Clare family
+    author: Jaspe
+    year: 2007
+    url: https://commons.wikimedia.org/wiki/File:Clare_Blazon.svg
+  - kind: reference
+    title: De Clare
+    url: https://en.wikipedia.org/wiki/De_Clare
+  - kind: reference
+    title: Coat of arms
+    author: Crusader Kings III Wiki
+    url: https://ck3.paradoxwikis.com/Coat_of_arms
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Crusader Kings
+  owner: Paradox Interactive
+draft: false

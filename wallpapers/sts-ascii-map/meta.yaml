@@ -1,0 +1,29 @@
+title: Spire map log
+description: Slay the Spire's first act logged in text, rooms as letters and paths as slashes. One route is lit to the treasure.
+notes: |
+  When *Slay the Spire* builds an act, it writes the map to its log as plain text: floor numbers down the left, one letter per room, and slashes and bars for the paths between floors. This map comes from the game's own generation rules, quirks included, and the lit route runs from a starting fight to the treasure rooms halfway up.
+technique: [glyph]
+subject: [games, maps]
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: Slay the Spire
+    author: Mega Crit
+    year: 2019
+    url: https://en.wikipedia.org/wiki/Slay_the_Spire
+  - kind: reference
+    title: sts_lightspeed map generator
+    author: gamerpuppy
+    url: https://github.com/gamerpuppy/sts_lightspeed/blob/master/src/game/Map.cpp
+  - kind: reference
+    title: Map Locations
+    url: https://slaythespire.wiki.gg/wiki/Map_Locations
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Slay the Spire
+  owner: Mega Crit
+draft: false

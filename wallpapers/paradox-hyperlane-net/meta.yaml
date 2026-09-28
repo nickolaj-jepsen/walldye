@@ -1,0 +1,26 @@
+title: Stellaris galaxy map
+description: Hyperlanes join the stars of a two-armed Stellaris galaxy around an empty core. One young empire is filled in.
+notes: |
+  Systems sit at an even spacing and thin out between the two arms. The lanes start as the shortest network that reaches every system, then gain a share of short loops, so the map keeps both choke points and detours.
+technique: [line]
+subject: [games, space]
+lineage: [fan-work]
+sources:
+  - kind: inspiration
+    title: Stellaris
+    author: Paradox Development Studio
+    year: 2016
+    url: https://en.wikipedia.org/wiki/Stellaris_(video_game)
+  - kind: reference
+    title: Galaxy settings
+    author: Stellaris Wiki
+    url: https://stellaris.paradoxwikis.com/Galaxy
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Stellaris
+  owner: Paradox Interactive
+draft: false

@@ -1,0 +1,26 @@
+title: Corrupt Heart over the Spire
+description: The Corrupt Heart hangs in pixel art over the Spire, which rises in dither through three cloud wedges.
+notes: |
+  The tower follows the Spire on the main menu of *Slay the Spire*, with its fins, notched flanks and horned summit placed by hand. The Corrupt Heart, the boss waiting at the top in the fourth act, is traced from its sprite on the Slay the Spire Wiki.
+technique: [dither]
+subject: [games, architecture]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Slay the Spire
+    author: Mega Crit
+    year: 2019
+    url: https://megacrit.com/games/
+  - kind: reference
+    title: Corrupt Heart
+    author: Slay the Spire Wiki
+    url: https://slaythespire.wiki.gg/wiki/Corrupt_Heart
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Slay the Spire
+  owner: Mega Crit
+draft: false

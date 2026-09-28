@@ -1,0 +1,21 @@
+title: Teleporter charge
+description: A Risk of Rain 2 teleporter charges on a dithered night plain inside a dome of dots. The objective reads 73%.
+notes: |
+  In *Risk of Rain 2*, starting the teleporter raises a translucent dome about 120 metres across, and players must hold out inside it while the charge climbs to 100%. The objective panel in the top right corner counts the charge.
+technique: [dither, pixel]
+subject: [games, landscape]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Teleporter
+    author: Risk of Rain 2 Wiki
+    url: https://riskofrain2.wiki.gg/wiki/Teleporter
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Risk of Rain 2
+  owner: Gearbox Software
+draft: false

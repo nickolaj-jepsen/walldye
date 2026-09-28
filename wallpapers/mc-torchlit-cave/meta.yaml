@@ -1,0 +1,34 @@
+title: Torchlit cave
+description: One torch lights a Minecraft cave in cross-section, the air a level dimmer per block.
+notes: |
+  In *Minecraft*, block light spreads by flood fill: a torch gives level 14, and every block of air it crosses takes one level off. Open cells show the back wall a block deeper, in its own shadow. The rock is deepslate with three blocks of redstone ore, drawn pixel by pixel after the game's textures.
+technique: [pixel, simulation]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: inspiration
+    title: Minecraft
+    author: Mojang Studios
+    year: 2011
+    url: https://en.wikipedia.org/wiki/Minecraft
+  - kind: reference
+    title: Light
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Light
+  - kind: reference
+    title: Deepslate
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Deepslate
+  - kind: reference
+    title: Redstone Ore
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Redstone_Ore
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Minecraft
+  owner: Mojang Studios
+draft: false

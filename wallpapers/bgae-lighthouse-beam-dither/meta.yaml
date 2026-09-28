@@ -1,0 +1,22 @@
+title: Jade's lighthouse
+description: Jade's lighthouse off Hillys at night, in dithered cells. Its rays fan out, and the reflection breaks up on the sea.
+notes: |
+  In *Beyond Good & Evil*, Jade runs this island lighthouse as a home for children orphaned by the DomZ attacks. The mainland rises on the horizon, and two far beacons stand in the sea at either side.
+technique: [dither]
+subject: [games, architecture]
+lineage: [fan-work]
+sources:
+  - kind: inspiration
+    title: Beyond Good & Evil
+    author: Ubisoft Montpellier
+    year: 2003
+    url: https://en.wikipedia.org/wiki/Beyond_Good_%26_Evil_(video_game)
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Beyond Good & Evil
+  owner: Ubisoft
+draft: false

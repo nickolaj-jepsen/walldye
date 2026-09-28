@@ -1,0 +1,22 @@
+title: Runner vision
+description: A dithered rooftop in one-point perspective. Runner vision lights the route across the gap to a stairwell door.
+notes: |
+  In *Mirror's Edge*, runner vision gives the objects along Faith's path a bold colour as she nears them, so an escape route across the rooftops shows at a glance. Behind the route, banded towers and a tower crane fade into dithered haze.
+technique: [dither]
+subject: [games, architecture]
+lineage: [fan-work]
+sources:
+  - kind: inspiration
+    title: Mirror's Edge
+    author: DICE
+    year: 2008
+    url: https://en.wikipedia.org/wiki/Mirror%27s_Edge
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Mirror's Edge
+  owner: Electronic Arts
+draft: false

@@ -1,0 +1,26 @@
+title: Dust II radar
+description: 'Dust II from Counter-Strike 2 as a thin-lined radar: four defenders on long A, the planted bomb ringed on B.'
+notes: |
+  David Johnston designed Dust II for *Counter-Strike* 1.1 in 2001. This outline follows the radar image in *Counter-Strike 2*: hatching marks the two bomb sites, dashed boxes the spawns, and each player's pointer shows the way they face.
+technique: [drafting]
+subject: [games, maps]
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: de_dust2 radar overview
+    author: Valve
+    url: https://github.com/MurkyYT/cs2-map-icons
+  - kind: reference
+    title: Dust II
+    author: David Johnston
+    year: 2001
+    url: https://en.wikipedia.org/wiki/Dust_II
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Counter-Strike 2
+  owner: Valve
+draft: false

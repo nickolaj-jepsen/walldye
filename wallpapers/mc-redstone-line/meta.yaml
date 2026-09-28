@@ -1,0 +1,29 @@
+title: Redstone line
+description: A Minecraft redstone line from above, fading a step per block from the lever through a repeater to zero at the lamp.
+notes: |
+  Redstone dust loses one level of power for every block it crosses, from 15 at the lever down to 0. The repeater sends the signal on at full strength, but the second run ends at 0 on the block before the lamp, so the lamp stays unlit. The lever, repeater and lamp follow the game's block models, and the two numbers mark the first and last levels.
+technique: [drafting, pixel]
+subject: [games]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: reference
+    title: Redstone Dust
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Redstone_Dust
+  - kind: reference
+    title: Redstone Repeater
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Redstone_Repeater
+  - kind: reference
+    title: Redstone Lamp
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Redstone_Lamp
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Minecraft
+  owner: Mojang Studios
+draft: false

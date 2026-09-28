@@ -1,0 +1,25 @@
+title: Spelunky idol room
+description: Two cave rooms from the first Spelunky, traced pixel for pixel. A tiki statue stands over the idol, a rope beside it.
+notes: |
+  *Spelunky* assembles each level from a grid of rooms, picking every room's layout at random from a short list. The idol room is on the right and a room of ledges on the left, with every sprite copied from the game's source.
+technique: [pixel]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: Spelunky
+    author: Derek Yu
+    year: 2008
+    url: https://en.wikipedia.org/wiki/Spelunky
+  - kind: data
+    title: Spelunky Classic HD
+    url: https://github.com/yancharkin/SpelunkyClassicHD
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Spelunky
+  owner: Mossmouth
+draft: false

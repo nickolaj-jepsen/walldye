@@ -1,0 +1,24 @@
+title: Rocket jump patent sheet
+description: 'A patent sheet for Quake''s rocket jump: the player''s box blasted along a ticked arc onto a ledge.'
+notes: |
+  The flight is worked out from the game's QuakeC source and engine. The player is the collision box, 32 units wide and 56 tall, jumping at a run while aiming 80 degrees down, as far as the view goes. The rocket bursts on the floor about 0.03 seconds later. Its splash does 120 damage less half the distance, halved for the shooter, and each point of damage adds 8 units a second of push. Figure 2 adds that push to the running jump as vectors: 402 and 407 units a second combine into 743, enough to land on a ledge 220 units up.
+technique: [drafting]
+subject: [games, physics]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: data
+    title: QuakeC v1.01 source
+    author: id Software
+    url: https://github.com/id-Software/Quake-Tools/tree/master/qcc/v101qc
+  - kind: reference
+    title: Rocket jumping
+    url: https://en.wikipedia.org/wiki/Rocket_jumping
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Quake
+  owner: id Software
+draft: false

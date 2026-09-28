@@ -1,0 +1,25 @@
+title: Spelunky room grid
+description: Spelunky Classic's first level drafted as sixteen generated rooms, a lit route dropping from entrance to exit.
+notes: |
+  Derek Yu's generator for *Spelunky Classic* first walks a path down a four by four grid of rooms and marks each room on it as open to the sides, below or above. The numerals and the legend beside the plan give those types, with 0 for rooms off the path. Each room is then filled from one of the game's ten by eight tile layouts, with random blocks dropped into marked spots. The dashed lines are room edges, which have no walls in the game, and the route is the cheapest way to walk, fall, climb and hop from door to door.
+technique: [drafting, pixel]
+subject: [games, maps]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: reference
+    title: Spelunky Generator Lessons
+    author: Darius Kazemi
+    url: https://tinysubversions.com/spelunkyGen/
+  - kind: data
+    title: Spelunky Classic scrLevelGen and scrRoomGen
+    author: Derek Yu
+    url: https://github.com/yancharkin/SpelunkyClassicHD
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Spelunky
+  owner: Mossmouth
+draft: false

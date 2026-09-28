@@ -1,0 +1,25 @@
+title: AK-47 spray pattern
+description: Counter-Strike 2's AK-47 spray as a patent plate. Thirty holes climb and swerve beside the mouse pull that cancels them.
+notes: |
+  The holes follow OP.GG's averaged recoil for each round, with the small jitter of rounds 2 and 3 removed. The pull is the same path turned through half a circle and smoothed a little, since a hand moves more evenly than the averages.
+technique: [drafting]
+subject: [games]
+lineage: [patent-drawings, fan-work]
+sources:
+  - kind: data
+    title: AK-47 CS2 Spray Pattern
+    author: OP.GG
+    url: https://op.gg/cs2/spray-patterns/ak47
+  - kind: reference
+    title: CS2 AK-47 Spray Pattern
+    author: CS2 Pulse
+    url: https://cs2pulse.com/spray-patterns/ak-47/
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Counter-Strike 2
+  owner: Valve
+draft: false

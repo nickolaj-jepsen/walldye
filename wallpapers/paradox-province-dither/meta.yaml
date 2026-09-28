@@ -1,0 +1,25 @@
+title: Austria in 1444
+description: Central Europe on 11 November 1444, dithered province by province as in Europa Universalis IV, with Austria filled in.
+notes: |
+  Province outlines come from the game's map files by way of paimoe's eu4map, cropped to the stretch from the English Channel to the Adriatic. Neighbouring countries get different dither densities, and Austria keeps its small exclave to the west. The chevrons follow the game's trade-node links, as in its trade map mode.
+technique: [dither]
+subject: [games, maps]
+lineage: [fan-work]
+sources:
+  - kind: data
+    title: eu4map
+    author: paimoe
+    url: https://github.com/paimoe/eu4map
+  - kind: reference
+    title: Trade node
+    author: Europa Universalis 4 Wiki
+    url: https://eu4.paradoxwikis.com/Trade_node
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Europa Universalis IV
+  owner: Paradox Interactive
+draft: false

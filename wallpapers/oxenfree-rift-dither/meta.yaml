@@ -1,0 +1,25 @@
+title: Rift off Edwards Island
+description: A dithered triangular rift hangs off Oxenfree's Edwards Island, its reflection broken into rows.
+notes: |
+  The island runs from the ferry dock on the left to Fort Milner's blocks on the right, with Harden Tower on the saddle between them. The streaks bleeding out of the rift stand for the game's time loops.
+technique: [dither]
+subject: [games, landscape]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Edwards Island map
+    author: Oxenfree Wiki
+  - kind: reference
+    title: Oxenfree
+    author: Night School Studio
+    year: 2016
+    url: https://en.wikipedia.org/wiki/Oxenfree
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Oxenfree
+  owner: Night School Studio
+draft: false

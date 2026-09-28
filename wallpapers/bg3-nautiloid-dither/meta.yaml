@@ -1,0 +1,24 @@
+title: Nautiloid over Avernus
+description: A mind flayer nautiloid dives bow-first through banded haze, smoke trailing from one burning breach.
+notes: |
+  The silhouette and the light along its hull and tentacles are traced from the official render of the nautiloid, the mind flayer ship seen over Avernus in the opening of *Baldur's Gate 3*. The shell's coil, growth ribs and straps are computed rather than traced.
+technique: [dither]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Nautiloid
+    author: bg3.wiki
+    url: https://bg3.wiki/wiki/Nautiloid
+  - kind: reference
+    title: Nautiloid
+    author: Forgotten Realms Wiki
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Baldur's Gate 3
+  owner: Larian Studios
+draft: false

@@ -1,0 +1,26 @@
+title: Civilization V tech tree
+description: Civilization V's tech tree from Agriculture into the Classical era, with The Wheel under research, four turns from done.
+notes: |
+  Tile positions, links and unlock counts follow the *Brave New World* tree. Researched techs have shaded tiles and solid unlock rings; the rest are outlined.
+technique: [drafting, pixel]
+subject: [games]
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: 'Civilization V: Brave New World'
+    author: Firaxis Games
+    year: 2013
+    url: https://en.wikipedia.org/wiki/Civilization_V:_Brave_New_World
+  - kind: reference
+    title: Civ-TechTree
+    author: neoddish
+    url: https://github.com/neoddish/Civ-TechTree
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Sid Meier's Civilization V
+  owner: Firaxis Games
+draft: false

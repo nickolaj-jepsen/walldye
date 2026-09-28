@@ -1,0 +1,29 @@
+title: Chunk map
+description: Minecraft plains and oak woods by a river, mapped block by block. The player's chunk is marked beside the F3 readout.
+notes: |
+  The map follows the rules of *Minecraft*. At its closest zoom a map covers 128 by 128 blocks on a fixed grid, and each block is drawn lighter or darker as it stands above or below its neighbour to the north. The paper edge, the arrow and the lettering follow the game's own textures, and the readout is worked out from where the arrow stands, so its block, chunk and region file agree with the map.
+technique: [pixel, instrument]
+subject: [games, maps]
+lineage: [fan-work]
+sources:
+  - kind: reference
+    title: Map
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Map
+  - kind: reference
+    title: Map item format
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Map_item_format
+  - kind: reference
+    title: Debug screen
+    author: Minecraft Wiki
+    url: https://minecraft.wiki/w/Debug_screen
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Minecraft
+  owner: Mojang Studios
+draft: false

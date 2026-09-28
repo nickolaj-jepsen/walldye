@@ -1,0 +1,22 @@
+title: Oxenfree radio dial
+description: Alex's radio dial from Oxenfree, stopped at 98.0, with a hairline on the station between fanned ticks.
+notes: |
+  In *Oxenfree* Alex solves puzzles by tuning a handheld radio to the right frequency. This dial follows the one in the game, with three ticks to each megahertz, labels turned onto the same radii as the ticks, and a fixed needle at the centre.
+technique: [instrument]
+subject: [games, music]
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: Oxenfree
+    author: Night School Studio
+    year: 2016
+    url: https://en.wikipedia.org/wiki/Oxenfree
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Oxenfree
+  owner: Night School Studio
+draft: false
