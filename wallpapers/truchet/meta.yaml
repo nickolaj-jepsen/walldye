@@ -1,0 +1,19 @@
+title: Truchet tiles
+description: Randomly turned quarter-circle tiles join into winding paths and rings, a round patch right of centre picked out.
+technique: [tiling]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: Mémoire sur les combinaisons
+    author: Sébastien Truchet
+    year: 1704
+  - kind: reference
+    title: The Tiling Patterns of Sebastien Truchet and the Topology of Structural Hierarchy
+    author: Cyril Stanley Smith and Pauline Boucher
+    year: 1987
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

@@ -1,0 +1,15 @@
+title: Dithered clouds
+description: Dithered clouds bank up along the right and bottom edges, most heavily lit in two small patches.
+technique: [dither]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: reference
+    title: An optimum method for two-level rendition of continuous-tone pictures
+    author: Bryce Bayer
+    year: 1973
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

@@ -1,0 +1,20 @@
+title: SEELE emblem
+description: 'SEELE''s emblem from Neon Genesis Evangelion in small outline: seven eyes over a split inverted triangle.'
+technique: [line]
+subject: []
+lineage: [fan-work]
+sources:
+  - kind: recreation
+    title: Neon Genesis Evangelion
+    author: Gainax
+    year: 1995
+    url: https://en.wikipedia.org/wiki/Neon_Genesis_Evangelion
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Neon Genesis Evangelion
+  owner: khara
+draft: false

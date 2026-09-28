@@ -1,0 +1,18 @@
+title: Banded dither
+description: Ordered dither in four bands rises from the bottom edge and thins out before the top third.
+technique: [dither]
+subject: []
+lineage: []
+sources:
+  - kind: reference
+    title: An optimum method for two-level rendition of continuous-tone pictures
+    author: Bryce Bayer
+    year: 1973
+  - kind: reference
+    title: Ordered dithering
+    url: https://en.wikipedia.org/wiki/Ordered_dithering
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
