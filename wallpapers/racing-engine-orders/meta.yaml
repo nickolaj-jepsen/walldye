@@ -1,0 +1,26 @@
+title: Monza engine note
+description: Twelve harmonics of the engine's firing note climb through each gear of Norris's 2024 Monza pole lap and drop at every upshift. Seventh gear out of Ascari is lit.
+notes: |
+  Lando Norris took pole for the 2024 Italian Grand Prix in 1:19.327. His car's 1.6-litre V6 is a four-stroke, so it fires three times per revolution: at 12,000 rpm that makes a note of 600 Hz. The twelve lines are that note and its whole multiples, with time running along the screen's long side and pitch rising across the short one. The frequencies are computed from engine speed, not recorded sound.
+
+  FastF1 gives the engine speed about four times a second. On the throttle it is worked out from road speed in the gear engaged and smoothed, so each upshift shows as one sharp drop across every line. The higher lines drop further because each is a multiple of the note. Off the throttle, under braking and down the gears, the lines are drawn fainter. The picture holds the later part of the lap, and the pull through seventh gear on the straight from Ascari towards the Parabolica is lit.
+technique: [instrument, line]
+subject: [sport, machines]
+lineage: []
+sources:
+  - kind: data
+    topic: FastF1
+    url: https://github.com/theOehrly/Fast-F1
+  - kind: reference
+    topic: 2024 Italian Grand Prix
+    url: https://en.wikipedia.org/wiki/2024_Italian_Grand_Prix
+  - kind: reference
+    topic: Formula One engines
+    url: https://en.wikipedia.org/wiki/Formula_One_engines
+added: 2026-09-28
+model: claude-opus-5-5
+franchise:
+  title: Formula 1
+  owner: Formula One Group
+draft: true
+proposed_facets: {}

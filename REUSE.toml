@@ -19,3 +19,8 @@ SPDX-License-Identifier = "LGPL-3.0-only AND ODbL-1.0"
 path = "wallpapers/racing-canada-lap-chart/data/laps.json"
 SPDX-FileCopyrightText = "jolpica-f1 contributors"
 SPDX-License-Identifier = "CC-BY-NC-SA-4.0"
+
+[[annotations]]
+path = "wallpapers/racing-engine-orders/data/lap.json"
+SPDX-FileCopyrightText = "Formula One World Championship Limited (timing data, read with FastF1)"
+SPDX-License-Identifier = "LicenseRef-fan-work"
