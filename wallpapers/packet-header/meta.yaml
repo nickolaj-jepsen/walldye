@@ -1,0 +1,42 @@
+title: Packet header
+description: RFC 791's IPv4 header diagram in a pixel font, where a note takes the lit Time to Live field from 64 to 63.
+notes: |
+  Every router that forwards an IPv4 packet lowers its Time to Live by at least one and destroys the packet when the count reaches zero, so a packet caught in a routing loop cannot circle forever. The diagram is copied character for character from Figure 4 of the 1981 specification.
+technique: [glyph, drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    title: 'RFC 791: Internet Protocol'
+    author: Jon Postel
+    year: 1981
+    url: https://www.rfc-editor.org/rfc/rfc791
+  - kind: reference
+    title: 'RFC 793: Transmission Control Protocol'
+    author: Jon Postel
+    year: 1981
+    url: https://www.rfc-editor.org/rfc/rfc793
+  - kind: reference
+    title: 'RFC 768: User Datagram Protocol'
+    author: Jon Postel
+    year: 1980
+    url: https://www.rfc-editor.org/rfc/rfc768
+  - kind: reference
+    title: 'RFC 1035: Domain Names - Implementation and Specification'
+    author: Paul Mockapetris
+    year: 1987
+    url: https://www.rfc-editor.org/rfc/rfc1035
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: IPv4 header
+  tcp:
+    label: TCP header
+    description: The TCP header from RFC 793 in a pixel font, with the SYN bit lit. A note quotes the first segment from the RFC's handshake example.
+  udp:
+    label: UDP header
+    description: RFC 768's UDP header in a pixel font, its data octets trailing off. A note beside the lit destination port gives 53, where name servers listen.
+  dns:
+    label: DNS header
+    description: The DNS message header from RFC 1035, sixteen bits to a row. A note takes its lit QR bit from 0, a query, to 1, a response.

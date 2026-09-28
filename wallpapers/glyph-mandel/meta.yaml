@@ -1,0 +1,18 @@
+title: ASCII Mandelbrot
+description: The Mandelbrot set as a 1980s text printout, edged in at-signs, with bands of asterisks and dashes thinning outward.
+notes: |
+  Each character stands for a small patch of the plane, and an estimate of that patch's distance from the set chooses it. Printouts of the time counted escape steps instead, so their bands spread unevenly around the edge.
+technique: [glyph]
+subject: [maths]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    title: 'Computer Recreations: A computer microscope zooms in for a look at the most complex object in mathematics'
+    author: A. K. Dewdney
+    year: 1985
+    url: https://www.scientificamerican.com/article/computer-recreations-1985-08/
+  - kind: reference
+    topic: Plotting algorithms for the Mandelbrot set
+    url: https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
+added: 2026-09-27
+model: claude-opus-5-5

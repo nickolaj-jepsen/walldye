@@ -1,0 +1,20 @@
+title: ASCII donut
+description: A torus seen from above at a three-quarter angle, drawn in twelve ASCII characters, from dots on its shaded side to at-signs where the light catches the rim.
+notes: |
+  The technique is the one Andy Sloane's donut.c made famous: every point on the surface is projected onto the character grid, the nearest point in each cell wins, and the angle between the surface and the light picks a character. Instead of spinning, this torus holds one pose, set by the two angles donut.c advances every frame: A tips it about the horizontal axis and B turns it about the line of sight, so the ring is seen from above at a slant with its hole in view. It is shaded with its own ramp, `` .`-:;+=*o%#@ ``, and a second, tighter highlight puts the glint on the outer rim.
+technique: [glyph]
+subject: [computing]
+lineage: [creative-coding]
+sources:
+  - kind: inspiration
+    topic: donut.c
+    author: Andy Sloane
+    year: 2006
+    url: https://www.a1k0n.net/2006/09/15/obfuscated-c-donut.html
+  - kind: reference
+    title: 'Donut math: how donut.c works'
+    author: Andy Sloane
+    year: 2011
+    url: https://www.a1k0n.net/2011/07/20/donut-math.html
+added: 2026-09-27
+model: claude-opus-5-5
