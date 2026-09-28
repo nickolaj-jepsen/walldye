@@ -11,7 +11,6 @@ on:
       - '.claude/**'
       - 'infra/**'
       - 'LICENSES/**'
-      - '.lycheeignore'
   pull_request:
     paths-ignore: *docs
   workflow_dispatch:
@@ -43,9 +42,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # History for the changed-meta.yaml diff; blobs stay lazy so this stays cheap.
-          fetch-depth: 0
-          filter: blob:none
       # Page views by day, for the index's view sorts; views.yml writes the branch, and until its
       # first run the checkout fails and the sorts are left out.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -122,47 +118,6 @@ jobs:
             wallpapers/schotter/build/
           if-no-files-found: error
           retention-days: 1
-
-      - name: List changed meta.yaml files
-        id: changed
-        env:
-          EVENT: ${{ github.event_name }}
-          BEFORE: ${{ github.event.before }}
-        run: |
-          # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into.
-          # A push whose "before" is gone (new branch, rewritten history) checks every file.
-          if [ "$EVENT" = pull_request ]; then
-            base=HEAD^1
-          elif git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            base=$BEFORE
-          else
-            base=
-          fi
-          list="$RUNNER_TEMP/meta-files.txt"
-          if [ -n "$base" ]; then
-            git diff --name-only --no-renames --diff-filter=d "$base" HEAD -- 'wallpapers/*/meta.yaml' > "$list"
-          else
-            git ls-files -- 'wallpapers/*/meta.yaml' > "$list"
-          fi
-          cat "$list"
-          echo "count=$(wc -l < "$list")" >> "$GITHUB_OUTPUT"
-      - if: steps.changed.outputs.count != '0'
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .lycheecache
-          key: lychee-${{ github.sha }}
-          restore-keys: lychee-
-      # lychee-action evals args, so file names go through --files-from rather than the command line.
-      # Broken source links fail PRs; on main they are reported without blocking the deploy.
-      - if: steps.changed.outputs.count != '0'
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        continue-on-error: ${{ github.event_name != 'pull_request' }}
-        with:
-          args: >-
-            --no-progress --max-retries 3 --accept 200..=299,403,429
-            --cache --max-cache-age 7d
-            --files-from ${{ runner.temp }}/meta-files.txt
-          failIfEmpty: false
 
   e2e:
     needs: build

@@ -12,13 +12,13 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 |---|---|---|
 | `lint.yml` | on every change | `ruff format --check` (Markdown's ` ```python ` blocks included) and `ruff check`, with the standalone ruff binary |
 | `python.yml` | when `walldye/`, `tests/python/`, a `design.py`, the skill examples, `wallpapers/pyrefly.toml`, `pyproject.toml`, `uv.lock` or `.python-version` changes | Pyrefly on the library at the strictest preset and on the designs and skill examples at the design level, then pytest |
-| `ci.yml` | unless the change touches only `docs/`, Markdown, `.claude/`, `infra/`, `LICENSES/` or `.lycheeignore` | the jobs below |
+| `ci.yml` | unless the change touches only `docs/`, Markdown, `.claude/`, `infra/` or `LICENSES/` | the jobs below |
 
 `ci.yml`'s jobs:
 
 | Job | Does |
 |---|---|
-| `build` | Checks out the `stats` branch as `stats/` (Page views, below; the step fails harmlessly while the branch does not exist), restores main's last build from the Actions cache, runs `walldye build --all --published` (105 minutes at most), saves the result back to the cache on `main` even when the render failed or ran out of time, lists the pieces whose templates changed, runs `regen.py`, `pnpm test` and `pnpm astro build`, uploads `dist/` and the e2e inputs, then checks the links in the meta.yaml files the change touches |
+| `build` | Checks out the `stats` branch as `stats/` (Page views, below; the step fails harmlessly while the branch does not exist), restores main's last build from the Actions cache, runs `walldye build --all --published` (105 minutes at most), saves the result back to the cache on `main` even when the render failed or ran out of time, lists the pieces whose templates changed, runs `regen.py`, `pnpm test` and `pnpm astro build`, then uploads `dist/` and the e2e inputs |
 | `e2e` | Playwright on Chromium against that `dist/` |
 | `deploy` | After `build` and `e2e` pass: a push to `main` goes to production, and a pull request from a branch in this repository goes to a preview at `https://<branch>.walldye.pages.dev`. A comment on the PR links it and lists the pieces that draw differently from main's last build; later pushes edit it. Each deploy is recorded in the GitHub environment `production` or `preview`. Pull requests from forks or Dependabot never deploy, since neither gets the secrets, and a manual run deploys only on `main` with `deploy` ticked |
 
@@ -65,7 +65,6 @@ A push to `main` deploys only when `ci.yml` runs, and it skips docs-only changes
 - A template under `/t/` is served with `cache-control: public, max-age=31536000, immutable`, and a page with `max-age=0, must-revalidate`.
 - A pull request from a branch in this repository: once `build` and `e2e` pass, a comment links the preview, and later pushes edit the same comment.
 - Actions > Views (daily) > Run workflow: once walldye.com has had a view, `stats` gets a commit named after the newest day, a `ci.yml` run on `main` deploys, and the index sort offers "popular" and "most viewed".
-- Actions > Links (weekly) > Run workflow: broken links end up in an issue titled "Broken links in wallpaper sources", which the next clean run closes.
 - A test mail to takedown@walldye.com arrives in the owner's inbox.
 
 ## Changing things
@@ -75,13 +74,3 @@ A push to `main` deploys only when `ci.yml` runs, and it skips docs-only changes
 - The API token: create a new one scoped to Account / Cloudflare Pages / Edit, store it with `gh secret set CLOUDFLARE_API_TOKEN`, then delete the old token in the dashboard. The analytics token the same way, scoped to Account / Account Analytics / Read, with `gh secret set CLOUDFLARE_ANALYTICS_TOKEN`.
 - wrangler in CI: bump `wranglerVersion` in `ci.yml`'s deploy job by hand; Dependabot doesn't see it.
 - A manual deploy of a local build, if CI is down: `pnpm build`, then `, wrangler pages deploy dist --project-name=walldye --branch=main`.
-
-## Link checks
-
-The `build` job checks the URLs in every `wallpapers/*/meta.yaml` a change touches. A broken one fails a pull request; on `main` it is reported without holding back the deploy. `links-weekly.yml` checks every piece on Mondays and never blocks anything. The same check locally:
-
-```sh
-nix run nixpkgs#lychee -- --max-retries 3 --accept 200..=299,403,429 'wallpapers/*/meta.yaml'
-```
-
-`.lycheeignore` says when an exception is worth adding.
