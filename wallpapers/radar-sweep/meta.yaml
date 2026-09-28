@@ -12,3 +12,9 @@ author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
 draft: false
+variants:
+  default: {label: Early in the turn}
+  late:
+    label: Late in the turn
+    description: A radar scope later in its turn. The arm has swept past the coastline, leaving most of it under a long afterglow while its far end fades.
+    draft: true

@@ -1,32 +1,50 @@
-"""A gibbous moon in 1-bit void-and-cluster dither: a shaded numpy tone field quantised to BG/ACCENT cells."""
+"""A moon in 1-bit void-and-cluster dither: a shaded tone field of maria and ray craters quantised to square cells."""
 
 import math
 
 import numpy as np
+from numpy.typing import NDArray
 
-from walldye import ACCENT, BG, H, W, dither, grid_runs, is_light, noise_grid
-
-ASPECTS = ["any"]
-
-U = min(W, H) / 1080  # the moon and its dither cell scale with the short side, never the long one
-R, CELL = 270 * U, 3 * U
-PHASE = math.radians(
-    58
-)  # sun angle from the viewer; >0 lights from the right, terminator on the left
-MAX_TONE = 0.75  # keep BG showing through even the brightest limb
+from walldye import ACCENT, Canvas, Params, design, knob
+from walldye.field import gauss, noise_grid
+from walldye.pixel import dither, grid_runs
 
 
-def blobs(u, v, spots):
-    return sum(a * np.exp(-((u - x) ** 2 + (v - y) ** 2) / r**2) for x, y, r, a in spots)
+class Moon(Params):
+    phase: float = knob(
+        default=58,
+        lo=-150,
+        hi=150,
+        unit="deg",
+        doc="sun angle from the viewer; above 0 lights the right limb",
+    )
 
 
-def draw(s):
-    # Focal point: right of centre on a landscape screen (the left stays free for windows),
-    # upper third on a portrait one (below the clock, above the dock).
-    fx, fy = (0.68, 0.46) if W >= H else (0.56, 0.34)
-    # Snapped to whole cells so the grid origin is too: a fractional one blurs every cell edge.
-    cx, cy = round(fx * W / CELL) * CELL, round(fy * H / CELL) * CELL
+VARIANTS = {"crescent": Moon(phase=120), "full": Moon(phase=0)}
 
+R, CELL = 270, 3  # moon radius and dither cell
+MAX_TONE = 0.75  # keep the background showing through even the brightest limb
+# Albedo blobs: dark maria across the upper half, like the near side (x, y, radius, weight).
+MARIA = ((-0.1, -0.35, 0.22, 0.5), (0.3, -0.05, 0.16, 0.45), (-0.35, 0.05, 0.14, 0.35))
+TYCHO = (0.2, 0.6)  # the ray crater, low on the disc
+
+type Field = NDArray[np.float64]
+
+
+def blobs(u: Field, v: Field, spots: list[tuple[float, float, float, float]]) -> Field:
+    """Sum of Gaussian bumps at disc coordinates (x, y) with radius r and weight a."""
+    out = np.zeros_like(u)
+    for x, y, r, a in spots:
+        out += a * gauss(np.hypot(u - x, v - y), r)
+    return out
+
+
+@design(aspects="any", variants=VARIANTS)
+def draw(s: Canvas[Moon]) -> None:
+    # right of centre on a landscape screen (the left stays free for windows), the upper third
+    # on a portrait one (below the clock, above the dock); snapped to whole cells, since a
+    # fractional grid origin blurs every cell edge
+    c = s.pick(landscape=(0.68, 0.46), portrait=(0.56, 0.34), snap=CELL)
     n = int(R * 1.04 / CELL)
     size = 2 * n
     ys, xs = np.mgrid[0:size, 0:size]
@@ -37,46 +55,42 @@ def draw(s):
     inside = rr < 1
     z = np.sqrt(np.clip(1 - rr * rr, 0, 1))
 
-    # Albedo carries the texture: dark maria (upper half, like the near side) and bright ejecta.
-    mare = 1.6 * noise_grid(size, size, 60, seed=4, octaves=3) + 0.3 * (-v) - 0.1
-    mare += blobs(
-        u, v, [(-0.1, -0.35, 0.22, 0.5), (0.3, -0.05, 0.16, 0.45), (-0.35, 0.05, 0.14, 0.35)]
-    )
+    # Albedo carries the texture: dark maria and bright ejecta.
+    mare = 1.6 * noise_grid(size, size, 60, s.np_rng(4), octaves=3) + 0.3 * (-v) - 0.1
+    mare += blobs(u, v, list(MARIA))
     albedo = (
         0.95
         - 0.62 * np.clip((mare - 0.02) * 2.8, 0, 1)
-        + 0.08 * noise_grid(size, size, 6, seed=11, octaves=2)
+        + 0.08 * noise_grid(size, size, 6, s.np_rng(11), octaves=2)
     )
+    rng = s.np_rng(3)
+    ejecta = [(*rng.uniform(-0.8, 0.8, 2), rng.uniform(0.015, 0.04), 0.4) for _ in range(18)]
+    albedo += blobs(u, v, ejecta)
 
-    rng = np.random.default_rng(3)
-    albedo += blobs(
-        u, v, [(*rng.uniform(-0.8, 0.8, 2), rng.uniform(0.015, 0.04), 0.4) for _ in range(18)]
-    )
-
-    # Tycho-like ray crater low on the disc: bright halo plus thin rays.
-    tx, ty = 0.2, 0.6
+    # Tycho: a bright halo plus thin rays.
+    tx, ty = TYCHO
     ang = np.arctan2(v - ty, u - tx)
     dist = np.hypot(u - tx, v - ty)
     rays = sum(
         np.exp(-((((ang - a + np.pi) % (2 * np.pi) - np.pi) * dist / 0.014) ** 2))
         * np.exp(-dist / w)
-        for a, w in zip(rng.uniform(-np.pi, np.pi, 18), rng.uniform(0.15, 0.45, 18))
+        for a, w in zip(rng.uniform(-np.pi, np.pi, 18), rng.uniform(0.15, 0.45, 18), strict=True)
     )
-    albedo += 0.3 * np.clip(rays, 0, 1) + 0.45 * np.exp(-((dist / 0.06) ** 2))
+    albedo += 0.3 * np.clip(rays, 0, 1) + 0.45 * gauss(dist, 0.06)
 
-    lam = np.clip((u * math.sin(PHASE) + z * math.cos(PHASE)) * 3 + 0.2, 0, 1) ** 0.8
+    sun = math.radians(s.params.phase)
+    lit = np.clip((u * math.sin(sun) + z * math.cos(sun)) * 3 + 0.2, 0, 1) ** 0.8
     limb = 1 - 0.35 * np.clip((rr - 0.88) / 0.12, 0, 1)
-    tone = np.clip(lam * albedo * limb * 0.62, 0, MAX_TONE)
+    tone = np.clip(lit * albedo * limb * 0.62, 0, MAX_TONE)
     tone = np.maximum(tone, 0.07)  # faint earthshine on the dark side
-    if is_light():
-        tone = 0.8 * (
-            MAX_TONE - tone
-        )  # on paper, ink the shadows instead: a pencil moon, not a negative
+    if s.light:
+        # on paper, ink the shadows instead: a pencil moon, not a negative
+        tone = 0.8 * (MAX_TONE - tone)
     tone = np.where(inside, tone, 0)
 
-    grid = np.array(dither(lambda i, j: tone[j, i], size, size, 2, "bluenoise", seed=5))
+    grid = dither(tone, 2, method="bluenoise", rng=s.np_rng(5))
     grid[~inside] = 0
     # A sparse one-cell limb ring keeps the silhouette round where the dark side fades out.
     ring = (np.abs(rr - 1 + 0.5 * CELL / R) < 0.5 * CELL / R) & ((xs + ys) % 2 == 0)
     grid[ring] = 1
-    grid_runs(s, grid.tolist(), [BG, ACCENT], CELL, cx - n * CELL, cy - n * CELL)
+    grid_runs(s, grid, [None, ACCENT], CELL, c - (n * CELL, n * CELL))
