@@ -11,9 +11,10 @@ shared fixture keeps its inputs ASCII (JS indices are UTF-16 units).
 tests/python/fixtures/tokenize.json is the spec; the TS port runs the same fixture.
 """
 
-from __future__ import annotations
-
 import re
+from collections.abc import Sequence
+
+type Span = tuple[int, int, str]
 
 PAINT = ("fill", "stroke", "stop-color", "flood-color", "lighting-color", "color")
 
@@ -76,50 +77,54 @@ _STYLE_END = re.compile(r"</style\s*>")
 
 def _colour(value: str) -> str | None:
     """Uppercase #RRGGBB for a hex3/hex6/named colour, else None."""
-    if _HEX.fullmatch(value):
+    if _HEX.fullmatch(value) is not None:
         h = value[1:]
         return "#" + (h if len(h) == 6 else "".join(c * 2 for c in h)).upper()
     return NAMED.get(value.lower())
 
 
-def _match(out: list, text: str, offset: int, value_re: re.Pattern) -> None:
+def _match(out: list[Span], text: str, offset: int, value_re: re.Pattern[str]) -> None:
     m = value_re.fullmatch(text)
-    if m and (c := _colour(m.group(1))):
+    if m is not None and (c := _colour(m.group(1))) is not None:
         out.append((offset + m.start(1), offset + m.end(1), c))
 
 
-def _css(out: list, text: str, offset: int) -> None:
+def _css(out: list[Span], text: str, offset: int) -> None:
     for d in _DECL.finditer(text):
         _match(out, d.group(2), offset + d.start(2), _CSS_VALUE)
 
 
-def find_colours(svg: str) -> list[tuple[int, int, str]]:
+def find_colours(svg: str) -> list[Span]:
     """Every slot in `svg` as (start, end, colour): svg[start:end] is the value as written,
     colour its uppercase #RRGGBB. Sorted by start."""
-    out: list[tuple[int, int, str]] = []
+    out: list[Span] = []
     pos = 0
-    while m := TAG.search(svg, pos):
+    while (m := TAG.search(svg, pos)) is not None:
         pos = m.end()
-        if not m.group("name") or m.group("end"):
+        name: str | None = m.group("name")
+        if name is None or m.group("end") != "":
             continue
-        attrs, base = m.group("attrs"), m.start("attrs")
+        attrs: str = m.group("attrs")
+        base = m.start("attrs")
         for a in _ATTR.finditer(attrs):
             group = 2 if a.group(2) is not None else 3
-            value, start = a.group(group), base + a.start(group)
+            value: str = a.group(group)
+            start = base + a.start(group)
             if a.group(1) == "style":
                 _css(out, value, start)
             elif a.group(1) in PAINT:
                 _match(out, value, start, _ATTR_VALUE)
-        if m.group("name") == "style" and not m.group("empty"):
+        if name == "style" and m.group("empty") == "":
             end = _STYLE_END.search(svg, pos)
-            stop = end.start() if end else len(svg)
+            stop = len(svg) if end is None else end.start()
             _css(out, svg[pos:stop], pos)
             pos = stop
     return out
 
 
-def _replace(svg: str, spans: list[tuple[int, int, str]], values) -> str:
-    parts, last = [], 0
+def _replace(svg: str, spans: Sequence[Span], values: Sequence[str]) -> str:
+    parts: list[str] = []
+    last = 0
     for (start, end, _), value in zip(spans, values, strict=True):
         parts += [svg[last:start], value]
         last = end

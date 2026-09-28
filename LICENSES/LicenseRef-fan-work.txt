@@ -1,0 +1,20 @@
+LicenseRef-fan-work
+
+This notice covers every folder under wallpapers/ whose meta.yaml sets
+`license: LicenseRef-fan-work`, together with the files generated from it
+(design.py, meta.yaml, data/ and build/).
+
+No licence is granted. You may not copy, modify or redistribute these files
+under the terms that cover the rest of this repository.
+
+Each such wallpaper is an unofficial fan tribute. It is not affiliated with,
+sponsored by or endorsed by the owner of the franchise it depicts, which its
+meta.yaml names under `franchise:`.
+
+The franchises, their titles, characters and other trademarks belong to their
+respective owners.
+
+These wallpapers are shared for non-commercial purposes only.
+
+Rights holders who want a wallpaper taken down can write to
+takedown@walldye.com, and it will be removed.

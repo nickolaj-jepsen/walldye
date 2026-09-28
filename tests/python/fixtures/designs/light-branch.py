@@ -1,11 +1,13 @@
-"""A disc on dark grounds and a square on light ones: a geometry branch under is_light()."""
+"""A disc on dark grounds and a square on light ones: a geometry branch on s.light."""
 
-from walldye import ACCENT, FG, H, W, is_light
+from walldye import ACCENT, FG, Canvas, P, design
 
 
-def draw(s):
-    if is_light():
-        s.rect(W / 2 - 100, H / 2 - 100, 200, 200, fill=ACCENT)
+@design()
+def draw(s: Canvas) -> None:
+    c = s.center
+    if s.light:
+        s.fill(P().rect(c.x - 100, c.y - 100, 200, 200), ACCENT)
     else:
-        s.circle(W / 2, H / 2, 100, fill=ACCENT)
-    s.line(0, H - 10, W, H - 10, stroke=FG)
+        s.fill(P().circle(c, 100), ACCENT)
+    s.stroke(P().M(0, s.h - 10).H(s.w), FG, 1)

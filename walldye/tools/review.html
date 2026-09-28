@@ -115,6 +115,44 @@
         outline: 1px solid var(--ui);
         cursor: zoom-in;
       }
+      .versions {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 6px 8px 0;
+      }
+      .version {
+        width: 180px;
+        flex: none;
+        border: 2px solid transparent;
+      }
+      .version.approved {
+        border-color: var(--ok);
+      }
+      .version.rejected {
+        border-color: var(--no);
+        opacity: 0.6;
+      }
+      .version img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: contain;
+        background: #000;
+        cursor: zoom-in;
+      }
+      .version button {
+        padding: 1px 6px;
+        font-size: 12px;
+      }
+      .version .vdesc {
+        margin: 2px 0;
+        font-size: 12px;
+      }
+      .card .version input {
+        width: 100%;
+        margin: 2px 0 0;
+      }
       .bar {
         display: flex;
         justify-content: space-between;
@@ -227,7 +265,9 @@
     </div>
     <script>
       // {cards: [{slug, title, description, sources, license, proposed: {facet: [value]}, dark, light,
-      //  lightCaption, strip: [{aspect, src}]}], state: {slug: {status, note, facets: {facet: {value: accept|decline}}}}}
+      //  lightCaption, strip: [{aspect, src}], variants: [{name, label, description, draft, src}]}],
+      //  state: {slug: {status, note, facets: {facet: {value: accept|decline}},
+      //  variants: {name: {status, note}}}}}
       const CFG = __CONFIG__;
       const CARDS = CFG.cards;
       const SLUGS = CARDS.map((c) => c.slug);
@@ -244,7 +284,9 @@
         { src: c.dark, cap: "dark template" },
         { src: c.light, cap: c.lightCaption },
         ...c.strip.map((s) => ({ src: s.src, cap: s.aspect })),
+        ...c.variants.map((v) => ({ src: v.src, cap: `version ${v.name}: ${v.label}` })),
       ];
+      const vstate = (n, v) => state[n]?.variants?.[v] || {};
       const decision = (n, f, v) => state[n]?.facets?.[f]?.[v];
       const pending = (n) =>
         Object.entries(BY_SLUG[n].proposed).flatMap(([f, vs]) =>
@@ -262,7 +304,12 @@
         const e = state[n] || {};
         fn(e);
         if (e.facets && !Object.keys(e.facets).length) delete e.facets;
-        if (e.status || e.note || e.facets) state[n] = e;
+        if (e.variants) {
+          for (const [v, d] of Object.entries(e.variants))
+            if (!d.status && !d.note) delete e.variants[v];
+          if (!Object.keys(e.variants).length) delete e.variants;
+        }
+        if (e.status || e.note || e.facets || e.variants) state[n] = e;
         else delete state[n];
         save();
       }
@@ -274,6 +321,13 @@
         return true;
       }
       const blocked = (n) => flash(n, `decide the proposed facets first (${pending(n).join(", ")})`);
+      function setVersion(n, v, key, value) {
+        update(n, (e) => {
+          const d = ((e.variants ||= {})[v] ||= {});
+          if (value) d[key] = value;
+          else delete d[key];
+        });
+      }
       function setFacet(n, f, v, d) {
         update(n, (e) => {
           const fs = (e.facets ||= {});
@@ -335,6 +389,42 @@
           const strip = el("div", "strip");
           c.strip.forEach((s, k) => strip.append(figure(s.src, s.aspect, pick(k + 2))));
           root.append(strip);
+        }
+        if (c.variants.length) {
+          const versions = el("div", "versions");
+          c.variants.forEach((v, k) => {
+            const box = el("div", `version ${vstate(n, v.name).status || "undecided"}`);
+            box.append(
+              figure(v.src, `${v.name}: ${v.label}${v.draft ? " (draft)" : ""}`, pick(2 + c.strip.length + k)),
+            );
+            // Approving a version publishes its description as the page's lede and alt text.
+            if (v.description) box.append(el("p", "vdesc", v.description));
+            for (const [s, label] of [
+              ["approved", "✓"],
+              ["rejected", "✗"],
+            ]) {
+              const b = el("button", vstate(n, v.name).status === s ? "on" : null, label);
+              b.title = `${s.slice(0, -1)} version ${v.name}`;
+              b.onclick = () => {
+                sel = i;
+                setVersion(n, v.name, "status", vstate(n, v.name).status === s ? null : s);
+                render();
+              };
+              box.append(b);
+            }
+            const note = el("input");
+            note.placeholder = "note";
+            note.spellcheck = false;
+            note.value = vstate(n, v.name).note || "";
+            note.oninput = () => setVersion(n, v.name, "note", note.value.trim());
+            note.onkeydown = (e) => {
+              if (e.key === "Enter" || e.key === "Escape") note.blur();
+              e.stopPropagation();
+            };
+            box.append(note);
+            versions.append(box);
+          });
+          root.append(versions);
         }
         const bar = el("div", "bar");
         const buttons = el("span");
@@ -484,6 +574,7 @@
           `Refused: ${list(res.refused.map((r) => `${r.slug} (${r.reason})`))}`,
           `Rejected: ${list(res.rejected.map((r) => r.slug))}`,
           `Undecided: ${list(res.undecided)}`,
+          `Versions published (draft: false): ${list(res.published_variants.map((v) => `${v.slug} (${v.variant})`))}`,
           "",
           "Review sent to the agent. You can close this tab.",
         ];

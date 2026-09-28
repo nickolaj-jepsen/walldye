@@ -1,11 +1,12 @@
-"""Bars merged into one path per colour value, so roles that share a hex also share a path."""
+"""Bars merged into one path per colour, keyed by the colour itself."""
 
-from walldye import ACCENT, MUTED, UI, H, P
+from walldye import ACCENT, MUTED, UI, Canvas, Colour, P, Path, design
 
 
-def draw(s):
-    paths = {}
+@design()
+def draw(s: Canvas) -> None:
+    paths: dict[Colour, Path] = {}
     for i, colour in enumerate([UI, MUTED, ACCENT, UI]):
-        paths.setdefault(colour, P()).M(i * 100, 0).H(i * 100 + 50).V(H).H(i * 100).Z()
+        paths.setdefault(colour, P()).rect(i * 100, 0, 50, s.h)
     for colour, d in paths.items():
-        s.path(d, fill=colour)
+        s.fill(d, colour)

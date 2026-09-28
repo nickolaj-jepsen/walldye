@@ -10,7 +10,7 @@ import random
 
 import numpy as np
 
-from ._theme import PRESETS, SEEDS, hex_to_rgb, is_light
+from ._theme import PRESETS, hex_to_rgb, is_light
 
 Theme = tuple[str, str, str]
 MAX_COND = 15
@@ -32,7 +32,11 @@ def generate(seed: int, n: int) -> dict[str, list[Theme]]:
     r = random.Random(seed)
     out: dict[str, list[Theme]] = {"dark": [], "light": []}
     while any(len(v) < n for v in out.values()):
-        theme = tuple(f"#{r.getrandbits(24):06X}" for _ in range(3))
+        theme = (
+            f"#{r.getrandbits(24):06X}",
+            f"#{r.getrandbits(24):06X}",
+            f"#{r.getrandbits(24):06X}",
+        )
         themes = out[regime(theme)]
         if len(themes) < n:
             themes.append(theme)
@@ -110,7 +114,11 @@ _CORNERS: dict[str, list[Theme]] = {
         ("#58606A", "#404850", "#C07850"),
     ],
 }
-_PRESET_SEEDS = [tuple(PRESETS[name][k] for k in SEEDS) for name in PRESETS if name != "fireproof"]
+_PRESET_SEEDS: list[Theme] = [
+    (PRESETS[name]["bg"], PRESETS[name]["fg"], PRESETS[name]["accent"])
+    for name in PRESETS
+    if name != "fireproof"
+]
 
 # Predicted within 2 RGB units or build fails: every preset but fireproof, corners, random.
 HELD_OUT: dict[str, list[Theme]] = {

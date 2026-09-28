@@ -1,9 +1,9 @@
 """`walldye new`: scaffold wallpapers/<slug>/ with a starter design.py and a draft meta.yaml."""
 
-from __future__ import annotations
-
 import datetime
 import sys
+from collections.abc import Mapping
+from typing import override
 
 import yaml
 
@@ -11,23 +11,22 @@ from walldye.tools import common, lint
 
 DESIGN = '''"""TODO: one theme-neutral line, concept + technique."""
 
-from walldye import ACCENT, UI, H, W
-
-# ASPECTS = ["any"]  # once the composition follows W and H; without it the piece is 16:9 only
+from walldye import ACCENT, UI, Canvas, P, design
 
 
-def draw(s):
-    u = min(W, H) / 1080  # short-side unit, so sizes survive any aspect
-    cx, cy = W * 0.62, H * 0.5
-    s.circle(cx, cy, 240 * u, fill="none", stroke=UI, stroke_width=2 * u)
-    s.circle(cx, cy, 10 * u, fill=ACCENT)
+@design()  # aspects="any" once the composition follows s.w and s.h
+def draw(s: Canvas) -> None:
+    c = s.pick(landscape=(0.62, 0.5), portrait=(0.5, 0.4))
+    s.stroke(P().circle(c, 240), UI, 2)
+    s.fill(P().circle(c, 10), ACCENT)
 '''
 
 
 class _BlockDumper(yaml.SafeDumper):
     """Block style with indented sequences (`  - item`) and `|` blocks for multi-line text."""
 
-    def increase_indent(self, flow=False, indentless=False):
+    @override
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
 
 
@@ -35,26 +34,28 @@ class _MetaDumper(_BlockDumper):
     """_BlockDumper, but lists of scalars in flow style (`technique: [drafting]`)."""
 
 
-_BlockDumper.add_representer(
-    str,
-    lambda d, v: d.represent_scalar("tag:yaml.org,2002:str", v, style="|" if "\n" in v else None),
-)
-_MetaDumper.add_representer(
-    list,
-    lambda d, v: d.represent_sequence(
-        "tag:yaml.org,2002:seq", v, flow_style=not any(isinstance(x, (dict, list)) for x in v)
-    ),
-)
+def _str(dumper: yaml.SafeDumper, value: str) -> yaml.ScalarNode:
+    style = "|" if "\n" in value else None
+    return dumper.represent_scalar("tag:yaml.org,2002:str", value, style=style)
 
 
-def dump_yaml(data: dict, flow_lists: bool = True) -> str:
+def _flow_list(dumper: yaml.SafeDumper, value: list[object]) -> yaml.SequenceNode:
+    flow = not any(isinstance(x, (dict, list)) for x in value)
+    return dumper.represent_sequence("tag:yaml.org,2002:seq", value, flow_style=flow)
+
+
+_BlockDumper.add_representer(str, _str)
+_MetaDumper.add_representer(list, _flow_list)
+
+
+def dump_yaml(data: Mapping[str, object], flow_lists: bool = True) -> str:
     """`data` as YAML in the house style of meta.yaml (`flow_lists`) or taxonomy.yaml (block
     lists throughout), keys in insertion order. Comments do not survive a load and dump."""
     dumper = _MetaDumper if flow_lists else _BlockDumper
-    return yaml.dump(data, Dumper=dumper, sort_keys=False, allow_unicode=True, width=1000)
+    return yaml.dump(dict(data), Dumper=dumper, sort_keys=False, allow_unicode=True, width=1000)
 
 
-def write_meta(slug: str, meta: dict) -> None:
+def write_meta(slug: str, meta: Mapping[str, object]) -> None:
     (common.piece_dir(slug) / "meta.yaml").write_text(dump_yaml(meta))
 
 
@@ -79,7 +80,7 @@ def run(slug: str, author: str, model: str) -> int:
         "subject": [],
         "lineage": [],
         "sources": [],
-        "added": datetime.date.today(),
+        "added": datetime.datetime.now().astimezone().date(),
         "author": author,
         "ai_generated": True,
         "model": model,

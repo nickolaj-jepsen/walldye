@@ -2,8 +2,9 @@
 
 import random
 
-from walldye import ACCENT, H, W
+from walldye import ACCENT, Canvas, P, design
 
 
-def draw(s):
-    s.circle(random.uniform(0, W), H / 2, 50, fill=ACCENT)
+@design()
+def draw(s: Canvas) -> None:
+    s.fill(P().circle((random.uniform(0, s.w), s.h / 2), 50), ACCENT)

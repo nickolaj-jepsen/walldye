@@ -1,218 +1,535 @@
-"""walldye check: the gate `walldye build` runs before writing anything (check list steps 1-8)."""
+"""walldye check: the gate `walldye build` runs before writing anything.
 
-from __future__ import annotations
+The parent process loads every design once and runs the static steps (the design lint, the
+meta.yaml and data/ rules, ruff and Pyrefly); each (slug, variant) is then checked by
+check_variant, in a process pool when several pieces are checked. Workers return plain data
+and never write files.
+"""
 
 import json
+import multiprocessing
 import os
+import re
 import subprocess
 import sys
+import time
 import traceback
-from collections.abc import Callable
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
-from functools import partial
 from pathlib import Path
+from typing import Final
 
-import walldye
+import numpy as np
+from numpy.typing import NDArray
+
 from walldye import _basis
-from walldye._basis import Theme
-from walldye._theme import SEEDS
-from walldye.tools import common, fit, hashing, lint
+from walldye._aspect import canvas_size
+from walldye._design import RenderSpec
+from walldye._document import Document
+from walldye._params import describe
+from walldye.tools import common, hashing, knobs, lint
+from walldye.tools.common import Regime
+from walldye.tools.fit import TEMPLATE_THEMES, Entry, first_diff, fit_aspect, label
 
-HASHES_CMD = [sys.executable, "-m", "walldye", "_hashes"]
-HASH_SEED = "4242"
-NEAR_CLONE = 0.93
+HASH_SEED: Final = "4242"
+NEAR_CLONE: Final = 0.93
+SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
+INK_WIDTH: Final = 256
+FOCUS_WIDTH: Final = 480
+_PRIVATE: Final = re.compile(r"\bwalldye\.(_[a-z]+)\.")
+# The public module a private one's names are exported from, when it is not walldye itself.
+_PUBLIC: Final = {"_affine": "walldye.geom.", "_noise": "walldye.field."}
+
+type Ink = NDArray[np.float64]
+
+
+class DesignError(Exception):
+    """Importing or drawing the design raised; the message says where."""
+
+
+def design_error(e: BaseException, what: str) -> DesignError:
+    """`what failed: <type>: <message> (design.py line N)` for an exception from a design."""
+    frames = [
+        f for f in traceback.extract_tb(e.__traceback__) if Path(f.filename).name == "design.py"
+    ]
+    where = f" (design.py line {frames[-1].lineno})" if len(frames) > 0 else ""
+    return DesignError(f"{what} failed: {type(e).__name__}: {e}{where}")
+
+
+@dataclass(frozen=True)
+class Task:
+    """One (slug, variant) to check. `wallpapers` is common.WALLPAPERS in the parent, which
+    pool workers adopt; with `probes`, the check stops early when the variant's fresh probe
+    hashes equal them (build's test for unchanged renders)."""
+
+    wallpapers: str
+    slug: str
+    variant: str
+    regimes: tuple[Regime, ...]
+    paranoid: bool = False
+    probes: Mapping[str, str] | None = None
+
+
+@dataclass
+class Result:
+    """What checking one (slug, variant) found and made; templates, entries, cells, probes,
+    focus and ink are complete only when errors is empty."""
+
+    slug: str
+    variant: str
+    errors: list[str] = field(default_factory=list[str])
+    warnings: list[str] = field(default_factory=list[str])
+    templates: dict[str, str] = field(default_factory=dict[str, str])  # file name -> svg
+    entries: dict[str, Entry] = field(default_factory=dict[str, Entry])  # "<aspect>/<regime>"
+    cells: list[float] = field(default_factory=list[float])
+    probes: dict[str, str] = field(default_factory=dict[str, str])
+    focus: tuple[float, float] | None = None
+    ink: Ink | None = None  # the 16:9 dark template's ink map
+    seconds: float = 0.0
+    unchanged: bool = False  # build: the probes matched, so nothing else was checked
 
 
 @dataclass
 class Report:
-    """One piece's check result: errors and warnings and, when errors is empty, its templates,
-    slots.json entries, pixel cell sizes and probe hashes."""
+    """One piece's check: its own errors, warnings and notes plus each variant's result."""
 
     slug: str
-    errors: list[str] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
-    templates: dict[str, str] = field(default_factory=dict)  # build/ file name -> normalised svg
-    entries: dict[str, dict] = field(
-        default_factory=dict
-    )  # "<aspect>/<regime>" -> {file, n, coefs, occ}
-    cells: list[float] = field(default_factory=list)
-    probes: dict[str, str] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list[str])
+    warnings: list[str] = field(default_factory=list[str])
+    notes: list[str] = field(default_factory=list[str])
+    results: dict[str, Result] = field(default_factory=dict[str, Result])
+
+    def add(self, result: Result) -> None:
+        """Take in a variant's result, prefixing its messages with a named variant's name."""
+        prefix = "" if result.variant == "default" else f"{result.variant}: "
+        self.errors += [prefix + e for e in result.errors]
+        self.warnings += [prefix + w for w in result.warnings]
+        self.results[result.variant] = result
 
 
-def theme_spec(theme: str | Theme) -> str | dict[str, str]:
-    """A preset name or seed triple as common.render() takes it."""
-    return theme if isinstance(theme, str) else dict(zip(SEEDS, theme))
+@dataclass
+class Target:
+    """A piece after the static steps: its report so far, its design (None when it failed to
+    load), its regimes and the variants to check."""
+
+    slug: str
+    report: Report
+    piece: common.Piece | None = None
+    regimes: tuple[Regime, ...] = ("dark", "light")
+    variants: tuple[str, ...] = ()
 
 
-def aspects(slug: str) -> list[str]:
-    """The aspects a piece is built at: its native SITE_ASPECTS, plus 16:9 always."""
-    native = walldye.native_aspects(common.design_aspects(slug))
-    return native if "16:9" in native else ["16:9", *native]
+def prepare(slug: str, variant: str | None = None) -> Target:
+    """Load `slug`, apply the meta.yaml rules (including variants:) and warn for each named
+    variant value outside its knob's soft range. `variant` limits the variants to check;
+    UsageError when the design does not declare it."""
+    t = Target(slug, Report(slug))
+    try:
+        meta = common.load_meta(slug)
+        t.regimes = common.regimes(meta)
+    except (OSError, ValueError) as e:
+        t.report.errors.append(str(e))
+        return t
+    try:
+        t.piece = load(slug)
+    except DesignError as e:
+        t.report.errors.append(str(e))
+    names = ("default", *common.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
+    errors, warnings = lint.meta(slug, meta, lint.load_taxonomy(), names)
+    t.report.errors += errors
+    t.report.warnings += warnings
+    if t.piece is not None:
+        if variant is not None:
+            common.variant_of(t.piece, slug, variant)
+        t.variants = t.piece.variant_names() if variant is None else (variant,)
+        infos = describe(t.piece.params_type)
+        for v, params in t.piece.variants.items():
+            if v not in t.variants:
+                continue
+            for info in infos:
+                if (w := knobs.outside(info, getattr(params, info.name))) is not None:
+                    t.report.warnings.append(f"{v}: {w}")
+    return t
 
 
-def regimes(meta: dict) -> list[str]:
-    """["dark"] for a `themes: [dark]` piece, else ["dark", "light"]."""
-    return ["dark"] if hashing.themes(meta) == ["dark"] else ["dark", "light"]
+def lint_source(t: Target) -> None:
+    """Add the design lint and the data/ rules of t.slug to its report; a design that does
+    not parse is left to the import error prepare() reported."""
+    path = common.piece_dir(t.slug) / "design.py"
+    if not path.exists():
+        return
+    try:
+        errors, warnings = lint.design(path)
+    except SyntaxError:
+        return
+    t.report.errors += errors + lint.data(t.slug)
+    t.report.warnings += warnings
 
 
-def probe_hashes(render_16x9: Callable[[str | Theme], str], regimes: list[str]) -> dict[str, str]:
-    """slots.json `probes`: sha256 of the piece's 16:9 render (`render_16x9(theme)`) under
-    fireproof and under the first basis theme of each regime."""
-    probes = {"fireproof": hashing.sha256(render_16x9("fireproof").encode())}
+def load(slug: str) -> common.Piece:
+    """common.load(slug), with anything the import raises turned into a DesignError."""
+    try:
+        return common.load(slug)
+    except Exception as e:  # whatever the import raises fails the check
+        raise design_error(e, "import") from e
+
+
+def draw(piece: common.Piece, spec: RenderSpec) -> Document:
+    """An uncached draw, with anything the design raises turned into a DesignError."""
+    try:
+        return common.draw(piece, spec, cache=False)
+    except Exception as e:  # whatever a design raises fails the check
+        raise design_error(e, f"{spec.aspect} {spec.regime}: draw") from e
+
+
+def _json(run: subprocess.CompletedProcess[str], what: str) -> list[dict[str, object]]:
+    try:
+        data: object = json.loads(run.stdout)
+    except ValueError:
+        said = run.stderr if run.stderr != "" else run.stdout
+        raise RuntimeError(f"{what} failed: {said.strip()[-600:]}") from None
+    if (d := common.as_dict(data)) is not None:
+        data = d.get("errors")
+    items = common.as_list(data)
+    if items is None:
+        raise RuntimeError(f"{what} printed no list of findings")
+    return [e for e in map(common.as_dict, items) if e is not None]
+
+
+def _row(finding: dict[str, object], key: str) -> int:
+    location = common.as_dict(finding.get(key))
+    row = finding.get("line") if location is None else location.get("row")
+    return row if isinstance(row, int) else 0
+
+
+def _pyrefly_message(finding: dict[str, object]) -> str:
+    """A Pyrefly finding's full description on one line: the first line, the closest overload
+    of a no-matching-overload error and the reason, with walldye's private modules named by the
+    public module that exports them."""
+    text = str(finding.get("description", finding.get("concise_description", "")))
+    lines = text.split("\n")
+    parts = [lines[0]]
+    for line in lines[1:]:
+        s = line.strip()
+        if s.endswith("[closest match]"):
+            parts.append(f"closest overload {s.removesuffix('[closest match]').strip()}")
+        elif s != "Possible overloads:" and not line.startswith("    "):
+            parts.append(s)
+    return _PRIVATE.sub(lambda m: _PUBLIC.get(m.group(1), "walldye."), "; ".join(parts))
+
+
+def tool_findings(paths: Sequence[Path]) -> dict[Path, list[str]]:
+    """Errors from `ruff format --check`, `ruff check` (with the repo's pyproject.toml) and
+    `pyrefly check` (with wallpapers/pyrefly.toml) for design files `paths`, keyed by resolved
+    path, each tool run once over all of them. A tool common.tool() cannot find, or one
+    printing no findings it can parse, is an error for every file."""
+    out: dict[Path, list[str]] = {p.resolve(): [] for p in paths}
+    if len(paths) == 0:
+        return out
+    files = [str(p) for p in paths]
+    config = common.ROOT / "pyproject.toml"
+    runs = {
+        "ruff format": ("ruff", "format", "--check", "--config", str(config)),
+        "ruff check": ("ruff", "check", "--no-fix", "--config", str(config)),
+        "pyrefly": ("pyrefly", "check", "-c", str(common.DESIGN_PYREFLY)),
+    }
+    for what, (program, *args) in runs.items():
+        exe = common.tool(program)
+        if exe is None:
+            for messages in out.values():
+                messages.append(f"{what}: {program} not found; run walldye through uv run")
+            continue
+        run = subprocess.run(
+            [str(exe), *args, "--output-format", "json", *files],
+            cwd=common.ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        try:
+            findings = _json(run, what)
+        except RuntimeError as e:
+            for messages in out.values():
+                messages.append(str(e))
+            continue
+        for f in findings:
+            name = f.get("filename", f.get("path"))
+            path = (common.ROOT / str(name)).resolve()
+            if path not in out or f.get("severity", "error") != "error":
+                continue
+            code = f.get("code")
+            if what == "ruff format" and code == "unformatted":
+                text = f"ruff format: the file would be reformatted (run uv run ruff format {name})"
+            elif what == "pyrefly":
+                text = f"line {_row(f, 'line')}: pyrefly [{f.get('name')}]: {_pyrefly_message(f)}"
+            else:
+                text = f"line {_row(f, 'location')}: ruff {code}: {f.get('message')}"
+            out[path].append(text)
+    return out
+
+
+def source_checks(targets: Sequence[Target]) -> None:
+    """Add ruff and Pyrefly findings for the design.py of each of `targets` to its report."""
+    paths = {
+        (common.piece_dir(t.slug) / "design.py").resolve(): t
+        for t in targets
+        if (common.piece_dir(t.slug) / "design.py").exists()
+    }
+    for path, messages in tool_findings(list(paths)).items():
+        paths[path].report.errors += messages
+
+
+def probe_hashes(
+    docs: Mapping[tuple[str, Regime], Document], regimes: Sequence[Regime]
+) -> dict[str, str]:
+    """slots.json `probes`: sha256 of the 16:9 dark document under fireproof, and of each
+    regime's 16:9 document under its first basis theme."""
+    probes = {"fireproof": _sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
     for regime in regimes:
-        probes[regime] = hashing.sha256(render_16x9(_basis.BASIS[regime][0]).encode())
+        probes[regime] = _sha(docs["16:9", regime], _basis.BASIS[regime][0])
     return probes
 
 
-class DesignError(Exception):
-    """A render of the piece raised; the message says under which theme, at which aspect, and where in design.py."""
+def _sha(doc: Document, theme: common.Theme) -> str:
+    return hashing.sha256(doc.to_svg(common.tokens_of(theme)).encode())
 
 
-def render(slug: str, theme: str | Theme, aspect: str) -> str:
-    """common.render() of a piece under a preset name or seed triple; DesignError if the design raises."""
+def check_variant(task: Task) -> Result:
+    """Check one (slug, variant): determinism (two in-process draws per native aspect and
+    regime, then a PYTHONHASHSEED subprocess), viewBox, the fit and its templates, the
+    constant-slot rule, the template limits, pixel origins, probes, focus and the ink map,
+    and with task.paranoid a fresh import per serialisation. A determinism failure stops it
+    before any geometry step; so does an exception from the design."""
+    common.WALLPAPERS = Path(task.wallpapers)
+    start = time.perf_counter()
+    r = Result(task.slug, task.variant)
     try:
-        return common.render(slug, theme_spec(theme), aspect)
-    except Exception as e:  # whatever a design raises fails the check
-        frames = [
-            f for f in traceback.extract_tb(e.__traceback__) if Path(f.filename).name == "design.py"
-        ]
-        where = f" (design.py line {frames[-1].lineno})" if frames else ""
-        raise DesignError(
-            f"{aspect}: render under {fit.label(theme)} failed: {type(e).__name__}: {e}{where}"
-        ) from e
+        _check(task, r)
+    except DesignError as e:
+        r.errors.append(str(e))
+    r.seconds = time.perf_counter() - start
+    if r.seconds > SLOW and not r.unchanged:
+        r.warnings.append(f"the check took {r.seconds:.0f} s, over {SLOW:.0f} s")
+    return r
 
 
-class _Renders:
-    """One piece's renders, cached by (aspect, theme), with the pixel grids of each."""
+def _check(task: Task, r: Result) -> None:
+    slug, variant = task.slug, task.variant
+    piece = load(slug)
+    params = piece.params(variant)
+    docs: dict[tuple[str, Regime], Document] = {}
+    if task.probes is not None:
+        for regime in task.regimes:
+            docs["16:9", regime] = draw(piece, RenderSpec(variant, params, "16:9", regime))
+        r.probes = probe_hashes(docs, task.regimes)
+        if r.probes == dict(task.probes):
+            r.unchanged = True
+            return
 
-    def __init__(self, slug: str):
-        self.slug = slug
-        self.svg: dict = {}
-        self.grids: dict = {}
+    expected: dict[str, str] = {}
+    for aspect in piece.aspects:
+        for regime in task.regimes:
+            spec = RenderSpec(variant, params, aspect, regime)
+            first = docs[aspect, regime] if (aspect, regime) in docs else draw(piece, spec)
+            docs[aspect, regime] = first
+            tokens = common.tokens_of(_basis.BASIS[regime][0])
+            a, b = first.to_svg(tokens), draw(piece, spec).to_svg(tokens)
+            if a != b:
+                r.errors.append(
+                    f"{aspect} {regime}: two draws differ, {first_diff(a, b)}: does draw change"
+                    " module-level state, or use randomness outside s.rng?"
+                )
+            expected[common.key(slug, variant, aspect, regime)] = hashing.sha256(a.encode())
+    if len(r.errors) > 0:
+        return
+    r.errors += _fresh_process(expected)
+    if len(r.errors) > 0:
+        return
 
-    def __call__(self, aspect: str, theme: str | Theme) -> str:
-        key = (aspect, theme)
-        if key not in self.svg:
-            self.svg[key] = render(self.slug, theme, aspect)
-            self.grids[key] = walldye.pixel_grids()
-        return self.svg[key]
+    for (aspect, regime), doc in docs.items():
+        w, h = canvas_size(aspect)
+        if (got := common.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
+            r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
+    for aspect in piece.aspects:
+        templates, entries, errors = fit_aspect({g: docs[aspect, g] for g in task.regimes}, aspect)
+        r.templates.update(templates)
+        r.entries.update(entries)
+        r.errors += errors
+    for name, text in r.templates.items():
+        errors, warnings = lint.svg(text)
+        r.errors += [f"{name}: {e}" for e in errors]
+        r.warnings += [f"{name}: {w}" for w in warnings]
+    for aspect in piece.aspects:
+        grids = [g for regime in task.regimes for g in docs[aspect, regime].pixel_grids]
+        r.warnings += [f"{aspect}: {w}" for w in lint.pixel_origins(grids)]
+    r.cells = sorted({cell for doc in docs.values() for cell, _, _ in doc.pixel_grids})
+    r.probes = probe_hashes(docs, task.regimes)
+    dark = r.templates.get("16x9.svg")
+    if dark is not None:
+        bg = common.background(dark)
+        r.focus = common.focus(common.rasterise(dark, FOCUS_WIDTH), bg)
+        r.ink = common.ink_map(common.rasterise(dark, INK_WIDTH), bg)
+    if task.paranoid and not isinstance(piece, common.LegacyPiece):
+        r.errors += _paranoid(slug, variant, docs)
 
 
-def hashes_main(args: list[str]) -> int:
-    """`python -m walldye _hashes <wallpapers dir> <slug>@<aspect>@<theme token>...`: print a JSON
-    object mapping each key to the sha256 of that render, made in this process. Render errors
-    propagate (non-zero exit)."""
+def _fresh_process(expected: Mapping[str, str]) -> list[str]:
+    """Errors for the keys a `python -m walldye _hashes` subprocess under PYTHONHASHSEED
+    draws differently from `expected` {key: sha256}."""
+    run = subprocess.run(
+        [sys.executable, "-m", "walldye", "_hashes", str(common.WALLPAPERS), *expected],
+        env={**os.environ, "PYTHONHASHSEED": HASH_SEED},
+        cwd=common.ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if run.returncode != 0:
+        return [f"determinism subprocess failed: {run.stderr.strip()[-600:]}"]
+    try:
+        got = common.as_dict(json.loads(run.stdout))
+    except ValueError:
+        got = None
+    if got is None:
+        return [f"determinism subprocess printed {run.stdout[:200]!r}"]
+    errors: list[str] = []
+    for k, sha in expected.items():
+        if got.get(k) != sha:
+            _, _, aspect, regime = k.split("@")
+            errors.append(
+                f"{aspect} {regime}: a fresh process with PYTHONHASHSEED={HASH_SEED} draws it"
+                " differently (iterating a set of strings? hash()?)"
+            )
+    return errors
+
+
+def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Document]) -> list[str]:
+    """Errors where a fresh import of the design, drawn for one serialisation, differs from
+    the shared document serialised under the same theme."""
+    errors: list[str] = []
+    for (aspect, regime), doc in docs.items():
+        rest = _basis.BASIS[regime] + _basis.PROBES[regime] + _basis.HELD_OUT[regime]
+        for theme in [TEMPLATE_THEMES[regime], *rest]:
+            tokens = common.tokens_of(theme)
+            try:
+                piece = common.fresh(slug)
+            except Exception as e:  # whatever the import raises fails the check
+                raise design_error(e, "fresh import") from e
+            got = draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
+            want = doc.to_svg(tokens)
+            got = got.to_svg(tokens)
+            if got != want:
+                errors.append(
+                    f"{aspect} {regime}: a fresh import drawn for {label(theme)} differs from the"
+                    f" shared document, {first_diff(want, got)}: draw depends on module state"
+                )
+                break
+    return errors
+
+
+def hashes_main(args: Sequence[str]) -> int:
+    """`python -m walldye _hashes <wallpapers dir> <slug@variant@aspect@regime>...`: print a
+    JSON object mapping each key to the sha256 of that draw serialised under the regime's
+    first basis theme, made in this process. Design errors propagate (non-zero exit)."""
     common.WALLPAPERS = Path(args[0])
-    out = {}
-    for key in args[1:]:
-        slug, aspect, token = key.split("@")
-        out[key] = hashing.sha256(common.render(slug, token, aspect).encode())
+    out: dict[str, str] = {}
+    for k in args[1:]:
+        slug, variant, aspect, regime = k.split("@")
+        if regime not in ("dark", "light"):
+            raise ValueError(f"bad key {k!r}")
+        piece = common.load(slug)
+        spec = RenderSpec(
+            variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
+        )
+        out[k] = _sha(common.draw(piece, spec, cache=False), _basis.BASIS[spec.regime][0])
     print(json.dumps(out))
     return 0
 
 
-def _determinism(slug: str, aspects: list[str], regimes: list[str], renders: _Renders) -> list[str]:
-    errors, expected = [], {}
-    for aspect in aspects:
-        for regime in regimes:
-            theme = _basis.BASIS[regime][0]
-            first = renders(aspect, theme)
-            if render(slug, theme, aspect) != first:
-                errors.append(
-                    f"{aspect}: two renders under {fit.label(theme)} differ (unseeded randomness?)"
-                )
-            expected[f"{slug}@{aspect}@{fit.label(theme)}"] = hashing.sha256(first.encode())
-    if errors:
-        return errors
-    run = subprocess.run(
-        [*HASHES_CMD, str(common.WALLPAPERS), *expected],
-        env={**os.environ, "PYTHONHASHSEED": HASH_SEED}, cwd=common.ROOT, capture_output=True, text=True, check=False,
-    )  # fmt: skip
-    if run.returncode:
-        return [f"determinism subprocess failed: {run.stderr.strip()[-600:]}"]
-    got = json.loads(run.stdout)
-    return [
-        f"{key.split('@')[1]}: render under {key.split('@')[2]} differs in a fresh process with PYTHONHASHSEED={HASH_SEED} "
-        "(iterating a set of strings? hash()?)"
-        for key, sha in expected.items() if got.get(key) != sha
-    ]  # fmt: skip
+def workers(jobs: int | None, tasks: int) -> int:
+    """How many processes to run `tasks` (slug, variant) tasks in: 1 for a single task, else
+    `jobs` (default: every core)."""
+    if tasks <= 1:
+        return 1
+    if jobs is not None:
+        return jobs
+    cores = os.cpu_count()
+    return 1 if cores is None else cores
 
 
-def check_slug(slug: str) -> Report:
-    """Run check steps 1-7 on one piece (plus the meta.yaml rules), in order. A determinism
-    failure stops the check before any geometry step; so does an exception from the design."""
-    report = Report(slug)
-    try:
-        meta = common.load_meta(slug)
-        legacy = common.is_legacy(slug)
-        piece_aspects = aspects(slug)
-    except (OSError, ValueError, SyntaxError) as e:
-        report.errors.append(str(e))
-        return report
-    errors, warnings = lint.meta(slug, meta, lint.load_taxonomy())
-    report.errors += errors
-    report.warnings += warnings
-    if not legacy:
-        errors, warnings = lint.source(common.piece_dir(slug) / "design.py")
-        report.errors += errors
-        report.warnings += warnings
-    piece_regimes = regimes(meta)
-    template_themes = [fit.TEMPLATE_THEMES[r] for r in piece_regimes]
-    renders = _Renders(slug)
-    try:
-        if errors := _determinism(slug, piece_aspects, piece_regimes, renders):
-            report.errors += errors
-            return report
-        for aspect in piece_aspects:
-            w, h = walldye.canvas_size(aspect)
-            for theme in template_themes:
-                if (got := common.viewbox(renders(aspect, theme))) != f"0 0 {w} {h}":
-                    report.errors.append(
-                        f'{aspect}: viewBox under {theme} must be "0 0 {w} {h}", not {got!r}'
-                    )
-        for aspect in piece_aspects:
-            templates, entries, errors = fit.fit_aspect(
-                partial(renders, aspect), aspect, piece_regimes
+def run_tasks[T, R](fn: Callable[[T], R], tasks: Sequence[T], jobs: int) -> Iterator[R]:
+    """fn over `tasks`, results in task order: in this process when `jobs` is 1 or there is one
+    task, else in a forkserver process pool of up to `jobs` workers."""
+    if jobs <= 1 or len(tasks) <= 1:
+        yield from map(fn, tasks)
+        return
+    context = multiprocessing.get_context("forkserver")
+    with ProcessPoolExecutor(max_workers=min(jobs, len(tasks)), mp_context=context) as pool:
+        yield from pool.map(fn, tasks)
+
+
+def committed_ink(slug: str, variant: str) -> Ink | None:
+    """The ink map of a variant's committed build/[<variant>/]16x9.svg, measured from its own
+    background; None when not built."""
+    path = common.build_dir(slug, variant) / "16x9.svg"
+    if not path.exists():
+        return None
+    svg = path.read_text()
+    return common.ink_map(common.rasterise(svg, INK_WIDTH), common.background(svg))
+
+
+def siblings(report: Report, names: Sequence[str], fresh: Mapping[str, Ink | None]) -> None:
+    """The variant sibling rule over the versions `names` of report.slug: two 16:9 dark
+    templates with an ink-map cosine of NEAR_CLONE or more are an error when at least one of
+    them was checked afresh (a key of `fresh`); the other is fresh too or committed. Pairs of
+    committed templates are not compared again. A version with neither is skipped with a note;
+    one whose fresh check failed (None) is skipped silently."""
+    if all(ink is None for ink in fresh.values()):
+        return
+    maps: dict[str, Ink] = {}
+    for name in names:
+        ink = fresh[name] if name in fresh else committed_ink(report.slug, name)
+        if ink is not None:
+            maps[name] = ink
+        elif name not in fresh:
+            report.notes.append(
+                f"{name} is not built yet, so the other versions were not compared with it"
             )
-            report.templates.update(templates)
-            report.entries.update(entries)
-            report.errors += errors
-        for name, text in report.templates.items():
-            errors, warnings = lint.svg(text)
-            report.errors += [f"{name}: {e}" for e in errors]
-            report.warnings += [f"{name}: {w}" for w in warnings]
-        grids = {
-            a: [g for t in template_themes for g in renders.grids[(a, t)]] for a in piece_aspects
-        }
-        report.cells = sorted({cell for g in grids.values() for cell, _, _ in g})
-        report.warnings += [f"{a}: {w}" for a, g in grids.items() for w in lint.pixel_origins(g)]
-        report.probes = probe_hashes(partial(renders, "16:9"), piece_regimes)
-    except DesignError as e:
-        report.errors.append(str(e))
-    return report
+    ordered = list(maps)
+    for i, a in enumerate(ordered):
+        for b in ordered[i + 1 :]:
+            if a not in fresh and b not in fresh:
+                continue
+            if (sim := float(maps[a] @ maps[b])) >= NEAR_CLONE:
+                report.errors.append(
+                    f"versions {a} and {b} look alike (ink-map cosine {sim:.2f}, must be below"
+                    f" {NEAR_CLONE}): a variant must change what is depicted"
+                )
 
 
 def print_report(report: Report) -> None:
-    status = f"{len(report.errors)} error(s)" if report.errors else "ok"
-    print(
-        f"{report.slug}: {status}"
-        + (f", {len(report.warnings)} warning(s)" if report.warnings else "")
-    )
+    status = f"{len(report.errors)} error(s)" if len(report.errors) > 0 else "ok"
+    warned = f", {len(report.warnings)} warning(s)" if len(report.warnings) > 0 else ""
+    print(f"{report.slug}: {status}{warned}")
     for e in report.errors:
         print(f"  error: {e}")
     for w in report.warnings:
         print(f"  warning: {w}")
+    for n in report.notes:
+        print(f"  note: {n}")
 
 
-def near_clones(slugs: list[str]) -> None:
-    """Check step 8: print pairs involving `slugs` whose committed build/16x9.svg ink maps have
-    cosine >= NEAR_CLONE, most similar first, then the `slugs` that have no committed template."""
-    bg = walldye.PRESETS["fireproof"]["bg"]
-    maps, skipped = {}, []
+def near_clones(slugs: Sequence[str]) -> None:
+    """`check --similar`: print pairs involving `slugs` whose committed default build/16x9.svg
+    ink maps have cosine >= NEAR_CLONE, most similar first, then the `slugs` that have no
+    committed template."""
+    maps: dict[str, Ink] = {}
+    skipped: list[str] = []
     for slug in sorted(set(common.slugs()) | set(slugs)):
-        template = common.build_dir(slug) / "16x9.svg"
-        if template.exists():
-            maps[slug] = common.ink_map(common.rasterise(template.read_text(), 256), bg)
+        ink = committed_ink(slug, "default")
+        if ink is not None:
+            maps[slug] = ink
         elif slug in slugs:
             skipped.append(slug)
     names = list(maps)
@@ -222,24 +539,45 @@ def near_clones(slugs: list[str]) -> None:
     ]  # fmt: skip
     for sim, a, b in sorted(pairs, reverse=True):
         print(f"similar ({sim:.2f}): {a} ~ {b}")
-    if skipped:
-        print(f"set: skipped, no build/16x9.svg: {', '.join(skipped)}")
+    if len(skipped) > 0:
+        print(f"similar: skipped, no build/16x9.svg: {', '.join(skipped)}")
 
 
-def run(slugs: list[str], all: bool = False, set_mode: bool = False) -> int:
-    """`walldye check`: check `slugs` (every piece with `all`), print a report per piece and,
-    with `set_mode`, the near-clone advisory. Returns 1 if any piece has errors, 2 if there is
-    nothing to check, else 0 (warnings and the advisory never fail)."""
-    targets = common.slugs() if all else list(slugs)
-    if not targets:
+def run(
+    slugs: Sequence[str],
+    all: bool = False,
+    variant: str | None = None,
+    paranoid: bool = False,
+    similar: bool = False,
+    jobs: int | None = None,
+) -> int:
+    """`walldye check`: check `slugs` (every piece with `all`), every variant or only
+    `variant`, print a report per piece in slug order and, with `similar`, the near-clone
+    advisory. Returns 1 if any piece has errors, 2 if there is nothing to check, else 0
+    (warnings, notes and the advisory never fail). UsageError for an undeclared `variant`."""
+    targets = [prepare(s, variant) for s in (common.slugs() if all else slugs)]
+    if len(targets) == 0:
         print("nothing to check: name a slug or pass --all", file=sys.stderr)
         return 2
+    for t in targets:
+        lint_source(t)
+    source_checks(targets)
+    tasks = [
+        Task(str(common.WALLPAPERS), t.slug, v, t.regimes, paranoid)
+        for t in targets
+        for v in t.variants
+    ]
+    results = run_tasks(check_variant, tasks, workers(jobs, len(tasks)))
     failed = 0
-    for slug in targets:
-        report = check_slug(slug)
-        print_report(report)
-        failed += bool(report.errors)
-    if set_mode:
-        near_clones(targets)
+    for t in targets:
+        for _ in t.variants:
+            t.report.add(next(results))
+        if t.piece is not None:
+            fresh = {v: r.ink for v, r in t.report.results.items()}
+            siblings(t.report, t.piece.variant_names(), fresh)
+        print_report(t.report)
+        failed += len(t.report.errors) > 0
+    if similar:
+        near_clones([t.slug for t in targets])
     print(f"{len(targets) - failed}/{len(targets)} ok")
-    return 1 if failed else 0
+    return 1 if failed > 0 else 0

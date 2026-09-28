@@ -1,0 +1,3 @@
+# The type-check level for designs; walldye check runs Pyrefly with this config.
+python-version = "3.13"
+preset = "default"

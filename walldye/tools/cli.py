@@ -1,26 +1,33 @@
-"""walldye: scaffold, preview, check, build, render, review and sheet the wallpapers in wallpapers/<slug>/.
+"""walldye: scaffold, preview, check, build, render, review and sheet the wallpapers in
+wallpapers/<slug>/.
 
 Commands that take slugs need them named (or --all); only `build --verify` and `themes` cover
 everything by default, and `review` defaults to the drafts. --theme takes a preset name or
-bg-fg-accent hex seeds (also bg,fg,accent and bg=..,fg=..,accent=..).
+bg-fg-accent hex seeds (also bg,fg,accent and bg=..,fg=..,accent=..). --variant names a
+version declared in design.py (`default` is the unnamed one); --set k=v overrides one param
+while exploring.
 """
-
-from __future__ import annotations
 
 import argparse
 import os
 import sys
+from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import cast
 
-import walldye
+from walldye._aspect import aspect_label, supports
+from walldye._theme import DEFAULT_THEME, parse_seeds, theme_token
 from walldye.tools import common, listing, new, preview, review, sheet
 
-COMMANDS = "new,preview,render,check,build,review,sheet,list,drop,themes"
+COMMANDS = "new,preview,render,check,build,review,sheet,params,list,drop,themes"
+SET_REFUSED = "--set is for exploring; give the values a named variant in design.py"
+
+type Command = Callable[[argparse.Namespace], int]
 
 
 def _seeds(value: str) -> dict[str, str]:
     try:
-        return walldye.parse_seeds(value)
+        return parse_seeds(value)
     except ValueError as e:
         raise argparse.ArgumentTypeError(str(e)) from e
 
@@ -58,38 +65,70 @@ def _crop(value: str) -> common.Crop:
         raise argparse.ArgumentTypeError(str(e)) from e
 
 
-def _cmd_new(a) -> int:
-    return new.run(a.slug, a.author, a.model)
+def _str(a: argparse.Namespace, name: str) -> str:
+    return cast("str", getattr(a, name))
 
 
-def _cmd_preview(a) -> int:
-    return preview.run(a.slug, a.theme, a.aspect, a.crop, a.width, a.renderer)
+def _opt[T](a: argparse.Namespace, name: str, kind: type[T]) -> T | None:
+    value: object = getattr(a, name)
+    return value if isinstance(value, kind) else None
 
 
-def _cmd_render(a) -> int:
-    try:
-        declared = common.design_aspects(a.slug)
-    except ValueError as e:
-        sys.exit(str(e))
-    if not walldye.supports(declared, a.aspect):
+def _items(a: argparse.Namespace, name: str) -> list[str]:
+    items = cast("list[str] | None", getattr(a, name))
+    return [] if items is None else items
+
+
+def _cmd_new(a: argparse.Namespace) -> int:
+    return new.run(_str(a, "slug"), _str(a, "author"), _str(a, "model"))
+
+
+def _cmd_preview(a: argparse.Namespace) -> int:
+    return preview.run(
+        _str(a, "slug"),
+        cast("dict[str, str]", a.theme),
+        _str(a, "aspect"),
+        cast("common.Crop | None", a.crop),
+        cast("int", a.width),
+        _str(a, "renderer"),
+        _str(a, "variant"),
+        _items(a, "set"),
+    )
+
+
+def _cmd_render(a: argparse.Namespace) -> int:
+    slug, aspect, variant = _str(a, "slug"), _str(a, "aspect"), _str(a, "variant")
+    seeds = cast("dict[str, str]", a.theme)
+    crop = cast("common.Crop | None", a.crop)
+    piece = common.load(slug)
+    common.variant_of(piece, slug, variant)
+    if not supports(piece.declared_aspects, aspect):
         sys.exit(
-            f"{a.slug} declares ASPECTS={declared}, not {a.aspect}; render 16:9 with --crop instead"
+            f"{slug} declares aspects={piece.declared_aspects!r}, not {aspect};"
+            " render 16:9 with --crop instead"
         )
-    svg = common.render(a.slug, a.theme, a.aspect)
-    if a.crop:
-        svg = common.crop_svg(svg, a.crop)
-    if a.output == "-":
+    try:
+        params, warnings = common.params_for(piece, variant, _items(a, "set"))
+    except (ValueError, TypeError) as e:
+        raise common.UsageError(str(e)) from None
+    for w in warnings:
+        print(f"warning: {w}", file=sys.stderr)
+    from walldye._design import RenderSpec
+
+    doc = common.draw(piece, RenderSpec(variant, params, aspect, common.regime_of(seeds)))
+    svg = doc.to_svg(common.tokens_of(seeds))
+    if crop is not None:
+        svg = common.crop_svg(svg, crop)
+    output = _opt(a, "output", str)
+    if output == "-":
         sys.stdout.write(svg)
         return 0
-    crop = "-crop" if a.crop else ""
-    out = Path(
-        a.output
-        or f"{a.slug}-{walldye.theme_token(a.theme)}-{walldye.aspect_label(a.aspect)}{crop}.svg"
-    )
+    name = slug if variant == "default" else f"{slug}--{variant}"
+    tail = "-crop" if crop is not None else ""
+    default = f"{name}-{theme_token(seeds)}-{aspect_label(aspect)}{tail}.svg"
+    out = Path(output if output is not None else default)
     wallpapers, target = common.WALLPAPERS.resolve(), out.resolve()
-    if target.is_relative_to(wallpapers) and target.relative_to(wallpapers).parts[1:2] == (
-        "build",
-    ):
+    if target.is_relative_to(wallpapers) and "build" in target.relative_to(wallpapers).parts[1:2]:
         sys.exit(f"refusing to write {out}: only walldye build writes into build/")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(svg)
@@ -97,42 +136,73 @@ def _cmd_render(a) -> int:
     return 0
 
 
-def _cmd_check(a) -> int:
+def _cmd_check(a: argparse.Namespace) -> int:
     from walldye.tools import check
 
-    return check.run(a.slugs, all=a.all, set_mode=a.set)
+    return check.run(
+        _items(a, "slugs"),
+        all=cast("bool", a.all),
+        variant=_opt(a, "variant", str),
+        paranoid=cast("bool", a.paranoid),
+        similar=cast("bool", a.similar),
+        jobs=_opt(a, "jobs", int),
+    )
 
 
-def _cmd_build(a) -> int:
+def _cmd_build(a: argparse.Namespace) -> int:
     from walldye.tools import build
 
-    return build.run(a.slugs, all=a.all, verify=a.verify, force=a.force)
+    return build.run(
+        _items(a, "slugs"),
+        all=cast("bool", a.all),
+        verify=cast("bool", a.verify),
+        force=cast("bool", a.force),
+        variant=_opt(a, "variant", str),
+        jobs=_opt(a, "jobs", int),
+    )
 
 
-def _cmd_review(a) -> int:
-    return review.run(a.slugs, a.timeout, a.port, not a.no_open)
+def _cmd_review(a: argparse.Namespace) -> int:
+    return review.run(
+        _items(a, "slugs"), cast("float", a.timeout), cast("int", a.port), not a.no_open
+    )
 
 
-def _cmd_sheet(a) -> int:
-    return sheet.run(common.slugs() if a.all else a.slugs, a.theme, a.cols, a.thumb, a.output)
+def _cmd_sheet(a: argparse.Namespace) -> int:
+    seeds = cast("dict[str, str]", a.theme)
+    slugs = common.slugs() if a.all else _items(a, "slugs")
+    cols, thumb, out = _opt(a, "cols", int), cast("int", a.thumb), _opt(a, "output", str)
+    variant, aspect = _str(a, "variant"), _str(a, "aspect")
+    wedges, overrides, seeds_range = _items(a, "wedge"), _items(a, "set"), _opt(a, "seeds", str)
+    if len(wedges) == 0 and len(overrides) == 0 and seeds_range is None:
+        return sheet.run(slugs, seeds, cols, thumb, out, variant, aspect)
+    if len(slugs) != 1:
+        raise common.UsageError("--wedge, --seeds and --set draw one slug afresh; name one")
+    return sheet.run_fresh(
+        slugs[0], seeds, cols, thumb, out, variant, aspect, overrides, wedges, seeds_range
+    )
 
 
-def _cmd_list(a) -> int:
+def _cmd_params(a: argparse.Namespace) -> int:
+    return listing.run_params(_str(a, "slug"), cast("bool", a.json))
+
+
+def _cmd_list(a: argparse.Namespace) -> int:
     return listing.run_list()
 
 
-def _cmd_drop(a) -> int:
-    return review.drop(a.slugs, a.yes)
+def _cmd_drop(a: argparse.Namespace) -> int:
+    return review.drop(_items(a, "slugs"), cast("bool", a.yes))
 
 
-def _cmd_themes(a) -> int:
-    return listing.run_themes(a.theme, a.json)
+def _cmd_themes(a: argparse.Namespace) -> int:
+    return listing.run_themes(cast("dict[str, str] | None", a.theme), cast("bool", a.json))
 
 
-def _cmd_hashes(a) -> int:
+def _cmd_hashes(a: argparse.Namespace) -> int:
     from walldye.tools import check
 
-    return check.hashes_main(a.args)
+    return check.hashes_main(_items(a, "args"))
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -141,11 +211,12 @@ def _parser() -> argparse.ArgumentParser:
     )
     # An explicit metavar keeps the hidden _hashes out of the usage line.
     sub = ap.add_subparsers(dest="cmd", required=True, metavar="{" + COMMANDS + "}")
+    env_theme = os.environ.get("WALLDYE_THEME", "")
     theme = argparse.ArgumentParser(add_help=False)
     theme.add_argument(
         "--theme",
         type=_seeds,
-        default=os.environ.get("WALLDYE_THEME") or walldye.DEFAULT_THEME,
+        default=env_theme if env_theme != "" else DEFAULT_THEME,
         metavar="TOKEN",
         help="preset or bg-fg-accent seeds (default: $WALLDYE_THEME, else fireproof)",
     )
@@ -156,8 +227,23 @@ def _parser() -> argparse.ArgumentParser:
     canvas.add_argument(
         "--aspect", type=_aspect, default="16:9", help="e.g. 21:9, 9:19.5 (default 16:9)"
     )
-    canvas.add_argument(
-        "--crop", type=_crop, metavar="X,Y,W,H", help="canvas-unit box to zoom into"
+    crop = argparse.ArgumentParser(add_help=False)
+    crop.add_argument("--crop", type=_crop, metavar="X,Y,W,H", help="canvas-unit box to zoom into")
+    one = argparse.ArgumentParser(add_help=False)
+    one.add_argument(
+        "--variant", default="default", metavar="NAME", help="a named version (default: default)"
+    )
+    every = argparse.ArgumentParser(add_help=False)
+    every.add_argument("--variant", metavar="NAME", help="only this version (default: all)")
+    every.add_argument(
+        "--jobs",
+        type=_positive,
+        metavar="N",
+        help="processes, one version of a piece each (default: cores)",
+    )
+    sets = argparse.ArgumentParser(add_help=False)
+    sets.add_argument(
+        "--set", action="append", metavar="K=V", help="override one param (repeatable)"
     )
 
     s = sub.add_parser("new", help="scaffold wallpapers/<slug>/ (design.py + draft meta.yaml)")
@@ -168,8 +254,8 @@ def _parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser(
         "preview",
-        parents=[theme, canvas],
-        help="render a PNG to $WALLDYE_PREVIEW and print lint hints",
+        parents=[theme, canvas, crop, one, sets],
+        help="draw a PNG to $WALLDYE_PREVIEW and print lint hints",
     )
     s.add_argument("slug", type=_slug)
     s.add_argument("--width", type=_positive, default=1280, help="long side in px (default 1280)")
@@ -178,8 +264,8 @@ def _parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser(
         "render",
-        parents=[theme, canvas],
-        help="write one SVG (default ./<slug>-<theme>-<aspect>.svg)",
+        parents=[theme, canvas, crop, one, sets],
+        help="write one SVG (default ./<slug>[--<variant>]-<theme>-<aspect>.svg)",
     )
     s.add_argument("slug", type=_slug)
     s.add_argument("-o", "--output", metavar="PATH", help="output file, or - for stdout")
@@ -187,19 +273,23 @@ def _parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser(
         "check",
-        parents=[targets],
-        help="determinism, skeleton, fit and lint checks (errors exit 1)",
+        parents=[targets, every],
+        help="lint, ruff, Pyrefly, determinism, fit and variant checks (errors exit 1)",
     )
     s.add_argument(
-        "--set", action="store_true", help="also list near-clone pairs and skipped pieces"
+        "--paranoid", action="store_true", help="also redraw from a fresh import per theme"
+    )
+    s.add_argument(
+        "--similar", action="store_true", help="also list near-clone pairs and skipped pieces"
     )
     s.set_defaults(fn=_cmd_check, need_targets=True)
 
     s = sub.add_parser(
         "build",
-        parents=[targets],
+        parents=[targets, every],
         help="check, then write build/ templates, slots.json and index.json",
     )
+    s.add_argument("--set", action="append", help=argparse.SUPPRESS)  # refused in main()
     s.add_argument(
         "--verify",
         action="store_true",
@@ -210,7 +300,7 @@ def _parser() -> argparse.ArgumentParser:
     s.set_defaults(fn=_cmd_build, need_targets=True)
 
     s = sub.add_parser("review", help="approve drafts in a localhost page; blocks until Done")
-    s.add_argument("slugs", nargs="*", type=_slug, help="default: every draft: true piece")
+    s.add_argument("slugs", nargs="*", type=_slug, help="default: every draft piece or version")
     s.add_argument(
         "--timeout", type=float, default=7200, help="seconds to wait for Done (default 7200)"
     )
@@ -220,18 +310,27 @@ def _parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser(
         "sheet",
-        parents=[targets, theme],
-        help="contact sheet of build/16x9.svg, recoloured with --theme",
+        parents=[targets, theme, canvas, one, sets],
+        help="contact sheet of committed templates, or of one slug over --wedge/--seeds",
     )
-    s.add_argument("--cols", type=_positive, default=4)
+    s.add_argument(
+        "--wedge", action="append", metavar="K=SPEC", help="a..b..step or v1,v2,... (repeatable)"
+    )
+    s.add_argument("--seeds", metavar="A..B", help="set seed to each of A..B")
+    s.add_argument("--cols", type=_positive, help="thumbnails per row")
     s.add_argument("--thumb", type=_positive, default=480, help="thumbnail width in px")
     s.add_argument(
-        "-o", "--output", metavar="PATH", help="default $WALLDYE_PREVIEW/sheet-<theme>.png"
+        "-o", "--output", metavar="PATH", help="default $WALLDYE_PREVIEW/sheet-<...>.png"
     )
     s.set_defaults(fn=_cmd_sheet, need_targets=True)
 
+    s = sub.add_parser("params", help="a design's params, ranges and variants")
+    s.add_argument("slug", type=_slug)
+    s.add_argument("--json", action="store_true", help="as JSON, for scripts")
+    s.set_defaults(fn=_cmd_params)
+
     s = sub.add_parser(
-        "list", help="slug, title, description, draft and native aspects, tab-separated"
+        "list", help="slug, title, description, draft, aspects and variants, tab-separated"
     )
     s.set_defaults(fn=_cmd_list)
 
@@ -249,21 +348,28 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--json", action="store_true", help="write src/lib/__fixtures__/themes.json")
     s.set_defaults(fn=_cmd_themes)
 
-    s = sub.add_parser(
-        "_hashes"
-    )  # check's determinism subprocess: WALLPAPERS_DIR SLUG@ASPECT@THEME...
+    # check's determinism subprocess: WALLPAPERS_DIR SLUG@VARIANT@ASPECT@REGIME...
+    s = sub.add_parser("_hashes")
     s.add_argument("args", nargs="*")
     s.set_defaults(fn=_cmd_hashes)
     return ap
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Run the command in `argv` (default sys.argv[1:]) and return its exit code; usage errors exit 2."""
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the command in `argv` (default sys.argv[1:]) and return its exit code; usage
+    errors exit 2."""
     ap = _parser()
     a = ap.parse_args(argv)
-    if getattr(a, "need_targets", False):
-        if a.all and a.slugs:
-            ap.error(f"{a.cmd}: pass slugs or --all, not both")
-        if not (a.all or a.slugs or getattr(a, "verify", False)):
-            ap.error(f"{a.cmd}: name the slugs, or pass --all")
-    return a.fn(a)
+    cmd = _str(a, "cmd")
+    if getattr(a, "need_targets", False) is True:
+        if a.all and len(_items(a, "slugs")) > 0:
+            ap.error(f"{cmd}: pass slugs or --all, not both")
+        if not (a.all or len(_items(a, "slugs")) > 0 or getattr(a, "verify", False) is True):
+            ap.error(f"{cmd}: name the slugs, or pass --all")
+    if cmd == "build" and len(_items(a, "set")) > 0:
+        ap.error(SET_REFUSED)
+    fn = cast("Command", a.fn)
+    try:
+        return fn(a)
+    except common.UsageError as e:
+        ap.error(str(e))

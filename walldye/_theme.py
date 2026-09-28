@@ -56,7 +56,7 @@ PRESETS: dict[str, dict[str, str]] = {
         "accent_7": "#2E1C19",
         "accent_8": "#241B19",
         "orange_dark": "#BC5215",
-    },  # fmt: skip
+    },
     "flexoki-light": {"bg": "#FFFCF0", "fg": "#100F0F", "accent": "#BC5215"},
     "gruvbox-dark": {"bg": "#282828", "fg": "#EBDBB2", "accent": "#FE8019"},
     "nord": {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"},
@@ -95,7 +95,7 @@ def mix(a: str, b: str, t: float) -> str:
 def luminance(c: str) -> float:
     """WCAG relative luminance of a hex colour, 0..1."""
 
-    def lin(v):
+    def lin(v: float) -> float:
         v /= 255
         return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
 
@@ -111,10 +111,10 @@ def is_light(bg: str, fg: str) -> bool:
 def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
     """Full token dict from `seeds`: needs bg, fg, accent; any other token is an override."""
     missing = {"bg", "fg", "accent"} - seeds.keys()
-    if missing:
+    if len(missing) > 0:
         raise ValueError(f"theme needs {', '.join(sorted(missing))}")
     unknown = seeds.keys() - set(TOKENS)
-    if unknown:
+    if len(unknown) > 0:
         raise ValueError(
             f"unknown theme tokens: {', '.join(sorted(unknown))} (known: {', '.join(TOKENS)})"
         )
@@ -139,9 +139,12 @@ def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
 
 
 def normalise_seed(c: str) -> str:
-    """`c` (3 or 6 hex digits, optional `#`, any case) as uppercase #RRGGBB; ValueError otherwise."""
+    """`c` (3 or 6 hex digits, optional `#`, any case) as uppercase #RRGGBB.
+
+    Raises ValueError otherwise.
+    """
     m = _SEED.fullmatch(c.strip())
-    if not m:
+    if m is None:
         raise ValueError(f"bad seed colour {c!r} (want 3 or 6 hex digits, optional #)")
     h = m.group(1)
     return "#" + (h if len(h) == 6 else "".join(ch * 2 for ch in h)).upper()
@@ -157,7 +160,7 @@ def parse_seeds(spec: str | None) -> dict[str, str]:
     Raises ValueError for anything outside the grammar: unknown names, a wrong seed count,
     keys other than bg/fg/accent (per-token overrides), or a preset combined with overrides.
     """
-    spec = (spec or DEFAULT_THEME).strip()
+    spec = (DEFAULT_THEME if spec is None or spec == "" else spec).strip()
     if spec in PRESETS:
         return _preset_seeds(spec)
     if "=" in spec:
@@ -165,7 +168,8 @@ def parse_seeds(spec: str | None) -> dict[str, str]:
         values = {p[0].strip(): p[1] for p in pairs if len(p) == 2}
         if len(values) != len(pairs) or values.keys() != set(SEEDS):
             raise ValueError(
-                f"theme {spec!r}: keyed form takes exactly bg=, fg= and accent=, no preset or other tokens"
+                f"theme {spec!r}: keyed form takes exactly bg=, fg= and accent=,"
+                " no preset or other tokens"
             )
         return {k: normalise_seed(values[k]) for k in SEEDS}
     parts = spec.split("," if "," in spec else "-")

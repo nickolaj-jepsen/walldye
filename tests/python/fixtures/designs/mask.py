@@ -1,13 +1,15 @@
-"""A fade mask: its #fff/#000 gradient stops and shapes are constant slots, which masks allow."""
+"""A fade mask: its gradient stops and shapes are constant slots, which masks allow."""
 
-from walldye import ACCENT, UI, H, W
+from walldye import ACCENT, MASK_BLACK, MASK_WHITE, UI, Canvas, P, design
 
 
-def draw(s):
-    fade = s.linear_gradient([(0, "#000"), (1, "#fff")])
-    mask = s.mask(
-        f'<rect width="{W}" height="{H}" fill="{fade}"/><circle cx="{W / 2}" cy="{H / 2}" r="100" fill="black"/>'
-    )
-    with s.g(mask=mask):
-        s.rect(0, 0, W, H, fill=ACCENT)
-    s.circle(W / 2, H / 2, 50, fill=UI)
+@design()
+def draw(s: Canvas) -> None:
+    c = s.center
+    with s.mask() as m:
+        fade = m.linear_gradient([(0, MASK_BLACK), (1, MASK_WHITE)], (0, 0), (s.w, 0))
+        m.fill(P().rect(0, 0, s.w, s.h), fade)
+        m.fill(P().circle(c, 100), MASK_BLACK)
+    with s.group(mask=m.ref):
+        s.fill(P().rect(0, 0, s.w, s.h), ACCENT)
+    s.fill(P().circle(c, 50), UI)

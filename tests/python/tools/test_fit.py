@@ -2,8 +2,11 @@ import numpy as np
 import pytest
 from fixtures import regen
 
-from walldye import _basis
-from walldye.tools import check, common, fit
+from walldye import UI, _basis
+from walldye._design import RenderSpec
+from walldye._document import Document
+from walldye._theme import parse_theme
+from walldye.tools import common, fit
 from walldye.tools.tokenize import find_colours
 
 
@@ -94,7 +97,7 @@ def test_slot_rule():
     rows = [[0, 0, 0, 18, 52, 86], [0, 0, 0, 255, 255, 255], [1, 0, 0, 0, 0, 0]]
     assert fit.slot_rule(svg, rows, [0, 1, 2]) == [
         "hardcoded #123456 ×1 (line 1): use a token or mix(); constant colours belong only in <mask>/<clipPath>",
-        "theme-dependent #1C1B1A ×1 in mask content (line 2): masks take #fff/#000 only",
+        "theme-dependent #1C1B1A ×1 in mask content (line 2): masks take MASK_WHITE, MASK_BLACK and their mixes only",
     ]
 
 
@@ -102,19 +105,45 @@ def test_collision_needs_per_occurrence_slots(wallpapers):
     regen.install(wallpapers, "collision")
     template = [c for _, _, c in find_colours(common.render("collision", "fireproof"))]
     assert template[1] == template[2]  # two roles, one fireproof hex
-
-    def render(t):
-        return common.render("collision", check.theme_spec(t))
-
-    _, entries, errors = fit.fit_aspect(render, "16:9", ["dark", "light"])
+    piece = common.load("collision")
+    docs = {
+        r: common.draw(piece, RenderSpec("default", piece.params(), "16:9", r))
+        for r in ("dark", "light")
+    }
+    _, entries, errors = fit.fit_aspect(docs, "16:9")
     assert errors == [] and entries["16:9/dark"]["n"] == 3
 
     per_hex = regen.per_hex("collision")
     rows = np.array(per_hex["coefs"])[per_hex["occ"]]
     worst = max(
-        np.abs(fit.predict(rows, t) - fit.colours(render(t))).max() for t in _basis.HELD_OUT["dark"]
+        np.abs(fit.predict(rows, t) - fit.colours(common.render("collision", t))).max()
+        for t in _basis.HELD_OUT["dark"]
     )
     assert worst > fit.MAX_ERROR
+
+
+def test_fit_aspect_checks_the_slots_it_serialises():
+    """A colour baked into the text is a slot the document does not know about."""
+    parts = ['<svg viewBox="0 0 1920 1080"><rect fill="', '"/><rect fill="#123456"/></svg>']
+    docs = {r: Document(parts, [UI], w=1920, h=1080, regime=r) for r in ("dark", "light")}
+    _, entries, errors = fit.fit_aspect(docs, "16:9")
+    assert entries == {} and len(errors) == 2
+    assert errors[0].startswith(
+        "16:9 dark: the slots found under fireproof are not the document's, line 1:"
+    )
+
+
+def test_fit_aspect_shares_or_splits_templates():
+    dark = Document(['<svg><rect fill="', '"/></svg>'], [UI], w=1920, h=1080, regime="dark")
+    same = Document(['<svg><rect fill="', '"/></svg>'], [UI], w=1920, h=1080, regime="light")
+    other = Document(['<svg><path fill="', '"/></svg>'], [UI], w=1920, h=1080, regime="light")
+    templates, entries, errors = fit.fit_aspect({"dark": dark, "light": same}, "21:9")
+    assert errors == [] and list(templates) == ["21x9.svg"]
+    assert entries["21:9/light"]["file"] == "21x9.svg"
+    templates, entries, _ = fit.fit_aspect({"dark": dark, "light": other}, "21:9")
+    assert list(templates) == ["21x9.svg", "21x9.light.svg"]
+    assert templates["21x9.light.svg"] == other.to_svg(parse_theme("flexoki-light"))
+    assert entries["21:9/light"]["file"] == "21x9.light.svg" and entries["21:9/light"]["n"] == 1
 
 
 @pytest.mark.parametrize(
