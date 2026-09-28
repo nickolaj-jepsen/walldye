@@ -1,0 +1,23 @@
+title: Braille CPU graph
+description: Four processor cores graphed in braille dots on a terminal monitor. Late on, one core spikes and the burst is lit.
+notes: |
+  After the CPU box in *btop*. Each braille character holds a two-by-four grid of dots, so one text cell carries two samples at four heights.
+technique: [glyph, instrument]
+subject: [computing]
+lineage: []
+sources:
+  - kind: inspiration
+    title: btop
+    author: aristocratos
+    year: 2021
+    url: https://github.com/aristocratos/btop
+  - kind: reference
+    title: drawille
+    author: Adam Tauber
+    year: 2014
+    url: https://github.com/asciimoo/drawille
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

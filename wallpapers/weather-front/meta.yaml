@@ -1,0 +1,22 @@
+title: Weather front
+description: 'Isobars wind round a low, and a front curls into it and splits: pennants on one branch, domes on the other.'
+notes: |
+  Pennants mark the cold front and domes the warm front, each on the side the front is moving towards. Where the cold front has caught up with the warm one, the occluded front carries both, alternating, into the low.
+
+  A high sits off to one side, and the dotted graticule of a conic map projection runs under the isobars.
+technique: [field, drafting]
+subject: [maps]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Surface pressure charts
+    author: Met Office
+    url: https://weather.metoffice.gov.uk/maps-and-charts/surface-pressure
+  - kind: reference
+    title: Surface weather analysis
+    url: https://en.wikipedia.org/wiki/Surface_weather_analysis
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

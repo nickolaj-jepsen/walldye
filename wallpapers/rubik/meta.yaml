@@ -1,0 +1,21 @@
+title: Rubik's cube
+description: A Rubik's cube mid-turn, drawn as a ruled patent figure. One corner sticker on top is filled in.
+notes: |
+  The shading follows the rule for United States patent drawings, which has light fall from the upper left. Only the stickers facing away from it, on the right-hand side of the lower two layers, are ruled, with the lines closing up toward their shadowed edge.
+technique: [drafting]
+subject: []
+lineage: [patent-drawings]
+sources:
+  - kind: reference
+    title: Rubik's Cube
+    author: Ernő Rubik
+    year: 1974
+    url: https://en.wikipedia.org/wiki/Rubik%27s_Cube
+  - kind: reference
+    title: Standards for drawings (37 CFR 1.84)
+    url: https://www.law.cornell.edu/cfr/text/37/1.84
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

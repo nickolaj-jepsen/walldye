@@ -1,0 +1,21 @@
+title: Bridge elevation
+description: Engineering elevation of a suspension bridge, dimensioned above, with dashed foundations under the river. Its main cable is picked out.
+notes: |
+  Drawn with the conventions of a civil-engineering sheet: hidden foundations are dashed, tower centre lines are dash-dotted, and the river is a waterline over staggered dashes that thin out with depth. The dimension chain runs from anchorage to tower to tower to anchorage and carries no figures.
+technique: [drafting]
+subject: [architecture]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Golden Gate Bridge
+    year: 1937
+    url: https://en.wikipedia.org/wiki/Golden_Gate_Bridge
+  - kind: inspiration
+    title: Great Belt Bridge
+    year: 1998
+    url: https://en.wikipedia.org/wiki/Great_Belt_Bridge
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

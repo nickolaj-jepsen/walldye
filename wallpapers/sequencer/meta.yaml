@@ -1,0 +1,28 @@
+title: Step sequencer
+description: A drum machine's eight-by-sixteen step grid, halted on step 11. The muted chord track's hits are hollow.
+notes: |
+  The kick lands on every beat and the snare on two and four, with one extra hit on the last step. The chord track is muted, so its lamp is lit. On a tall screen the grid takes a tracker's layout, with time running down the screen and one column per track.
+technique: [instrument]
+subject: [music]
+lineage: []
+sources:
+  - kind: inspiration
+    title: OP-Z
+    author: Teenage Engineering
+    year: 2018
+    url: https://teenage.engineering/products/op-z
+  - kind: inspiration
+    title: Digitakt
+    author: Elektron
+    year: 2017
+  - kind: reference
+    title: Music sequencer
+    url: https://en.wikipedia.org/wiki/Music_sequencer
+  - kind: reference
+    title: Tracker (music software)
+    url: https://en.wikipedia.org/wiki/Tracker_(music_software)
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

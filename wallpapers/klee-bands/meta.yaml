@@ -1,0 +1,23 @@
+title: Homage to Klee
+description: Six buckled bands of ruled and crossed cells run beneath six circles, one of them filled.
+notes: After Frieder Nake's *Hommage à Paul Klee 13/9/65 Nr. 2*, a 1965 plotter drawing whose program started from the horizontals and verticals of Paul Klee's *Highway and Byways* (1929). Each band line is a random walk across the width, and each circle either clears the band lines or plainly overlaps one.
+technique: [line]
+subject: []
+lineage: [homage, early-computer-art, modernism]
+sources:
+  - kind: recreation
+    title: Hommage à Paul Klee 13/9/65 Nr. 2
+    author: Frieder Nake
+    year: 1965
+    url: https://collections.vam.ac.uk/item/O211685/hommage-a-paul-klee-13965-print-nake-frieder/
+  - kind: reference
+    title: Highway and Byways
+    author: Paul Klee
+    year: 1929
+    url: https://en.wikipedia.org/wiki/Highway_and_Byways
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

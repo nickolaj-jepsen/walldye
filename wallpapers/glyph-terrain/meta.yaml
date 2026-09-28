@@ -1,0 +1,21 @@
+title: ASCII overworld
+description: A roguelike island in carets, tildes and quotes. A road of slashes climbs from the harbour to a one-block town.
+notes: |
+  Noise fields shape the coastline and the woods, and a broader one decides where a couple of mountain ranges may rise. Dots are open ground, quote marks are woods and carets and triangles are hills and peaks, while tildes mark the sea and thin out away from the shore.
+
+  The road is the cheapest path across a cost map that steers round the ranges and keeps off the coast. It is smoothed and traced again one character at a time, each step drawn with the character for its heading. On a tall screen the map turns a quarter, so the road runs up the screen.
+technique: [glyph]
+subject: [maps, landscape]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Dwarf Fortress
+    author: Tarn Adams and Zach Adams
+    year: 2006
+    url: https://en.wikipedia.org/wiki/Dwarf_Fortress
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}

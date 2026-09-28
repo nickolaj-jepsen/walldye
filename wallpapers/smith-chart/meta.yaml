@@ -1,0 +1,22 @@
+title: Smith chart
+description: 'An impedance match on a Smith chart: a dashed arc for the line, then a series reactance down to the centre.'
+notes: |
+  Phillip H. Smith published the chart in 1939 as a calculator for transmission lines. Each point on it is a reflection coefficient; the circles hold resistance constant and the arcs reactance, and all of them meet at the open-circuit point.
+
+  The load, about 0.30 + j0.43 times the line's impedance, sits where the reflection coefficient has magnitude 0.6, a standing-wave ratio of 4. About 0.107 wavelength of line turns it clockwise, towards the generator, onto the unit-resistance circle at 1 + j1.5. A series capacitor of reactance -j1.5 then brings it down that circle to the centre, where the line is matched.
+technique: [drafting]
+subject: [physics]
+lineage: []
+sources:
+  - kind: reference
+    title: Transmission Line Calculator
+    author: Phillip H. Smith
+    year: 1939
+  - kind: reference
+    title: Smith chart
+    url: https://en.wikipedia.org/wiki/Smith_chart
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

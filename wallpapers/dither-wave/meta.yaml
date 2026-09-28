@@ -1,0 +1,22 @@
+title: Breaking wave
+description: A swell curls over a hollow barrel in Jarvis-Judice-Ninke error diffusion. Its foaming lip and spray are lit.
+notes: |
+  After the curling wave in Hokusai's *The Great Wave off Kanagawa*, without the boats or the mountain.
+technique: [dither]
+subject: [landscape]
+lineage: [japanese-art]
+sources:
+  - kind: inspiration
+    title: The Great Wave off Kanagawa
+    author: Katsushika Hokusai
+    year: 1831
+    url: https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa
+  - kind: reference
+    title: A survey of techniques for the display of continuous tone pictures on bilevel displays
+    author: J. F. Jarvis, C. N. Judice and W. H. Ninke
+    year: 1976
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

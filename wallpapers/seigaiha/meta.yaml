@@ -1,0 +1,18 @@
+title: Seigaiha
+description: Seigaiha wave scales stack up from the bottom and shed their inner rings at a ragged surf line.
+notes: |
+  Seigaiha is a Japanese wave pattern of concentric arcs, each row covering the lower half of the one behind it. In Japan it goes back to a haniwa figure from Gunma and was worn on Heian court robes.
+
+  Here the rows are laid from the bottom up, and a scale stays only if both scales it rests on stayed, so no crest floats. Scales near the surf keep fewer rings.
+technique: [tiling]
+subject: [textile]
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    title: Seigaiha
+    url: https://www.aisf.or.jp/~jaanus/deta/s/seigaiha.htm
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

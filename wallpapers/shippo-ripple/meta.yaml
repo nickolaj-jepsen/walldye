@@ -1,0 +1,16 @@
+title: Shippo ripple
+description: Ink soaks outward through the petals of a shippo circle pattern, fading in steps from one flower.
+notes: |
+  Shippō, the "seven treasures", is a Japanese pattern of equal circles that each cross their neighbours at quarter points, so every four circles close around a four-petal flower. Each petal here takes its tone from its distance to the starting flower, stretched by noise and by one long run up and to the right, and the ink passes only from petal to touching petal, so none sits apart from the stain. A thin gap around every inked petal recalls the wire walls of cloisonné enamel, which in Japan is called shippō-yaki.
+technique: [tiling]
+subject: []
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    title: Sashiko pattern Shippōtsunagi
+    url: https://www.stitchesontherun.com/shippotsunagi/
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

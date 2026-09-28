@@ -1,0 +1,23 @@
+title: Running track
+description: An eight-lane track from above. The 200 m in lane four is lit from its staggered start to the finish.
+notes: |
+  Drawn to the measurements of the standard 400 m track: bends of 36.5 m radius, 84.39 m straights and 1.22 m lanes. A 200 m race covers half a bend and the home straight, so each lane starts further round to make up for its longer curve, measured 0.2 m out from the lane's inner line (0.3 m from the kerb in lane one).
+technique: [drafting]
+subject: [sport]
+lineage: []
+sources:
+  - kind: reference
+    title: IAAF Track and Field Facilities Manual, chapters 1-3
+    author: IAAF
+    year: 2008
+    url: https://worldathletics.org/download/download?filename=5a5b59ac-eb58-45e4-a9a3-003c1e61d619.pdf&urlslug=iaaf%2Btrack%2Band%2Bfield%2Bfacilities%2Bmanual%2B2008%2Bedition%2B-%2Bchapters%2B1-3
+  - kind: reference
+    title: IAAF 400 metre standard track, marking plan
+    author: IAAF
+    year: 2008
+    url: https://worldathletics.org/download/download?filename=90af96aa-3d93-4e8f-a295-40c0c971c20f.pdf&urlslug=iaaf%2Btrack%2Band%2Bfield%2Bfacilities%2Bmanual%2B2008%2Bedition%2B-%2Bmarking%2Bplan%2B400m%2Bstandard%2Btrack
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

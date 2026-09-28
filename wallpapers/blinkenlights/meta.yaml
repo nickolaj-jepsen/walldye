@@ -1,0 +1,26 @@
+title: Blinkenlights
+description: Lamp rows over paddle switches, after the PDP-11/70 front panel. RUN is on, and the data row holds 012700.
+notes: |
+  The address lamps and the switch row both hold 17777707, and the data lamps hold 012700, which a PDP-11 reads as the instruction MOV #n, R0. Lamps are bracketed in threes because DEC wrote PDP-11 words in octal. The data word is 16 bits wide, so its top six sockets stay empty.
+technique: [instrument]
+subject: [computing]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    title: PDP-11/70 front panel
+    author: Digital Equipment Corporation
+    year: 1975
+  - kind: inspiration
+    title: PiDP-11
+    url: https://obsolescence.dev/pdp11.html
+  - kind: reference
+    title: PDP-11 architecture
+    url: https://en.wikipedia.org/wiki/PDP-11_architecture
+  - kind: reference
+    title: Blinkenlights
+    url: https://en.wikipedia.org/wiki/Blinkenlights
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

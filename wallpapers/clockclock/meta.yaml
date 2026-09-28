@@ -1,0 +1,23 @@
+title: Clock wall
+description: A wave crosses a wall of 24 clocks as their hands turn in step. One clock breaks ranks to tell 11:22.
+notes: |
+  After *ClockClock 24* by Humans since 1982, a wall of 24 clocks that shows the time once a minute and runs choreographies of its hands in between. Here the wall is mid-wave, and one clock has already arrived at the time.
+technique: [instrument]
+subject: [machines]
+lineage: []
+sources:
+  - kind: inspiration
+    title: ClockClock 24
+    author: Humans since 1982
+    url: https://www.humanssince1982.com/products/clockclock-24-white
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: Wave}
+  digits:
+    label: Time in digits
+    description: The hands of 24 clocks spell 11:22, while one idle clock tells the same time on its own dial.
+    draft: true

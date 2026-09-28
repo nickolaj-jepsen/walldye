@@ -1,0 +1,19 @@
+title: Typebar fan
+description: One typebar swings up from a wide fan below the platen to strike a half-typed sheet.
+technique: [drafting]
+subject: [machines]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Olivetti Lettera 22
+    author: Marcello Nizzoli
+    url: https://en.wikipedia.org/wiki/Olivetti_Lettera_22
+  - kind: inspiration
+    title: Olivetti posters
+    author: Giovanni Pintori
+    url: https://en.wikipedia.org/wiki/Giovanni_Pintori
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

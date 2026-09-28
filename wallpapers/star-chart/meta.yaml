@@ -1,0 +1,36 @@
+title: Star chart
+description: Cassiopeia's W on a stereographic atlas page, Schedar circled, grid lines curving round the unseen pole.
+notes: |
+  Star positions and magnitudes, down to magnitude 7.3, come from XHIP, an extended Hipparcos compilation, as packaged by d3-celestial. A stereographic projection keeps every circle on the sky a circle on the page, so each coordinate line is a circular arc.
+technique: [drafting]
+subject: [space, maps]
+lineage: [scientific-illustration]
+sources:
+  - kind: inspiration
+    title: Norton's Star Atlas
+    author: Arthur Philip Norton
+    year: 1910
+    url: https://en.wikipedia.org/wiki/Norton%27s_Star_Atlas
+  - kind: inspiration
+    title: Uranometria
+    author: Johann Bayer
+    year: 1603
+    url: https://en.wikipedia.org/wiki/Uranometria
+  - kind: data
+    title: 'XHIP: An Extended Hipparcos Compilation'
+    author: E. Anderson and C. Francis
+    year: 2012
+  - kind: data
+    title: d3-celestial
+    url: https://github.com/ofrohn/d3-celestial
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: Cassiopeia}
+  orion:
+    label: Orion
+    description: Orion's hourglass traced on an atlas page near the celestial equator, with Betelgeuse circled.
+    draft: true

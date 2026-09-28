@@ -1,0 +1,21 @@
+title: Pine mist
+description: Five pine-crested ridges fade into mist, and a sun sinks halfway behind the farthest, bare hill.
+notes: |
+  Each ridge is one flat shape: a crest traced from smooth noise, merged with its pines and shaded lighter towards its foot, where mist gathers before the next ridge. A coarser noise decides where pines grow, and any stand of fewer than five trees is cleared. The stepped, flat layers follow Olly Moss's key art for *Firewatch* (2016).
+technique: [flat]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Firewatch
+    author: Olly Moss
+    year: 2016
+    url: https://en.wikipedia.org/wiki/Firewatch
+  - kind: reference
+    title: Aerial perspective
+    url: https://en.wikipedia.org/wiki/Aerial_perspective
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

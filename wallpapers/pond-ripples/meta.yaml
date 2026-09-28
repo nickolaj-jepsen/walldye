@@ -1,0 +1,18 @@
+title: Pond ripples
+description: Raindrop ripples cross on a pond in perspective and cancel into checkers. The nearest ripple and its drop are picked out.
+notes: |
+  Each ring is a band between two ellipses. The far ripples are filled as one shape in which any spot covered twice is left empty, so where two ripples cross, their bands break into a checkerboard. Ring spacing grows with distance below the horizon, as on a level surface seen in perspective, and the farthest ripples fade out before they reach it.
+technique: [line]
+subject: [physics, landscape]
+lineage: [op-art]
+sources:
+  - kind: inspiration
+    title: Shadow Dancers (Water Striders II)
+    author: Charley Harper
+    year: 2006
+    url: https://www.charleyharper.com/shadow-dancers-serigraph.html
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

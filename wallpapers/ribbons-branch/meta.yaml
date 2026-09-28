@@ -1,0 +1,24 @@
+title: Ribbons
+description: Mostly edge to edge, ribbons of mixed widths follow a flow field without touching. Five high on the right are lit.
+notes: |
+  The method comes from Tyler Hobbs's *Fidenza*. Each ribbon is a streamline of a Perlin noise field, grown both ways from its starting point until it comes within a set gap of a neighbour. The school is laid first with a wider gap around it, then the ribbons that start near the middle, so most cross the whole frame. Towards the left edge the field turns less and the current enters almost level. On narrow screens the school shortens and moves inwards so both of its ragged ends stay in view.
+technique: [field]
+subject: []
+lineage: [creative-coding]
+sources:
+  - kind: inspiration
+    title: Fidenza
+    author: Tyler Hobbs
+    year: 2021
+    url: https://tylerxhobbs.com/fidenza
+  - kind: reference
+    title: Flow Fields
+    author: Tyler Hobbs
+    year: 2020
+    url: https://tylerxhobbs.com/essays/2020/flow-fields
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}

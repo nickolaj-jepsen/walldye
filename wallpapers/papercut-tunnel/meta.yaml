@@ -1,0 +1,19 @@
+title: Papercut tunnel
+description: Sheets cut with wavering holes stack into a paper tunnel, each shadowing the next, back to a small lit opening.
+notes: |
+  Tunnel books and paper peepshows stand cut-paper panels one behind the other, so a scene recedes when you look through the front opening. Here each opening is a circle bent by a few broad waves, which flatten out on the smallest holes, plus a faint hand-cut waver. Wider and taller screens get extra sheets in front, so the tunnel still fills the view.
+technique: [flat]
+subject: []
+lineage: []
+sources:
+  - kind: inspiration
+    title: The Dance of the Tunnel Book
+    url: https://library.si.edu/digital-library/exhibition/paper-engineering/dance-tunnel-book
+  - kind: inspiration
+    title: The Thames Tunnel
+    url: https://collections.vam.ac.uk/item/O1418245/the-thames-tunnel-paper-peepshow/
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

@@ -1,0 +1,18 @@
+title: Minimap
+description: A code editor's minimap, blown up so each word is a rounded bar. The identifier under the caret is highlighted.
+notes: |
+  The code is made up: Python-like imports, classes and nested blocks, each bar as long as the name or string it stands for. Outside the band the bars fade out towards the top and bottom of the screen.
+technique: [pixel]
+subject: [computing]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Visual Studio Code minimap
+    author: Microsoft
+    year: 2017
+    url: https://code.visualstudio.com/updates/v1_10
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

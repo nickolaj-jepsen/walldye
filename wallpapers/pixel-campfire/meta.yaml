@@ -1,0 +1,21 @@
+title: Pixel campfire
+description: A pixel-art campfire under sparse stars throws a wide pool of dithered light on the ground.
+technique: [pixel, dither]
+subject: [landscape]
+lineage: []
+sources:
+  - kind: inspiration
+    title: A Short Hike
+    author: adamgryu
+    year: 2019
+    url: https://en.wikipedia.org/wiki/A_Short_Hike
+  - kind: inspiration
+    title: Celeste
+    author: Maddy Makes Games
+    year: 2018
+    url: https://en.wikipedia.org/wiki/Celeste_(video_game)
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

@@ -1,0 +1,27 @@
+title: Saturn
+description: Saturn, cut off by the corner, in ring ellipses and latitude hatching broken by the rings' shadow.
+notes: |
+  The rings keep the proportions of Saturn's real C, B and A rings, with the Encke Gap near the outer edge. The Cassini Division is drawn nearly twice its true width so that it shows at this size, and the globe is flattened at the poles by a tenth, as Saturn is.
+
+  Shading follows the sunlight. Ring lines go faint where they pass through the planet's shadow. On the globe, a point whose line to the sun crosses the dense B or A ring falls into shadow, while the thinner C ring only halves its light, so the lit edge breaks up across the southern half.
+technique: [line]
+subject: [space]
+lineage: [scientific-illustration]
+sources:
+  - kind: inspiration
+    title: The Planet Saturn
+    author: Étienne Léopold Trouvelot
+    year: 1881
+    url: https://en.wikipedia.org/wiki/%C3%89tienne_L%C3%A9opold_Trouvelot
+  - kind: inspiration
+    title: Cassini–Huygens
+    author: NASA/JPL
+    url: https://en.wikipedia.org/wiki/Cassini%E2%80%93Huygens
+  - kind: reference
+    title: Rings of Saturn
+    url: https://en.wikipedia.org/wiki/Rings_of_Saturn
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

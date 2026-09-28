@@ -1,0 +1,20 @@
+title: Bamboo grove
+description: Nine bamboo stalks crowd the left edge, fainter the farther back they stand. One in the middle row is lit.
+notes: |
+  A take on East Asian ink bamboo painting in flat shapes. Each stalk swells a little at its nodes, and each leaf is a tapered strip hung from a short twig; a leaf from a front stalk reaches across the lit one. The late sun on that stalk nods to Kawase Hasui's shin-hanga landscapes.
+technique: [flat]
+subject: [flora-fauna]
+lineage: [japanese-art]
+sources:
+  - kind: inspiration
+    title: Bamboo painting
+    url: https://en.wikipedia.org/wiki/Bamboo_painting
+  - kind: inspiration
+    title: Shin-hanga prints
+    author: Kawase Hasui
+    url: https://en.wikipedia.org/wiki/Kawase_Hasui
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

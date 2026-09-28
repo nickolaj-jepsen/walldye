@@ -1,0 +1,31 @@
+title: Hypercube
+description: A six-dimensional cube projected flat, its 192 edges forming a twelve-sided figure. One shortest path is lit rim to rim.
+notes: |
+  Each of the cube's axes becomes a direction on the page, the directions spread evenly over half a turn, and each corner lands at the sum of all of them, each added or subtracted by that corner's coordinates. This is the Coxeter-plane projection, and its outline has two sides per dimension. The picked-out path changes one coordinate per edge and never changes one back, so no route between its ends is shorter. Since 1973 Manfred Mohr has generated his drawings from hypercubes; his *space.color* series, begun in 1999, is built on the six-dimensional one.
+technique: [line]
+subject: [maths]
+lineage: [early-computer-art]
+sources:
+  - kind: inspiration
+    title: space.color
+    author: Manfred Mohr
+    year: 1999
+    url: https://www.emohr.com/www_m1/text_700_e.html
+  - kind: reference
+    title: 6-cube
+    url: https://en.wikipedia.org/wiki/6-cube
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: Six dimensions}
+  5-cube:
+    label: Five dimensions
+    description: A five-dimensional cube flattened into a ten-sided figure of 80 edges, crossed by one shortest path.
+    draft: true
+  7-cube:
+    label: Seven dimensions
+    description: 'Seven dimensions flattened: 448 edges in a fourteen-sided figure, with one shortest path picked out from rim to rim.'
+    draft: true

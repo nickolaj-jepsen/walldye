@@ -1,0 +1,17 @@
+title: Tempest web
+description: An outlined sixteen-lane Tempest tube, where the claw-shaped Blaster fires two shots down one lit lane.
+notes: After Atari's *Tempest* (1981), a vector arcade game played on the rim of a tube divided into lanes. The view sits above the tube's axis, so the far rim rides up and to the left.
+technique: [line]
+subject: [games]
+lineage: [arcade-games]
+sources:
+  - kind: inspiration
+    title: Tempest
+    author: Atari
+    year: 1981
+    url: https://en.wikipedia.org/wiki/Tempest_(video_game)
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

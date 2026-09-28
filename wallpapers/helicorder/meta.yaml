@@ -1,0 +1,22 @@
+title: Helicorder
+description: Minute-broken traces rule a seismograph drum, and one row catches an earthquake as a dense wave packet.
+notes: |
+  A helicorder draws a seismometer's signal on paper wrapped round a turning drum, so the record reads like a page: left to right, then down a row, with the right end of each row joining the left end of the next. The small breaks mark the minutes, and alternate rows use two tones only to keep them apart.
+
+  The earthquake arrives as a small P wave, and the larger S waves follow. Their tail is still dying away when the row runs out, so the start of the next row is picked out too.
+technique: [instrument]
+subject: [physics]
+lineage: []
+sources:
+  - kind: reference
+    title: About the Seismograms
+    author: USGS
+    url: https://earthquake.usgs.gov/monitoring/seismograms/about.php
+  - kind: reference
+    title: Seismogram
+    url: https://en.wikipedia.org/wiki/Seismogram
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

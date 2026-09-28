@@ -1,0 +1,19 @@
+title: String on pegs
+description: A taut string winds around ten of twelve pegs on a lattice of small rings, cutting inside three.
+notes: |
+  After Dmitri Cherniak's *Ringers* (2021). The winding is picked from 4,000 random tours of the pegs: tours whose string runs close to itself, grazes a peg it passes, or leaves one of the largest pegs outside are dropped, and of the rest the longest loop without one overlong straight run is kept.
+technique: [flat, line]
+subject: []
+lineage: [homage, creative-coding]
+sources:
+  - kind: recreation
+    title: Ringers
+    author: Dmitri Cherniak
+    year: 2021
+    url: https://www.artblocks.io/collections/curated/projects/0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270/13
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

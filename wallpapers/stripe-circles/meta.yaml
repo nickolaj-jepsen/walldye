@@ -1,0 +1,19 @@
+title: Stripe circles
+description: Two striped discs beat into moiré where they overlap, and a smaller third sits in front, picked out.
+technique: [line]
+subject: []
+lineage: [op-art, creative-coding]
+sources:
+  - kind: inspiration
+    title: Circle Stripe
+    author: Zach Lieberman
+    year: 2024
+    url: https://gazell.io/collections/zach-lieberman-stripe-circles
+  - kind: reference
+    title: Moiré pattern
+    url: https://en.wikipedia.org/wiki/Moir%C3%A9_pattern
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

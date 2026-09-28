@@ -1,0 +1,21 @@
+title: Glyph sun
+description: A total eclipse typed in seven hand-made characters, dense corona streamers around a ring of at-signs.
+technique: [glyph]
+subject: [space]
+lineage: [vintage-computers]
+sources:
+  - kind: inspiration
+    title: AAlib
+    author: Jan Hubicka
+    year: 1997
+    url: https://aa-project.sourceforge.net/aalib/
+  - kind: inspiration
+    title: libcaca
+    author: Sam Hocevar and Jean-Yves Lamoureux
+    year: 2003
+    url: https://en.wikipedia.org/wiki/Libcaca
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

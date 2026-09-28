@@ -1,0 +1,22 @@
+title: Night windows
+description: 'A pixel-art tower at night: a cat and a lamp in dim rooms, and someone coding in the one lit window.'
+notes: |
+  The weathering on the wall is a two-level Riemersma dither of a noise field, which carries each cell's error along a Hilbert curve instead of row by row.
+technique: [pixel]
+subject: [architecture]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Night Windows
+    author: Edward Hopper
+    year: 1928
+    url: https://www.wikiart.org/en/edward-hopper/night-windows
+  - kind: inspiration
+    title: Pixelscapes
+    author: waneella
+    url: https://waneella.com/
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

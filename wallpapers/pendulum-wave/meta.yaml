@@ -1,0 +1,22 @@
+title: Pendulum wave
+description: Eighteen pendulums on a patent-drawing frame swing in an S-curve with ghosts trailing each bob. The two at the crest are lit.
+notes: |
+  Over one full cycle each pendulum makes one more swing than its neighbour on the left, from 130 to 147, so its length falls as the inverse square of that count. The drawing stops about 7% of the way through the cycle, and the two ghosts behind each bob mark where it was a moment earlier.
+technique: [drafting]
+subject: [physics, machines]
+lineage: [patent-drawings]
+sources:
+  - kind: reference
+    title: Pendulum wave
+    url: https://en.wikipedia.org/wiki/Pendulum_wave
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: S-curve}
+  halfway:
+    label: Two rows
+    description: Halfway through the cycle, eighteen pendulums split into two rows, every other bob swung back.
+    draft: true

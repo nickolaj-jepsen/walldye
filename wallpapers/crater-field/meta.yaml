@@ -1,0 +1,25 @@
+title: Crater field
+description: Craters pock a lunar plain lit low from the left. One young crater throws broken rays across the rest.
+notes: |
+  Crater sizes follow a power law: each time the size doubles, a quarter as many craters are at least that big. The larger ones are drawn one at a time, so a younger crater cuts through the rim of an older one it lands on. One plain away from the young crater keeps only a scatter of small ones, like a mare flooded by lava.
+
+  The rays are modelled on those around Tycho. They bunch in a few directions, vary in length and break into separate streaks further out.
+technique: [flat]
+subject: [space]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Lunar Orbiter program
+    author: NASA
+    url: https://en.wikipedia.org/wiki/Lunar_Orbiter_program
+  - kind: reference
+    title: Tycho (lunar crater)
+    url: https://en.wikipedia.org/wiki/Tycho_(lunar_crater)
+  - kind: reference
+    title: Ray system
+    url: https://en.wikipedia.org/wiki/Ray_system
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

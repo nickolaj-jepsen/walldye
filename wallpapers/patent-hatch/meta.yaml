@@ -1,0 +1,17 @@
+title: Hatched apparatus
+description: A hatched patent figure of a ball in a cone on a column, the arcs on the ball picked out.
+notes: |
+  Drawn to the shading rule in 37 CFR 1.84(m), the US standard for patent drawings: thin spaced lines for shading, light from the upper left, and heavy lines on the shade side of edges. One light at the upper left sets how tightly the lines crowd on each part. The reference numbers are left off, so each leader ends in a dash.
+technique: [drafting, stipple]
+subject: []
+lineage: [patent-drawings]
+sources:
+  - kind: reference
+    title: 37 CFR 1.84, Standards for drawings
+    author: USPTO
+    url: https://www.law.cornell.edu/cfr/text/37/1.84
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

@@ -1,0 +1,24 @@
+title: Sunspot
+description: Tapered filaments radiate from a lobed umbra split by a thin bridge, among granules that fade toward the limb.
+notes: |
+  The granule centres are a Poisson-disc sample. Around the spot the cells are stretched outward along its radius, and towards the limb they are squeezed as if drawn on a sphere turning away, then faded into the lanes between them.
+technique: [flat, line]
+subject: [space]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Inouye Solar Telescope Releases First Image of a Sunspot
+    author: National Solar Observatory
+    year: 2020
+    url: https://nso.edu/press-release/inouye-solar-telescope-releases-first-image-of-a-sunspot/
+  - kind: reference
+    title: Sunspot
+    url: https://en.wikipedia.org/wiki/Sunspot
+  - kind: reference
+    title: Limb darkening
+    url: https://en.wikipedia.org/wiki/Limb_darkening
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

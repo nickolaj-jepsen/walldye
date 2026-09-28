@@ -1,0 +1,30 @@
+title: Roguelike level
+description: In a NetHack-style text dungeon, the @ carries a torch through an unlit room, lighting the floor in rings.
+notes: |
+  The map is split in two again and again, with one room in each piece. Every corridor is the cheapest path between two rooms and reuses earlier corridors and doors where it can. The west of the level is still unexplored, so it stays blank.
+technique: [glyph]
+subject: [games]
+lineage: []
+sources:
+  - kind: inspiration
+    title: NetHack
+    author: NetHack DevTeam
+    year: 1987
+    url: https://www.nethack.org/
+  - kind: inspiration
+    title: Rogue
+    author: Michael Toy and Glenn Wichman
+    year: 1980
+    url: https://en.wikipedia.org/wiki/Rogue_(video_game)
+  - kind: inspiration
+    title: Brogue
+    author: Brian Walker
+    url: https://sites.google.com/site/broguegame/
+  - kind: reference
+    title: Basic BSP Dungeon generation
+    url: https://www.roguebasin.com/index.php/Basic_BSP_Dungeon_generation
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

@@ -1,0 +1,23 @@
+title: Core memory plane
+description: Tilted ferrite rings on a wire lattice fade away from one byte being read. Three of its eight cores are lit.
+notes: |
+  Each ferrite ring stores one bit as the direction of its magnetisation. A read drives the selected core to zero, and a core that held a one flips and sends a pulse down the diagonal sense wire. The rings tilt in alternate directions to make room for those diagonals.
+
+  In a real memory stack each plane holds one bit of every word, so a byte is spread over eight planes. Here it sits along one wire and holds 00101010.
+technique: [tiling]
+subject: [computing]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    title: Magnetic-core memory
+    url: https://en.wikipedia.org/wiki/Magnetic-core_memory
+  - kind: inspiration
+    title: Examining the core memory module inside a vintage IBM 1401 mainframe
+    author: Ken Shirriff
+    year: 2015
+    url: https://www.righto.com/2015/08/examining-core-memory-module-inside.html
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

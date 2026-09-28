@@ -1,0 +1,25 @@
+title: ANSI teapot
+description: The Utah teapot in text-mode block characters, shaded with half blocks and dotted glyphs. A glint catches the lid knob.
+notes: |
+  The body and lid are turned from the profile curves of Martin Newell's 1975 teapot, and the handle and spout are swept tubes. Each character cell takes one of five shading steps: solid shadow, three densities of dotted shade glyph, or solid highlight. Half blocks trace the silhouette at twice the vertical detail, and cells where the lid, handle and spout meet the body drop to the shadow step, like inked seams.
+technique: [glyph]
+subject: [computing]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    title: Utah teapot
+    author: Martin Newell
+    year: 1975
+    url: https://en.wikipedia.org/wiki/Utah_teapot
+  - kind: inspiration
+    title: ANSI artpacks
+    author: Blocktronics
+    url: https://16colo.rs/group/blocktronics
+  - kind: reference
+    title: ANSI art
+    url: https://en.wikipedia.org/wiki/ANSI_art
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

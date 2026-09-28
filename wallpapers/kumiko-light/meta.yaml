@@ -1,0 +1,19 @@
+title: Kumiko light
+description: A lamp behind a tall asanoha shoji panel lights a six-pointed star of cells, fading out in three steps.
+notes: |
+  Kumiko is Japanese lattice joinery: thin wooden laths are notched and fitted together without nails, mostly for shoji doors and screens. In the asanoha pattern, named after the hemp leaf, lines from the centre of each triangle of the lattice to its corners split it into three cells.
+technique: [tiling]
+subject: [architecture]
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    title: Kumiko (woodworking)
+    url: https://en.wikipedia.org/wiki/Kumiko_(woodworking)
+  - kind: reference
+    title: Shoji
+    url: https://en.wikipedia.org/wiki/Shoji
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

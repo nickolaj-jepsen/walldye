@@ -16,5 +16,5 @@ variants:
   default: {label: Early in the turn}
   late:
     label: Late in the turn
-    description: A radar scope later in its turn. The arm has swept past the coastline, leaving most of it under a long afterglow while its far end fades.
+    description: Later in the turn, the radar arm has passed the coastline, leaving most of it under a long, fading afterglow.
     draft: true

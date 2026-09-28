@@ -1,0 +1,21 @@
+title: Fall, one thread
+description: Parallel lines hang down the left side, rippling faster toward the foot; one near their right edge is picked out.
+notes: |
+  After Bridget Riley's *Fall* (1963), which repeats one wavy line across the canvas, its waves tightening towards the bottom.
+
+  Here every line is the same curve shifted sideways. Its frequency grows with the cube of the depth, so the upper third hangs almost straight. The lines stand out more the closer they sit to the picked-out one.
+technique: [line]
+subject: []
+lineage: [homage, op-art]
+sources:
+  - kind: recreation
+    title: Fall
+    author: Bridget Riley
+    year: 1963
+    url: https://www.tate.org.uk/art/artworks/riley-fall-t00616
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

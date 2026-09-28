@@ -1,0 +1,18 @@
+title: Camino weave
+description: A zigzag road of lit triangles climbs a fringed weave of half-square chevrons.
+notes: After Anni Albers' gouache *Study for Camino Real* (1967), made for a wall hanging in the Camino Real Hotel. About one cell in ten turns its diagonal the other way and is picked out one step stronger.
+technique: [flat]
+subject: [textile]
+lineage: [homage, modernism]
+sources:
+  - kind: recreation
+    title: Study for Camino Real
+    author: Anni Albers
+    year: 1967
+    url: https://www.albersfoundation.org/art/highlights/study-for-camino-real
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

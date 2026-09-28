@@ -1,0 +1,23 @@
+title: Prism
+description: A ray bends through a prism into six bands, each fainter than the last, with dashed normals marking the angles.
+notes: |
+  Each ray is traced with Snell's law at both faces. The refractive index runs from 1.22 to 1.46 across the fan, far more spread than real glass gives, so the bands open wide, and the seven rays that bound them are chosen to leave at evenly spaced angles.
+
+  The layout follows the Hipgnosis cover for *The Dark Side of the Moon*, with the construction lines of an optics diagram drawn in.
+technique: [flat]
+subject: [physics]
+lineage: []
+sources:
+  - kind: inspiration
+    title: The Dark Side of the Moon
+    author: Hipgnosis
+    year: 1973
+    url: https://en.wikipedia.org/wiki/The_Dark_Side_of_the_Moon
+  - kind: reference
+    title: Dispersive prism
+    url: https://en.wikipedia.org/wiki/Dispersive_prism
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

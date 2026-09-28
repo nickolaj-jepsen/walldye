@@ -1,0 +1,23 @@
+title: Apollonian gasket
+description: Hairline circles pack a circle down to specks. Five filled discs shrink into one cusp, fading as they go.
+technique: [line]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: Apollonian gasket
+    url: https://en.wikipedia.org/wiki/Apollonian_gasket
+  - kind: reference
+    title: Descartes's theorem
+    url: https://en.wikipedia.org/wiki/Descartes%27_theorem
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: Uneven split}
+  integral:
+    label: Even split
+    description: 'Whole-number curvatures throughout: an Apollonian gasket split into two equal halves, with five filled circles shrinking into one cusp.'
+    draft: true

@@ -1,0 +1,22 @@
+title: Airfoil
+description: Streamlines part around a wing section tilted six degrees into the flow. Ticks along its top plot the suction.
+notes: |
+  The profile is a Joukowsky airfoil, a circle mapped onto a wing shape about 12% thick with 2% camber. The flow around it has no viscosity, and its circulation is set by the Kutta condition, so the dividing streamline meets the nose at the stagnation point and leaves from the trailing edge.
+
+  Each tick on the upper surface is as long as the suction coefficient there (-Cp), and the outline joins their tips. The dash-dot chord line runs on upstream of the nose to show the six-degree angle against the level flow, and the dashed line inside the profile is the camber line.
+technique: [drafting, field]
+subject: [physics]
+lineage: []
+sources:
+  - kind: reference
+    title: Theory of Wing Sections
+    author: Ira H. Abbott and Albert E. von Doenhoff
+    year: 1949
+  - kind: reference
+    title: Joukowsky transform
+    url: https://en.wikipedia.org/wiki/Joukowsky_transform
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

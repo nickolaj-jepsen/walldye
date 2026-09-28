@@ -1,0 +1,20 @@
+title: Punch card
+description: An 80-column punch card spells a nixos-rebuild command in Hollerith code. One column lights up under a read line.
+notes: |
+  The holes follow the IBM 029 keypunch code. Columns 10 to 57 spell `NIXOS-REBUILD SWITCH --FLAKE .#DESKTOP --UPGRADE`, and columns 73 to 80 hold a sequence number, as on a card from a program deck.
+technique: [flat]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    title: Punched card
+    url: https://en.wikipedia.org/wiki/Punched_card
+  - kind: reference
+    title: Punched card codes
+    author: Douglas W. Jones
+    url: https://homepage.divms.uiowa.edu/~jones/cards/codes.html
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

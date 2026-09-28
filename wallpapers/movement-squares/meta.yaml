@@ -1,0 +1,18 @@
+title: Movement in squares
+description: A three-row checkerboard squeezes into slivers at a fold right of centre, where the thinnest columns are lit.
+notes: After Bridget Riley's *Movement in Squares* (1961), in which the squares of a checkerboard keep their height while their columns narrow towards one line, so the flat grid appears to fold. This version keeps three rows, with columns that go from full squares at the ends to slivers at the fold.
+technique: [flat]
+subject: []
+lineage: [homage, op-art]
+sources:
+  - kind: recreation
+    title: Movement in Squares
+    author: Bridget Riley
+    year: 1961
+    url: https://www.artscouncilcollection.org.uk/artwork/movement-squares
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

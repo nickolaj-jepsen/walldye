@@ -1,0 +1,21 @@
+title: Wireframe torus
+description: A wire-mesh torus rises from the bottom-left corner, hidden lines removed. One loop round its tube is picked out.
+notes: |
+  The mesh has 30 loops round the tube and 18 round the ring. Each point on them is tested by stepping along the line of sight towards the viewer to see whether it passes through the torus. Where a line slips out of view, bisection finds the exact crossing, so every visible stretch stops on the surface's own edge. The outline is traced separately, along the curve where the surface turns edge-on.
+
+  Hidden-line removal was one of the early open problems of computer graphics: Ivan Sutherland put it seventh on his 1966 list of ten unsolved problems.
+technique: [line]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: Hidden-line removal
+    url: https://en.wikipedia.org/wiki/Hidden-line_removal
+  - kind: reference
+    title: Torus
+    url: https://en.wikipedia.org/wiki/Torus
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

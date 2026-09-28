@@ -1,0 +1,23 @@
+title: Dürer's magic square
+description: Dürer's magic square from Melencolia I, joined 1 to 16 by one lit line among forty looser retracings.
+notes: After Vera Molnár's *Hommage à Dürer*, a series that joins the numbers of the square in Dürer's *Melencolia I* in ascending order with one line. Every row, column and diagonal of the square adds up to 34.
+technique: [line]
+subject: [maths]
+lineage: [homage, early-computer-art]
+sources:
+  - kind: recreation
+    title: Hommage à Dürer
+    author: Vera Molnár
+    year: 1990
+    url: https://dam.org/museum/artists_ui/artists/molnar-vera/works_vera_molnar/hommage-a-durer/
+  - kind: reference
+    title: Melencolia I
+    author: Albrecht Dürer
+    year: 1514
+    url: https://en.wikipedia.org/wiki/Melencolia_I
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

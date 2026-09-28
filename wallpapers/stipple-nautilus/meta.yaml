@@ -1,0 +1,23 @@
+title: Stippled nautilus
+description: Eight thousand dots stipple a halved nautilus, crowding its walls. The smallest chambers at the centre are lit.
+notes: |
+  Each dot starts at a random point, placed more often where the drawing should be darker. Forty rounds of relaxation then move every dot to the weighted centre of the area nearest to it, which spaces the dots evenly and keeps the shading.
+
+  The shell is a logarithmic spiral that widens 2.4 times per turn, with ten chambers to a turn. The last third of a turn, where the animal lives, has no partitions. A figure number and a 5 cm scale bar set it out like a plate in a natural history book.
+technique: [stipple]
+subject: [flora-fauna]
+lineage: [scientific-illustration, creative-coding]
+sources:
+  - kind: reference
+    title: Weighted Voronoi stippling
+    author: Adrian Secord
+    year: 2002
+    url: https://www.cs.ubc.ca/labs/imager/tr/2002/secord2002b/
+  - kind: reference
+    title: Chambered nautilus
+    url: https://en.wikipedia.org/wiki/Chambered_nautilus
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

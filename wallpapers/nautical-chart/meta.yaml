@@ -1,0 +1,30 @@
+title: Nautical chart
+description: A coast on a sea chart, with depth contours and soundings offshore. A track follows a lighthouse's lit sector into the anchorage.
+notes: |
+  The coast is drawn from layered noise, and each depth comes from how far that point lies from land. Depth contours are dashed more finely the shallower they run, and the water inside the second contour carries a faint tint, as printed charts wash their shallows. Soundings are groups of one to three dots, more for deeper water, and they thin out offshore, where charts sound less densely.
+
+  A sector light shows its arc over the safe way in. The track holds the middle of that arc until a waypoint off the headland, then turns for the anchor.
+technique: [drafting, field]
+subject: [maps]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Admiralty charts
+    author: United Kingdom Hydrographic Office
+    url: https://en.wikipedia.org/wiki/Admiralty_chart
+  - kind: inspiration
+    title: NOAA nautical charts
+    author: NOAA Office of Coast Survey
+    url: https://nauticalcharts.noaa.gov/
+  - kind: reference
+    title: U.S. Chart No. 1
+    author: NOAA and the National Geospatial-Intelligence Agency
+    url: https://nauticalcharts.noaa.gov/publications/us-chart-1.html
+  - kind: reference
+    title: Sector light
+    url: https://en.wikipedia.org/wiki/Sector_light
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

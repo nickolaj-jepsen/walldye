@@ -1,0 +1,20 @@
+title: Lorenz attractor
+description: A faint Lorenz trajectory loops both wings of the attractor. One crossing between them is lit.
+notes: |
+  Edward Lorenz cut a model of convection down to three equations, `dx/dt = σ(y − x)`, `dy/dt = x(ρ − z) − y` and `dz/dt = xy − βz`. With σ = 10, ρ = 28 and β = 8/3 a solution never settles and never repeats: it circles one wing, then the other, in no fixed order. This one starts near the origin and takes 25,500 fourth-order Runge–Kutta steps of 0.004, of which the first 500 are dropped. It is seen from the side, across x and z, turned 14 degrees. The lit stretch is the crossing that follows its longest stay on one wing in the first half of the run.
+technique: [simulation, line]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: Deterministic Nonperiodic Flow
+    author: Edward Lorenz
+    year: 1963
+  - kind: reference
+    title: Lorenz system
+    url: https://en.wikipedia.org/wiki/Lorenz_system
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

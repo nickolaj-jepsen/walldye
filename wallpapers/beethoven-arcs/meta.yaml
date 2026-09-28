@@ -1,0 +1,18 @@
+title: Beethoven arcs
+description: Twelve half-rings of eight beats fan out from a half-disc, gapped for rests. The innermost two are lit.
+notes: A rest falls on the same beat in every ring after the second, so one open spoke runs through the fan.
+technique: [flat]
+subject: [music]
+lineage: [homage, modernism]
+sources:
+  - kind: recreation
+    title: Beethoven
+    author: Josef Müller-Brockmann
+    year: 1955
+    url: https://peoplesgdarchive.org/item/5754/beethoven-poster-for-the-zurich-town-hall
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

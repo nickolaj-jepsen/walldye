@@ -1,0 +1,24 @@
+title: Domino run
+description: A wave runs down a curving line of flat-shaded dominoes. The first piece and one caught mid-fall are picked out.
+notes: |
+  Each domino is a box seen through a pinhole camera. Its faces take one of three tones by how squarely they meet the light, and the pieces are drawn from the farthest to the nearest over the shadows they cast on the floor. Fallen pieces rest almost flat, and the six at the wavefront lean over at steps from 66 to 7 degrees.
+technique: [flat]
+subject: [physics]
+lineage: []
+sources:
+  - kind: reference
+    title: The Domino Effect
+    author: J. M. J. van Leeuwen
+    year: 2004
+    url: https://arxiv.org/abs/physics/0401018
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: Half fallen}
+  late:
+    label: Nearly all fallen
+    description: Nearly the whole curving chain of dominoes is down. One is caught mid-fall near the end, and a few beyond still stand.
+    draft: true

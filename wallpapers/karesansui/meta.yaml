@@ -1,0 +1,22 @@
+title: Raked garden
+description: Rake lines in gravel bend around a pair of stones and a lone one, which is lit.
+notes: |
+  Karesansui is the Japanese dry landscape garden, with rocks set in gravel raked into lines and ripples. Here the straight lines follow the streamlines of smooth flow past a cylinder, one cylinder per stone, so they bend around the stones without crossing. Many of them stop a rake's width short of the outermost ring instead of wrapping around it.
+technique: [field]
+subject: [landscape]
+lineage: [japanese-art]
+sources:
+  - kind: inspiration
+    title: Ryōan-ji rock garden
+    url: https://en.wikipedia.org/wiki/Ry%C5%8Dan-ji
+  - kind: reference
+    title: Japanese rock garden
+    url: https://en.wikipedia.org/wiki/Japanese_rock_garden
+  - kind: reference
+    title: Potential flow around a circular cylinder
+    url: https://en.wikipedia.org/wiki/Potential_flow_around_a_circular_cylinder
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

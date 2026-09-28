@@ -1,0 +1,24 @@
+title: Theta maze
+description: A circular maze of fourteen rings, carved by a random depth-first walk. One route is threaded from rim to centre.
+notes: |
+  A ring splits into twice as many cells wherever its cells would otherwise grow wider than two ring widths, so the passages keep about the same size from the centre, with 8 cells, out to the rim, with 64. A recursive backtracker carves the maze from the gate and picks a move around a ring five times as often as one across, which gives long curving corridors.
+
+  The maze has no loops, so the shortest route to the centre is also the only one. Where the gaps in several rings line up, the thread crosses them in one straight run. The walls fade towards the rim.
+technique: [line]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: 'Mazes for Programmers: Code Your Own Twisty Little Passages'
+    author: Jamis Buck
+    year: 2015
+    url: https://pragprog.com/titles/jbmaze/mazes-for-programmers/
+  - kind: reference
+    title: 'Think Labyrinth: Maze Algorithms'
+    author: Walter D. Pullen
+    url: https://www.astrolog.org/labyrnth/algrithm.htm
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

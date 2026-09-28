@@ -1,0 +1,20 @@
+title: B-tree descent
+description: Looking up key 417 in a three-level B+-tree lights one pointer per level, then the key in its leaf.
+notes: |
+  In a B+-tree every key sits in a leaf, and the leaves are linked in order so a range scan can walk along them. The nodes above hold only separating keys, which tell a search which pointer to follow at each level. The two-character codes under the leaves stand for the records the keys point to.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    title: Organization and Maintenance of Large Ordered Indexes
+    author: Rudolf Bayer and Edward McCreight
+    year: 1972
+  - kind: reference
+    title: B+ tree
+    url: https://en.wikipedia.org/wiki/B%2B_tree
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

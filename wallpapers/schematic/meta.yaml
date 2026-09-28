@@ -1,0 +1,21 @@
+title: Op-amp schematic
+description: An unlabelled op-amp filter schematic on a dotted grid, its signal path lit from input to output.
+notes: |
+  The input passes through a two-pole RC low-pass filter into the non-inverting input of an op-amp. A resistor and capacitor in parallel feed the output back to the inverting input, and a second resistor to ground sets the gain. On the output, a series resistor and capacitor to ground form a Zobel network, and two diodes clamp the signal to the supply rails.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Tektronix service manuals
+    author: Tektronix
+    url: https://w140.com/tekwiki/wiki/Manuals
+  - kind: reference
+    title: Circuit diagram
+    url: https://en.wikipedia.org/wiki/Circuit_diagram
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: CC0-1.0
+draft: false

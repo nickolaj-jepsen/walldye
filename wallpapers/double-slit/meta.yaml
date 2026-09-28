@@ -1,0 +1,18 @@
+title: Double slit
+description: A plane wave spreads through two slits as crossing wavelets. Below, a strip of bars records the fringes.
+notes: |
+  Light leaving each slit spreads as circular wavelets. Where crests from both slits overlap, small beads line up along the paths of constructive interference, which lead down to the bright fringes on the strip.
+
+  The fringes are evenly spaced, but each slit's own width limits how far its light spreads, so their brightness falls off in groups, with a gap wherever that single-slit pattern goes dark. Each bar is stacked from steps that trace the profile of one fringe.
+technique: [flat]
+subject: [physics]
+lineage: []
+sources:
+  - kind: reference
+    title: Double-slit experiment
+    url: https://en.wikipedia.org/wiki/Double-slit_experiment
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

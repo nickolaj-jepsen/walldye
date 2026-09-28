@@ -1,0 +1,36 @@
+title: Hat tiling
+description: Hat tiles cover the screen without repeating. In one filled cluster of 25, the three mirror-image hats are solid.
+notes: |
+  The hat, published in 2023 by David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman-Strauss, is a single shape that tiles the plane, but only in patterns that never repeat. Every tiling by the hat needs some hats flipped over, about one in eight here; near the filled cluster those are shaded.
+
+  The pattern is grown by swapping each cluster of hats for a larger cluster, five times over, following hatviz, the code published with the paper. The filled cluster is one of the clusters from the first round.
+
+  The spectre version uses the same authors' second tile, drawn here with straight edges. It covers the plane without any flipped copies; instead about one spectre in nine is turned 30 degrees against the rest, and those are the ones filled and shaded.
+technique: [tiling]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: An aperiodic monotile
+    author: David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman-Strauss
+    year: 2023
+    url: https://arxiv.org/abs/2303.10798
+  - kind: reference
+    title: hatviz
+    url: https://github.com/isohedral/hatviz
+  - kind: reference
+    title: A chiral aperiodic monotile
+    author: David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman-Strauss
+    year: 2023
+    url: https://arxiv.org/abs/2305.17743
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
+variants:
+  default: {label: Hats}
+  spectre:
+    label: Spectres
+    description: Spectre tiles cover the screen without repeating. In one filled cluster of nine, the one turned against the rest is solid.
+    draft: true

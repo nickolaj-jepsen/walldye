@@ -1,0 +1,22 @@
+title: Flock across the moon
+description: Twenty-three faceted birds fly in a V away from a moon on the horizon. The leader is picked out.
+notes: |
+  Charley Harper called his way of drawing animals minimal realism: he said he didn't see the feathers in the wings, he just counted the wings. Each bird here is a kite-shaped body and two wings bent at the wrist, and each wing is two flat facets with a thin cut between them.
+
+  Down each arm of the V the birds grow larger and further apart, as if nearer, and a wingbeat travels along the line from bird to bird. The nearest birds stand out a little more.
+technique: [flat]
+subject: [flora-fauna]
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: Minimal realism
+    author: Charley Harper
+    url: https://en.wikipedia.org/wiki/Charley_Harper
+  - kind: reference
+    title: V formation
+    url: https://en.wikipedia.org/wiki/V_formation
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

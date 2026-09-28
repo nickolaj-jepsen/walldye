@@ -1,0 +1,19 @@
+title: Paper tape
+description: Eight-hole paper tape rises across the screen and loops once. Fourteen punched rows are lit just before the loop.
+notes: |
+  The holes are ASCII as a Teletype Model 33 punched it: seven data bits and an even parity bit across eight channels, with the small feed holes between the third and fourth. The lit rows read NIXOSNIXOS between pairs of rubouts, the character that punches every hole. The rows around them spell a NixOS rebuild command, and the long ends carry feed holes only, like a tape's leader and trailer.
+technique: [flat]
+subject: [computing]
+lineage: [vintage-computers]
+sources:
+  - kind: reference
+    title: Teletype Model 33
+    url: https://en.wikipedia.org/wiki/Teletype_Model_33
+  - kind: reference
+    title: Punched tape
+    url: https://en.wikipedia.org/wiki/Punched_tape
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

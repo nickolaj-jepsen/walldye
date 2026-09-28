@@ -1,0 +1,22 @@
+title: After Rothko
+description: 'Stacked on bare ground: a large block, a thin band and a wider, shallower block, streaked by long brush strokes.'
+notes: Suggested by the stacked, soft-edged rectangles in Mark Rothko's paintings of the 1950s. Each edge fades through nested outlines that drift slightly, so the fade is tight in places and loose in others.
+technique: [flat]
+subject: []
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: No. 61 (Rust and Blue)
+    author: Mark Rothko
+    year: 1953
+    url: https://www.moca.org/collection/work/no-61-rust-and-blue
+  - kind: inspiration
+    title: Seagram murals
+    author: Mark Rothko
+    year: 1958
+    url: https://en.wikipedia.org/wiki/Seagram_murals
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false

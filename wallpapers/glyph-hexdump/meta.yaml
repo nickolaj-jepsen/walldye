@@ -1,0 +1,26 @@
+title: Hex dump
+description: An xxd dump of a Linux executable's first bytes. One string-table name is selected, the cursor just past it.
+notes: |
+  The bytes follow a 64-bit ELF file: its header, one program header, the first instructions of a function, then the names of its sections and symbols. The selected name breaks across two lines, and the rows around it stand out a little from the rest.
+
+  On a tall screen the dump shows eight bytes per line instead of sixteen, as `xxd -c 8` prints it.
+technique: [glyph]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    title: xxd
+    author: Juergen Weigert
+    url: https://github.com/vim/vim/blob/master/runtime/doc/xxd.1
+  - kind: reference
+    title: Executable and Linkable Format
+    url: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+  - kind: inspiration
+    title: ImHex
+    author: WerWolv
+    url: https://github.com/WerWolv/ImHex
+added: 2026-09-27
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+draft: false
