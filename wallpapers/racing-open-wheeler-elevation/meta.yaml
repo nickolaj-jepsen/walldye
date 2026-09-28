@@ -1,0 +1,38 @@
+title: Open-wheeler elevation
+description: A 2026 Formula 1 car dimensioned in side elevation. An enlarged section of its rear wing shows the flap in both positions.
+notes: |
+  The drawing is laid out in the coordinates of the FIA's 2026 technical regulations, which describe most of the car as volumes it has to fit inside. The wheelbase is at most 3400 mm, the nose ends no more than 1300 mm ahead of the front axle, the roll hoop may reach 970 mm above the flat reference plane under the floor, and the rear crash structure ends 750 mm behind the final drive. The tyres are 705 mm across at the front and 710 mm at the rear, on 18-inch rims. Compared with the 2022 cars, the beam wing under the rear wing and the arches over the front wheels are gone, and a tall board stands on the floor ahead of each sidepod. Where the rules leave room, the shapes follow photos of the 2026 cars on track.
+
+  Both wings now move. On the straights the rear wing's two flaps turn flatter together about a hinge in their back half, the dashed position in detail A. The regulations leave the angle to each team, so the one drawn is a guess. Every wing element is a NACA four-digit section turned upside down, and the streamlines are sketched rather than simulated.
+technique: [drafting]
+subject: [sport, machines]
+lineage: [patent-drawings]
+sources:
+  - kind: reference
+    title: '2026 Formula 1 Regulations, Section C: Technical'
+    author: FIA
+    year: 2026
+    url: https://api.fia.com/system/files/documents/fia_2026_f1_regulations_-_section_c_technical_-_iss_20_-_2026-08-05.pdf
+  - kind: reference
+    title: 'Explained: from more agile cars to X-mode and Z-mode, unpicking the 2026 aerodynamics regulations'
+    author: Lawrence Barretto
+    year: 2024
+    url: https://www.formula1.com/en/latest/article/explained-2026-aerodynamic-regulations-fia-x-mode-z-mode-.26c1CtOzCmN3GfLMywrgb2
+  - kind: reference
+    title: 'Pirelli reveals 2026 F1 tyres: a fresh logo design and new compounds'
+    author: Pirelli
+    year: 2025
+    url: https://press.pirelli.com/pirelli-reveals-2026-f1-tyres-a-fresh-logo-design-and-new-compounds/
+  - kind: reference
+    title: 'F1 Explained: things to know about the new 2026 F1 tyres'
+    author: Balazs Szabo
+    year: 2026
+    url: https://www.f1technical.net/news/28128
+  - kind: reference
+    topic: NACA airfoil
+    url: https://en.wikipedia.org/wiki/NACA_airfoil
+added: 2026-09-27
+model: claude-opus-5-5
+franchise:
+  title: Formula 1
+  owner: Formula One Group

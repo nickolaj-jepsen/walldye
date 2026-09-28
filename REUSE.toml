@@ -6,3 +6,11 @@ version = 1
 path = "wallpapers/star-chart/data/*.json"
 SPDX-FileCopyrightText = "2015 Olaf Frohn (d3-celestial)"
 SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "wallpapers/racing-spa-minisectors/data/spa.json"
+SPDX-FileCopyrightText = [
+  "Chair of Automotive Technology, Technical University of Munich (TUMFTM racetrack-database)",
+  "OpenStreetMap contributors",
+]
+SPDX-License-Identifier = "LGPL-3.0-only AND ODbL-1.0"

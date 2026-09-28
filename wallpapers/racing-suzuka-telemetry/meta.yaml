@@ -1,0 +1,23 @@
+title: Suzuka telemetry
+description: Speed, throttle and brake from Verstappen's 2024 Suzuka pole lap. The five hardest stops are filled in on a track map.
+notes: |
+  Verstappen took pole for the 2024 Japanese Grand Prix in 1:28.197. The fainter speed line is Sergio Pérez's 1:28.263, second on the grid. FastF1 records the brake only as on or off, so the height of each stop is estimated from the speed it sheds. The readout above the panels is taken at 130R.
+technique: [instrument]
+subject: [sport, maps]
+lineage: []
+sources:
+  - kind: data
+    topic: FastF1
+    url: https://github.com/theOehrly/Fast-F1
+  - kind: data
+    topic: f1-circuits
+    author: Tomislav Bacinger
+    url: https://github.com/bacinger/f1-circuits
+  - kind: reference
+    topic: 2024 Japanese Grand Prix
+    url: https://en.wikipedia.org/wiki/2024_Japanese_Grand_Prix
+added: 2026-09-27
+model: claude-opus-5-5
+franchise:
+  title: Formula 1
+  owner: Formula One Group
