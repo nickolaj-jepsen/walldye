@@ -1,0 +1,19 @@
+title: Hitomezashi
+description: Running stitches lock into stepped diamonds. One enclosed shape, a ring topped by a cross beside a smaller ring, is filled in.
+notes: |
+  In hitomezashi every row and column is one line of evenly spaced running stitches, and the only choice per line is whether it starts with a stitch or a gap. Most lines here start opposite to their neighbour, which draws long diagonal steps.
+technique: [tiling]
+subject: [textile, maths]
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    title: Hitomezashi Stitch Patterns
+    author: Ayliean MacDonald
+    url: https://www.numberphile.com/videos/hitomezashi-stitch-patterns
+  - kind: reference
+    title: Loops and Regions in Hitomezashi Patterns
+    author: Colin Defant and Noah Kravitz
+    year: 2022
+    url: https://arxiv.org/abs/2201.03461
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,21 @@
+title: Miura fold
+description: A flat Miura-ori crease pattern with one oval patch folded into shaded zigzag pleats.
+notes: |
+  Kōryō Miura's fold divides a sheet into parallelograms. Its creases run straight in one direction and zigzag in the other, and each zigzag is all mountain folds or all valley folds, alternating from one to the next. Here the fold reaches 58 degrees in the middle of the patch and dies away around it. Folded cells take up less room than flat ones, so the paper around the patch is drawn in towards it a little.
+
+  The cell sizes follow the formulas in Schenk and Guest's paper, and the sheet is seen at a slant, lit from the top. Mountain creases are solid lines and valley creases are dashed; both fade out where the shaded facets take over.
+technique: [tiling, flat]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    topic: Miura fold
+    author: Kōryō Miura
+    url: https://en.wikipedia.org/wiki/Miura_fold
+  - kind: reference
+    title: Geometry of Miura-folded metamaterials
+    author: Mark Schenk and Simon D. Guest
+    year: 2013
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC3587190/
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,13 @@
+title: Warp ikat
+description: A stepped double diamond dyed into vertical threads, its edges bleeding bundle by bundle beside a fainter twin.
+notes: |
+  In warp ikat, bundles of threads are tied and dyed before weaving. The dye creeps under the ties and the threads never line up exactly on the loom, so every edge of the pattern blurs.
+technique: [tiling]
+subject: [textile]
+lineage: []
+sources:
+  - kind: reference
+    topic: Ikat
+    url: https://en.wikipedia.org/wiki/Ikat
+added: 2026-09-27
+model: claude-opus-5-5

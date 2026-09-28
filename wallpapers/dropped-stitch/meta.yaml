@@ -1,0 +1,16 @@
+title: Dropped stitch
+description: Stockinette knit with one dropped stitch, its column laddered into loose strands down to a single loop.
+notes: |
+  When a stitch slips off the needle, nothing holds it, and it unravels down its column one row at a time. Each row it passes leaves a strand of yarn slack across the gap, so the column opens into a ladder.
+technique: [tiling]
+subject: [textile]
+lineage: []
+sources:
+  - kind: reference
+    topic: Stockinette stitch
+    url: https://en.wikipedia.org/wiki/Stockinette_stitch
+  - kind: reference
+    topic: Knitting
+    url: https://en.wikipedia.org/wiki/Knitting
+added: 2026-09-27
+model: claude-opus-5-5

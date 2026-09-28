@@ -1,0 +1,23 @@
+title: Girih rosette
+description: A girih star pattern fades out around one filled twelve-pointed star and its two rings of tiles.
+notes: |
+  E. H. Hankin showed in 1925 how such patterns can be drawn from polygons in contact. Rays leave the midpoint of every edge of a tiling at a fixed angle, and each one stops where it meets its partner from another edge. Here the tiling is dodecagons and triangles, the angle is 60 degrees, and each dodecagon holds a twelve-pointed star.
+technique: [tiling]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    title: The Drawing of Geometric Patterns in Saracenic Art
+    author: E. H. Hankin
+    year: 1925
+    url: https://archive.org/details/HankinSaracenicArt
+  - kind: reference
+    title: Islamic Star Patterns from Polygons in Contact
+    author: Craig S. Kaplan
+    year: 2005
+    url: https://cs.uwaterloo.ca/~csk/publications/Papers/kaplan_2005.pdf
+  - kind: reference
+    topic: Girih
+    url: https://en.wikipedia.org/wiki/Girih
+added: 2026-09-27
+model: claude-opus-5-5
