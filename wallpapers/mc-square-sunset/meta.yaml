@@ -24,8 +24,9 @@ franchise:
   owner: Mojang Studios
 draft: false
 variants:
-  default: {label: Sunset}
+  default:
+    label: Sunset
   moonrise:
     label: Moonrise
     description: Night over stepped block hills, with the square Minecraft moon risen on the left and stars across the sky.
-    draft: true
+    draft: false

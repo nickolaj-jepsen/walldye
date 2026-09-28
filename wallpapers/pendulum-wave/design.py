@@ -30,10 +30,6 @@ class Wave(Params):
     moment: float = knob(default=0.0741, lo=0, hi=1, doc="how far through the cycle, 0 to 1")
 
 
-# halfway through, every other pendulum has made a whole number of swings: two rows
-VARIANTS = {"halfway": Wave(moment=0.5)}
-
-
 N, K = 18, 130  # pendulum n makes K + n swings per cycle
 AMP = 0.44  # swing amplitude, radians
 # The figure is drawn about its own centre, then placed and scaled by one transform.
@@ -94,7 +90,7 @@ def leader(line: Path, heads: Path, pts: list[Vec]) -> None:
     heads.arrowhead(pts[-1], 12.5, rad=math.atan2(dy, dx))
 
 
-@design(aspects="any", variants=VARIANTS)
+@design(aspects="any")
 def draw(s: Canvas[Wave]) -> None:
     tau = s.params.moment
     # a portrait screen is narrower than the figure and much taller, so there the figure shrinks

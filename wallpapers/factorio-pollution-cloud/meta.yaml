@@ -19,9 +19,3 @@ franchise:
   title: Factorio
   owner: Wube Software
 draft: false
-variants:
-  default: {label: Two nests reached}
-  later:
-    label: All three reached
-    description: Later on, a Factorio base's pollution has spread in chunk-sized steps to all three biter nests.
-    draft: true

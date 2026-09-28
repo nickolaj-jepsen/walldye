@@ -179,8 +179,9 @@ busiest region. Then answer each question honestly:
       preview by eye with a sheet of its nearest neighbours from `walldye list`
       (`walldye sheet <slugs>`).
 - [ ] Is the meta.yaml copy theme-neutral, with every source URL fetched?
-- [ ] Does any variant change what is depicted, not just a value, and look different from
-      every other version at thumbnail size?
+- [ ] Does any variant change what is depicted, not just a value, look different from every
+      other version at thumbnail size, and read as its subject as clearly as the default?
+- [ ] Is nothing on it a time, date, counter or level that could pass for a live readout?
 - [ ] Does `walldye check` pass?
 
 Scoring, on "would this sit proudly in the set as a daily wallpaper":
@@ -222,3 +223,4 @@ Only 8+ ships. If a design is still under 7 after a real rework, drop it.
 | Upscaled-bitmap look                                                      | Commit to crisp pixels on an integer grid, or vectorise with `iso_lines()`.                             |
 | Near-duplicate of a sibling                                               | Change the subject or the composition, not just the parameters.                                        |
 | A variant that nudges a value, or a seed ladder offered as versions       | Keep one version, or pick a variant that shows something else (a phase, a moment, a rule).             |
+| A time, date, counter or level that could pass for a live readout         | Show the mechanism or the motion, and leave the reading out.                                           |

@@ -15,12 +15,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Three to two}
-  figure-eight:
-    label: Figure eight
-    description: At one to two, an oscilloscope beam draws a figure eight on its side, lit more strongly where it slows.
-    draft: true
+  default:
+    label: Three to two
   five-four:
     label: Five to four
     description: At five to four, an oscilloscope beam knots a dense Lissajous figure.
-    draft: true
+    draft: false

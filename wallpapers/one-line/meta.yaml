@@ -24,8 +24,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Crescent moon}
+  default:
+    label: Crescent moon
   gibbous:
     label: Gibbous moon
     description: One closed line through 16,000 stipple points draws a gibbous moon lit from the lower left.
-    draft: true
+    draft: false

@@ -33,7 +33,7 @@ class Scope(Params):
     fy: int = knob(default=2, lo=1, hi=7, doc="vertical deflection frequency")
 
 
-VARIANTS = {"figure-eight": Scope(fx=1, fy=2), "five-four": Scope(fx=5, fy=4)}
+VARIANTS = {"five-four": Scope(fx=5, fy=4)}
 
 DIV = 60  # graticule division
 SW, SH = 10 * DIV, 8 * DIV  # screen

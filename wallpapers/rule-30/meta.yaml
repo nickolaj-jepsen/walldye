@@ -20,12 +20,13 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Rule 30}
+  default:
+    label: Rule 30
   rule-90:
     label: Rule 90
     description: Rule 90 grows from one cell into a Sierpinski triangle of nested empty triangles, both edges lit.
-    draft: true
+    draft: false
   rule-110:
     label: Rule 110
     description: Rule 110 grows leftward from one cell into a wedge of interlocking triangles along a straight, lit edge.
-    draft: true
+    draft: false

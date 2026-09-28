@@ -1,7 +1,7 @@
 title: Times table
 description: Two hundred nails on a ring, each strung to double its number. The strings trace a cardioid, lit at its cusp.
 notes: |
-  Number the nails 0 to 199 and run a string from each nail n to nail 2n, counting past 199 round from 0 again. Every string touches the cardioid at one point and is drawn brightest there, so the curve shows where the strings crowd together. The other versions multiply by three and by four, which gives a curve with two cusps and one with three.
+  Number the nails 0 to 199 and run a string from each nail n to nail 2n, counting past 199 round from 0 again. Every string touches the cardioid at one point and is drawn brightest there, so the curve shows where the strings crowd together.
 technique: [line]
 subject: [maths]
 lineage: []
@@ -13,21 +13,8 @@ sources:
   - kind: reference
     title: Cardioid
     url: https://en.wikipedia.org/wiki/Cardioid
-  - kind: reference
-    title: Nephroid
-    url: https://en.wikipedia.org/wiki/Nephroid
 added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
 draft: false
-variants:
-  default: {label: Times two}
-  times-three:
-    label: Times three
-    description: Each of two hundred nails is strung to three times its number, and the strings trace a nephroid lit at one cusp.
-    draft: true
-  times-four:
-    label: Times four
-    description: At times four, strings between two hundred nails trace a curve with three cusps, one of them lit.
-    draft: true

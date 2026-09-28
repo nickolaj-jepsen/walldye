@@ -16,8 +16,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Curled shell}
+  default:
+    label: Curled shell
   dome:
     label: Dome over a cusp
     description: 'De Jong''s attractor with other coefficients: a stepped dome over a narrow cusp, and a lit ridge running into it.'
-    draft: true
+    draft: false

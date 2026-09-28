@@ -17,8 +17,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Crescent moon}
+  default:
+    label: Crescent moon
   half:
     label: Half moon
     description: A low-poly moon at first quarter, lit from the side, its upper left half catching the light up to a stepped edge.
-    draft: true
+    draft: false

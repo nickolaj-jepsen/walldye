@@ -1,9 +1,7 @@
 title: Compass construction
 description: Richmond's 1893 pentagon with every ruler-and-compass line left in. A dot marks the first vertex found.
 notes: |
-  Herbert Richmond published both constructions in a two-page note in 1893. For the pentagon, the left radius is halved and its midpoint joined to the top of the circle. The line bisecting the angle at the midpoint crosses the upright radius at the height of the first vertex, and the compass, opened to one side, steps off the other four.
-
-  The seventeen-sided version quarters an angle by bisecting it twice and sets a 45-degree angle beside it. Two circles then cut the horizontal diameter at the feet of the third and fifth vertices.
+  Herbert Richmond published this construction in 1893, in a two-page note on the seventeen-sided polygon. The left radius is halved and its midpoint joined to the top of the circle. The line bisecting the angle at the midpoint crosses the upright radius at the height of the first vertex, and the compass, opened to one side, steps off the other four.
 technique: [drafting]
 subject: [maths]
 lineage: [scientific-illustration]
@@ -25,9 +23,3 @@ author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
 draft: false
-variants:
-  default: {label: Five sides}
-  seventeen:
-    label: Seventeen sides
-    description: Richmond's 1893 construction of a seventeen-sided polygon, where a quartered angle and two circles fix the first vertices.
-    draft: true

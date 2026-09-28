@@ -25,8 +25,9 @@ franchise:
   owner: Mobius Digital
 draft: false
 variants:
-  default: {label: Past Timber Hearth}
+  default:
+    label: Past Timber Hearth
   early:
     label: Past the Twins
     description: Moments into the supernova, the dithered front has just passed the Hourglass Twins, and Timber Hearth is still whole.
-    draft: true
+    draft: false

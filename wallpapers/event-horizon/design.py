@@ -36,7 +36,7 @@ class Horizon(Params):
     )
 
 
-VARIANTS = {"edge-on": Horizon(elevation=5), "above": Horizon(elevation=70)}
+VARIANTS = {"edge-on": Horizon(elevation=5)}
 
 type Pts = NDArray[np.float64]
 

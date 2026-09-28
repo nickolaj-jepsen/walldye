@@ -197,7 +197,7 @@ drafts, the owner approves.
 - references/themes.md: tokens, presets, regimes and the light ladder in full.
 - references/taste.md: what the owner likes and rejects.
 - references/ideas.md: about 150 seeds, built ones marked, and lessons from review.
-- examples/: dither-moon (blue-noise dither, a light geometry branch, phase variants),
+- examples/: dither-moon (blue-noise dither, a light geometry branch, a phase variant),
   radar-sweep (instrument, grains bucketed by tone index, a clip, one variant),
   glyph-terrain (glyph roles, per-regime colours), pixel-invaders (sprites, buckets),
   patent-lamp (patent drawing placed by one transform), eclipse-contours (iso-lines in a

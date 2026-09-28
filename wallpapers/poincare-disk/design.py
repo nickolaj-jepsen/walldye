@@ -27,8 +27,6 @@ class Tiling(Params):
     q: int = knob(default=3, lo=3, hi=10, doc="tiles meeting at each corner")
 
 
-VARIANTS = {"pentagons": Tiling(p=5, q=4)}
-
 R = 440  # disc radius
 MIN_PX = 2.5  # tiles narrower than this are left out, so the rim dissolves into texture
 BANDS = 5  # edge tones from the centre out to the rim
@@ -125,7 +123,7 @@ def poly(d: Path, c: Vec, vs: list[complex]) -> Path:
     return d.Z()
 
 
-@design(aspects="any", variants=VARIANTS)
+@design(aspects="any")
 def draw(s: Canvas[Tiling]) -> None:
     # right of centre on a landscape screen, leaving the left for windows; above the middle on
     # a portrait one, where the disc spans all but 100 units of the width

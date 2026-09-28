@@ -28,8 +28,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Worms into spots}
+  default:
+    label: Worms into spots
   holes:
     label: Worms into holes
     description: Reaction-diffusion worms fray into empty space on one side and close into a mesh of holes at a corner.
-    draft: true
+    draft: false

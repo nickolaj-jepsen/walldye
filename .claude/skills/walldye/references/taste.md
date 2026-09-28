@@ -30,3 +30,8 @@ when each one changes what is depicted: a moon phase, a rule number, a reaction 
 moment of a sweep. A nudged value or a new seed is not a variant. Agents propose at most three,
 always as drafts, and the owner approves each one in review. Breadth still comes first: a new
 subject beats another version of an old one.
+
+On 2026-09-28 the owner reviewed the 39 draft variants and kept 26. The dropped ones read less
+clearly as their subject than the default did (a full moon, birdsong, a moon path, pendulums in
+two rows), stayed too close to it, looked like a logo, or showed what could pass for a live
+readout: a clock wall spelling out the time.

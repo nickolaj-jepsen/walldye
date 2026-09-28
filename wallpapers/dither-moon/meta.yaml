@@ -14,12 +14,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Gibbous moon}
+  default:
+    label: Gibbous moon
   crescent:
     label: Crescent moon
     description: Void-and-cluster dithering turns a thin crescent moon, lit from the right, into square cells. The unlit disc shows as a faint scatter.
-    draft: true
-  full:
-    label: Full moon
-    description: Void-and-cluster dithering turns a full moon into square cells, with the maria across its upper half and rays from one crater low down.
-    draft: true
+    draft: false

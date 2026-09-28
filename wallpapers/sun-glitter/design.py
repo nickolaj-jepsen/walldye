@@ -1,7 +1,6 @@
 """A half-set sun over perspective rows of dashes; those in line with it are lit as a glitter path."""
 
 import math
-from typing import Literal
 
 from walldye import (
     ACCENT,
@@ -13,22 +12,10 @@ from walldye import (
     UI,
     Canvas,
     P,
-    Params,
-    Vec,
     design,
-    knob,
 )
 
-
-class Glitter(Params):
-    body: Literal["sun", "moon"] = knob(
-        default="sun", doc="a sun half-set on the horizon, or a half moon standing above it"
-    )
-
-
-VARIANTS = {"moonpath": Glitter(body="moon")}
-
-SR, MR, MOON_UP = 70, 52, 230  # sun radius; moon radius and its height above the horizon
+SR = 70  # sun radius
 ROWS, DEEP = 58, 480  # glint rows per 480 units of sea (the 16:9 sea, horizon to bottom)
 CALM = (13 / 60) ** 1.7  # rows shallower than this stay sparse: the first ten of the 16:9 sea
 # Glint paints by bucket, dimmest first: the sea, then the accent ladder of the path.
@@ -36,17 +23,15 @@ TONES = (BG_ALT, UI, ACCENT_6, ACCENT_3, ACCENT_1, ACCENT)
 SEA, CREST, PATH_6, PATH_3, PATH_1, CORE = range(len(TONES))
 
 
-@design(aspects="any", variants=VARIANTS)
-def draw(s: Canvas[Glitter]) -> None:
-    moon = s.params.body == "moon"
-    # the horizon point under the light: the sun's centre, straight below the moon's
+@design(aspects="any")
+def draw(s: Canvas) -> None:
+    # the sun's centre, on the horizon
     foot = s.pick(landscape=(17 / 24, 5 / 9), portrait=(0.6, 0.55))
     hy = foot.y
     sea = s.h - hy
     rows = ROWS * sea / DEEP  # a taller sea gets more rows of the same pitch
-    spread = 0.55 if moon else 1.0  # a light high above the horizon lays a narrower path
     # a half-set disc leaves a calm gap under it before the path ignites
-    calm_gap, core_from = (0, 12) if moon else (22, 45)
+    calm_gap, core_from = 22, 45
 
     def depth(k: int) -> float:
         """Row k's distance below the horizon as a fraction of the sea (1 at the bottom)."""
@@ -64,7 +49,7 @@ def draw(s: Canvas[Glitter]) -> None:
             d = depth(k)
             y0 = hy + sea * d
             gap = sea * (depth(k + 1) - d)
-            half = (26 + 165 * d) * spread  # the path widens towards the viewer but stays a path
+            half = 26 + 165 * d  # the path widens towards the viewer but stays a path
             x = r.uniform(-40, 0)
             while x < s.w:
                 ln = (5 + 38 * d) * r.uniform(0.4, 1.6)
@@ -107,8 +92,4 @@ def draw(s: Canvas[Glitter]) -> None:
                 x += ln + (3 + 30 * d) * r.uniform(0.6, 1.8)
             k += 1
     s.stroke(P().M(0, hy).H(s.w), UI, 1.2)
-    if moon:
-        # a quarter moon: only the lit half shows against the night
-        s.fill(P().arc_band(foot - Vec(0, MOON_UP), 0, MR, deg=(-90, 90)), ACCENT)
-    else:
-        s.fill(P().arc_band(foot, 0, SR, deg=(180, 360)), ACCENT)
+    s.fill(P().arc_band(foot, 0, SR, deg=(180, 360)), ACCENT)

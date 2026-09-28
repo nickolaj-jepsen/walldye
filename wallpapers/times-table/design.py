@@ -31,8 +31,6 @@ class Table(Params):
     )
 
 
-VARIANTS = {"times-three": Table(multiplier=3), "times-four": Table(multiplier=4)}
-
 R, N = 380, 200  # ring radius and nail count
 SEG = 8  # px between brightness samples along a string
 GLOW = 90  # px falloff of brightness away from a string's tangent point
@@ -52,7 +50,7 @@ def tone(lv: int, hv: int) -> Colour:
 TONES = tuple(tone(lv, hv) for lv in range(LV) for hv in range(HV))  # index lv * HV + hv
 
 
-@design(aspects="any", variants=VARIANTS)
+@design(aspects="any")
 def draw(s: Canvas[Table]) -> None:
     k = s.params.multiplier
     # landscape: right of centre, the cusp facing the empty side; portrait: under the clock

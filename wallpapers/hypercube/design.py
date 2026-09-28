@@ -22,7 +22,7 @@ WALKS = {
 }
 
 
-@design(aspects="any", variants={"5-cube": Cube(dim=5), "7-cube": Cube(dim=7)})
+@design(aspects="any", variants={"5-cube": Cube(dim=5)})
 def draw(s: Canvas[Cube]) -> None:
     n = s.params.dim
     c = s.pick(landscape=(0.323, 0.5), portrait=(0.5, 0.4))

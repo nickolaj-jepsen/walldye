@@ -20,8 +20,9 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: 3d orbital}
+  default:
+    label: 3d orbital
   4f:
     label: 4f orbital
     description: Hydrogen's 4f orbital in sampled stipple, six lobes set evenly around the nucleus.
-    draft: true
+    draft: false

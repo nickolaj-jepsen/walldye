@@ -15,9 +15,3 @@ author: Claude Opus 5.5
 ai_generated: true
 model: claude-opus-5-5
 draft: false
-variants:
-  default: {label: Wave}
-  digits:
-    label: Time in digits
-    description: The hands of 24 clocks spell 11:22, while one idle clock tells the same time on its own dial.
-    draft: true

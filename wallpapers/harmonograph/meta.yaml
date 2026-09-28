@@ -19,12 +19,13 @@ ai_generated: true
 model: claude-opus-5-5
 draft: false
 variants:
-  default: {label: Two to three}
+  default:
+    label: Two to three
   octave:
     label: One to two
     description: At one to two, the damped pendulum sweeps a wide fan around a round eye with one dot.
-    draft: true
+    draft: false
   twelfth:
     label: One to three
     description: At one to three, a damped pendulum draws four blades meeting at a small eye with one dot.
-    draft: true
+    draft: false

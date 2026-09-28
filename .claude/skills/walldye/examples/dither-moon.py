@@ -20,7 +20,7 @@ class Moon(Params):
     )
 
 
-VARIANTS = {"crescent": Moon(phase=120), "full": Moon(phase=0)}
+VARIANTS = {"crescent": Moon(phase=120)}
 
 R, CELL = 270, 3  # moon radius and dither cell
 MAX_TONE = 0.75  # keep the background showing through even the brightest limb

@@ -52,9 +52,6 @@ class Cloud(Params):
     east: float = knob(default=0.55, lo=0, hi=2, doc="extra reach toward the nests")
 
 
-VARIANTS = {"later": Cloud(east=1.8)}
-
-
 def factory() -> list[tuple[Rect, int]]:
     """The base's entities as ((x, y, w, h), kind) in map tiles, kind one of BELT .. DRILL."""
     ents: list[tuple[Rect, int]] = []
@@ -133,7 +130,7 @@ def pollution(spread: float, east: float, rng: NpRng) -> np.ndarray:
     )
 
 
-@design(aspects="any", variants=VARIANTS)
+@design(aspects="any")
 def draw(s: Canvas[Cloud]) -> None:
     # the scene is centred, with the nests east, or south on a portrait screen, where the whole
     # map turns a quarter clockwise; the emitter snaps to the overlay's cells, in canvas tiles
