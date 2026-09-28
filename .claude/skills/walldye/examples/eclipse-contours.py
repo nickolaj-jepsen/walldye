@@ -1,41 +1,44 @@
-"""Noise contour lines confined to a disc, with a crisp accent ring: fBm field + marching squares, clipped."""
+"""Noise contour lines confined to a disc inside two rings: an fBm field traced by marching squares and clipped."""
 
-import math
+import numpy as np
+from numpy.typing import NDArray
 
-from walldye import ACCENT, UI, H, Noise, P, W, accent_ramp, contours, sample_field
+from walldye import ACCENT, ACCENT_4, BG, UI, Canvas, P, design, ladder
+from walldye.field import iso_lines, sample_field
 
-ASPECTS = ["any"]
-
-U = min(W, H) / 1080  # 1 unit of the 1080-tall reference design; scales every size and stroke
-R = 330 * U
-# Focal point ~0.65 along the long axis (clear of the left-side windows on a desktop,
-# below the clock on a phone), centred on the short axis.
-CX, CY = (0.646 * W, H / 2) if W >= H else (W / 2, 0.6 * H)
+R, CELL = 330, 6  # disc radius; field sample spacing
+LEVELS = [-0.3 + k * 0.035 for k in range(18)]
+# one tone per level, skipping the near-background end of the ladder so every line reads
+TONES = ladder((BG, ACCENT_4, ACCENT), len(LEVELS) + 4)[4:]
 
 
-def draw(s):
-    n = Noise(7)
-    cell = 6 * U
-    # Sample only the disc's bounding box, in disc-local units, so every aspect shows the same "planet".
-    half = math.ceil((R + 2 * cell) / cell)
-    ox, oy = CX - half * cell, CY - half * cell
+@design(aspects="any")
+def draw(s: Canvas) -> None:
+    # about 0.65 along the long axis (clear of the left-side windows on a desktop, below the
+    # clock on a phone), centred on the short axis
+    c = s.pick(landscape=(0.646, 0.5), portrait=(0.5, 0.6))
+    noise = s.noise(7)
+    # Sample only the disc's bounding box, relative to its centre, so every aspect shows the
+    # same planet.
+    half = int(np.ceil((R + 2 * CELL) / CELL))
 
-    def f(i, j):
-        dx, dy = (ox + i * cell - CX) / U, (oy + j * cell - CY) / U
-        d = math.hypot(dx, dy) / 330
-        # the negative falloff past 0.85 R bunches the rings against the rim, like a limb
-        return n.fbm(2.95 + dx / 420, 1.29 + dy / 420, 4) - 0.9 * max(0.0, d - 0.85)
+    def height(i: NDArray[np.int64], j: NDArray[np.int64]) -> NDArray[np.float64]:
+        dx, dy = (i - half) * CELL, (j - half) * CELL
+        d = np.hypot(dx, dy) / R
+        # the negative falloff past 0.85 R bunches the lines against the rim, like a limb
+        return noise.fbm(2.95 + dx / 420, 1.29 + dy / 420, 4) - 0.9 * np.maximum(0.0, d - 0.85)
 
-    field = sample_field(f, 2 * half, 2 * half)
-    levels = [-0.3 + k * 0.035 for k in range(18)]
-    tones = accent_ramp(len(levels) + 4)[4:]  # skip the near-background end so every line reads
-    clip = s.clip(f'<circle cx="{CX:.1f}" cy="{CY:.1f}" r="{R:.1f}"/>')
-    with s.g(clip_path=clip, fill="none", stroke_width=1.6 * U, stroke_linejoin="round"):
-        for lvl, tone in zip(levels, tones):
-            d = P()
-            for line in contours(field, lvl, cell, ox, oy):
+    field = sample_field(height, 2 * half, 2 * half)
+    origin = c - (half * CELL, half * CELL)
+    with s.clip() as disc:
+        disc.add(P().circle(c, R))
+    with (
+        s.group(clip_path=disc.ref),
+        s.buckets(TONES, "stroke", stroke_width=1.6, stroke_linejoin="round") as lines,
+    ):
+        for k, level in enumerate(LEVELS):
+            for line in iso_lines(field, level, cell=CELL, origin=origin):
                 if len(line) > 3:
-                    d.poly(line)
-            s.path(d, stroke=tone)
-    s.circle(CX, CY, R + 18 * U, fill="none", stroke=UI, stroke_width=2 * U)
-    s.circle(CX, CY, R, fill="none", stroke=ACCENT, stroke_width=3 * U)
+                    lines[k].poly(line)
+    s.stroke(P().circle(c, R + 18), UI, 2)
+    s.stroke(P().circle(c, R), ACCENT, 3)

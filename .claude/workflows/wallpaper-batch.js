@@ -120,9 +120,10 @@ const BUILT = {
           meta_ok: { type: 'boolean' },
           light: LIGHT,
           aspects: strs,
+          variants: { ...strs, description: 'names of the draft variants proposed; usually none' },
           notes: str,
         },
-        required: ['name', 'status', 'meta_ok', 'light', 'aspects', 'notes'],
+        required: ['name', 'status', 'meta_ok', 'light', 'aspects', 'variants', 'notes'],
       },
     },
   },
@@ -142,8 +143,17 @@ const CRITIQUE = {
           fixes: strs,
           light_verdict: { type: 'string', enum: ['ok', 'fix'] },
           copy_fixes: strs,
+          variants: {
+            type: 'array',
+            description: 'one verdict per proposed variant; empty when there are none',
+            items: {
+              type: 'object',
+              properties: { name: str, keep: { type: 'boolean' }, reason: str },
+              required: ['name', 'keep', 'reason'],
+            },
+          },
         },
-        required: ['name', 'score', 'verdict', 'fixes', 'light_verdict', 'copy_fixes'],
+        required: ['name', 'score', 'verdict', 'fixes', 'light_verdict', 'copy_fixes', 'variants'],
       },
     },
   },
@@ -161,6 +171,7 @@ const FIXED = {
           status: { type: 'string', enum: ['kept', 'improved', 'dropped'] },
           light: LIGHT,
           aspects: strs,
+          variants: strs,
           notes: str,
         },
         required: ['name', 'status', 'notes'],
@@ -322,47 +333,51 @@ let WORK = ''
 let REFS = ''
 let TAXONOMY = ''
 
-const TIMING = 'A check or build takes from about 15 seconds to 5 minutes per piece; a dense ASPECTS = ["any"] piece is the slow end.'
-const XARGS = "[x]args -P 8"
-const waitJobs = `wait without ending your turn: repeat \`pgrep -f '${XARGS}' >/dev/null && timeout 580 tail --pid=$(pgrep -of '${XARGS}') -f /dev/null; pgrep -f '${XARGS}' >/dev/null && echo running || echo finished\` with a 600000 ms Bash timeout until it prints finished`
-// Concurrent single-slug builds only race on wallpapers/index.json, and each one rewrites it whole from meta.yaml.
-const buildJobs = (slugs, tag) => `A Bash call stops after 10 minutes, so start the builds 8 at a time with Bash run_in_background, one log per slug:
-   \`rm -f ${WORK}/${tag}-*.log; printf '%s\\n' ${slugs.join(' ')} | xargs -P 8 -I{} sh -c 'uv run walldye build {} > ${WORK}/${tag}-{}.log 2>&1'\`
-   Then ${waitJobs}. A slug failed when its log has no "<slug>: wrote" or "<slug>: up to date" line; \`grep -LE ': (wrote|up to date)' ${WORK}/${tag}-*.log\` lists those logs, and each holds the error lines. When any build fails, the background task ends with exit code 123.`
+const TIMING = 'A check or build takes from a few seconds to about half a minute per piece; a dense aspects="any" piece with variants, or a heavy simulation, is the slow end. Over several pieces they run in parallel across the cores.'
+const waitFor = pattern => `wait without ending your turn: repeat \`pgrep -f '${pattern}' >/dev/null && timeout 580 tail --pid=$(pgrep -of '${pattern}') -f /dev/null; pgrep -f '${pattern}' >/dev/null && echo running || echo finished\` with a 600000 ms Bash timeout until it prints finished`
+const buildJobs = (slugs, tag) => `A Bash call stops after 10 minutes, so start one build over all of them with Bash run_in_background:
+   \`uv run walldye build ${slugs.join(' ')} > ${WORK}/${tag}.log 2>&1\`
+   Then ${waitFor('[w]alldye build')}. A piece that fails prints "<slug>: not written" after its error lines and writes nothing; the others still build. \`grep -B30 ': not written' ${WORK}/${tag}.log\` shows the failures.`
 
 const LOOK = `THE FAMILY LOOK (non-negotiable):
-- Every piece works under any three seed colours (bg, fg, accent). Colours come only from walldye tokens (BG, BG_DEEP, BG_ALT, UI, UI_ALT, UI_HI; MUTED rarely; ACCENT, ACCENT_HI, ACCENT_1..8) and mix() of them, never literal hex. Structure in quiet greys, ONE accent family, no other hues. Pieces are judged under fireproof (the template), flexoki-light and nord.
+- Every piece works under any three seed colours (bg, fg, accent). Colours come only from walldye tokens (BG, BG_DEEP, BG_ALT, UI, UI_ALT, UI_HI; MUTED rarely; ACCENT, ACCENT_HI, ACCENT_1..8) and mix(), ladder() and by_regime() of them; a hex value is never a paint. Structure in quiet greys, ONE accent family, no other hues. Pieces are judged under fireproof (the template), flexoki-light and nord.
 - The owner's brief, in their words: ${BRIEF}
 - Lots of negative space. One focal element (vary placement) OR a quiet full-bleed grey texture with one small accent event. The accent is the event: limited area, never a big flat saturated mass.
 - It sits behind windows: greys low-contrast against BG, nothing loud everywhere.
-- Pure vector: shapes, paths, gradients, clip-paths, masks, patterns. No SVG <text>, no raster images, no filters (walldye check fails all three). Bitmap-font glyphs via glyphs() are fine.
+- Pure vector: shapes, paths, gradients, clips, masks, patterns. No text elements, raster images or filters (the API cannot write them). Bitmap-font glyphs via walldye.pixel.glyphs() are fine.
 - Crisp at 4K, where the short side is 1080 units: visible strokes at least about 1.2 units; pixel and dither cells an integer 2-8 units on a grid with a whole-unit origin. One <path> per colour where shapes repeat: check warns above 600 kB or 15k elements and fails above 1 MB or 20k.
 - Composed like a poster: deliberate placement, nothing awkwardly clipped.
 ${LESSONS}`
 
 const tool = () => `TOOLING (you are in the walldye repo; run every command from its root):
-- Read .claude/skills/walldye/SKILL.md, then .claude/skills/walldye/references/api.md (helpers, is_light()) and the nearest example in .claude/skills/walldye/examples/. references/principles.md in the same folder has the critique checklist, and references/themes.md the tokens.
-- A piece is wallpapers/<slug>/: design.py (one-line docstring, \`def draw(s)\`, \`from walldye import ...\`; W and H are the canvas) and meta.yaml. numpy, scipy, shapely and skimage are available; no other third-party or local imports.
-- Declare ASPECTS = ["any"] when the layout follows W and H (size from min(W, H), place with fractions of W and H). Without it the piece is 16:9 only and other screens get a crop of it.
+- Read .claude/skills/walldye/SKILL.md, then .claude/skills/walldye/references/api.md (the design API: colours, canvas, drawing, random streams, params and variants, the geom, field and pixel helpers) and the nearest example in .claude/skills/walldye/examples/. references/principles.md in the same folder has the critique checklist, and references/themes.md the tokens.
+- A piece is wallpapers/<slug>/: design.py (a one-line docstring, module-level constants and pure helpers, and one \`@design(...) def draw(s: Canvas) -> None\`; the canvas is s.w by s.h, short side 1080) and meta.yaml. It imports walldye, walldye.geom, walldye.field and walldye.pixel, numpy, scipy, shapely, skimage and the pure standard library (math, itertools and the like); not random, numpy.random or local modules.
+- Declare \`@design(aspects="any")\` when the layout follows s.w and s.h (place with s.pick, s.frac and s.inset; sizes in plain units). Without it the piece is 16:9 only and other screens get a crop of it.
 - Preview: \`uv run walldye preview <slug>\` prints lint lines, the regime, whether light geometry differs, and the PNG path last. Read the PNG every round. Flags: --crop X,Y,W,H (canvas units) to zoom, --theme flexoki-light, --theme nord, --aspect 32:9 / 9:19.5 / 10:16, --width 480 to judge it at thumbnail size.
-- \`uv run walldye check <slug>\` must end with "1/1 ok" (determinism, one skeleton per regime, recolour fit, lint). ${TIMING} Give it a 600000 ms Bash timeout.
-- Seed all randomness (random.Random(seed), np.random.default_rng(seed)); never iterate a set of strings.
-- Geometry: key dicts and sorts by role or index, never by hex; never compare token values or feed colour distances into geometry; \`if is_light():\` is the only theme-dependent control flow; mask content is #fff/#000 only.
+- \`uv run walldye check <slug>\` must end with "1/1 ok" (the design lint, ruff, Pyrefly, determinism, recolour fit, every variant). \`uv run ruff format wallpapers/<slug>\` fixes formatting. ${TIMING} Give it a 600000 ms Bash timeout.
+- Randomness only from s.rng(key), s.np_rng(key) and s.noise(key); nothing at module level changes while drawing.
+- Geometry: colours are symbolic formulas, so key buckets, dicts and sorts by role or index (s.buckets, a ladder and TONES.rung(v)), never by colour; \`s.light\` is the only theme-dependent control flow; mask content is MASK_WHITE, MASK_BLACK and mixes of the two.
 - Look at ${REFS} before designing, and match the restraint and finish you see there.
 - Files: create or edit only wallpapers/<your slugs>/ (design.py, meta.yaml). Never touch walldye/, taxonomy.yaml, other wallpapers, wallpapers/index.json or any build/ folder. Never run \`walldye build\`, \`drop\` or \`review\`, and always name your own slugs in preview, check and render. Previews land in $WALLDYE_PREVIEW; leave it alone. No git commands that change state.`
 
 const LADDER = `LIGHT LADDER. Under light themes greys walk from BG towards FG, BG_DEEP is lighter than BG, and the dark accent steps turn into pale tints. Climb only as far as needed:
 1. tokens only (one template serves both regimes);
-2. a per-regime token choice, e.g. STRUCT = MUTED if is_light() else UI (still one template);
-3. a geometry branch under is_light() (costs a light template per native aspect);
+2. a per-regime colour, e.g. STRUCT = by_regime(UI, MUTED), dark first (still one template);
+3. a geometry branch under \`if s.light:\` (costs a light template per native aspect and variant);
 4. \`themes: [dark]\` in meta.yaml, only after 2 and 3 were tried, with the reason in \`notes\`. Under light themes the site then shows the piece with bg and fg swapped.`
 
+const VARIANTS = `VARIANTS (usually none). A variant is a named version of a piece that a visitor can switch to on its page, built for every aspect and regime. Propose one only where the piece has a natural one:
+- It must change what is depicted (a moon phase, a rule number, a reaction regime, the moment of a sweep), not nudge a value. A new seed counts only when the result shows something different; seed ladders are for \`walldye sheet <slug> --seeds 0..7\`, not for the site.
+- At most 3 per piece, as instances of the piece's Params class in \`@design(variants={...})\`, with draw annotated \`def draw(s: Canvas[ThatClass]) -> None\`. Try values first with \`--set k=v\` or \`walldye sheet <slug> --wedge k=a..b..step\`.
+- Each goes under \`variants:\` in meta.yaml with a label (one to four plain words naming what that version shows) and \`draft: true\`; \`default\` gets a label too. An optional description replaces the piece's when that version is shown. The owner approves each variant in review.
+- Preview each with \`--variant <name>\`. \`walldye check <slug>\` checks every variant and fails two versions that look alike at thumbnail size (ink-map cosine 0.93 or more): a detail-only change next to a large fixed structure fails it. Passing is necessary, not sufficient: on a fine-textured piece a 4% nudge of one value can measure 0.91, so a variant that passes check can still be a nudge.`
+
 const COPY_RULES = `COPY RULES (the site publishes title, description, notes and the design.py docstring):
-- title: a few plain words a visitor would use.
+- title: a few plain words a visitor would use. A variant label follows the same rules.
 - description: one or two short sentences, at most 30 words, concrete about what is drawn and how.
 - Theme-neutral: no colour names, and no theme roles as nouns ("the accent"); say what is picked out, filled in or lit.
 - No evaluative adjectives (stunning, mesmerising, elegant, timeless).
-- Nothing about how the site works inside: no internal terms (regime, seed, token, native, hand-tuned, light-ready, preset, slot, template, derived), no licence names or identifiers (CC0, SPDX, LicenseRef-...), no contrast ratios, colour tolerances or pixel sizes, no keyboard hints.
+- Nothing about how the site works inside: no internal terms (regime, seed, token, native, hand-tuned, light-ready, preset, variant, param, slot, template, derived; visitors see variants as versions), no licence names or identifiers (CC0, SPDX, LicenseRef-...), no contrast ratios, colour tolerances or pixel sizes, no keyboard hints.
 - Italics only for titles of works (*Schotter* in notes). Source titles stay plain text; the site italicises them. Vary the sentence shape; don't open with "A ..." every time.
 - The docstring is one theme-neutral line: concept plus technique. Comments name tokens or roles, never hues.`
 
@@ -384,7 +399,7 @@ const spec = ideas => json(ideas.map(i => ({
   leads: i.leads,
 })))
 
-const needsFix = r => !r || r.verdict !== 'keep' || r.fixes.length > 0 || r.copy_fixes.length > 0 || r.light_verdict !== 'ok'
+const needsFix = r => !r || r.verdict !== 'keep' || r.fixes.length > 0 || r.copy_fixes.length > 0 || r.light_verdict !== 'ok' || r.variants.some(v => !v.keep)
 
 // ---- 0. setup -------------------------------------------------------------
 
@@ -392,7 +407,7 @@ phase('Setup')
 const setup = await agent(`Prepare shared context for a batch of new wallpapers. You are in the walldye repo; change nothing in it.
 
 1. Scratch dir: \`uv run python -c "from walldye.tools.preview import preview_dir; print(preview_dir())"\` prints the preview dir. Create <that dir>/batch; it is WORK. Return its absolute path as work.
-2. Existing names. \`uv run walldye list\` prints slug, title, description, draft and aspects, tab-separated. Until the nixos import, the owner's older designs also count: ~/nixos/modules/desktop/dms/wallgen/designs/*.py (name = file stem, one-line module docstring) and ~/nixos/modules/desktop/dms/backgrounds/*.svg (name = file stem). Read them; never write there. Skip whichever of these paths does not exist.
+2. Existing names. \`uv run walldye list\` prints slug, title, description, draft, aspects and named variants, tab-separated. Until the nixos import, the owner's older designs also count: ~/nixos/modules/desktop/dms/wallgen/designs/*.py (name = file stem, one-line module docstring) and ~/nixos/modules/desktop/dms/backgrounds/*.svg (name = file stem). Read them; never write there. Skip whichever of these paths does not exist.
    Write WORK/existing.txt with one line per name, "name: description": walldye pieces first, then the nixos designs from their docstrings, then script-less SVGs as bare names. Many old docstrings name colours ("terracotta"); write "accent" or leave the colour out, so agents reading the file don't copy them.
    Return every name (all three sources, deduplicated) as existing.
 3. Reference sheets. \`uv run walldye sheet --all --cols 6 -o WORK/reference.png\` sheets every built piece. Then, while the nixos designs exist, make WORK/reference-nixos.png from about 30 SVGs in ~/nixos/modules/desktop/dms/backgrounds/ that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip game fan pieces). Use a throwaway heredoc (\`uv run python - <<'EOF'\`) with walldye.tools.common.rasterise(svg_text, 320), which returns a PIL image, and tile them 6 across on a dark ground. Read both PNGs to confirm they rendered. Return the paths that exist as references.
@@ -502,17 +517,20 @@ ${tool()}
 
 ${LADDER}
 
+${VARIANTS}
+
 ${metaRules()}
 
 YOUR DESIGNS: ${names(batch)}. Their specs are at the end.
 For each design:
 1. \`uv run walldye new <slug> --author "<your model's display name, e.g. Claude Opus 5.5>" --model <your model id, e.g. claude-opus-5-5, without a context suffix such as [1m]>\`. If it says the folder already exists, the folder is yours from an interrupted run of this batch: continue from it.
-2. Implement the spec in design.py, starting from the nearest example, and decide ASPECTS. The spec is a starting point, not a cage: if something reads poorly at wallpaper scale, change it in the spirit of the concept.
-3. Preview, Read, critique honestly (composition, balance, density, tone steps, legibility of the idea, restraint), revise. At least 3 rounds, with a --crop into the busiest region, --aspect 32:9, 9:19.5 and 10:16 when ASPECTS is declared, and from round 2 on --theme flexoki-light and --theme nord. End with a full fireproof preview.
+2. Implement the spec in design.py, starting from the nearest example, and decide the aspects. The spec is a starting point, not a cage: if something reads poorly at wallpaper scale, change it in the spirit of the concept.
+3. Preview, Read, critique honestly (composition, balance, density, tone steps, legibility of the idea, restraint), revise. At least 3 rounds, with a --crop into the busiest region, --aspect 32:9, 9:19.5 and 10:16 when aspects are declared, and from round 2 on --theme flexoki-light and --theme nord. End with a full fireproof preview.
 4. Climb the light ladder until the flexoki-light render holds up.
-5. Fill meta.yaml as META.YAML says.
-6. \`uv run walldye check <slug>\` must end with "1/1 ok".
-Return one entry per design: status done or failed; size_kb of the 16:9 render if you measured it; light = the ladder step you ended on (tokens, choice, branch, opt-out); aspects = the ASPECTS list in design.py ([] for 16:9 only); meta_ok = meta.yaml filled as META.YAML says and check reports no meta.yaml errors; notes = what you built, key decisions, anything the critic should know.
+5. Propose draft variants only where VARIANTS says the piece has a natural one.
+6. Fill meta.yaml as META.YAML says.
+7. \`uv run walldye check <slug>\` must end with "1/1 ok".
+Return one entry per design: status done or failed; size_kb of the 16:9 render if you measured it; light = the ladder step you ended on (tokens, choice, branch, opt-out); aspects = ["any"] or the aspects tuple in @design, as a list ([] for 16:9 only); variants = the names of the draft variants you proposed ([] for none); meta_ok = meta.yaml filled as META.YAML says and check reports no meta.yaml errors; notes = what you built, key decisions, anything the critic should know.
 
 SPECS:
 ${spec(batch)}`, { label: `design:${names(batch, ',')}`, phase: 'Design', schema: BUILT }),
@@ -525,17 +543,21 @@ ${spec(batch)}`, { label: `design:${names(batch, ',')}`, phase: 'Design', schema
 ${LOOK}
 ${LADDER}
 
+${VARIANTS}
+
 ${metaRules()}
 
 Look at ${REFS} first. For each design (${names(done)}):
 - \`uv run walldye preview <slug>\` (fireproof, the template), then with --theme flexoki-light and --theme nord. Read every PNG.
 - One --crop X,Y,W,H into its busiest region, and --width 480 for the thumbnail read.
-- If design.py declares ASPECTS, also --aspect 32:9 and --aspect 9:19.5.
+- If design.py declares aspects, also --aspect 32:9 and --aspect 9:19.5.
+- For each variant in \`@design(variants=...)\`, a preview with --variant <name>.
 - If meta.yaml says themes: [dark], the site shows the piece under light themes with bg and fg swapped, so preview it with --theme 100f0f-fffcf0-bc5215 (flexoki-light swapped) instead of flexoki-light, and check that notes gives a real reason.
 - Read design.py and meta.yaml.
 Judge: does it read instantly; is the composition deliberate; is the accent a restrained event; are the greys quiet enough behind windows; is it clean at 4K (no artefacts, jaggies, awkward clipping, muddy tone steps); does it feel like a sibling of the reference set? Faint is the common failure, more than loud: call it out when the idea only shows up zoomed in.
 Light: does the flexoki-light render hold up (tone steps visible, the event still reads, no shadow that turned into a glare) and does the event survive nord's cool accent by shape and size? Is the ladder step the lowest that works, and was an opt-out earned? light_verdict is ok or fix; put light fixes in fixes, prefixed "light:".
-Copy: check title, description, notes and the docstring against the COPY RULES. Each copy_fixes entry quotes the replacement text.
+Variants: judge each proposed variant against VARIANTS. Does it change what is depicted, is it as strong as the default, and does it look different at thumbnail size? A variant that passes check can still be a nudge of one value: drop it if the subject did not change. Return one verdict per variant in variants (keep false with the reason drops it); [] when the design has none.
+Copy: check title, description, notes, variant labels and descriptions, and the docstring against the COPY RULES. Each copy_fixes entry quotes the replacement text.
 Score 1-10 for "would it sit proudly in the set as a daily wallpaper". verdict keep only for 8+ with no meaningful fixes; fix for fixable issues; rework if the approach fails. Fixes must be concrete (positions, sizes, tones, density), most important first.
 Builder notes: ${json(done.map(s => b[s.name]))}
 SPECS:
@@ -553,13 +575,15 @@ ${tool()}
 
 ${LADDER}
 
+${VARIANTS}
+
 ${metaRules()}
 
 REVIEWS:
 ${json(reviews)}
-For each design above: apply the fixes, the light fixes and the copy_fixes (for rework, rethink the approach but keep the concept), then preview, Read and revise for at least 2 rounds, including --theme flexoki-light and --theme nord, ending with a passing \`uv run walldye check <slug>\`.
+For each design above: apply the fixes, the light fixes and the copy_fixes (for rework, rethink the approach but keep the concept), and remove every variant whose verdict has keep false from design.py and meta.yaml. Then preview, Read and revise for at least 2 rounds, including --theme flexoki-light and --theme nord, ending with a passing \`uv run walldye check <slug>\`.
 If after a real rework it would still score below 7, delete its folder (\`rm -r wallpapers/<slug>\`) and report it dropped.
-Return one entry per design: status kept, improved or dropped; light and aspects as they now stand; notes on what changed.
+Return one entry per design: status kept, improved or dropped; light, aspects and variants as they now stand; notes on what changed.
 SPECS:
 ${spec(todo)}`, { label: `fix:${names(todo, ',')}`, phase: 'Design', schema: FIXED })
     if (!fixed) log(`Fixer for ${names(todo)} returned nothing; keeping the builds as they are, the set pass checks them`)
@@ -586,6 +610,7 @@ batches.forEach((batch, i) => {
         score: r?.score ?? null,
         light: f?.light ?? b.light,
         aspects: f?.aspects ?? b.aspects,
+        variants: f?.variants ?? b.variants,
         notes: f?.notes ?? b.notes,
       }
     }
@@ -625,7 +650,7 @@ ${json(scored)}
 
 You may run \`walldye build\` (the designers could not). ${TIMING}
 1. Build every new piece. ${buildJobs(kept, 'set')} Note each slug that fails, with its error lines. Do not fix designs yourself.
-2. Near-clones: \`uv run python -c "from walldye.tools.check import near_clones; near_clones('${kept.join(' ')}'.split())"\`. This is the near-clone pass of \`walldye check --set\` without the full check that build just ran. It compares each new piece's build/16x9.svg with every built piece and prints \`similar (0.95): a ~ b\` per close pair (nothing when there are none), then \`set: skipped, ...\` for the pieces that failed to build. It compares ink maps, so it misses motif-level duplicates (two different mountain pieces); trust your eyes over it, both ways.
+2. Near-clones: \`uv run python -c "from walldye.tools.check import near_clones; near_clones('${kept.join(' ')}'.split())"\`. This is the near-clone pass of \`walldye check --similar\` without the full check that build just ran. It compares each new piece's build/16x9.svg (the default version) with every built piece and prints \`similar (0.95): a ~ b\` per close pair (nothing when there are none), then \`similar: skipped, no build/16x9.svg: ...\` for the pieces that failed to build. It compares ink maps, so it misses motif-level duplicates (two different mountain pieces); trust your eyes over it, both ways.
 3. Contact sheets in pages of 30: \`uv run walldye sheet <slugs> --cols 6 -o ${WORK}/set-<page>.png\`, and each page again with \`--theme flexoki-light -o ${WORK}/set-<page>-light.png\`. Read every page next to ${REFS}. Hunt for look-alikes (within the batch and against existing pieces), weak thumbnails, tone that drifts from the family, too many focal points in the same spot, and light renders that fall apart.
 4. Decide:
    - duplicates: new pieces to drop because another piece, new or existing, already does the same thing better. Name the one each duplicates. Never list an existing piece, and never both halves of a pair.
@@ -758,6 +783,7 @@ const summary = () => survivors.map(s => ({
   score: pieces[s].score,
   light: pieces[s].light,
   aspects: pieces[s].aspects,
+  variants: pieces[s].variants,
   sources: sources[s]?.sources.length ?? null,
 }))
 
@@ -775,7 +801,7 @@ if (pending.length) {
     next: [
       `Ask the owner which licence each of ${pending.map(p => p.slug).join(', ')} should carry (license.pending lists the works they recreate).`,
       `Add \`license: <id>\` to each one's wallpapers/<slug>/meta.yaml${licensed.length ? `, and to ${licensed.map(l => `${l.slug} (${l.license})`).join(', ')} as args.licenses asked` : ''}.`,
-      `printf '%s\\n' ${survivors.join(' ')} | xargs -P 8 -n 1 uv run walldye build   (with run_in_background: one piece takes from about 15 seconds to 5 minutes)`,
+      `uv run walldye build ${survivors.join(' ')}   (with run_in_background; it checks the pieces in parallel)`,
       'uv run walldye build --verify   (with run_in_background)',
       `uv run walldye review ${survivors.join(' ')}   (with run_in_background; it blocks until the owner presses Done)`,
       'Confirm with the owner before dropping any rejected piece; commit the folders and wallpapers/index.json (drafts land on main as draft: true).',
@@ -786,7 +812,7 @@ if (pending.length) {
 const final = await agent(`You run the final build for a batch of new wallpapers in the walldye repo. The drafts were built once before a polish and copy pass, so some are stale.
 1. ${licensed.length ? `Licences the owner chose: ${licensed.map(l => `${l.slug}: ${l.license}`).join(', ')}. For each, add \`license: <id>\` to wallpapers/<slug>/meta.yaml on its own line after \`model:\`. Change nothing else.` : 'No licences to add: skip to step 2.'}
 2. Build ${survivors.join(' ')}. ${TIMING} ${buildJobs(survivors, 'final')} Pieces that are current print "up to date". Record each failing slug with its error lines.
-3. \`walldye build --verify\` re-renders every committed template of every piece and writes nothing. Run it over every piece in the background the same way, \`uv run walldye list | cut -f1 | xargs -P 8 -n 1 uv run walldye build --verify > ${WORK}/verify.log 2>&1\`, and ${waitJobs}. Each piece prints "<slug>: ok", "<slug>: DRIFT" with the reason on the lines below, or "<slug>: not built". Record each DRIFT and "not built" (\`grep -A3 -E 'DRIFT|not built' ${WORK}/verify.log\`).
+3. \`walldye build --verify\` re-renders every committed template of every version of every piece and writes nothing. Run it over every piece in the background, \`uv run walldye build --verify > ${WORK}/verify.log 2>&1\`, and ${waitFor('[w]alldye build')}. Each piece prints "<slug>: ok", "<slug>: DRIFT" with the reason on the lines below, or "<slug>: not built". Record each DRIFT and "not built" (\`grep -A3 -E 'DRIFT|not built' ${WORK}/verify.log\`).
 Don't edit designs to make things pass, don't drop anything, don't commit. Return licensed, built (every slug that built or was up to date), failed, verify_ok, drift and the tail of the output.`, { label: 'build', phase: 'Build', schema: FINAL, effort: 'low' })
 
 if (!final) {
@@ -800,7 +826,7 @@ if (!final) {
     near_clones: setRes?.near_clones ?? [],
     copy: copy?.changes ?? null,
     next: [
-      `The build agent returned nothing. Check that ${licensed.length ? 'the license lines went in and ' : ''}\`printf '%s\\n' ${survivors.join(' ')} | xargs -P 8 -n 1 uv run walldye build\` passes and \`uv run walldye build --verify\` shows no drift (both with run_in_background), then run \`uv run walldye review ${survivors.join(' ')}\` in the background.`,
+      `The build agent returned nothing. Check that ${licensed.length ? 'the license lines went in and ' : ''}\`uv run walldye build ${survivors.join(' ')}\` passes and \`uv run walldye build --verify\` shows no drift (both with run_in_background), then run \`uv run walldye review ${survivors.join(' ')}\` in the background.`,
     ],
   }
 }

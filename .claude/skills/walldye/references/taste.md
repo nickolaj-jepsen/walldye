@@ -23,5 +23,11 @@ Rejected:
 - maximalist low-poly landscapes;
 - busy full-sheet blueprints: orthographic, floorplan, exploded-bearing.
 
-In practice: colour only with tokens, keep accent areas small, lean toward dither, pixel,
-technical and instrument subjects, and don't make several variants of one design.
+In practice: colour only with tokens, keep accent areas small, and lean toward dither, pixel,
+technical and instrument subjects.
+
+Variants are curated, not generated. A piece may carry up to four named variants, and only
+when each one changes what is depicted: a moon phase, a rule number, a reaction regime, the
+moment of a sweep. A nudged value or a new seed is not a variant. Agents propose at most three,
+always as drafts, and the owner approves each one in review. Breadth still comes first: a new
+subject beats another version of an old one.

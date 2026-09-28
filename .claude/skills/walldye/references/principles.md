@@ -24,8 +24,9 @@ product mock-ups, and anything that reads as a UI.
 
 ## Palette discipline
 
-Write every colour as a theme token or a `mix()`/`accent_ramp()` of tokens. Never
-hardcode hex: `walldye check` fails hardcoded colours, and they break re-theming.
+Write every colour as a theme token or a `mix()`, `ladder()` or `by_regime()` of tokens. A
+hex value is never a paint, and `walldye check` fails any colour outside a mask that does not
+move with the theme.
 
 Greys carry the structure. Use them in this order of preference:
 
@@ -99,15 +100,16 @@ Crops must look intentional:
 - Lines that run edge to edge cut the empty space in two. Stop them near the object
   unless the full-width line is the idea.
 
-Surviving aspect changes (designs that declare `ASPECTS = ["any"]`):
+Surviving aspect changes (designs that declare `aspects="any"`):
 
-- Size objects from the short side (always 1080 units) so they do not balloon on
-  ultrawide or shrink on portrait. Place them with fractions of `W` and `H`, or anchor
-  them to an edge (`W - 420`), never with hardcoded 1920-era coordinates.
-- Generate full-bleed fields by looping over the actual `W` and `H`.
-- A right-thirds focal point that works at 16:9 can be cramped at 9:19.5. Branch on
-  `W > H` when the layout needs it. `walldye check` renders 16:9, 16:10, 21:9, 32:9, 9:19.5
-  and 10:16; preview at least 32:9 and the portrait cases yourself.
+- Size objects in plain units (the short side is always 1080) so they do not balloon on
+  ultrawide or shrink on portrait. Place them with `s.pick`, `s.frac` or `s.inset`, or
+  anchor them to an edge (`s.w - 420`), never with hardcoded 1920-era coordinates.
+- Generate full-bleed fields by looping over the actual `s.w` and `s.h`.
+- A right-thirds focal point that works at 16:9 can be cramped at 9:19.5. `s.pick` takes a
+  portrait position, and `s.landscape` can switch the layout when it needs more.
+  `walldye check` renders 16:9, 16:10, 21:9, 32:9, 9:19.5 and 10:16; preview at least 32:9
+  and the portrait cases yourself.
 
 ## Craft at 4K
 
@@ -142,15 +144,15 @@ Pixel, dither and glyph work:
 - Fine high-contrast periodic patterns (pitch under ~6 units, strict on/off) moiré under
   1.25x/1.5x fractional scaling. Keep fine periodic textures low contrast or coarser.
 - Commit to a resolution. Smooth curves on a coarse 3-unit grid look like an upscaled
-  bitmap: either make the pixels a deliberate feature or vectorise with `contours()`.
+  bitmap: either make the pixels a deliberate feature or vectorise with `iso_lines()`.
 - Random salt-and-pepper cells read as compression grain. Prefer ordered or blue-noise
   dither, or deterministic tone bands; remove orphan cells and components smaller than a
   few cells.
 - Pixel art: 4-6 colours, deliberate clusters, clean silhouettes, no pillow shading, no
   anti-aliased edges. Glyph `px` is an integer (1-3).
 
-Seed every random source. `check` fails designs whose output changes between renders or
-between processes.
+Draw every random number from `s.rng`, `s.np_rng` or `s.noise`. `check` fails designs whose
+output changes between renders or between processes.
 
 ## Critique checklist
 
@@ -172,11 +174,13 @@ busiest region. Then answer each question honestly:
       be background (too loud)?
 - [ ] Does it survive every declared aspect and at least one light and one cool theme?
 - [ ] Is the geometry identical across themes in a regime (or an intentional light template)?
-- [ ] Is it a sibling of the rest of the set, not a near-duplicate? `walldye check --set`
+- [ ] Is it a sibling of the rest of the set, not a near-duplicate? `walldye check --similar`
       only compares built pieces, so until `walldye build <slug>` has run, compare the
       preview by eye with a sheet of its nearest neighbours from `walldye list`
       (`walldye sheet <slugs>`).
 - [ ] Is the meta.yaml copy theme-neutral, with every source URL fetched?
+- [ ] Does any variant change what is depicted, not just a value, and look different from
+      every other version at thumbnail size?
 - [ ] Does `walldye check` pass?
 
 Scoring, on "would this sit proudly in the set as a daily wallpaper":
@@ -215,5 +219,6 @@ Only 8+ ships. If a design is still under 7 after a real rework, drop it.
 | Almost-even rhythm (table look) or random jitter (sloppy look)            | Make spacing strict, or vary it clearly with one thin and one wide interval.                           |
 | Seams, double lines, kinks, boolean notches                               | Union shapes, inset strokes, smooth joins, clamp minimum tip width.                                    |
 | Moiré or shimmer                                                          | Snap to integer units, coarsen or quiet fine periodic patterns, avoid packed near-parallel lines.      |
-| Upscaled-bitmap look                                                      | Commit to crisp pixels on an integer grid, or vectorise with `contours()`.                             |
+| Upscaled-bitmap look                                                      | Commit to crisp pixels on an integer grid, or vectorise with `iso_lines()`.                             |
 | Near-duplicate of a sibling                                               | Change the subject or the composition, not just the parameters.                                        |
+| A variant that nudges a value, or a seed ladder offered as versions       | Keep one version, or pick a variant that shows something else (a phase, a moment, a rule).             |

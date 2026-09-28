@@ -1,29 +1,31 @@
 # walldye
 
-walldye is a catalogue of procedural SVG wallpapers. Each piece is a small seeded Python script that draws with the `walldye` library in theme tokens. `walldye build` renders it to SVG templates, which are committed, and fits a linear recolouring for every colour in them from three seed colours (bg, fg, accent). The Astro site at walldye.com uses those fits to show every piece in the visitor's colours and to export it as SVG, PNG, WebP or JPEG. `docs/design.md` records the decisions and is the source of truth; update it when a decision changes.
+walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colours, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates, which are committed, and fits a linear recolouring for every colour in them from three seed colours (bg, fg, accent). The Astro site at walldye.com uses those fits to show every piece in the visitor's colours and to export it as SVG, PNG, WebP or JPEG. `docs/design.md` records the decisions and is the source of truth; update it when a decision changes. `docs/api.md` is the reference for the design API and the tool contracts; when it and the code disagree, fix one of them in the same change.
 
 ## Layout
 
-- `walldye/`: the library designs import, plus the CLI in `walldye/tools/`. Everything outside `tools/` feeds the render-lib hash, so editing it means a `walldye build --all` afterwards.
-- `wallpapers/<slug>/`: `design.py` and `meta.yaml` are written by hand, `build/` is generated. `wallpapers/index.json` and `wallpapers/.render-lib.sha256` are generated too.
+- `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Everything outside `tools/` feeds the render-lib hash, so editing it means a `walldye build --all` afterwards.
+- `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand, `build/` is generated (named variants in `build/<variant>/`). `wallpapers/index.json` and `wallpapers/.render-lib.sha256` are generated too. `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `taxonomy.yaml`: the allowed facet values for meta.yaml.
 - `src/`: the site. `src/lib/` has the TypeScript ports of the theme, recolour, tokenizer and hash code, with fixtures shared with pytest in `src/lib/__fixtures__/`. `src/scripts/DOM.md` lists the hooks the client modules rely on.
-- `tests/`: `python/` (pytest), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against.
-- `scripts/`: `check-artifacts.ts`, the CI check that committed builds still match their inputs, and `fonts/`, which rebuilds the subset fonts in `src/assets/fonts/`.
+- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, `port/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against.
+- `scripts/`: `check-artifacts.ts`, the CI check that committed builds still match their inputs; `fonts/`, which rebuilds the subset fonts in `src/assets/fonts/`; and `port/`, the codemod, smoke test and before/after sheets for porting the nixos designs to API v2.
 - `infra/www-redirect/`: the Worker that sends www.walldye.com to the apex.
 - `.claude/skills/walldye/`: the skill for designing one wallpaper. `.claude/workflows/wallpaper-batch.js` runs it for ten or more.
-- `docs/`: `design.md`, and `deploy.md` for Cloudflare and CI.
+- `docs/`: `design.md`, `api.md` (the design API) and `deploy.md` (Cloudflare and CI).
 - `import/`: gitignored scratch (nixos snapshots, prototypes, screenshots). Nothing in it is committed.
 
 ## Commands
 
 ```sh
-uv run walldye --help                 # new, preview, render, check, build, review, sheet, list, drop, themes
-uv run walldye check <slug>
+uv run walldye --help                 # new, preview, render, check, build, review, sheet, params, list, drop, themes
+uv run walldye check <slug>           # every variant; --variant NAME for one
 uv run walldye build <slug>
 uv run walldye build --verify         # re-render every committed template and diff; read-only
+uv run walldye params <slug>          # a design's params and variants
 uv run pytest
 uv run ruff format . && uv run ruff check --fix .   # formatting (line length 100) and import order
+uv run pyrefly check                  # the library at the strictest preset; walldye check types designs
 uv run python tests/python/fixtures/regen.py   # after a build that changes the shared fixtures
 
 pnpm test                             # vitest
@@ -38,9 +40,10 @@ On NixOS the Python wheels need `programs.nix-ld.enable`; there is no devShell.
 ## Rules
 
 - Never edit anything in `wallpapers/*/build/` by hand. Only `walldye build` writes there, and `pnpm check-artifacts` catches hand edits.
-- After changing a `design.py`, the `themes:` line of a `meta.yaml` or anything in the library, run `uv run walldye build` for the affected pieces and commit its output with the change. Run `uv run walldye build --verify` before committing.
+- After changing a `design.py`, a `data/` file, the `themes:` line or the `variants:` of a `meta.yaml`, or anything in the library, run `uv run walldye build` for the affected pieces and commit its output with the change. Run `uv run walldye build --verify` before committing.
+- The render-lib hash covers the files under `walldye/` that git tracks, so `git add` a new library module (`git add -N` is enough) before `walldye build --all`, or the stamp misses it and CI fails.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text) follows the Copy rules in `docs/design.md`: no colour names, no theme roles as nouns, no internal terms, no evaluative adjectives.
-- Python is formatted with ruff (`uv run ruff format .`); CI fails on unformatted files.
+- Python is formatted with ruff (`uv run ruff format .`), including the ` ```python ` blocks in Markdown; CI fails on unformatted files. All Python also passes `uv run ruff check .` (fix findings, no blanket `noqa`), and the library passes `uv run pyrefly check` with 0 errors (a pytest test enforces it).
 - CI runs Node only. Do not add Python steps to `.github/workflows/`; drift in Python output is caught locally by `walldye build --verify`.
 
 ## Dev server

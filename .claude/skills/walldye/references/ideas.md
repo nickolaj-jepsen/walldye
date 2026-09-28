@@ -31,15 +31,15 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 
 ## ASCII, glyph & TUI
 
-- **glyph-donut** (built) — a donut.c homage, a lit torus frozen mid-spin in luminance glyphs; torus off-centre and large; map N·L to `DENSITY`, brightest glyphs in accent.
-- **glyph-fire** — the demoscene fire effect in shade-block glyphs licking up from the bottom edge into sparse sparks; bottom quarter only; classic cooling-buffer sim mapped to `SHADES`.
+- **glyph-donut** (built) — a donut.c homage, a lit torus frozen mid-spin in luminance glyphs; torus off-centre and large; map N·L to a density ramp such as `" .:-=+*#%@"`, brightest glyphs in accent.
+- **glyph-fire** — the demoscene fire effect in shade-block glyphs licking up from the bottom edge into sparse sparks; bottom quarter only; classic cooling-buffer sim mapped to the shade blocks ` ░▒▓█`.
 - **glyph-hexdump** (built) — an xxd view of a binary (offset column, 16 hex columns, ASCII gutter) in quiet greys, with one selected byte run in accent; full-bleed but dim.
 - **glyph-mandel** (built) — the Mandelbrot set as 1980s ASCII art, escape time mapped to density glyphs, interior blank, boundary band in accent; coarse cell grid, set off-centre.
 - **glyph-roguelike** (built) — a NetHack-style dungeon in terminal glyphs, remembered rooms dim and the torch-lit view bright around an accent @; map in one half of the canvas.
 - **glyph-terrain** (example) — a roguelike overworld where the glyph encodes terrain (~ . " ^ ▲) and one winding road leads to an accent town; noise height field quantised to glyph classes.
 - **glyph-tui** — a tmux-style tiled terminal in box-drawing glyphs, three panes of abstract content with the focused pane framed in accent; greek the content as glyph runs.
 - **braille-plot** (built) — a btop-style panel of per-core CPU history as braille area plots, one core spiking in accent; panel in a lower corner; pack 2x4 dots per braille cell.
-- **shade-horizon** — an ANSI-art sunset painted only in ░▒▓█: an off-centre sun with a ▓ rim, low haze and a shimmering reflection; tone mapped to `SHADES` on a coarse grid.
+- **shade-horizon** — an ANSI-art sunset painted only in ░▒▓█: an off-centre sun with a ▓ rim, low haze and a shimmering reflection; tone mapped to ` ░▒▓█` on a coarse grid.
 - **pixel-terminal** — greeked pixel code, minimap-style, ending in an accent prompt and a block cursor; left-aligned block in one third of the canvas; bars from random line lengths and indents.
 - **glyph-vu-meter** — stereo VU and spectrum bars in ▁▂▃▄▅▆▇█ block elements with a single peak-hold cell in accent; a low strip along the bottom edge; noise-driven bar heights.
 - **glyph-pipes** (built) — the old "pipes" screensaver in box-drawing glyphs ─│┌┐: a few grey pipes wandering on a grid, one in accent; a self-avoiding random walk emitted as glyph runs.
@@ -47,7 +47,7 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 
 ## Instruments & science displays
 
-- **radar-sweep** (built) — a PPI radar scope mid-rotation, a phosphor afterglow wedge trailing the sweep over a grey coastline, a few contacts lit inside the afterglow; `arc_band` wedges with stepped opacity.
+- **radar-sweep** (built) — a PPI radar scope mid-rotation, a phosphor afterglow wedge trailing the sweep over a grey coastline, a few contacts lit inside the afterglow; `arc_band` wedges in stepped tones.
 - **helicorder** (built) — a drum seismograph record of quiet ruled traces, one catching an earthquake whose accent coda spills over the lines below; filtered noise traces with one enveloped burst.
 - **navball** (built) — an FDAI attitude ball at an odd tilt, line-grid sky and ground hemispheres, a fixed accent aircraft symbol and roll ticks; project a lat-long grid with hidden-line culling.
 - **smith-chart** (built) — a huge Smith chart partly off-screen, with an accent matching path spiralling a load point home to the centre; constant-r and constant-x circles as hairlines.
@@ -109,9 +109,9 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 - **electron-cloud** (built) — a hydrogen 3d_z² orbital as a stipple cloud sampled from |ψ|², its densest cores in accent.
 - **ferrofluid** (built) — a ferrofluid crown under a magnet, black spikes on a hex lattice rim-lit in accent from one side.
 - **bubble-chamber** — bubble-chamber tracks, grey straight and gently curved paths with one electron spiralling tightly inward in accent; dotted strokes, full-bleed but sparse.
-- **caustics** — the caustic network on a pool floor, bright wavering lines on grey, one cusp junction in accent; `contours` of a warped noise field, thin strokes.
+- **caustics** — the caustic network on a pool floor, bright wavering lines on grey, one cusp junction in accent; `iso_lines` of a warped noise field, thin strokes.
 - **vortex-street** — a Kármán vortex street shed behind a small cylinder, drawn as streaklines; the cylinder in accent; flow left to right across the lower half.
-- **reaction-diffusion** (built) — a Gray-Scott labyrinth whose feed gradient dissolves it into accent spots in one corner; `contours` of the V field as filled vector shapes.
+- **reaction-diffusion** (built) — a Gray-Scott labyrinth whose feed gradient dissolves it into accent spots in one corner; `iso_lines` of the V field as filled vector shapes.
 - **coral-loop** (built) — differential growth, one closed line folding into a coral outline ringed by grey echoes of earlier generations.
 - **tree-rings** (built) — a felled trunk's cross-section from the corner, with noise-driven climate years, one fire-scar year in accent and a radial drying crack.
 - **diatom** (built) — a Haeckel radiolarian, a hex-pored silica sphere with spines, its inner capsule glowing accent through the lattice.
@@ -216,5 +216,5 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 6. **Prefer restraint over maximalism in terrain.** Busy low-poly landscapes and stacked illustrative scenes feel dated. One ridge, a contour set or a dithered height field says "landscape" with far less noise.
 7. **Emblems need context.** A lone crest or badge reads as branding. Show its construction (compass arcs, a crease pattern, a drafting grid) or embed it in a system so the eye has something to explore.
 8. **Real rules beat vague homage.** A real game record, true Hollerith codes, actual star positions or standard track geometry give the details something to be right about, and viewers who know the subject notice.
-9. **Aim for breadth, not variants.** A set of ten dune variations is weaker than ten different subjects. Once a seed works, move to a new family or technique instead of re-skinning it.
+9. **Aim for breadth, not re-skins.** A set of ten dune variations is weaker than ten different subjects. Once a seed works, move to a new family or technique instead of re-skinning it. A named variant of a piece earns its place only when it changes what is depicted (a moon phase, the moment of a sweep), never as a nudged value or a new seed.
 10. **Use one hue.** Greys plus the accent ramp is enough. Use the ramp for depth and falloff, never for a second colour story.
