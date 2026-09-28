@@ -36,6 +36,7 @@ __pycache__/
 playwright-report/
 test-results/
 .lycheecache
+.claude/worktrees/
 
 # walldye output: `walldye build` and tests/python/fixtures/regen.py write these, and CI makes its own
 wallpapers/*/build/
