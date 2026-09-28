@@ -250,8 +250,10 @@ class Moon(Params):
     earthshine: bool = True
 ```
 
-- `knob` takes `default` and optionally `lo` and `hi` (numbers), `choices` (str or int), `doc` and `unit`, all by keyword, since PEP 681 checkers see a field's default only through `default=`. A field without `knob` is a plain default.
-- `lo` and `hi` are soft: they bound `sheet --wedge`, and `--set` and check warn outside them. `choices`, and the members of a `Literal` annotation, are hard.
+- `knob` takes `default` and optionally `lo` and `hi` (numbers), `choices` (str or int), `doc`, `unit` and `max_len`, all by keyword, since PEP 681 checkers see a field's default only through `default=`. A field without `knob` is a plain default.
+- `max_len` makes a `str` field text a visitor may type: 1 to `max_len` printable ASCII characters (space to `~`), which both bitmap fonts draw. Anything else raises `ValueError`, so a design can draw any value it gets: `word: str = knob(default="fireproof", max_len=24)`.
+- `lo` and `hi` are soft: they bound `sheet --wedge`, the page's slider for a knob meta.yaml labels, and `--set` and check warn outside them. `choices`, and the members of a `Literal` annotation, are hard.
+- `unit="deg"` shows the value in degrees beside the page's slider; any other unit shows nothing there, and an int shows its number.
 - Fields are `int`, `float`, `bool`, `str` or a `Literal` of str or int values, and all have defaults, since the default version is `Moon()`. There are no colour params; a `Literal` chosen in `draw` covers role choices.
 - Instances validate their values, store floats as `float`, and hash and compare by value.
 
@@ -345,6 +347,9 @@ One per variant directory, with one top-level key per line and each value compac
 - `design_sha`: the hash of design.py (or source.svg and palette.yaml) and every data file, plus a `variant\t<name>` line for a named variant, which also gets a `"variant"` key;
 - `focus`: the ink-weighted centroid of the 16:9 dark template, which centres crops and social cards;
 - `cells`: the cell sizes of pixel pieces;
+- `params`: the version's value of every params field, `seed` last;
+- `knobs`: the schema of every field but `seed`, `{name, kind, lo, hi, choices, unit, max_len}`, for the page's controls;
+- `redraw`: whether the 16:9 dark drawing with another seed differs, or raises, which decides whether the page offers "Draw another";
 - `probes` and `render_lib`: the probe render hashes and the render-lib hash they were made under;
 - `checked`: the walldye version that last checked it;
 - one `"<aspect>/<regime>"` entry per template, `{file, sha256, n, coefs, occ}`: `coefs` holds the deduplicated `[a, b, c, dr, dg, db]` rows at 5 decimals, and `occ` the row for each of the `n` colour occurrences.
@@ -445,7 +450,7 @@ A rejection is never a reason to delete a piece: `drop` is a separate step the o
 | data | files in `data/` other than `.json`, `.txt` and `.npy`, and subdirectories |
 | type escapes | `# type: ignore`, `# pyrefly: ignore`, `typing.cast` and `typing.Any` |
 
-Warnings: colour words in docstrings and comments, a pixel-grid origin that is not a whole unit, and a variant whose check took more than 120 seconds.
+Warnings: colour words in docstrings and comments, a pixel-grid origin that is not a whole unit, a variant whose check took more than 120 seconds, and a 16:9 draw of more than 2 seconds in a piece whose page can redraw it (wallpapers.md, meta.yaml `controls`).
 
 ### 13.2 Module level
 

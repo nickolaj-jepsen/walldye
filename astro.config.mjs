@@ -2,6 +2,7 @@
 import { rmSync } from 'node:fs';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
+import { pyodide, VERSION as PYODIDE_VERSION } from './scripts/pyodide.mjs';
 
 const fonts = './src/assets/fonts';
 
@@ -31,7 +32,7 @@ export default defineConfig({
   site: process.env.SITE_URL || 'https://walldye.com',
   build: { format: 'file' },
   trailingSlash: 'never',
-  integrations: [cleanTemplates(), sitemap()],
+  integrations: [cleanTemplates(), pyodide(), sitemap()],
   devToolbar: { enabled: false },
   fonts: [
     {
@@ -61,5 +62,7 @@ export default defineConfig({
   vite: {
     // The export rasteriser runs in a module Worker that imports resvg-wasm.
     worker: { format: 'es' },
+    // Where the draw worker loads Pyodide from (scripts/pyodide.mjs).
+    define: { 'import.meta.env.PYODIDE_URL': JSON.stringify(`/py/${PYODIDE_VERSION}/`) },
   },
 });

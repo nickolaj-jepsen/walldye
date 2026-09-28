@@ -41,19 +41,24 @@ proposed_facets: {}          # only while draft
 variants:                    # only when design.py declares named variants
   default: {label: Sideways}
   settled: {label: Settled, description: ..., draft: true}
+controls:                    # optional: the knobs the page shows, or false
+  tilt: {label: Tilt, drag: x}
+  shape: {label: Squares, choices: {square: Upright, diamond: Turned}}
+  word: Selected text
 ```
 
 - Facets: `technique`, `subject` and `lineage` take values from taxonomy.yaml, and the site shows each through its label in `src/lib/labels.ts`. Agents never add values. They write `proposed_facets`, which `walldye review` accepts or declines, asking for the new value's label. The site adds computed facets of its own, such as "fits any screen" and "made with Claude".
 - Sources: a work (a game, film, book, paper, artwork or named series of them) is a `title`, set in italics. Anything else (a technique, phenomenon, place, product, program or logo) is a `topic`, set upright, following Wikipedia's rule for italics. A source never has both. A maker with no single work is an `author` with neither. A folder with `data/` needs a `data` or `recreation` source saying where its files came from. URLs are optional; fetch each one before writing it, and CI checks them.
 - Credit: exactly one of `model`, a model id with a name in `MODEL_NAMES` (`src/lib/labels.ts`), shown as "Made with Claude Opus 5.5", or `author`, shown as "Made by {author}".
 - Variants: the keys are exactly `default` plus the names design.py declares. Each needs a `label` of one to four plain words, unique within the piece, naming what that version shows. A named variant may add a `description`, which replaces the piece's while that version is shown, and `draft`.
+- Controls: the knobs the piece's page lets a visitor change (architecture.md, Drawing in the browser), in the order shown, each a knob of design.py (not `seed`) mapped to a label of one to four plain words, or to `{label, choices, drag}`. A shown knob is a bool, text (a str with `max_len`, api.md Params), has `lo` and `hi`, or has choices; a str knob's choices each need a label, and an int knob's default to their numbers. `drag: x` or `drag: y` also moves a knob with `lo` and `hi` by dragging across the picture, the full width or height spanning the range; use it where the motion reads naturally (a sweep, a light, a tilt), one knob per axis. Label only knobs that add something the versions do not, and none named `v`, `shape`, `crop`, `t` or `draw`, which the page's address uses. `controls: false` turns the page's drawing off entirely, for a piece whose 16:9 draw takes more than about 2 s. Without `controls:`, the page offers "Draw another" alone, when a new seed changes the piece.
 - Slugs: lowercase words joined by single hyphens. The site's routes reserve about, index, t, og, fonts, 404, robots, sitemap*, favicon and anything starting with `_`.
 
 `walldye check` enforces these rules at build, and the content schema in `src/content.config.ts` enforces them at site build.
 
 ## Copy
 
-These rules cover everything a visitor reads that a wallpaper supplies: meta.yaml's titles, descriptions, notes and version labels, and design.py's docstring and comments, since the page shows the source. The site's own text follows the same rules and the voice in site.md §7. Claude drafts the words; the owner approves them.
+These rules cover everything a visitor reads that a wallpaper supplies: meta.yaml's titles, descriptions, notes, version labels and control labels, and design.py's docstring and comments, since the page shows the source. The site's own text follows the same rules and the voice in site.md §7. Claude drafts the words; the owner approves them.
 
 - Use plain words a visitor would use. Never: internal terms (regime, seed, token, native, hand-tuned, light-ready, preset, variant, param, slot, template, derived, guard, "has script", "AI-generated", "generator lost", "Appendix"), licence names and identifiers (CC0, GPL, SPDX, OFL, LicenseRef-*), or machinery numbers (contrast ratios, colour tolerances, pixel sizes). Visitors see variants as "versions".
 - Stay theme-neutral: no colour names ("terracotta") and no theme roles as nouns ("the accent"). Say what is picked out, filled in or lit. Comments in design.py name tokens or roles, never hues.
@@ -62,7 +67,7 @@ These rules cover everything a visitor reads that a wallpaper supplies: meta.yam
 - No evaluative adjectives (stunning, mesmerising, elegant, timeless), and nothing the avoid-ai-tropes check flags.
 - Italics only for titles of works.
 
-`walldye check` warns on colour words in design.py and meta.yaml and rejects internal terms in version labels. The vitest copy lint (`lintCopy` in `src/lib/meta.ts`) checks meta.yaml's text for colour words, banned adjectives and stock phrases, internal terms, licence identifiers, machinery numbers, theme roles as nouns and descriptions over two sentences or 30 words.
+`walldye check` warns on colour words in design.py and meta.yaml and rejects internal terms in version and control labels. The vitest copy lint (`lintCopy` in `src/lib/meta.ts`) checks meta.yaml's text for colour words, banned adjectives and stock phrases, internal terms, licence identifiers, machinery numbers, theme roles as nouns and descriptions over two sentences or 30 words.
 
 ## Licensing
 

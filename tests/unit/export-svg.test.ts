@@ -142,4 +142,13 @@ describe('renderCommand', () => {
       'uv run walldye render schotter --variant late --theme fireproof --crop 0,128.571,1920,822.857 -o schotter--late-fireproof-21x9-crop.svg',
     );
   });
+
+  it('sets each edited param and names the edits in the output', () => {
+    expect(renderCommand('radar-sweep', 'late', 'nord', { aspect: '16:9', native: true, t: 0 }, ['sweep=200', 'seed=37'], '-sweep200-draw37')).toBe(
+      'uv run walldye render radar-sweep --variant late --set sweep=200 --set seed=37 --theme nord -o radar-sweep--late-sweep200-draw37-nord-16x9.svg',
+    );
+    expect(renderCommand('glyph-hexdump', 'default', 'nord', { aspect: '16:9', native: true, t: 0 }, ['word=hi there'], '-wordhi_there')).toBe(
+      "uv run walldye render glyph-hexdump --set 'word=hi there' --theme nord -o glyph-hexdump-wordhi_there-nord-16x9.svg",
+    );
+  });
 });

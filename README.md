@@ -4,7 +4,7 @@ walldye is a catalogue of desktop and phone wallpapers, each drawn by a small Py
 
 ## How the colours work
 
-A design never sees a colour value. It draws in symbolic theme colours (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then records every colour in the resulting SVG as a linear mix of the three chosen colours, read off the formula it was drawn with. CI builds those templates and their coefficients for every published piece, and the site recolours a wallpaper for any theme by rewriting its colours in the browser, without running the script. [docs/architecture.md](docs/architecture.md) has the details.
+A design never sees a colour value. It draws in symbolic theme colours (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then records every colour in the resulting SVG as a linear mix of the three chosen colours, read off the formula it was drawn with. CI builds those templates and their coefficients for every published piece, and the site recolours a wallpaper for any theme by rewriting its colours in the browser, without running the script. A piece's page can also run the script itself, in [Pyodide](https://pyodide.org/), to draw it again with another seed or with the values a visitor sets. [docs/architecture.md](docs/architecture.md) has the details.
 
 ## Running it locally
 
@@ -15,7 +15,7 @@ git clone https://github.com/nickolaj-jepsen/walldye && cd walldye
 uv run prek install                          # ruff and Pyrefly before each commit
 uv run walldye build --all                  # the templates: not in git, and minutes on a first run
 pnpm install
-pnpm dev                                     # the site on http://localhost:4321
+pnpm dev                                     # the site on http://localhost:4321; the first run fetches Pyodide, about 50 MB
 ```
 
 The Python side is the `walldye` library and CLI:
@@ -60,7 +60,7 @@ With [Claude Code](https://claude.com/claude-code) in this repository, ask for a
 | `wallpapers/` | one folder per wallpaper |
 | `src/` | the Astro site |
 | `tests/` | pytest, vitest and Playwright suites and their fixtures |
-| `scripts/` | the font subsetter |
+| `scripts/` | the font subsetter, and the Pyodide fetcher the site build runs |
 | `docs/` | [architecture.md](docs/architecture.md) (how it works and why), [wallpapers.md](docs/wallpapers.md) (metadata, copy and licensing rules), [api.md](docs/api.md) (the design API and CLI), [site.md](docs/site.md) (the site's visual system and voice), [deploy.md](docs/deploy.md) (hosting and CI) |
 | `.claude/` | the Claude Code skill and batch workflow |
 | `infra/` | the Worker that redirects www.walldye.com |

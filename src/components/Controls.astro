@@ -5,11 +5,25 @@
  */
 import { DEFAULT_PRESET } from './presets';
 import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, EXPORT_SIZES, FORMATS, SITE_ASPECTS, downloadName, type Piece } from '../lib/content';
+import { isText, knobStep, readout, type Knob } from '../lib/controls';
 
 interface Props {
   piece: Piece;
 }
 const { piece: p } = Astro.props;
+// Every version's params and whether a new draw changes it, the default included.
+const drawn = p.versions.length ? p.versions : [{ name: DEFAULT_VARIANT, params: p.params, redraw: p.redraw }];
+const drawing = p.drawable && (p.knobs.length > 0 || drawn.some((v) => v.redraw));
+const drawingData = drawing
+  ? JSON.stringify({
+      versions: Object.fromEntries(drawn.map((v) => [v.name, { params: v.params, redraw: v.redraw }])),
+      knobs: p.knobs,
+      data: p.dataFiles.map((f) => ({ name: f.name, url: f.url })),
+    })
+  : undefined;
+const knobs = p.knobs as Knob[];
+const sections = [p.versions.length > 0 && 'Versions', drawing && 'drawing', 'colours', 'export'].filter(Boolean) as string[];
+const label = `${sections.slice(0, -1).join(', ')} and ${sections.at(-1)}`.replace(/^\w/, (c) => c.toUpperCase());
 const seeds = [
   { seed: 'bg', value: DEFAULT_PRESET.bg, role: 'background' },
   { seed: 'fg', value: DEFAULT_PRESET.fg, role: 'foreground' },
@@ -21,7 +35,7 @@ const format = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!;
 const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, size, '16:9', false);
 ---
 
-<section class="controls" aria-label={p.versions.length ? 'Versions, colours and export' : 'Colours and export'}>
+<section class="controls" aria-label={label}>
   {
     p.versions.length > 0 && (
       <section aria-labelledby="versions-h">
@@ -29,6 +43,54 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
         <div class="seg versions" id="versions" role="radiogroup" aria-labelledby="versions-h">
           {p.versions.map((v) => <label><input type="radio" name="v" value={v.name} checked={v.name === DEFAULT_VARIANT} /><span>{v.label}</span></label>)}
         </div>
+      </section>
+    )
+  }
+  {
+    drawing && (
+      <section id="drawing" aria-labelledby="drawing-h" data-drawing={drawingData}>
+        <h2 id="drawing-h" class="sc">Drawing</h2>
+        {knobs.map((k) => {
+          const value = drawn[0].params[k.name];
+          const id = `knob-${k.name}`;
+          if (k.choices)
+            return (
+              <div class="row">
+                <span class="k" id={`${id}-k`}>{k.label}</span>
+                <div class="seg" role="radiogroup" aria-labelledby={`${id}-k`}>
+                  {k.choices.map((c) => <label><input type="radio" name={id} data-knob={k.name} value={String(c.value)} checked={c.value === value} /><span>{c.label}</span></label>)}
+                </div>
+              </div>
+            );
+          if (k.kind === 'bool')
+            return (
+              <div class="row">
+                <span class="k" />
+                <label class="entry"><input type="checkbox" data-knob={k.name} checked={value === true} /><span class="term">{k.label}</span></label>
+              </div>
+            );
+          if (isText(k))
+            return (
+              <div class="row">
+                <label class="k" for={id}>{k.label}</label>
+                <input class="textknob" id={id} type="text" data-knob={k.name} value={String(value)} maxlength={k.maxLen} spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="done" />
+              </div>
+            );
+          return (
+            <div class="row center">
+              <label class="k" for={id}>{k.label}</label>
+              <div class="knob">
+                <input class="range" id={id} type="range" data-knob={k.name} min={k.lo} max={k.hi} step={knobStep(k)} value={String(value)} />
+                {readout(k, value) !== null && <span class="mono readout" data-readout={k.name}>{readout(k, value)}</span>}
+              </div>
+            </div>
+          );
+        })}
+        <p class="actions">
+          <button type="button" class="textbtn" data-action="redraw" hidden={!drawn[0].redraw}>Draw another</button>
+          <button type="button" class="textbtn" data-action="restore" hidden>Back to the original</button>
+        </p>
+        <p class="row" aria-live="polite"><span class="sub msg" id="draw-status"></span></p>
       </section>
     )
   }
@@ -56,6 +118,68 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
   .versions {
     flex-direction: column;
     align-items: start;
+  }
+  /* The knobs share one key column as wide as the longest label, never narrower than Export's, so a label stays on one line. */
+  #drawing {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr);
+  }
+  #drawing > * {
+    grid-column: 1 / -1;
+  }
+  #drawing > .row {
+    grid-template-columns: subgrid;
+  }
+  #drawing > .row > .k {
+    white-space: nowrap;
+    padding-right: calc(2 * var(--u));
+  }
+  @media (max-width: 60rem) {
+    #drawing {
+      grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr);
+    }
+  }
+  /* Text is typed on an underline, like the colour fields, in the mono face the pixel pieces draw it in. */
+  .textknob {
+    width: 100%;
+    height: var(--l);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(var(--control), var(--control)) bottom / 100% 1px no-repeat;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: var(--mono-em);
+    font-variant-ligatures: none;
+    line-height: var(--l);
+    outline-offset: 3px;
+  }
+  .textknob[aria-invalid='true'] {
+    background-image: linear-gradient(var(--link), var(--link));
+    background-size: 100% 2px;
+  }
+  /* iOS zooms the page when a focused input is under 16px. */
+  @media (pointer: coarse) {
+    .textknob {
+      font-size: 16px;
+    }
+  }
+  @media (forced-colors: active) {
+    .textknob {
+      border-bottom: 1px solid CanvasText;
+    }
+  }
+  /* A knob's slider with its value after it, the value's width fixed so the slider does not jump. */
+  .knob {
+    display: flex;
+    align-items: center;
+    gap: calc(2 * var(--u));
+  }
+  .knob .readout {
+    flex: none;
+    min-width: 5ch;
+    text-align: right;
+    color: var(--text);
   }
   /* A format or size the browser cannot make (the client disables it) fades to the guarded --text-dim. */
   .seg :global(input:disabled + span) {

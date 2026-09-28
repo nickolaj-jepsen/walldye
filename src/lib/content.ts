@@ -244,7 +244,10 @@ export function fileStem(slug: string, variant: string): string {
   return variant === DEFAULT_VARIANT ? slug : `${slug}--${variant}`;
 }
 
-/** Export file name: `<stem>-<token>-<w>x<h>.<ext>`, or for SVG `<stem>-<token>-<aspect>[-crop].svg`, the stem from fileStem. */
+/**
+ * Export file name: `<stem>-<token>-<w>x<h>.<ext>`, or for SVG `<stem>-<token>-<aspect>[-crop].svg`,
+ * the stem from fileStem followed by `edits`, the suffix that names a drawing the visitor changed.
+ */
 export function downloadName(
   slug: string,
   variant: string,
@@ -253,8 +256,9 @@ export function downloadName(
   size: string,
   aspect: string,
   cropped: boolean,
+  edits = '',
 ): string {
-  const stem = fileStem(slug, variant);
+  const stem = fileStem(slug, variant) + edits;
   if (format.value === 'svg') return `${stem}-${token}-${aspectLabel(aspect)}${cropped ? '-crop' : ''}.svg`;
   return `${stem}-${token}-${size}.${format.ext}`;
 }

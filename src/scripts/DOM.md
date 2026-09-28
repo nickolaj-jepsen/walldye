@@ -8,7 +8,7 @@ The hooks the server-rendered pages give the client code in `src/scripts/*.ts`. 
 |---|---|---|
 | `site.ts` | `src/layouts/Base.astro`, after `<Picker />` | Theme button, shared-theme line, picker, "Copy link", the detail colour list |
 | `index.ts` | `src/pages/index.astro` | Filters, results line, lazily recoloured plates |
-| `detail.ts` | `src/pages/[slug].astro` | Versions, plate, crop window, export panel, run command, the `f` key, "Copy" |
+| `detail.ts` | `src/pages/[slug].astro` | Versions, drawing (with `live.ts` and the module worker `draw-worker.ts`), plate, crop window, export panel, run command, the `f` key, "Copy" |
 
 `Base.astro` inlines `src/lib/theme-boot.ts`, bundled by `src/lib/theme-boot-script.ts`, as the first script in `<head>`; a boot that does not build fails the build.
 
@@ -97,21 +97,28 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 
 ## Detail (`src/pages/[slug].astro`)
 
-The page keeps its state in the query string, written with `history.replaceState` when the visitor changes it: `v=<variant>` (left out for the default), `shape=<w>x<h>` (left out for 16:9) and `crop=<0..1>` (cropped shapes only). The phone default for size is never written. A `v` that names no version on the page shows the default.
+The page keeps its state in the query string, written with `history.replaceState` when the visitor changes it: `v=<variant>` (left out for the default), the edits to the drawing (`<knob>=<value>` for each changed knob, then `draw=<n>`), `shape=<w>x<h>` (left out for 16:9) and `crop=<0..1>` (cropped shapes only). The phone default for size is never written. A `v` that names no version on the page shows the default; an edit that does not parse, or equals the version's value, is ignored.
 
 ### Spread and label
 
 | Hook | Element | Notes |
 |---|---|---|
-| `.spread .plate` | Plate box with every aspect | |
+| `.spread .plate` | Plate box with every aspect | While a draw runs, set `data-busy="load\|draw"` and `aria-busy`, and `--progress` (0 to 1) as Pyodide downloads. For a piece with drag knobs, set `data-drag` to their axes (`x`, `y` or `xy`); dragging on it, outside the crop window, moves them, adding `.dragging`. |
+| `.spread .plate > .drawbar` | `span[aria-hidden]` | The hairline the busy states style. |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
 | `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].alt`). |
 
-### Versions, colours and export (`src/components/Controls.astro`)
+### Versions, drawing, colours and export (`src/components/Controls.astro`)
 
 | Hook | Element | Notes |
 |---|---|---|
-| `#versions` | `div.seg.versions[role=radiogroup]` | Pieces with versions only. One `label > input[type=radio][name=v][value=<name>] + span` per version, the default (checked) first. On change: swap the plate data, set `#desc` and the alt, reload focus and cells from that version's slots.json (moving a crop the visitor has not placed), rename the download and the run command, write `v`. |
+| `#versions` | `div.seg.versions[role=radiogroup]` | Pieces with versions only. One `label > input[type=radio][name=v][value=<name>] + span` per version, the default (checked) first. On change: swap the plate data, set `#desc` and the alt, reload focus and cells from that version's slots.json (moving a crop the visitor has not placed), rename the download and the run command, write `v`, and drop the edits to the drawing. |
+| `#drawing` | `section[data-drawing]` | Pieces the page can redraw only. `data-drawing` is JSON: `versions` (each version's `params` and `redraw`), `knobs` (the shown knobs, `src/lib/controls.ts` `Knob`) and `data` (`{name, url}` per data file). The design is `#raw-source`. |
+| `#drawing input[data-knob]` | a `.range` per range knob, radios `name=knob-<name>` per choice knob, a checkbox per bool, an `input.textknob[maxlength]` per text knob | Rendered at the default version's values. Set them from the version and the edits (a text field being typed in keeps its text); a range's `input` moves its readout and redraws while draws are quick, text redraws once typing pauses and sets `aria-invalid` while empty or not printable ASCII, and `change` on any of them redraws. |
+| `[data-readout=<knob>]` | `span.mono.readout` | Ranges of int and degree knobs only: the value, from `readout()`. |
+| `[data-action=redraw]` | "Draw another" | Hidden for a version whose `redraw` is false. |
+| `[data-action=restore]` | "Back to the original", `hidden` | Shown while there are edits; drops them and focuses "Draw another" or the first knob. |
+| `#draw-status` | `span.sub.msg` in a polite live row | "Getting ready to draw…" while Pyodide downloads, "Drawing…" after 300 ms of a draw, or the failure message with `.err`. |
 | `.seedlist [data-seed=bg\|fg\|accent]` | `span.mono` | The uppercase `#RRGGBB` seed. |
 | `button[popovertarget=picker]` | "Change" | Native. |
 | `[data-action=copy-link]` | "Copy link" | As in the picker, plus `crop` when set. |

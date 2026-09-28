@@ -64,6 +64,11 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The self-hosted Pyodide runtime, which `astro build` would otherwise download (scripts/pyodide.mjs).
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: public/py
+          key: pyodide-${{ hashFiles('pnpm-lock.yaml', 'scripts/pyodide.mjs') }}
 
       # The newest build saved by main; `walldye build` redraws only what changed since.
       - id: restore

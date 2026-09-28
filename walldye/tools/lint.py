@@ -12,6 +12,7 @@ from typing import Final
 
 import yaml
 
+from walldye._params import KnobInfo
 from walldye.tools import common
 
 MAX_BYTES, WARN_BYTES = 1_000_000, 600_000
@@ -89,6 +90,8 @@ INTERNAL_TERMS: Final = frozenset({
 RESERVED_SLUGS: Final = frozenset(
     {"about", "index", "t", "og", "fonts", "404", "robots", "favicon"}
 )
+# The detail page's own query keys; a knob shown there is written to the query under its name.
+RESERVED_QUERY: Final = frozenset({"v", "shape", "crop", "t", "draw"})
 SOURCE_KINDS: Final = ("recreation", "inspiration", "reference", "data")
 FAN_WORK: Final = "LicenseRef-fan-work"
 DEFAULT_LICENSE: Final = "CC0-1.0"
@@ -714,10 +717,12 @@ def meta(
     m: common.Meta,
     taxonomy: dict[str, set[str]] | None,
     variants: Sequence[str] = ("default",),
+    knobs: Sequence[KnobInfo] | None = None,
 ) -> Lints:
     """(errors, warnings) for the meta.yaml `m` of `slug`, whose design declares `variants`
-    ("default" first). Facets are skipped with a warning
-    when `taxonomy` is None; colour words in the copy warn."""
+    ("default" first) and the params schema `knobs` (None when the design was not loaded, which
+    checks only the controls: labels). Facets are skipped with a warning when `taxonomy` is
+    None; colour words in the copy warn."""
     errors: list[str] = []
     warnings: list[str] = []
     for key in ("title", "description"):
@@ -786,7 +791,109 @@ def meta(
     if m.get("proposed_facets") not in (None, {}) and not common.is_draft(m):
         errors.append("proposed_facets are only allowed while draft: true")
     variant_errors, variant_warnings = _variants(m, variants)
-    return errors + variant_errors, warnings + copy_words(m) + variant_warnings
+    control_errors, control_warnings = _controls(m, knobs)
+    return (
+        errors + variant_errors + control_errors,
+        warnings + copy_words(m) + variant_warnings + control_warnings,
+    )
+
+
+def _label(where: str, value: object) -> Lints:
+    """The rules for a visitor-facing label of one to four plain words."""
+    label = value.strip() if isinstance(value, str) else ""
+    words = label.split()
+    if not 1 <= len(words) <= 4:
+        return [f"{where} needs a label of one to four plain words"], []
+    stems = {w.lower().strip(".,;:!?").removesuffix("s") for w in words}
+    if len(internal := sorted(stems & INTERNAL_TERMS)) > 0:
+        return [f"{where}: the label says {', '.join(internal)}, a word visitors never see"], []
+    if len(found := colour_words(label)) > 0:
+        return [], [f"colour words in {where}: {', '.join(sorted(found))}"]
+    return [], []
+
+
+def _controls(m: common.Meta, knobs: Sequence[KnobInfo] | None) -> Lints:
+    """The controls: rules: false, or a mapping from knob names to a label or {label, choices,
+    drag}. A shown knob is a bool, text (a str with max_len), has both lo and hi, or has choices;
+    a str knob with choices and any knob given choices: label every choice. `drag: x` or `y`
+    moves a knob with lo and hi by dragging the picture, one knob per axis. No knob named like one
+    of the page's query keys is shown. With `knobs` None, only the labels and drag values are
+    checked."""
+    value = m.get("controls")
+    if value is None or value is False:
+        return [], []
+    entries = common.as_dict(value)
+    if entries is None:
+        return ["controls: is false or a mapping from knob names to labels"], []
+    errors: list[str] = []
+    warnings: list[str] = []
+    by_name = {k.name: k for k in (knobs if knobs is not None else ()) if k.kind != "seed"}
+    axes: dict[object, str] = {}
+    for name, raw in entries.items():
+        where = f"controls: {name}"
+        entry: dict[str, object] | None = (
+            {"label": raw} if isinstance(raw, str) else common.as_dict(raw)
+        )
+        if entry is None:
+            errors.append(f"{where} must be a label or a mapping with a label")
+            continue
+        if len(unknown := sorted(set(entry) - {"label", "choices", "drag"})) > 0:
+            errors.append(
+                f"{where}: {', '.join(unknown)} not allowed (only label, choices and drag)"
+            )
+        for at, text in [(where, entry.get("label")), *_choice_labels(where, entry)]:
+            e, w = _label(at, text)
+            errors += e
+            warnings += w
+        drag = entry.get("drag")
+        if drag is not None and drag not in ("x", "y"):
+            errors.append(f"{where}: drag is x or y, not {drag!r}")
+        elif drag is not None and (other := axes.get(drag)) is not None:
+            errors.append(f"{where}: {other} already drags along {drag}")
+        elif drag is not None:
+            axes[drag] = name
+        if knobs is None:
+            continue
+        info = by_name.get(name)
+        if info is None:
+            have = ", ".join(by_name) if len(by_name) > 0 else "none"
+            errors.append(f"{where} is not a knob of design.py (it has {have})")
+            continue
+        if name in RESERVED_QUERY:
+            errors.append(f"{where} would clash with the page's ?{name}=; rename the field")
+        ranged = info.kind in ("int", "float") and info.choices is None
+        if drag is not None and not (ranged and None not in (info.lo, info.hi)):
+            errors.append(f"{where}: drag moves a knob with lo and hi, and no choices")
+        if info.kind == "str" and info.choices is None:
+            if info.max_len is None:
+                errors.append(f"{where}: a str knob is shown only with choices or max_len")
+            elif "choices" in entry:
+                errors.append(f"{where}: a text knob has no choices")
+            continue
+        choices = entry.get("choices")
+        if choices is None:
+            if info.kind == "str":
+                errors.append(f"{where} needs choices: a label for each of its values")
+            elif info.kind != "bool" and info.choices is None and None in (info.lo, info.hi):
+                errors.append(f"{where}: a knob without choices needs lo and hi to be shown")
+            continue
+        labels = common.as_dict(choices)
+        if info.choices is None or labels is None:
+            errors.append(f"{where}: choices label the values of a knob that has choices")
+            continue
+        given = set(labels)
+        values = [str(c) for c in info.choices]
+        if len(missing := [v for v in values if v not in given]) > 0:
+            errors.append(f"{where}: choices needs a label for {', '.join(missing)}")
+        if len(extra := sorted(given - set(values))) > 0:
+            errors.append(f"{where}: choices {', '.join(extra)} are not values of {name}")
+    return errors, warnings
+
+
+def _choice_labels(where: str, entry: dict[str, object]) -> list[tuple[str, object]]:
+    """(where, label) for each entry of a controls: entry's choices mapping."""
+    labels = common.as_dict(entry.get("choices"))
+    return [] if labels is None else [(f"{where}: choices: {v}", t) for v, t in labels.items()]
 
 
 def _variants(m: common.Meta, names: Sequence[str]) -> Lints:

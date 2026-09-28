@@ -44,6 +44,8 @@ wallpapers/index.json
 tests/fixtures/
 src/lib/__fixtures__/collision/
 src/lib/__fixtures__/themes.json
+# the self-hosted Pyodide runtime, which scripts/pyodide.mjs fetches
+public/py/
 
 # page views by day: the stats branch, which CI and views.yml check out here
 /stats/

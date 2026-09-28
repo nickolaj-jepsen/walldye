@@ -42,7 +42,7 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
 
 <Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.description} ogType="article" mainClass="detail">
   <figure class="spread">
-    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div></PlateBox>
+    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div><span class="drawbar" aria-hidden="true"></span></PlateBox>
   </figure>
 
   <div class="below">
@@ -126,6 +126,65 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
   }
   .spread :global(.plate:has(> img[data-aspect='10:16'])) {
     --shape: 0.625;
+  }
+  /*
+   * While the page draws the piece (data-busy): a hairline along the plate's foot, filling with the
+   * download the first time (load) and sweeping while it draws (draw), over the last picture dimmed.
+   * Both wait 0.3s, so a quick redraw shows neither.
+   */
+  .spread :global(.plate > .drawbar) {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--text);
+    transform-origin: left;
+    transform: scaleX(var(--progress, 0));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .spread :global(.plate[data-busy] > .drawbar) {
+    opacity: 1;
+    transition:
+      opacity 0.2s 0.3s,
+      transform 0.3s;
+  }
+  .spread :global(.plate[data-busy='load'] > .drawbar) {
+    transition: transform 0.3s;
+  }
+  .spread :global(.plate[data-busy='draw'] > .drawbar) {
+    width: 25%;
+    transform: none;
+    animation: drawbar 1.2s ease-in-out infinite;
+  }
+  @keyframes drawbar {
+    from {
+      translate: -100%;
+    }
+    to {
+      translate: 400%;
+    }
+  }
+  .spread :global(.plate[data-busy] > img) {
+    opacity: 0.45;
+    transition: opacity 0.3s 0.3s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spread :global(.plate[data-busy='draw'] > .drawbar) {
+      width: 100%;
+      animation: none;
+      opacity: 0.5;
+    }
+  }
+  /* A piece whose knobs follow a drag across the picture; vertical swipes still scroll on touch screens. */
+  .spread :global(.plate[data-drag]) {
+    cursor: grab;
+    touch-action: pan-y;
+  }
+  .spread :global(.plate[data-drag].dragging) {
+    cursor: grabbing;
   }
   /* Fullscreen (the f key): the wallpaper alone, centred on its ground. */
   .spread :global(.plate:fullscreen img) {
