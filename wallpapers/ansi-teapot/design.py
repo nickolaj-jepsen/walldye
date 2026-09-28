@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter
 
-from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, by_regime, design
+from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, Paint, by_regime, design
 from walldye.geom import bezier_points
 from walldye.pixel import glyphs, grid_runs
 
@@ -23,10 +23,14 @@ STEP = CW / SS
 # Shadow to lit; on paper the two ends swap, so the lit side stays the paler one there too.
 SHADOW, LIT = by_regime(BG_ALT, UI_ALT), by_regime(UI_ALT, BG_ALT)
 SOLID = (SHADOW, UI, LIT)  # half-block paints, grid indices 1 to 3
+GLOSS = by_regime(ACCENT, ACCENT_3)  # the glint; on paper a paler step, so it still reads as light
 # 5-step ramp per character, shadow to lit: its solid paint and a shade glyph in LIT over it
 RAMP_SOLID = np.array([0, 0, 0, 0, 2])
 RAMP_GLYPH = np.array([" ", "░", "▒", "▓", " "])
 LIGHT = np.array([-0.6, 0.55, 0.75]) / np.linalg.norm([-0.6, 0.55, 0.75])
+SHEEN = np.array([-0.5, 0.1, 0.85]) / np.linalg.norm([-0.5, 0.1, 0.85])  # the glint faces this
+SHINE = 220
+GLINT = [0.28, 0.5, 0.72, 0.9]  # of the peak sheen: ░, ▒, ▓, then a solid cell
 YAW, PITCH = np.radians(-18), np.radians(18)
 BLUR = 8  # in supersamples
 STEAM = ["    ░", "", "  ░", "", " ▒"]  # three puffs drifting up and to the right of the knob
@@ -77,15 +81,16 @@ def surfaces() -> list[Field]:
     return [body, lid, handle, spout]
 
 
-def render(w: int, h: int) -> tuple[Field, Mask, Mask, Index]:
-    """Supersampled z-buffer splat of the surfaces, each result (h, w): Lambert tone, coverage,
-    the lid knob, and part id (0 empty, 1 body, 2 lid, 3 handle, 4 spout)."""
+def render(w: int, h: int) -> tuple[Field, Field, Mask, Mask, Index]:
+    """Supersampled z-buffer splat of the surfaces, each result (h, w): Lambert tone, specular
+    tone, coverage, the lid knob, and part id (0 empty, 1 body, 2 lid, 3 handle, 4 spout)."""
     cy, sy, cp, sp = np.cos(YAW), np.sin(YAW), np.cos(PITCH), np.sin(PITCH)
     rot = np.array([[1, 0, 0], [0, cp, -sp], [0, sp, cp]]) @ np.array(
         [[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]]
     )
     zbuf = np.full((h, w), -np.inf)
     shade = np.zeros((h, w))
+    spec = np.zeros((h, w))
     knob = np.zeros((h, w), bool)
     part = np.zeros((h, w), np.int64)
     for k, surf in enumerate(surfaces(), start=1):
@@ -96,17 +101,19 @@ def render(w: int, h: int) -> tuple[Field, Mask, Mask, Index]:
         p, n = pts @ rot.T, n.reshape(-1, 3) @ rot.T
         n[n[:, 2] < 0] *= -1  # face the viewer (+z)
         val = 0.05 + 0.95 * np.clip(n @ LIGHT, 0, 1)
+        gl = np.clip(n @ SHEEN, 0, 1) ** SHINE * (k == 1)  # a sheen on the body only
         px = np.round((POT[0] + p[:, 0] * SCALE) / STEP).astype(int)
         py = np.round((POT[1] - p[:, 1] * SCALE) / STEP).astype(int)
         ok = (px >= 0) & (px < w) & (py >= 0) & (py < h)
         order = np.argsort(p[ok, 2])  # far to near, so the nearest point lands last
         xs, ys, zs = px[ok][order], py[ok][order], p[ok, 2][order]
-        vs, hs = val[ok][order], pts[ok, 1][order]
+        vs, gs, hs = val[ok][order], gl[ok][order], pts[ok, 1][order]
         front = zs > zbuf[ys, xs]
         xs, ys = xs[front], ys[front]
         zbuf[ys, xs], shade[ys, xs], part[ys, xs] = zs[front], vs[front], k
+        spec[ys, xs] = gs[front]
         knob[ys, xs] = (k == 2) & (hs[front] > 1.1)  # the lid above y = 2.65
-    return shade, np.isfinite(zbuf), knob, part
+    return shade, spec, np.isfinite(zbuf), knob, part
 
 
 def clean(m: Mask) -> Mask:
@@ -137,7 +144,7 @@ def draw(s: Canvas) -> None:
     # Right of centre on a landscape screen, the upper middle on a portrait one; the axis snaps
     # to whole half-cells so the window's origin is a whole unit.
     origin = s.pick(landscape=(2 / 3, 14 / 27), portrait=(0.515, 0.44), snap=CW) - POT
-    shade, cov, knob, part = render(COLS * SS, ROWS * 2 * SS)
+    shade, spec, cov, knob, part = render(COLS * SS, ROWS * 2 * SS)
     # Blur the tone inside the silhouette only, into broad clean bands.
     shade = gaussian_filter(shade * cov, BLUR) / np.maximum(gaussian_filter(cov * 1.0, BLUR), 1e-6)
 
@@ -170,7 +177,23 @@ def draw(s: Canvas) -> None:
     )
     chars = np.where(full, RAMP_GLYPH[step], " ")
 
-    # Lid knob: flat mid tone, an L-shaped glint on its upper left inside a lit rim.
+    # Glint: where the belly faces SHEEN the ramp carries on past the lit solid, in GLOSS shade
+    # glyphs over LIT that close on a solid GLOSS core, as ANSI art blends one colour into the next.
+    sheen = gaussian_filter(spec * cov, BLUR / 2) / np.maximum(
+        gaussian_filter(cov * 1.0, BLUR / 2), 1e-6
+    )
+    g = block(sheen * cov) / np.maximum(c, 1e-6)
+    g = (g[0::2] + g[1::2]) / 2
+    gc = np.digitize(g / g.max(), GLINT) * full
+    gh = np.repeat(gc, 2, axis=0)
+    half = np.where(gh == 4, 4, np.where(gh > 0, 3, half))
+    chars = np.where(gc > 0, RAMP_GLYPH[gc], chars)
+
+    def ink(col: int, row: int, ch: str) -> Paint:
+        """GLOSS for the glint's glyphs, LIT for the rest."""
+        return GLOSS if gc[row, col] > 0 else LIT
+
+    # Lid knob: flat mid tone, lit on its upper left.
     ks = np.argwhere((block(knob.astype(np.float64)) > 0.4) & on)
     half[ks[:, 0], ks[:, 1]] = 2
     chars[ks[:, 0] // 2, ks[:, 1]] = " "
@@ -178,9 +201,8 @@ def draw(s: Canvas) -> None:
     top = ks[ks[:, 0] == r0, 1]
     c0 = int(top.min())
     half[r0, top.max()] = 0  # round off the top-right corner
-    half[[r0 + 1, r0, r0 + 2], [c0 + 1, c0 + 2, c0]] = 3
-    half[[r0, r0, r0 + 1], [c0, c0 + 1, c0]] = 4
+    half[[r0, r0, r0, r0 + 1, r0 + 1, r0 + 2], [c0, c0 + 1, c0 + 2, c0, c0 + 1, c0]] = 3
 
-    grid_runs(s, half, [None, *SOLID, ACCENT], CW, origin)
-    glyphs(s, ["".join(row) for row in chars], LIT, at=origin, px=PX)
-    glyphs(s, STEAM, ACCENT_3, at=origin + (c0 * CW, (r0 // 2 - 6) * CH), px=PX)
+    grid_runs(s, half, [None, *SOLID, GLOSS], CW, origin)
+    glyphs(s, ["".join(row) for row in chars], ink, at=origin, px=PX)
+    glyphs(s, STEAM, UI, at=origin + (c0 * CW, (r0 // 2 - 6) * CH), px=PX)

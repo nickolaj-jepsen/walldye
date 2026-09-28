@@ -1,5 +1,5 @@
 title: Runner vision
-description: A dithered rooftop in one-point perspective. Runner vision lights the route across the gap to a stairwell door.
+description: A rooftop in one-point perspective, drawn in square cells and ordered dither. Runner vision lights the route across the gap to a stairwell door.
 notes: |
   In *Mirror's Edge*, runner vision gives the objects along Faith's path a bold colour as she nears them, so an escape route across the rooftops shows at a glance. Behind the route, banded towers and a tower crane fade into dithered haze.
 technique: [dither]

@@ -182,6 +182,12 @@ busiest region. Then answer each question honestly:
 - [ ] Does any variant change what is depicted, not just a value, look different from every
       other version at thumbnail size, and read as its subject as clearly as the default?
 - [ ] Is nothing on it a time, date, counter or level that could pass for a live readout?
+- [ ] Does the accent come out of the picture's own logic (its shading, its light, its
+      subject), not sit on top of it?
+- [ ] Is it one drawing language throughout? In a dither or pixel piece, no smooth or round
+      vector shape sits over the grid.
+- [ ] Is it physically plausible: nothing balancing on an edge, nothing lost inside another
+      body, and the science drawn to the real rule?
 - [ ] Does `walldye check` pass?
 
 Scoring, on "would this sit proudly in the set as a daily wallpaper":
@@ -224,3 +230,6 @@ Only 8+ ships. If a design is still under 7 after a real rework, drop it.
 | Near-duplicate of a sibling                                               | Change the subject or the composition, not just the parameters.                                        |
 | A variant that nudges a value, or a seed ladder offered as versions       | Keep one version, or pick a variant that shows something else (a phase, a moment, a rule).             |
 | A time, date, counter or level that could pass for a live readout         | Show the mechanism or the motion, and leave the reading out.                                           |
+| An accent that looks pasted on (a solid block, a second motif)            | Carry the shading ramp on into the accent, or give it the one role the subject motivates.              |
+| Smooth or round vector shapes over a dither or pixel grid                 | Rebuild them on the cell grid with stepped edges and dithered faces, or drop them.                     |
+| Precarious or swallowed object (cone on a table edge, orbit in a sun)     | Give it a clear margin: move it, or the thing it sits on or near.                                      |

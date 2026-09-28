@@ -1,12 +1,12 @@
 title: Double slit
-description: A plane wave spreads through two slits as crossing wavelets. Below, a strip of bars records the fringes.
+description: Seen side on, crest arcs from two slits cross in rows of beads. Each row runs to a bright fringe in the comb of lines drawn out from the screen.
 notes: |
-  Light leaving each slit spreads as circular wavelets. Where crests from both slits overlap, small beads line up along the paths of constructive interference, which lead down to the bright fringes on the strip.
+  Light arrives as a plane wave and leaves each slit as circular crests. Where a crest from one slit crosses a crest from the other, the two add up, and those crossings fall along curves where the paths to the two slits differ by a whole number of wavelengths. Each curve ends on a bright fringe.
 
-  The fringes are evenly spaced, but each slit's own width limits how far its light spreads, so their brightness falls off in groups, with a gap wherever that single-slit pattern goes dark. Each bar is stacked from steps that trace the profile of one fringe.
-technique: [flat]
+  Each line of the comb is as long as the light is bright at that point on the screen. Near the middle, the fringes are spaced by the wavelength times the distance to the screen, divided by the slit spacing. Each slit is a quarter as wide as that spacing, so the spread of light through one slit alone, traced by the dashed curve, dims the fringes in groups and all but removes every fourth one.
+technique: [line]
 subject: [physics]
-lineage: []
+lineage: [scientific-illustration]
 sources:
   - kind: reference
     title: Double-slit experiment

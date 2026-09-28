@@ -1,0 +1,22 @@
+title: Arch logo
+description: Arch Linux's A, drafted to fit a square. Its flanks and arcs run on past the corners as guide lines, and the peak above the notch is filled in.
+notes: |
+  The letter is as tall as it is wide, and its apex and both feet lie on the dash-dot circle. Its corners and the centres of its arcs sit on a grid of 48 squares across the base, measured off the official artwork. The flanks curve in very slightly: each is an arc eight to ten times the letter's width in radius. The base is a pointed arch of two arcs, each drawn from a centre on the far side of the axis, 61 squares below the letter. Each notch is cut between two arcs that meet at its tip. The upper arc of the left notch, continued across the letter, marks off the peak, and its radius is drawn from its centre. The opening is an ellipse 11 squares wide and 18 tall. Carried on through the letter, the left base arc comes out at the notch on the right.
+technique: [drafting]
+subject: [computing]
+lineage: [homage, fan-work]
+sources:
+  - kind: recreation
+    title: Arch Linux logo
+    author: Thayer Williams
+    year: 2007
+    url: https://archlinux.org/art/
+added: 2026-09-28
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Arch Linux
+  owner: Arch Linux
+draft: false

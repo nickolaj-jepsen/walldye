@@ -17,9 +17,10 @@ CELL = 3
 # mid-height) where the layout wants it, which shifts the lens without moving the camera.
 ANCHOR = Vec(1344, 540)
 RIGHT = 756  # the most view the landscape layout shows right of ANCHOR
-CAM = np.array([960.0, 900.0, -2400.0])  # x, height, z; the table's front edge is z = 0
+CAM = np.array([960.0, 900.0, -2400.0])  # x, height, z
 FOCAL, PITCH, HORIZON = 2300.0, math.radians(14), 560  # focal length, tilt, view y of the axis
 WALL_Z, TABLE_X = 900, 560  # the back wall's depth; the table's left end
+EDGE_Z = -120  # the table's front edge, well in front of the cone's base
 L = np.array([-0.8, 0.5, -0.45]) / np.linalg.norm([-0.8, 0.5, -0.45])  # towards the light
 INF = np.inf
 
@@ -27,7 +28,7 @@ INF = np.inf
 CUBE = (1110, 330, 135, math.radians(30))  # centre x, z, half size, yaw
 SPHERE = (1600, 125, 260, 125)  # x, y, z, r
 CYL = (1900, 720, 82, 330)  # x, z, r, h
-CONE = (1390, 40, 100, 380)  # x, z, base r, h
+CONE = (1390, 120, 100, 380)  # x, z, base r, h
 
 # Palette: 0 nothing, 1-4 the tone steps, 5-7 the accent ramp for the cone's lit face.
 PALETTE = (None, BG_ALT, UI, UI_ALT, UI_HI, ACCENT_6, ACCENT_3, ACCENT)
@@ -108,6 +109,16 @@ def hit_cone(o: F, d: F, cx: float, cz: float, rb: float, h: float) -> Hit:
     return best, n
 
 
+def view_y(z: float) -> float:
+    """View y of the point on the table plane at depth `z` (every x lands on the same row)."""
+    r = -CAM[1] / (z - CAM[2])  # the slope of the ray down to that point
+    cp, sp = math.cos(PITCH), math.sin(PITCH)
+    return float(HORIZON - FOCAL * (sp + r * cp) / (cp - r * sp))
+
+
+APRON = view_y(EDGE_Z) + 76  # the apron's faint tone fades out this far below the lip
+
+
 def solids(o: F, d: F) -> list[tuple[int, F, F]]:
     """(surface id, distance, normal) for each solid, for rays from `o` along `d`."""
     return [
@@ -144,7 +155,9 @@ def draw(s: Canvas) -> None:
     with np.errstate(divide="ignore"):
         tt = -o[..., 1] / d[..., 1]
     ptab = o + d * tt[..., None]
-    on_table = (tt > 0) & (ptab[..., 2] > 0) & (ptab[..., 2] < WALL_Z) & (ptab[..., 0] > TABLE_X)
+    on_table = (
+        (tt > 0) & (ptab[..., 2] > EDGE_Z) & (ptab[..., 2] < WALL_Z) & (ptab[..., 0] > TABLE_X)
+    )
     t = np.where(on_table, tt, t)
     ids[on_table] = 2
     nrm[on_table] = [0, 1, 0]
@@ -173,8 +186,8 @@ def draw(s: Canvas) -> None:
     end = ANCHOR.x + (s.w - a.x) / zoom - 20
     edge_fade = np.clip((end - sx) / 260, 0, 1)
     # the table's front apron: a faint tone just under the lip, fading down and to the left
-    apron = below & (sy < 900)
-    apron_tone = 0.13 * fade * edge_fade * np.clip((900 - sy) / 140, 0, 1)
+    apron = below & (sy < APRON)
+    apron_tone = 0.13 * fade * edge_fade * np.clip((APRON - sy) / 140, 0, 1)
     nrm = np.nan_to_num(nrm)
     bounce = 0.16 * np.clip(-nrm[..., 1], 0, 1) + 0.1 * np.clip(nrm[..., 0], 0, 1)  # off the table
     solid_tone = 0.1 + bounce + 0.8 * soft**1.1

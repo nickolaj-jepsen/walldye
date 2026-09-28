@@ -1,8 +1,8 @@
 title: Raked garden
-description: Rake lines in gravel bend around a pair of stones and a lone one, which is lit.
+description: Straight rake lines stop against rings raked round a pair of stones and a lone one, which is lit; lines that would graze a ring bow past it.
 notes: |
-  Karesansui is the Japanese dry landscape garden, with rocks set in gravel raked into lines and ripples. Here the straight lines follow the streamlines of smooth flow past a cylinder, one cylinder per stone, so they bend around the stones without crossing. Many of them stop a rake's width short of the outermost ring instead of wrapping around it.
-technique: [field]
+  Karesansui is the Japanese dry landscape garden, with rocks set in gravel raked into lines and ripples. Here each stone has its own rings, spaced like the rake's tines, and one more ring wraps the pair. The straight lines keep that spacing and end at the outermost ring; the few that would only graze it bow over or under instead, then ease back to straight. In the waist between the pair, short lines follow the shared ring and stop against the inner ones.
+technique: [line]
 subject: [landscape]
 lineage: [japanese-art]
 sources:
@@ -12,9 +12,6 @@ sources:
   - kind: reference
     title: Japanese rock garden
     url: https://en.wikipedia.org/wiki/Japanese_rock_garden
-  - kind: reference
-    title: Potential flow around a circular cylinder
-    url: https://en.wikipedia.org/wiki/Potential_flow_around_a_circular_cylinder
 added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true

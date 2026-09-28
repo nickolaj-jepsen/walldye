@@ -2,6 +2,8 @@ title: Hovercraft patent sheet
 description: 'Pey''j''s hovercraft from Beyond Good & Evil as a patent sheet: three views, ten numbered parts and a lit boost lamp.'
 notes: |
   The three views were traced from in-game shots of the craft from the side, from astern and from above during a race, so the proportions are approximate.
+
+  The pig decal on the motor drum is ruled with upright lines, the way design patents show a coloured surface in a line drawing.
 technique: [drafting]
 subject: [games, machines]
 lineage: [patent-drawings, fan-work]
@@ -14,6 +16,10 @@ sources:
     author: Ubisoft Montpellier
     year: 2003
     url: https://en.wikipedia.org/wiki/Beyond_Good_%26_Evil_(video_game)
+  - kind: reference
+    title: Manual of Patent Examining Procedure
+    author: United States Patent and Trademark Office
+    url: https://www.uspto.gov/web/offices/pac/mpep/s1503.html
 added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true

@@ -258,7 +258,7 @@ variants:                    # only when design.py declares named variants
   settled: {label: Settled, draft: true}
 ```
 
-- `license` covers the whole folder: design.py, meta.yaml, data/ and build/. The exception is third-party data in data/, which keeps its upstream licence and notice, recorded in `REUSE.toml`. An AI-generated piece may omit `license` for `CC0-1.0`, except that any piece with a `kind: recreation` source must set it explicitly, and so must a human-made piece; the build fails otherwise. A recreation of a work under an attribution licence takes that licence (nix-snowflake, after the CC BY 4.0 NixOS logo, is `CC-BY-4.0`). Every licence needs its text in `LICENSES/`.
+- `license` covers the whole folder: design.py, meta.yaml, data/ and build/. The exception is third-party data in data/, which keeps its upstream licence and notice, recorded in `REUSE.toml`. An AI-generated piece may omit `license` for `CC0-1.0`, except that any piece with a `kind: recreation` source must set it explicitly, and so must a human-made piece; the build fails otherwise. A recreation of a work under an attribution licence takes that licence (nix-snowflake, after the CC BY 4.0 NixOS logo, is `CC-BY-4.0`; debian-swirl, after the Debian Open Use Logo, which is LGPL-3.0-or-later or CC BY-SA 3.0, takes `CC-BY-SA-3.0`). Every licence needs its text in `LICENSES/`.
 - `LicenseRef-fan-work` covers fan pieces from games and other franchises, which are published and credited in `sources`.
   - No licence is granted for those folders, and meta.yaml must carry `franchise: {title, owner}`.
   - The site shows: "Unofficial fan tribute, not affiliated with or endorsed by {franchise.owner}. {franchise.title} and its characters are trademarks of their owners. Non-commercial; contact takedown@walldye.com for takedown.", with the address as a `mailto:` link.
@@ -433,7 +433,7 @@ Loading imports `wallpapers/<slug>/design.py` once per process and draws it for 
 - `GPL-3.0-or-later` for the library, the site and the tooling: LICENSE, package.json (`license`) and pyproject.toml (PEP 639).
 - Each wallpaper folder has its own `license:`: CC0-1.0 by default for AI-generated work, explicit for recreations and human-made pieces, and `LicenseRef-fan-work` for fan pieces.
 - Third-party data files keep their upstream licence, and `REUSE.toml` gives each one's notice: star-chart's star positions come from d3-celestial (BSD-3-Clause), and racing-spa-minisectors' centreline from the TUMFTM racetrack database (LGPL-3.0), which took it from OpenStreetMap (ODbL). The pieces' Sources credit them.
-- `LICENSES/` holds GPL-3.0-or-later.txt, CC0-1.0.txt, CC-BY-4.0.txt, LicenseRef-fan-work.txt, BSD-2-Clause.txt, BSD-3-Clause.txt, LGPL-3.0-only.txt, ODbL-1.0.txt and OFL-1.1.txt, named by SPDX id. The README has the table of what is licensed how.
+- `LICENSES/` holds GPL-3.0-or-later.txt, CC0-1.0.txt, CC-BY-4.0.txt, CC-BY-SA-3.0.txt, LicenseRef-fan-work.txt, BSD-2-Clause.txt, BSD-3-Clause.txt, LGPL-3.0-only.txt, ODbL-1.0.txt and OFL-1.1.txt, named by SPDX id. The README has the table of what is licensed how.
 - `walldye/font.py` carries `SPDX-FileCopyrightText: 2018-2024 Frederic Cambus` and `SPDX-License-Identifier: BSD-2-Clause`. The fonts in `src/assets/fonts/` are under the SIL OFL 1.1, with both copyright notices in `src/assets/fonts/OFL.txt`.
 
 ### What a piece may draw

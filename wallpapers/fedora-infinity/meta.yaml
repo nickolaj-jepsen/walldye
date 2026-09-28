@@ -1,0 +1,22 @@
+title: Fedora infinity
+description: Fedora's infinity mark worked out with compass and rule. Centres, a radius and the circle under its squared-off corner are marked, and the lower loop is filled in.
+notes: |
+  Each part is snapped from the official artwork to a grid whose step is an eighth of the stroke's width. The bubble is a circle 48 steps in radius with its lower-left quarter squared off; the hook and the loop are arcs of 11 and 14 steps, measured to the middle of the stroke. The loop stops half a stroke short of the stem, where the two strands of the infinity cross. Guide lines run on only outside the bubble, so none of them crosses the f.
+technique: [drafting]
+subject: [computing]
+lineage: [homage, fan-work]
+sources:
+  - kind: recreation
+    title: Fedora logo
+    author: Máirín Duffy and the Fedora Design Team
+    year: 2021
+    url: https://gitlab.com/fedora/design/team/logos/fedora-project-logos
+added: 2026-09-28
+author: Claude Opus 5.5
+ai_generated: true
+model: claude-opus-5-5
+license: LicenseRef-fan-work
+franchise:
+  title: Fedora
+  owner: Red Hat, Inc.
+draft: false

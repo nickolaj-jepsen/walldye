@@ -1,5 +1,7 @@
 """A patent sheet of Pey'j's hovercraft in side, rear and plan views with numbered leaders; outlines traced from in-game shots, only the boost lamp lit."""
 
+from shapely import Point
+
 from walldye import (
     ACCENT,
     ACCENT_6,
@@ -16,7 +18,7 @@ from walldye import (
     design,
     polar,
 )
-from walldye.geom import Affine, Polyline
+from walldye.geom import Affine, Polyline, hatch
 from walldye.pixel import glyphs
 
 HIDDEN = (10, 6)  # hidden-line dash
@@ -58,23 +60,30 @@ SIDE = view(X1, WL, True)  # FIG. 1, (x, y)
 REAR = view(X3, WL, True)  # FIG. 2, (z, y) seen from astern
 PLAN = view(X1, Y2, False)  # FIG. 3, (x, z) seen from above
 
-# Mammago roundel decal: pig-head profile, flat snout forward, ear flopped forward.
+# The pig decal on a unit disc, y down, snout to the bow, after a near face-on shot: ear flopped
+# forward, flat snout, one leg reaching ahead, one tucked under, tail up. Kept clear of the rim.
 PIG = (
-    (-0.9, -0.06),
-    (-0.9, 0.22),
-    (-0.62, 0.32),
-    (-0.46, 0.48),
-    (-0.06, 0.54),
-    (0.36, 0.48),
-    (0.64, 0.26),
-    (0.74, -0.04),
-    (0.6, -0.34),
-    (0.34, -0.5),
-    (-0.28, -0.86),
-    (-0.16, -0.62),
-    (-0.04, -0.46),
-    (-0.46, -0.3),
+    (-0.51, -0.64),  # ear tip
+    (-0.32, -0.55),
+    (0.52, -0.31),  # back, down to the tail root
+    (0.76, -0.41),  # tail tip
+    (0.64, -0.22),
+    (0.43, 0.33),  # rump, round to the hock
+    (0.48, 0.47),
+    (0.25, 0.65),  # hind hoof
+    (0.16, 0.5),
+    (-0.38, 0.36),  # belly
+    (-0.46, 0.28),
+    (-0.54, 0.38),  # fore hoof
+    (-0.7, 0.2),
+    (-0.57, 0.13),
+    (-0.61, -0.19),  # jaw
+    (-0.76, -0.21),  # snout
+    (-0.75, -0.4),
+    (-0.6, -0.45),  # brow
 )
+PIG_CURVES = {5: (0.76, 0.12), 9: (-0.1, 0.56)}  # vertex: control of the curve that ends there
+PIG_EYE = (-0.43, -0.4)
 LEGEND = (
     "FLOAT",
     "CABIN",
@@ -108,14 +117,22 @@ def solid(s: Canvas, d: Path, paint: Paint = UI_HI, width: float = 2) -> None:
     s.path(d, fill=BG, stroke=paint, stroke_width=width)
 
 
-def emblem(s: Canvas, c: Vec, r: float) -> None:
-    """The Mammago roundel: a double ring round the filled pig head, eye and nostril cut out."""
+def emblem(s: Canvas, c: Vec, r: float, pitch: float) -> None:
+    """The pig decal of radius `r`: the disc ruled upright every `pitch` units, the drafting sign
+    for a painted colour, with the pig left clear."""
+    rules = P()
+    for seg in hatch(Point(c.x, c.y).buffer(r - 1, quad_segs=32), pitch, deg=90):
+        rules.poly(seg)
+    s.stroke(rules, UI, 1)
     s.stroke(P().circle(c, r), UI_HI, 1.6)
-    s.stroke(P().circle(c, r * 0.84), UI_ALT, 1.2)
-    head = [c + (u * r * 0.78, (v * 0.78 + 0.04) * r) for u, v in PIG]
-    s.fill(P().spline(head, closed=True, tension=0.5), UI_HI)
-    eye, nostril = c + (0.02 * r, -0.12 * r), c + (-0.52 * r, 0.02 * r)
-    s.fill(P().circle(eye, 0.06 * r).circle(nostril, 0.04 * r), BG)
+    pig = P().M(c + Vec(*PIG[0]) * r)
+    for i, (u, v) in enumerate(PIG[1:], 1):
+        if i in PIG_CURVES:
+            pig.Q(c + Vec(*PIG_CURVES[i]) * r, c + (u * r, v * r))
+        else:
+            pig.L(c + (u * r, v * r))
+    solid(s, pig.Z(), UI_HI, 1.4)
+    s.fill(P().circle(c + Vec(*PIG_EYE) * r, 0.055 * r), UI_HI)
 
 
 def tags(s: Canvas, marks: list[Mark]) -> None:
@@ -155,11 +172,12 @@ def water(s: Canvas, x0: float, x1: float) -> None:
 def draw(s: Canvas) -> None:
     with s.group(stroke_linejoin="round"):
         # sheet border and title block
-        sheet = P().rect(60, 60, 1800, 960).M(1620, 1020).V(940).H(1860).M(1620, 972).H(1860)
+        sheet = P().rect(60, 60, 1800, 960).M(1620, 1020).V(940).H(1860)
+        sheet.M(1620, 972).H(1780).M(1780, 940).V(1020)  # two rows beside the emblem's cell
         s.stroke(sheet, UI, 1.2)
         glyphs(s, ["PL. 1"], MUTED, at=(1640, 948), font="5x8", px=2)
-        glyphs(s, ["MAMMAGO"], UI_HI, at=(1640, 988), font="5x8", px=2)
-        emblem(s, Vec(1826, 956), 12)
+        glyphs(s, ["PEY'J"], UI_HI, at=(1640, 988), font="5x8", px=2)
+        emblem(s, Vec(1820, 980), 30, 4)
 
         side(s)
         rear(s)
@@ -225,7 +243,7 @@ def side(s: Canvas) -> None:
         barrels.M(f((384, y))).L(f((366, y)))
     s.stroke(barrels, UI_HI, 3, cap="butt")
 
-    # motor drum: intake grille at the bow end, seams, rivets, Mammago roundel
+    # motor drum: intake grille at the bow end, seams, rivets, pig decal
     x0, x1, y0, y1 = DRUM
     solid(s, rbox(P(), f, x0, x1, y0, y1, 40))
     grille = P()
@@ -234,8 +252,9 @@ def side(s: Canvas) -> None:
     s.stroke(grille, UI_ALT, 1.2)
     s.stroke(P().M(f((410, 172))).L(f((410, 368))).M(f((700, 172))).L(f((700, 368))), UI_ALT, 1.2)
     s.fill(P().dots(f.apply([(x, 356) for x in range(436, 700, 30)]), 1.5), UI_HI)
-    decal = f((562, 262))
-    emblem(s, decal, 70 * K)
+    d = f((556, 260))
+    decal = Vec(round(d.x), round(d.y))  # whole units keep the upright rules crisp
+    emblem(s, decal, 44, 4)
 
     # the lit boost lamp across the drum's aft end, its corner following the drum's
     r = 40 * K
@@ -285,7 +304,7 @@ def side(s: Canvas) -> None:
             ((780, 180), 3, port + (12, -12)),
             ((830, 250), 7, f((960, 380))),
             ((880, 450), 5, f((744, 200))),
-            ((330, 400), 9, decal + (-26, 22)),
+            ((330, 400), 9, decal + (-41, 16)),
         ],
     )
 

@@ -1,19 +1,20 @@
 title: Lightning
-description: Lightning grown cell by cell toward the ground. The channel that touches down is lit, and stalled branches thin and fade.
+description: One jagged channel of lightning drops from a dithered cloud base and lights the ground where it lands. Its branches fork downward and thin out.
 notes: |
-  The bolt follows the dielectric breakdown model of Niemeyer, Pietronero and Wiesmann. The electric potential is solved on a grid between the cloud base and the ground, and each new cell joins the tree with a chance that rises with the potential there, weighted toward growing downward. The first branch to reach the ground becomes the return stroke; stubs of a few cells and branches that ran mostly sideways are left out.
-technique: [simulation, line]
-subject: [physics]
+  The channel is built by midpoint displacement. The straight line from cloud to ground is split at its middle and the new point pushed sideways at random, then each half is split the same way until the segments are short. Every push scales with the segment it bends, so the large kinks and the small ones look alike. Branches leave the channel twenty to fifty degrees off its heading, always pointing down and shorter the lower they start, and a few fork again.
+
+  In a real strike the stepped leader branches as it works its way down, and the branch that touches the ground carries the return stroke, the most luminous part of the flash. Here that channel glows through a stack of strokes, widest and faintest outside, and the dither thickens where the flash reaches the cloud and the ground.
+technique: [line, dither]
+subject: [physics, landscape]
 lineage: []
 sources:
   - kind: reference
-    title: Fractal Dimension of Dielectric Breakdown
-    author: L. Niemeyer, L. Pietronero and H. J. Wiesmann
-    year: 1984
-    url: https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.52.1033
+    title: Computer rendering of stochastic models
+    author: Alain Fournier, Don Fussell and Loren Carpenter
+    year: 1982
   - kind: reference
-    title: Dielectric breakdown model
-    url: https://en.wikipedia.org/wiki/Dielectric_breakdown_model
+    title: Lightning
+    url: https://en.wikipedia.org/wiki/Lightning
 added: 2026-09-27
 author: Claude Opus 5.5
 ai_generated: true

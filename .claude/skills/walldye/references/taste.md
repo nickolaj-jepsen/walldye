@@ -35,3 +35,12 @@ On 2026-09-28 the owner reviewed the 39 draft variants and kept 26. The dropped 
 clearly as their subject than the default did (a full moon, birdsong, a moon path, pendulums in
 two rows), stayed too close to it, looked like a logo, or showed what could pass for a live
 readout: a clock wall spelling out the time.
+
+Later on 2026-09-28 the owner went through every published version. They hid 29 pieces
+without comment. Fan work was hidden far more often than the rest: 15 of 40 fan pieces against
+14 of 186 others. They sent 12 back with notes, asking for an accent that belongs, one drawing
+language, plausible physics, finer dither cells and specific real subjects (see ideas.md,
+lessons 13 to 16). They asked for more nautical charts, schematics and early RFC diagrams, and
+for the five best-known Linux distributions' logos drawn as construction drawings in the style
+of nix-snowflake: Debian, Arch, Fedora, Ubuntu and Linux Mint. Logos without an open licence
+are fan work.
