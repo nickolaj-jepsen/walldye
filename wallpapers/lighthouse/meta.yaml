@@ -1,0 +1,13 @@
+title: Lighthouse
+description: Drawn as a patent elevation, a lighthouse on its rock throws a fan of rays over pinpoint stars.
+notes: |
+  Shaded to patent-drawing conventions: ruled lines close up towards the side in shadow, and the edges turned away from the light carry a heavier shade line. The lantern holds a Fresnel lens, its prism rings stacked above and below the lamp.
+technique: [drafting]
+subject: [architecture]
+lineage: [patent-drawings]
+sources:
+  - kind: reference
+    topic: Fresnel lens
+    url: https://en.wikipedia.org/wiki/Fresnel_lens
+added: 2026-09-27
+model: claude-opus-5-5

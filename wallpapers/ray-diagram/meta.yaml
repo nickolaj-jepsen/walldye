@@ -1,0 +1,18 @@
+title: Telescope ray diagram
+description: A Keplerian telescope in section. One star's rays are lit between the lenses, while tilted rays from two others fade.
+notes: |
+  The objective is a cemented achromatic doublet: a biconvex crown lens, hatched coarsely, against a plano-concave flint lens hatched finer the other way. The eyepiece is a single biconvex lens.
+
+  Rays are traced paraxially, so each lens bends them once. Light from a star straight ahead crosses at the shared focus, inside a field stop, and leaves the eyepiece parallel again. Two stars about two degrees off the axis send bundles that cross beside the focus and overlap again at the exit pupil, marked by the tall tick, where the eye would be. They leave nearly three times as steep and tilted the other way, because the image is magnified and upside down. The dimension lines below mark the two focal lengths.
+technique: [drafting]
+subject: [physics, space]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    topic: Refracting telescope
+    url: https://en.wikipedia.org/wiki/Refracting_telescope
+  - kind: reference
+    topic: Achromatic lens
+    url: https://en.wikipedia.org/wiki/Achromatic_lens
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,18 @@
+title: Timing diagram
+description: 'One SPI read as a datasheet timing figure: sixteen clock pulses shift an address out and a byte back.'
+notes: |
+  The bus runs in SPI mode 0: the clock idles low, each data line changes on a falling edge and is read on the next rising edge. Setup time is how long a bit must stay steady before that rising edge, and hold time how long it must stay after it.
+
+  The controller sends the address 0x3A on MOSI, then the device answers with 0xBE on MISO. A line drawn halfway between its two levels is not being driven, and the hatched windows on the two buses hold bits the reader ignores.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    topic: Serial Peripheral Interface
+    url: https://en.wikipedia.org/wiki/Serial_Peripheral_Interface
+  - kind: reference
+    topic: Digital timing diagram
+    url: https://en.wikipedia.org/wiki/Digital_timing_diagram
+added: 2026-09-27
+model: claude-opus-5-5

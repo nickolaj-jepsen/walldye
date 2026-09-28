@@ -1,0 +1,8 @@
+# Third-party data inside a wallpaper folder keeps its upstream licence and notice, whatever the
+# folder's meta.yaml `license:` says. The texts are in LICENSES/.
+version = 1
+
+[[annotations]]
+path = "wallpapers/star-chart/data/*.json"
+SPDX-FileCopyrightText = "2015 Olaf Frohn (d3-celestial)"
+SPDX-License-Identifier = "BSD-3-Clause"

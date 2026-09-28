@@ -1,0 +1,15 @@
+title: Patent lamp
+description: An incandescent lamp as a patent figure, ruled in shadow and stippled along its rim. Only the filament is lit.
+notes: |
+  Shaded the way patent drawings are: the vertical ruling closes up towards the side in shadow, the lower right edge of the glass carries a heavier shade line, and the insulator under the screw thread is ruled solid. The glow round the filament is three offset outlines, each stopping higher than the one inside it and breaking into dashes at its ends.
+technique: [drafting, stipple]
+subject: [machines]
+lineage: [patent-drawings]
+sources:
+  - kind: inspiration
+    topic: Electric lamp (US Patent 223,898)
+    author: Thomas Edison
+    year: 1880
+    url: https://patents.google.com/patent/US223898A/en
+added: 2026-09-27
+model: claude-opus-5-5

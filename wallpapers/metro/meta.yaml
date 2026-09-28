@@ -1,0 +1,15 @@
+title: Metro map
+description: An invented metro map of horizontals, verticals and 45-degree diagonals over a winding river, one line picked out.
+notes: |
+  Like Harry Beck's London Underground diagram of 1933, the map keeps every line to horizontals, verticals and 45-degree diagonals and marks ordinary stations with short ticks. Interchanges here are hollow capsules spanning every lane, and lines that share a stretch run side by side, stepping across on a short diagonal where their lane changes.
+technique: [drafting]
+subject: [maps]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: London Underground diagram
+    author: Harry Beck
+    year: 1933
+    url: https://en.wikipedia.org/wiki/Tube_map
+added: 2026-09-27
+model: claude-opus-5-5

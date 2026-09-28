@@ -1,0 +1,15 @@
+title: Compact Cassette
+description: A Compact Cassette in two scale views, one roller magnified in a circle. Its tape runs lit from spool to spool.
+notes: |
+  The front view is drawn as if the shell were clear, so the tape wound on both spools shows through the label area. Below it, the bottom edge shows the tape through its three openings, with dashed lines tracing it behind the shell.
+technique: [drafting]
+subject: [machines, music]
+lineage: []
+sources:
+  - kind: reference
+    topic: Compact Cassette
+    author: Philips
+    year: 1963
+    url: https://en.wikipedia.org/wiki/Cassette_tape
+added: 2026-09-27
+model: claude-opus-5-5

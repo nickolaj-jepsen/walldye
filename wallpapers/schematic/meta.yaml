@@ -1,0 +1,40 @@
+title: Op-amp schematic
+description: An unlabelled op-amp filter schematic on a dotted grid, its signal path lit from input to output.
+notes: |
+  The input passes through a two-pole RC low-pass filter into the non-inverting input of an op-amp. A resistor and capacitor in parallel feed the output back to the inverting input, and a second resistor to ground sets the gain. On the output, a series resistor and capacitor to ground form a Zobel network, and two diodes clamp the signal to the supply rails.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: Tektronix service manuals
+    author: Tektronix
+    url: https://w140.com/tekwiki/wiki/Manuals
+  - kind: reference
+    topic: Circuit diagram
+    url: https://en.wikipedia.org/wiki/Circuit_diagram
+  - kind: reference
+    topic: Wien bridge oscillator
+    url: https://en.wikipedia.org/wiki/Wien_bridge_oscillator
+  - kind: reference
+    topic: Instrumentation amplifier
+    url: https://en.wikipedia.org/wiki/Instrumentation_amplifier
+  - kind: reference
+    title: PWM Generator Circuit
+    author: Masashi Miyagawa
+    year: 2018
+    url: https://www.ti.com/lit/pdf/sboa212
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Low-pass filter
+  wien-bridge:
+    label: Wien-bridge oscillator
+    description: A Wien-bridge oscillator on a dotted grid. A resistor and capacitor carry the output back to the input, and that lit loop keeps a sine wave going.
+  instrumentation:
+    label: Instrumentation amplifier
+    description: Three op-amps on a dotted grid form an instrumentation amplifier. Two lit inputs pass through buffers and meet at a third op-amp, which amplifies their difference.
+  triangle-wave:
+    label: Triangle-wave generator
+    description: Two op-amps in a lit loop on a dotted grid. One ramps up and down, the other flips at each end, and the pair makes triangle and square waves.

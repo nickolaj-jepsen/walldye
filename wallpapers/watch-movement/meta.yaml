@@ -1,0 +1,15 @@
+title: Watch movement
+description: A watch movement in plan. The gear train winds from the mainspring barrel to the balance wheel, whose hairspring is picked out.
+technique: [drafting]
+subject: [machines]
+lineage: []
+sources:
+  - kind: reference
+    title: 16½''' ETA 6497-1 technical communication
+    author: ETA
+    url: https://portal.eta.ch/fr/technicaldocuments/index/pdf/id/1631/
+  - kind: reference
+    topic: Movement (clockwork)
+    url: https://en.wikipedia.org/wiki/Movement_(clockwork)
+added: 2026-09-27
+model: claude-opus-5-5

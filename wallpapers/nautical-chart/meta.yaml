@@ -1,0 +1,45 @@
+title: Nautical chart
+description: A coast on a sea chart, with depth contours and soundings offshore. A track follows a lighthouse's lit sector into the anchorage.
+notes: |
+  The coast is drawn from layered noise, and each depth comes from how far that point lies from land. Depth contours are dashed more finely the shallower they run, and the water inside the second contour carries a faint tint, as printed charts wash their shallows. Soundings are groups of one to three dots, more for deeper water, and they thin out offshore, where charts sound less densely.
+
+  A sector light shows its arc over the safe way in. The track holds the middle of that arc until a waypoint off the headland, then turns for the anchor.
+technique: [drafting, field]
+subject: [maps]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: Admiralty charts
+    author: United Kingdom Hydrographic Office
+    url: https://en.wikipedia.org/wiki/Admiralty_chart
+  - kind: inspiration
+    topic: NOAA nautical charts
+    author: NOAA Office of Coast Survey
+    url: https://nauticalcharts.noaa.gov/
+  - kind: reference
+    title: U.S. Chart No. 1
+    author: NOAA and the National Geospatial-Intelligence Agency
+    url: https://nauticalcharts.noaa.gov/publications/us-chart-1.html
+  - kind: reference
+    topic: Sector light
+    url: https://en.wikipedia.org/wiki/Sector_light
+  - kind: reference
+    topic: Leading lights
+    url: https://en.wikipedia.org/wiki/Leading_lights
+  - kind: reference
+    topic: Lateral mark
+    url: https://en.wikipedia.org/wiki/Lateral_mark
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Headland and anchorage
+  estuary:
+    label: Estuary channel
+    description: Drying sandbanks fill a river mouth. Buoys mark both sides of the channel that winds between them, and a track follows it in from a lit buoy offshore.
+  harbour:
+    label: Harbour entrance
+    description: The way into a harbour runs straight between the heads of its two breakwaters, on the line of two lights set one behind the other ashore.
+  skerries:
+    label: Passage through islets
+    description: Islets and rocks lie off a mainland shore, their drying ledges fringed with short ticks as charts draw them. A dashed track winds between them to an anchorage.

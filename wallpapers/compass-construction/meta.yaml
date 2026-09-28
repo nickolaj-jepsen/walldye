@@ -1,0 +1,22 @@
+title: Compass construction
+description: Richmond's 1893 pentagon with every ruler-and-compass line left in. A dot marks the first vertex found.
+notes: |
+  Herbert Richmond published this construction in 1893, in a two-page note on the seventeen-sided polygon. The left radius is halved and its midpoint joined to the top of the circle. The line bisecting the angle at the midpoint crosses the upright radius at the height of the first vertex, and the compass, opened to one side, steps off the other four.
+technique: [drafting]
+subject: [maths]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    title: A construction for a regular polygon of seventeen sides
+    author: Herbert W. Richmond
+    year: 1893
+  - kind: reference
+    topic: Regular Pentagon
+    url: https://mathworld.wolfram.com/RegularPentagon.html
+  - kind: inspiration
+    title: The First Six Books of the Elements of Euclid
+    author: Oliver Byrne
+    year: 1847
+    url: https://archive.org/details/firstsixbooksofe00eucl
+added: 2026-09-27
+model: claude-opus-5-5
