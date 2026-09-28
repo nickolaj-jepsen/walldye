@@ -15,3 +15,6 @@ variants:
   late:
     label: Late in the turn
     description: Later in the turn, the radar arm has passed the coastline, leaving most of it under a long, fading afterglow.
+controls:
+  sweep: {label: Sweep, drag: x}
+  glow: Afterglow

@@ -30,3 +30,4 @@ variants:
   holes:
     label: Worms into holes
     description: Reaction-diffusion worms fray into empty space on one side and close into a mesh of holes at a corner.
+controls: false

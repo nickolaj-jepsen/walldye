@@ -16,3 +16,5 @@ variants:
   crescent:
     label: Crescent moon
     description: Void-and-cluster dithering turns a thin crescent moon, lit from the right, into square cells. The unlit disc shows as a faint scatter.
+controls:
+  phase: {label: Phase, drag: x}

@@ -19,3 +19,5 @@ variants:
   late:
     label: Nearly all fallen
     description: Nearly the whole curving chain of dominoes is down. One is caught mid-fall near the end, and a few beyond still stand.
+controls:
+  wave: {label: Wavefront, drag: x}

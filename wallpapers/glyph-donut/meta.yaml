@@ -18,3 +18,6 @@ sources:
     url: https://www.a1k0n.net/2011/07/20/donut-math.html
 added: 2026-09-27
 model: claude-opus-5-5
+controls:
+  a: {label: Tilt, drag: y}
+  b: {label: Turn, drag: x}

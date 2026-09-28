@@ -21,3 +21,5 @@ variants:
   edge-on:
     label: Edge-on
     description: Nearly edge-on, an accretion disk crosses the event horizon's shadow as a thin band, its far side arched overhead.
+controls:
+  elevation: {label: Viewing angle, drag: y}

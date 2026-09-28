@@ -26,3 +26,4 @@ variants:
   gibbous:
     label: Gibbous moon
     description: One closed line through 16,000 stipple points draws a gibbous moon lit from the lower left.
+controls: false

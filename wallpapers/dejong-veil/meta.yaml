@@ -18,3 +18,4 @@ variants:
   dome:
     label: Dome over a cusp
     description: 'De Jong''s attractor with other coefficients: a stepped dome over a narrow cusp, and a lit ridge running into it.'
+controls: false

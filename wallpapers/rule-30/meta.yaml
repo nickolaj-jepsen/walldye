@@ -25,3 +25,7 @@ variants:
   rule-110:
     label: Rule 110
     description: Rule 110 grows leftward from one cell into a wedge of interlocking triangles along a straight, lit edge.
+controls:
+  trace:
+    label: Picked out
+    choices: {column: Centre column, edges: Both edges}
