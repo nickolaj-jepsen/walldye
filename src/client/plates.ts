@@ -116,12 +116,26 @@ class Queue {
 const fetches = new Queue(MAX_FETCHES);
 const plates = new Queue(MAX_PLATES);
 
-function fetchText(url: string): Promise<string> {
-  return fetches.run(async () => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-    return res.text();
-  });
+declare global {
+  interface Window {
+    /** Requests the index's `<head>` started before this module loaded, by URL (index/first-plates.ts). */
+    walldyePlateFetches?: Map<string, Promise<Response>>;
+  }
+}
+
+async function textOf(url: string, res: Response): Promise<string> {
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  return res.text();
+}
+
+/** `url`'s body; a request the index's `<head>` started is taken, once, instead of a new one. */
+async function fetchText(url: string): Promise<string> {
+  const started = window.walldyePlateFetches?.get(url);
+  if (started) {
+    window.walldyePlateFetches?.delete(url);
+    return textOf(url, await started);
+  }
+  return fetches.run(async () => textOf(url, await fetch(url)));
 }
 
 // ---- caches ----
@@ -191,10 +205,16 @@ export async function recolored(
   aspect: Aspect,
   seeds: Seeds,
 ): Promise<{ svg: string; url: string; untouched: boolean }> {
-  const slots = await getSlots(data.slots);
-  const picked = pickTemplate(slots, aspect, regimeOf(seeds));
-  const url = data.templates[picked.key] ?? templateUrl(picked.entry);
-  const tpl = await getTemplate(url);
+  const regime = regimeOf(seeds);
+  const known = data.templates[`${aspect}/${regime}`];
+  // A template whose URL the plate carries loads alongside slots.json; any other is named there.
+  const [slots, early] = await Promise.all([
+    getSlots(data.slots),
+    known ? getTemplate(known) : undefined,
+  ]);
+  const picked = pickTemplate(slots, aspect, regime);
+  const url = known ?? templateUrl(picked.entry);
+  const tpl = early ?? (await getTemplate(url));
   // A template whose URL does not carry its slots hash is not the one the coefficients were made for.
   if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) {
     return { svg: tpl.svg, url, untouched: true };
@@ -250,14 +270,17 @@ async function swapIn(
     // Undecodable: show it anyway so the alt text stands in.
   }
   if (!isCurrent()) return discard(src);
+  if (!old) {
+    // No fade for a plate's first image: Chrome times the largest contentful paint from the fade's end.
+    plate.insertBefore(img, plate.querySelector(':scope > .crop'));
+    return;
+  }
   // site.css stacks it over `old` until the fade ends.
   img.style.opacity = '0';
-  if (old) old.after(img);
-  else plate.insertBefore(img, plate.querySelector(':scope > .crop'));
+  old.after(img);
   // Read layout so the opacity change below transitions instead of applying at once.
   img.getBoundingClientRect();
   img.style.opacity = '';
-  if (!old) return;
   // Waited out by the clock: animations in rows that content-visibility skips never finish.
   const endTimes = img.getAnimations().map((a) => Number(a.effect?.getComputedTiming().endTime));
   const fade = Math.max(0, ...endTimes.filter(Number.isFinite));

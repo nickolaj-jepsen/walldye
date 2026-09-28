@@ -1,8 +1,8 @@
 /**
- * A client entry bundled as an IIFE for an inline `<script>`: the theme boot in Base.astro's `<head>`
- * and the index's shape boot. With `cache` each entry is built once per process; without, on every
- * call, so `astro dev` picks up edits. Rejects when the entry is missing or does not compile, which
- * fails the page that asked for it.
+ * A client entry bundled as an IIFE for an inline `<script>`: the theme boot in Base.astro's `<head>`,
+ * and the index's first-plates script and shape boot. With `cache` each entry is built once per
+ * process; without, on every call, so `astro dev` picks up edits. Rejects when the entry is missing
+ * or does not compile, which fails the page that asked for it.
  */
 import { resolve } from 'node:path';
 import { build } from 'esbuild';
@@ -11,6 +11,7 @@ import { build } from 'esbuild';
 const ENTRIES = {
   theme: resolve('src/client/theme/boot.ts'),
   shape: resolve('src/client/index/shape-boot.ts'),
+  firstPlates: resolve('src/client/index/first-plates.ts'),
 } as const;
 
 const cached = new Map<keyof typeof ENTRIES, Promise<string>>();

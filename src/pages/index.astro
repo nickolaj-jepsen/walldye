@@ -15,9 +15,14 @@ const total = entries.length;
 // The view orders need a recorded view to mean anything (none in local builds without stats/).
 const viewed = sort === 'popular';
 const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
+// What sourceFor() in plates.ts loads first for the unfiltered index: the top plates' templates and slots.json.
+const first = entries.slice(0, 4).map(({ data: p }) => ({ templates: Object.fromEntries(Object.entries(p.templates).map(([key, t]) => [key, t.url])), slots: p.slotsUrl }));
+const firstPlates = await inlineScript('firstPlates', !import.meta.env.DEV);
 ---
 
 <Base description="Wallpapers drawn with code, in colors you choose." nav="index" mainClass="index">
+  {/* FIRST PLATES (src/client/index/first-plates.ts): after the theme boot, so it knows the seeds, and ahead of the stylesheets, so it never waits on CSS. */}
+  <script slot="head" is:inline data-first={JSON.stringify(first)} set:html={firstPlates} />
   <h1 class="vh">Index</h1>
   <details class="filter" open>
     <summary><span class="sc">Filter</span><span class="state"></span></summary>
