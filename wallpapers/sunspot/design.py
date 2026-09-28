@@ -13,6 +13,7 @@ from walldye import (
     ACCENT_3,
     ACCENT_5,
     ACCENT_6,
+    BG,
     BG_ALT,
     BG_DEEP,
     BLACK,
@@ -45,9 +46,10 @@ STRETCH, FALLOFF = 0.35, 0.45  # radial elongation of the granules just outside 
 LIMB_GAP, LIMB_MARGIN = 920, 400  # limb at least this far past the spot and in from the edge
 LIMB_R = 760  # foreshortening follows a sphere of this radius, starting LIMB_R before the limb
 FADE = (520, 20)  # granulation dims into the lanes between these distances before the limb
-# Light themes keep the photograph's polarity: granules paler than the lanes, the spot the darkest.
-LANE = by_regime(BG_DEEP, BG_ALT)  # the design's bg: lanes and the sky past the limb
-TOP = by_regime(mix(BG_ALT, UI, 0.2), BG_DEEP)  # the brightest granule
+# Light themes draw on the paper: the lanes and the sky past the limb are the page, the granules a
+# shade darker, the spot the darkest.
+LANE = by_regime(BG_DEEP, BG)  # the design's bg: lanes and the sky past the limb
+TOP = mix(BG_ALT, UI, 0.2)  # the granule furthest from the lanes' tone
 GRAN = ladder((mix(LANE, TOP, 0.1), TOP), 10)  # granule tones, lanes to TOP
 # the penumbra between the filaments; the lanes' tone in dark themes, so it only shows in light
 FLOOR = by_regime(BG_DEEP, mix(UI_ALT, UI_HI, 0.5))

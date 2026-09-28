@@ -8,7 +8,7 @@ technique: [line, simulation]
 subject: [space]
 lineage: []
 sources:
-  - kind: inspiration
+  - kind: reference
     title: Comet McNaught (C/2006 P1)
     url: https://en.wikipedia.org/wiki/Comet_McNaught
   - kind: reference

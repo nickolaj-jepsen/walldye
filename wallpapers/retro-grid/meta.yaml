@@ -4,7 +4,7 @@ technique: [line, flat]
 subject: [landscape]
 lineage: []
 sources:
-  - kind: inspiration
+  - kind: reference
     title: Synthwave
     url: https://en.wikipedia.org/wiki/Synthwave
 added: 2026-09-27

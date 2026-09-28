@@ -6,7 +6,7 @@ technique: [field]
 subject: [landscape]
 lineage: [japanese-art]
 sources:
-  - kind: inspiration
+  - kind: reference
     title: Ryōan-ji rock garden
     url: https://en.wikipedia.org/wiki/Ry%C5%8Dan-ji
   - kind: reference

@@ -10,7 +10,7 @@ sources:
     title: Atkinson dithering
     author: Bill Atkinson
     url: https://en.wikipedia.org/wiki/Atkinson_dithering
-  - kind: inspiration
+  - kind: reference
     title: Dwingeloo Radio Observatory
     year: 1956
     url: https://en.wikipedia.org/wiki/Dwingeloo_Radio_Observatory

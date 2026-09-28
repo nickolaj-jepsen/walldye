@@ -6,11 +6,11 @@ technique: [drafting]
 subject: [architecture]
 lineage: []
 sources:
-  - kind: inspiration
+  - kind: reference
     title: Golden Gate Bridge
     year: 1937
     url: https://en.wikipedia.org/wiki/Golden_Gate_Bridge
-  - kind: inspiration
+  - kind: reference
     title: Great Belt Bridge
     year: 1998
     url: https://en.wikipedia.org/wiki/Great_Belt_Bridge

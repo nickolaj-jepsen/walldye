@@ -59,10 +59,11 @@ def blob(r: Rng, big: float) -> Radius:
     return lambda a: big + sum((amp * np.sin(k * a + ph) for k, amp, ph in harm), np.zeros_like(a))
 
 
-def rim(c: Vec, rad: Radius, a: Arr, inset: float | Arr = 0.0) -> Arr:
-    """The (N, 2) points of a hole's outline at angles `a`, pulled `inset` towards its centre."""
+def rim(c: Vec, rad: Radius, a: Arr, inset: float | Arr = 0.0, sx: float = 1.0) -> Arr:
+    """The (N, 2) points of a hole's outline at angles `a`, pulled `inset` towards its centre
+    and stretched `sx` times across."""
     r = rad(a) - inset
-    return np.column_stack((c.x + r * np.cos(a), c.y + r * np.sin(a)))
+    return np.column_stack((c.x + sx * r * np.cos(a), c.y + r * np.sin(a)))
 
 
 def even_gaps(holes: list[Arr]) -> bool:
@@ -138,17 +139,30 @@ def draw(s: Canvas) -> None:
     for o, big in zip(offsets[core:], EXTRA, strict=True):
         shapes += cut(extra, [big], [o], [rim(offsets[len(shapes) - 1], shapes[-1], AROUND)])
 
+    # Past 21:9 each hole widens in proportion to its size, so the tunnel still reaches the ends
+    # of the screen while its rims curve across the short side, and the lit hole stays round.
+    wide = max(1.0, s.w / (s.h * 21 / 9)) ** 1.5 - 1
+    stretch = [1 + wide * (big - CORE[-1]) / (EXTRA[-1] - CORE[-1]) for big in radii]
+
     def outlines(focus: Vec, drop: int) -> list[Arr]:
         """Hole outlines around `focus`, back sheet first: the core sheets, then as many extra
         ones in front as it takes to cover the canvas corners, less the `drop` frontmost extras."""
         n = core
         while n < len(radii):
             front = focus + offsets[n - 1]
-            if max(abs(front - (x, y)) for x in (0, s.w) for y in (0, s.h)) <= REACH * radii[n - 1]:
+            far = max(
+                math.hypot((front.x - x) / stretch[n - 1], front.y - y)
+                for x in (0, s.w)
+                for y in (0, s.h)
+            )
+            if far <= REACH * radii[n - 1]:
                 break
             n += 1
         n = max(core, n - drop)
-        return [rim(focus + o, f, AROUND) for o, f in zip(offsets[:n], shapes[:n], strict=True)]
+        return [
+            rim(focus + o, f, AROUND, sx=k)
+            for o, f, k in zip(offsets[:n], shapes[:n], stretch[:n], strict=True)
+        ]
 
     # Every nudge with all the sheets the corners ask for, then without the front one: on
     # ultra-wide screens a hole wide enough to reach the far side cuts it as a straight edge.
@@ -179,5 +193,6 @@ def draw(s: Canvas) -> None:
         )
         s.fill(sheet, tone, rule="evenodd")
         # lit cut edge: a sliver on the side of the hole facing the light
-        edge = np.vstack((rim(c, shape, EDGE), rim(c, shape, EDGE, EDGE_W)[::-1]))
+        k = stretch[i]
+        edge = np.vstack((rim(c, shape, EDGE, sx=k), rim(c, shape, EDGE, EDGE_W, k)[::-1]))
         s.fill(P().poly(edge, closed=True), by_regime(mix(tone, UI_HI, 0.5), mix(tone, BLACK, 0.6)))

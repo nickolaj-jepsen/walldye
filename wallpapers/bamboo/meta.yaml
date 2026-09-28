@@ -6,11 +6,10 @@ technique: [flat]
 subject: [flora-fauna]
 lineage: [japanese-art]
 sources:
-  - kind: inspiration
+  - kind: reference
     title: Bamboo painting
     url: https://en.wikipedia.org/wiki/Bamboo_painting
   - kind: inspiration
-    title: Shin-hanga prints
     author: Kawase Hasui
     url: https://en.wikipedia.org/wiki/Kawase_Hasui
 added: 2026-09-27

@@ -8,7 +8,7 @@ technique: [line]
 subject: [space, landscape]
 lineage: []
 sources:
-  - kind: inspiration
+  - kind: reference
     title: Star trail
     url: https://en.wikipedia.org/wiki/Star_trail
   - kind: reference

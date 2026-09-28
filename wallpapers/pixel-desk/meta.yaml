@@ -7,7 +7,7 @@ subject: [computing, architecture]
 lineage: []
 sources:
   - kind: inspiration
-    title: eBoy
+    author: eBoy
     url: https://en.wikipedia.org/wiki/EBoy
   - kind: reference
     title: Isometric video game graphics

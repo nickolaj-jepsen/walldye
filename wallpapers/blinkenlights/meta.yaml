@@ -10,7 +10,7 @@ sources:
     title: PDP-11/70 front panel
     author: Digital Equipment Corporation
     year: 1975
-  - kind: inspiration
+  - kind: reference
     title: PiDP-11
     url: https://obsolescence.dev/pdp11.html
   - kind: reference
