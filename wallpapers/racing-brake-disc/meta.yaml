@@ -1,0 +1,26 @@
+title: Carbon brake disc
+description: Seven rows of cooling holes run round the rim of a carbon brake disc. Where the rim leaves the caliper it glows, fading in dithered steps.
+notes: |
+  The disc is the Very High Cooling front disc that Brembo offered Formula 1 teams in 2020 and 2021: 278 mm across and 32 mm thick, with 1,470 cooling holes 2.5 mm wide in seven rows. Here each row holds 210 holes, and every other row is shifted by half the spacing between holes. The holes are the mouths of radial channels inside the disc, so they show on the rim and not on the faces, and the disc is drawn turned away to show them.
+
+  Brembo gives carbon discs a working range of 350 to 1,000 °C. The heat is drawn strongest just past the caliper's trailing edge and falls off as the disc turns on. The figures leave out how the rows are spaced and staggered, the drive tabs round the bore and the caliper's size, so those follow Brembo's photographs.
+technique: [dither, drafting]
+subject: [sport, machines]
+lineage: []
+sources:
+  - kind: reference
+    title: 'Ventilation of Carbon Brake Discs in F1: Everything You Need to Know'
+    author: Brembo
+    url: https://www.brembo.com/en/motorsport/formula1/ventilation-holes
+  - kind: reference
+    title: "20 years of F1 brake discs: Brembo's transformation"
+    author: Brembo
+    url: https://www.brembo.com/en/news-archive/20-years-f1-brake-discs
+  - kind: reference
+    title: F1 Single-Seater Brake Ventilation
+    author: Brembo
+    url: https://www.brembo.com/en/motorsport/formula1/f1-brake-ventilation
+added: 2026-09-28
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}
