@@ -221,7 +221,7 @@ export function guard(c: string, surface: string, min: number): string {
 /** A contrast-guarded CSS role: [custom property, token, surface token, minimum ratio]. */
 export type GuardedRole = readonly [prop: string, token: Token, surface: 'bg' | 'bg_alt', min: number];
 
-/** Every guarded role of site.css (SPEC.md, Tokens): text 4.5:1, controls and focus 3:1, listing tokens against bg_alt. */
+/** Every guarded role of site.css (docs/site.md §2): text 4.5:1, controls and focus 3:1, listing tokens against bg_alt. */
 export const GUARDED: readonly GuardedRole[] = [
   ['--text', 'fg', 'bg', 4.5],
   ['--text-2', 'fg_alt', 'bg', 4.5],
@@ -242,7 +242,7 @@ export const GUARDED: readonly GuardedRole[] = [
   ['--listing-gutter', 'fg_alt', 'bg_alt', 4.5],
 ];
 
-/** How far a disabled control's label fades from `--text-2` towards bg before the guard (SPEC 6.4's 0.75 opacity). */
+/** How far a disabled control's label fades from `--text-2` towards bg before the guard, the colour 0.75 opacity would give (docs/site.md §6.4). */
 export const DIM = 0.25;
 
 /**

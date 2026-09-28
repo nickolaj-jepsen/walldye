@@ -1,6 +1,6 @@
 /**
  * Every page: the header's theme button, the shared-theme line, the theme picker and "Copy link"
- * (docs/design.md, Picker and Resolution and persistence; SPEC 6.1-6.3). The theme boot has already
+ * (docs/design.md, Picker and Resolution and persistence; docs/site.md §6.1-6.3). The theme boot has already
  * applied the theme; this module keeps the controls in step with it and saves the visitor's edits.
  */
 import { presetLabel } from '../components/presets';

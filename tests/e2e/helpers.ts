@@ -23,8 +23,8 @@ export interface Manifest {
 /** tests/fixtures/manifest.json: the Python reference renders and the resvg-py reference PNG. */
 export const MANIFEST = JSON.parse(readText('tests/fixtures/manifest.json')) as Manifest;
 
-/** Every M1 piece, the ones with Python reference renders under tests/fixtures. */
-export const M1 = ['dither-moon', 'radar-sweep', 'schotter'] as const;
+/** The pieces with Python reference renders under tests/fixtures. */
+export const REFERENCE_PIECES = ['dither-moon', 'radar-sweep', 'schotter'] as const;
 
 export interface Rgb {
   width: number;

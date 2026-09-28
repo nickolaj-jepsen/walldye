@@ -4,7 +4,7 @@ About 150 concept seeds, grouped by family. Treat them as a starting point, not 
 
 Every seed assumes the house style: a calm, minimal field in theme greys, one small accent "event", no text, pure vector and crisp at 4K. "Accent" means the theme's ACCENT ramp, never a second hue. The lessons at the end explain which kinds of idea tend to fail.
 
-114 of the 152 seeds are marked (built): a design with that name already exists, under `wallpapers/` or, until the M2 import, in `~/nixos/modules/desktop/dms/wallgen/designs/`. Build one again only with a different subject or composition, and under a new slug. glyph-terrain (example) is `examples/glyph-terrain.py`, not yet a piece.
+115 of the 152 seeds are marked (built): `wallpapers/` has a piece with that name. Build one again only with a different subject or composition, and under a new slug.
 
 ## Dither & pixel
 
@@ -36,7 +36,7 @@ Every seed assumes the house style: a calm, minimal field in theme greys, one sm
 - **glyph-hexdump** (built) — an xxd view of a binary (offset column, 16 hex columns, ASCII gutter) in quiet greys, with one selected byte run in accent; full-bleed but dim.
 - **glyph-mandel** (built) — the Mandelbrot set as 1980s ASCII art, escape time mapped to density glyphs, interior blank, boundary band in accent; coarse cell grid, set off-centre.
 - **glyph-roguelike** (built) — a NetHack-style dungeon in terminal glyphs, remembered rooms dim and the torch-lit view bright around an accent @; map in one half of the canvas.
-- **glyph-terrain** (example) — a roguelike overworld where the glyph encodes terrain (~ . " ^ ▲) and one winding road leads to an accent town; noise height field quantised to glyph classes.
+- **glyph-terrain** (built) — a roguelike overworld where the glyph encodes terrain (~ . " ^ ▲) and one winding road leads to an accent town; noise height field quantised to glyph classes.
 - **glyph-tui** — a tmux-style tiled terminal in box-drawing glyphs, three panes of abstract content with the focused pane framed in accent; greek the content as glyph runs.
 - **braille-plot** (built) — a btop-style panel of per-core CPU history as braille area plots, one core spiking in accent; panel in a lower corner; pack 2x4 dots per braille cell.
 - **shade-horizon** — an ANSI-art sunset painted only in ░▒▓█: an off-centre sun with a ▓ rim, low haze and a shimmering reflection; tone mapped to ` ░▒▓█` on a coarse grid.

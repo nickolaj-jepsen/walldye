@@ -1,6 +1,6 @@
 # DOM contract for the client modules
 
-What the server-rendered pages give the client code in `src/scripts/*.ts`. The pages render fireproof, the default sort, no filters, 16:9 and the default export choices, so the client only changes what the visitor changed. Behaviour is specified in `docs/design.md` and `import/prototype/SPEC.md`; this file lists the hooks. Selectors marked "id" are unique per page.
+What the server-rendered pages give the client code in `src/scripts/*.ts`. The pages render fireproof, the default sort, no filters, 16:9 and the default export choices, so the client only changes what the visitor changed. Behaviour is specified in `docs/design.md` and `docs/site.md`; this file lists the hooks. Selectors marked "id" are unique per page.
 
 ## Script hooks
 
@@ -20,7 +20,7 @@ They share `current-theme.ts` (the applied seeds), `plates.ts` (fetch limit, tem
 
 ### Theme variables
 
-The theme boot sets every token and role property inline on `<html>` with `style.setProperty`, plus `data-regime="dark|light"`. The property list is SPEC section 2 and the `:root` block of `src/styles/site.css`, plus `--text-dim` (the label of a disabled control). The seed chips read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It applies the theme again when the system colour scheme changes and when the page comes back from the back/forward cache, each time dispatching the theme event.
+The theme boot sets every token and role property inline on `<html>` with `style.setProperty`, plus `data-regime="dark|light"`. The property list is `cssVars()` in `src/lib/theme.ts`: the `:root` block of `src/styles/site.css`, plus `--text-dim` (the label of a disabled control). The seed chips read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It applies the theme again when the system colour scheme changes and when the page comes back from the back/forward cache, each time dispatching the theme event.
 
 When sessionStorage or localStorage cannot be written, `src/lib/theme-store.ts` keeps the token on `<html>` as `data-theme-shared` or `data-theme-saved` instead, so it holds for the rest of the page in every bundle.
 
@@ -42,7 +42,7 @@ Without JavaScript (`@media (scripting: none)`), `site.css` hides what needs it:
 |---|---|---|
 | `#picker` | `div[popover][role=dialog]` | Opened natively by any `[popovertarget=picker]`. |
 | `#picker .presets button[data-preset]` | one per preset, in `walldye/_theme.py` order | `data-preset` is the preset name. Set `aria-pressed="true"` on the current one only; the server marks fireproof. |
-| `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent]` | Prefilled with the fireproof seeds. There is no `maxlength`, so a pasted theme token fills all three. Set `aria-invalid` and `aria-describedby` as SPEC 6.3 says. |
+| `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent]` | Prefilled with the fireproof seeds. There is no `maxlength`, so a pasted theme token fills all three. Set `aria-invalid` on a field holding an invalid value, with `aria-describedby="seed-msg"` on those fields only; while the contrast warning shows, the bg and fg fields point at `faint-msg` instead (docs/site.md §6.3). |
 | `.hexfield .chip` | the `span.chip` just before each input | `style="--c:var(--seed-…)"`. Override `--c` while an unapplied edit is shown. |
 | `#seed-msg`, `#faint-msg` | `p.msg[hidden]` inside the `aria-live` `.msgs` | Unhide them for invalid input and for the contrast warning. |
 | `[data-action=copy-link]` | button "Copy link" (also on the detail page) | Copy the current URL with `?t=<token>`. |
@@ -112,7 +112,7 @@ The detail page keeps its own state in the query string: `v=<variant>` (the vers
 | Hook | Element | Notes |
 |---|---|---|
 | `.spread .plate` | Plate box with every aspect | |
-| `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it while a cropped shape is selected. Set `data-axis`, and position it in % of the plate (SPEC 6.6). |
+| `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it while a cropped shape is selected. Set `data-axis`, and position it in % of the plate (docs/site.md §6.6). |
 | `#dark-note` | `p.attr[data-dark-note][hidden]` | Dark-only pieces only. Show it under light seeds. |
 | `#desc` | `p.desc` | The default version's description. Set it to the shown version's (`data-variants[name].alt`). |
 

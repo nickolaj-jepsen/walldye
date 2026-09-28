@@ -174,7 +174,7 @@ function placeCrop(): void {
   const offset = s.t * (1 - span);
   const axis = cropAxis(aspect);
   cropWindow.dataset.axis = axis;
-  // In % of the plate, like the prototype: the frame also covers the plate's 0-7px rounding strip.
+  // In % of the plate, so the frame also covers the plate's 0-7px rounding strip.
   if (axis === 'x') Object.assign(cropWindow.style, { left: `${offset * 100}%`, width: `${span * 100}%`, top: '0', height: '100%' });
   else Object.assign(cropWindow.style, { left: '0', width: '100%', top: `${offset * 100}%`, height: `${span * 100}%` });
 }

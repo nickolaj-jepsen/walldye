@@ -59,6 +59,7 @@ test.describe('versions', () => {
     await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', 'https://walldye.com/moon-phase');
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://walldye.com/og/moon-phase.jpg');
     await expect(page.locator('meta[name=description]')).toHaveAttribute('content', FULL);
+    await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute('content', FULL);
 
     await page.reload();
     await expect(version(page, 'Crescent')).toBeChecked();
@@ -136,6 +137,7 @@ test.describe('versions', () => {
     await expect(page.locator('.label .licence')).toHaveText(
       'Unofficial fan tribute, not affiliated with or endorsed by Example Games. Graph Paper Quest and its characters are trademarks of their owners. Non-commercial; contact takedown@walldye.com for takedown.',
     );
+    await expect(page.locator('.label .licence a')).toHaveAttribute('href', 'mailto:takedown@walldye.com');
     await expect(page.locator('.spread .plate')).not.toHaveAttribute('data-variants');
     await expect(page.locator('.controls')).toHaveAttribute('aria-label', 'Colours and export');
     const sitemap = await (await request.get('/sitemap-0.xml')).text();

@@ -152,13 +152,13 @@ code, kbd, samp, pre { font-family: var(--mono); font-size: inherit; }
 code, kbd, samp, pre, .mono, .count, .presets .name, .hexfield input { font-variant-ligatures: none; }
 
 a { color: inherit; text-decoration: none; }
-.prose a, .facts dd a, .credit a, .textbtn, .download .k {
+.prose a, .facts dd a, .credit a, .licence a, .textbtn, .download .k {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
   text-decoration-color: var(--link-line);
 }
-.prose a:hover, .facts dd a:hover, .credit a:hover, .textbtn:hover, .download:hover .k {
+.prose a:hover, .facts dd a:hover, .credit a:hover, .licence a:hover, .textbtn:hover, .download:hover .k {
   color: var(--text);
   text-decoration-color: currentColor;
 }

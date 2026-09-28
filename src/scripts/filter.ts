@@ -1,5 +1,5 @@
 /**
- * The index filter as pure functions (docs/design.md, Index; SPEC 6.4): search over the normalised
+ * The index filter as pure functions (docs/design.md, Index; docs/site.md §6.4): search over the normalised
  * `search` text, OR within a facet, AND across facets, sort by newest or title with ties by slug.
  *
  * The query string is the facets form's own GET serialisation: `q=<text>`, `sort=title` (left out for

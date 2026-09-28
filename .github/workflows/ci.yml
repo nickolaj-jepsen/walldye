@@ -1,7 +1,7 @@
 name: CI
 
-# Private repo on the Free plan: minutes are metered and every job is rounded up to a whole
-# minute, so the pipeline is three jobs, PRs test on Chromium only, and doc-only changes skip CI.
+# build makes the one dist that e2e tests and deploy uploads. PRs run e2e on Chromium only for a
+# quick answer; main runs all three engines before deploying. Doc-only changes skip CI.
 on:
   push:
     branches: [main]

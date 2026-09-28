@@ -1,4 +1,3 @@
-import importlib.util
 import json
 import random
 
@@ -30,7 +29,6 @@ from walldye.tools import common
 
 NORD = {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"}
 FIREPROOF_SEEDS = {"bg": "#1C1B1A", "fg": "#DAD8CE", "accent": "#CF6A4C"}
-BRANCH_LIB = common.ROOT / "import/feat-wallgen-skill/scripts/wallgen.py"
 
 # --- theme token grammar ------------------------------------------------------
 
@@ -134,36 +132,16 @@ def test_is_light_tie_is_dark():
     assert common.regime_of("nord") == "dark"
 
 
-@pytest.fixture
-def branch(monkeypatch):
-    """The feat/wallgen-skill library, imported from import/ (its glyphs import a top-level `font`)."""
-    if not BRANCH_LIB.exists():
-        pytest.skip("branch library not imported")
-    monkeypatch.syspath_prepend(str(BRANCH_LIB.parent))
-    spec = importlib.util.spec_from_file_location("_branch_wallgen", BRANCH_LIB)
-    assert spec is not None and spec.loader is not None
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def test_derive_theme_matches_branch(branch):
-    for name, seeds in PRESETS.items():
-        # Presets added after the branch have no pinned tokens, so derive_theme is the reference.
-        expected = (
-            branch.parse_theme(name) if name in branch.PRESETS else branch.derive_theme(seeds)
-        )
-        assert parse_theme(name) == expected
-    r = random.Random(11)
-    triples = [tuple(f"#{r.getrandbits(24):06X}" for _ in range(3)) for _ in range(500)]
-    triples += [
-        ("#808080", "#808080", "#123456"),
-        ("#777777", "#787878", "#ABCDEF"),
-        ("#787878", "#777777", "#ABCDEF"),
-    ]
-    for bg, fg, accent in triples:
+def test_derive_theme_matches_wallgen():
+    """wallgen-themes.json pins the tokens of wallgen.py, the library the theme model was ported
+    from: its presets, 200 random seed triples and three regime ties."""
+    pins = json.loads((regen.HERE / "wallgen-themes.json").read_text())
+    assert pins["tokens"] == list(TOKENS)
+    for name, tokens in pins["presets"].items():
+        assert list(parse_theme(name).values()) == tokens, name
+    for bg, fg, accent, tokens in pins["derived"]:
         seeds = {"bg": bg, "fg": fg, "accent": accent}
-        assert derive_theme(seeds) == branch.derive_theme(seeds)
+        assert list(derive_theme(seeds).values()) == tokens, seeds
 
 
 # --- aspects ----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /**
  * The index page: facet filtering, search and sort with the state in the query string, live counts
- * and the results line (SPEC 6.4), and lazily recoloured plates (docs/design.md, Index).
+ * and the results line (docs/site.md §6.4), and lazily recoloured plates (docs/design.md, Index).
  */
 import { tokenOf, regimeOf, type Seeds } from '../lib/theme';
 import { currentSeeds, onThemeChange } from './current-theme';

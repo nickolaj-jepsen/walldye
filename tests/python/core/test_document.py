@@ -43,7 +43,7 @@ REAL = sorted(ROOT.glob("wallpapers/*/design.py")) + sorted(
 
 @pytest.mark.parametrize("path", REAL, ids=lambda p: f"{p.parent.name}/{p.name}")
 def test_real_designs_serialise_like_fresh_draws(path):
-    """The draw-once check for the M1 pieces and the skill examples: 16:9 in both regimes,
+    """The draw-once check for every piece and skill example: 16:9 in both regimes,
     under the template theme, one basis theme and one probe."""
     d = load_file(path)
     for regime in ("dark", "light"):

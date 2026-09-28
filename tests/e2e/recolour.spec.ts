@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { recolour, select } from '../../src/lib/recolour';
 import { parseToken, type Seeds } from '../../src/lib/theme';
 import { findColours } from '../../src/lib/tokenize';
-import { colourDistance, decodeRgb, M1, MANIFEST, maxSlotError, pixelDiff, pixelHex, platesSettled, readText, slotsOf } from './helpers';
+import { colourDistance, decodeRgb, MANIFEST, maxSlotError, pixelDiff, pixelHex, platesSettled, readText, REFERENCE_PIECES, slotsOf } from './helpers';
 
 /** What the index plate for `slug` should show under `seeds`: the committed 16:9 template through the TS recolour. */
 function expected(slug: string, seeds: Seeds): string {
@@ -69,14 +69,14 @@ test.describe('index recolour', () => {
       await expect(page.locator('html')).toHaveAttribute('style', new RegExp(`--seed-bg: ${seeds.bg}`));
 
       // The SVG text: exactly the TS recolour, and within 2 units of the Python render slot by slot.
-      const want = Object.fromEntries(M1.map((slug) => [slug, expected(slug, seeds)]));
+      const want = Object.fromEntries(REFERENCE_PIECES.map((slug) => [slug, expected(slug, seeds)]));
       await platesSettled(page, want);
-      for (const slug of M1) {
+      for (const slug of REFERENCE_PIECES) {
         expect(maxSlotError(want[slug], pythonRender(slug, theme)), `${slug} under ${theme}`).toBeLessThanOrEqual(2);
       }
 
       // The pixels: each plate as drawn, against the Python render drawn in its place by the same browser.
-      for (const slug of M1) {
+      for (const slug of REFERENCE_PIECES) {
         const plate = page.locator(`.grid > li[data-slug="${slug}"] .plate`);
         await plate.scrollIntoViewIfNeeded();
         const shown = decodeRgb(await plate.screenshot({ animations: 'disabled' }));

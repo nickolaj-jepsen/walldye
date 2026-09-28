@@ -76,8 +76,8 @@ const SETUP = {
   type: 'object',
   properties: {
     work: { type: 'string', description: 'absolute path of the batch scratch dir' },
-    existing: { type: 'array', items: str, description: 'every existing piece or design name' },
-    references: { type: 'array', items: str, description: 'absolute paths of the reference sheets' },
+    existing: { type: 'array', items: str, description: 'every existing piece slug' },
+    references: { type: 'array', items: str, description: 'absolute paths of the family reference sheets' },
     taxonomy: FACETS,
     notes: str,
   },
@@ -407,10 +407,8 @@ phase('Setup')
 const setup = await agent(`Prepare shared context for a batch of new wallpapers. You are in the walldye repo; change nothing in it.
 
 1. Scratch dir: \`uv run python -c "from walldye.tools.preview import preview_dir; print(preview_dir())"\` prints the preview dir. Create <that dir>/batch; it is WORK. Return its absolute path as work.
-2. Existing names. \`uv run walldye list\` prints slug, title, description, draft, aspects and named variants, tab-separated. Until the nixos import, the owner's older designs also count: ~/nixos/modules/desktop/dms/wallgen/designs/*.py (name = file stem, one-line module docstring) and ~/nixos/modules/desktop/dms/backgrounds/*.svg (name = file stem). Read them; never write there. Skip whichever of these paths does not exist.
-   Write WORK/existing.txt with one line per name, "name: description": walldye pieces first, then the nixos designs from their docstrings, then script-less SVGs as bare names. Many old docstrings name colours ("terracotta"); write "accent" or leave the colour out, so agents reading the file don't copy them.
-   Return every name (all three sources, deduplicated) as existing.
-3. Reference sheets. \`uv run walldye sheet --all --cols 6 -o WORK/reference.png\` sheets every built piece. Then, while the nixos designs exist, make WORK/reference-nixos.png from about 30 SVGs in ~/nixos/modules/desktop/dms/backgrounds/ that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip game fan pieces). Use a throwaway heredoc (\`uv run python - <<'EOF'\`) with walldye.tools.common.rasterise(svg_text, 320), which returns a PIL image, and tile them 6 across on a dark ground. Read both PNGs to confirm they rendered. Return the paths that exist as references.
+2. Existing names. \`uv run walldye list\` prints one line per piece: slug, title, description, draft, aspects and named variants, tab-separated. Write WORK/existing.txt with one line per piece, "slug: description", and return every slug as existing.
+3. Reference sheets. Pick about 30 pieces that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip the fan pieces, whose meta.yaml sets \`license: LicenseRef-fan-work\`) and sheet them as the family: \`uv run walldye sheet <slugs> --cols 6 -o WORK/reference.png\`. Then sheet the whole catalogue small, for spotting look-alikes: \`uv run walldye sheet --all --cols 12 --thumb 160 -o WORK/catalogue.png\`. Read both PNGs to confirm they rendered. Return the path of reference.png as references.
 4. Read taxonomy.yaml and return its technique, subject and lineage values as taxonomy.`, { label: 'setup', phase: 'Setup', schema: SETUP })
 
 if (!setup) throw new Error('wallpaper-batch: the setup agent returned nothing, and the existing-name list is needed to avoid slug collisions')
@@ -424,7 +422,7 @@ log(`${existing.size} existing names; scratch dir ${WORK}`)
 
 phase('Research')
 const pools = await parallel(LENS_LIST.map(l => () => agent(`${LOOK}
-EXISTING DESIGNS (do not duplicate; a riff is fine only if clearly distinct): Read ${WORK}/existing.txt. Look at ${REFS}: that is the family.
+EXISTING DESIGNS (do not duplicate; a riff is fine only if clearly distinct): Read ${WORK}/existing.txt and look at ${WORK}/catalogue.png, a sheet of every piece. Look at ${REFS}: that is the family.
 
 YOUR LENS: ${l.territory}
 
@@ -448,7 +446,7 @@ phase('Curate')
 const curated = await agent(`${LOOK}
 You are the art director curating a wallpaper set. Below are ${pool.length} brainstormed ideas (JSON) from ${LENS_LIST.length} research lenses. Select exactly ${TARGET} for production (the owner wants ${COUNT}; attrition later is real). Select fewer only if the pool cannot supply ${TARGET} that pass these rules, and say why in rejected_notes.
 - No near-duplicates: merge ideas that would look alike (same motif and method), keeping the stronger spec and combining the best details and leads.
-- Nothing that duplicates an EXISTING design at thumbnail size: Read ${WORK}/existing.txt and look at ${REFS}. Names must not collide with any name in existing.txt.
+- Nothing that duplicates an EXISTING design at thumbnail size: Read ${WORK}/existing.txt and look at ${WORK}/catalogue.png. Names must not collide with any name in existing.txt.
 - Diversity: at most ${CAP} of the selected ideas may share any one technique facet value (10% of ${TARGET}, and at least one); an idea with two technique values counts towards both. Mix roughly 55% focal-object compositions, 30% quiet full-bleed textures with an accent event and 15% bold graphic or poster pieces. Vary focal placement (not everything right of centre).
 - Reject anything off-look: other hues, photos, filters, loud or busy behind windows.
 - Feasibility: buildable in Python to a template under 600 kB. Rewrite vague methods concretely.
@@ -651,7 +649,7 @@ ${json(scored)}
 You may run \`walldye build\` (the designers could not). ${TIMING}
 1. Build every new piece. ${buildJobs(kept, 'set')} Note each slug that fails, with its error lines. Do not fix designs yourself.
 2. Near-clones: \`uv run python -c "from walldye.tools.check import near_clones; near_clones('${kept.join(' ')}'.split())"\`. This is the near-clone pass of \`walldye check --similar\` without the full check that build just ran. It compares each new piece's build/16x9.svg (the default version) with every built piece and prints \`similar (0.95): a ~ b\` per close pair (nothing when there are none), then \`similar: skipped, no build/16x9.svg: ...\` for the pieces that failed to build. It compares ink maps, so it misses motif-level duplicates (two different mountain pieces); trust your eyes over it, both ways.
-3. Contact sheets in pages of 30: \`uv run walldye sheet <slugs> --cols 6 -o ${WORK}/set-<page>.png\`, and each page again with \`--theme flexoki-light -o ${WORK}/set-<page>-light.png\`. Read every page next to ${REFS}. Hunt for look-alikes (within the batch and against existing pieces), weak thumbnails, tone that drifts from the family, too many focal points in the same spot, and light renders that fall apart.
+3. Contact sheets in pages of 30: \`uv run walldye sheet <slugs> --cols 6 -o ${WORK}/set-<page>.png\`, and each page again with \`--theme flexoki-light -o ${WORK}/set-<page>-light.png\`. Read every page next to ${REFS} and ${WORK}/catalogue.png. Hunt for look-alikes (within the batch and against existing pieces), weak thumbnails, tone that drifts from the family, too many focal points in the same spot, and light renders that fall apart.
 4. Decide:
    - duplicates: new pieces to drop because another piece, new or existing, already does the same thing better. Name the one each duplicates. Never list an existing piece, and never both halves of a pair.
    - polish: the weakest ~10%: critic scores of 6 or less, anything the sheets exposed, and every piece that failed to build. One specific issue each, naming the symptom and the target: "Too faint; the lobes do not read. Increase dot size and tone, pick an orbital with a striking silhouette, densest cores in accent" beats "make it better".
@@ -738,8 +736,8 @@ const sourcedGroups = await parallel(chunk(survivors, 3).map(group => () => agen
 For each piece below:
 1. Read wallpapers/<slug>/meta.yaml and design.py, and look at the piece (\`uv run walldye preview <slug>\`, Read the PNG), so you know what was actually built. The leads were written for the idea, and the piece may have drifted from it.
 2. For every lead, WebFetch its url (load WebFetch and WebSearch with ToolSearch if they are deferred). With no url, or a url that fails, you may WebSearch for a page about that exact work and use its url. Keep a lead only when a fetched page confirms the work; correct title, author and year from that page. A site that blocks bots (403 or 429) may stay if a search result confirms the page. Drop everything else, and drop leads that no longer match what the piece shows.
-3. kind: recreation only when the piece deliberately redraws that specific work (the owner must then choose a licence for it, so don't use it loosely); inspiration when the work suggested the idea; reference for background on a technique or phenomenon; data for a dataset the piece plots.
-4. Write the kept list as \`sources:\` in wallpapers/<slug>/meta.yaml: each item has kind and title, then author, year (a number) and url when known. Titles are plain text with no asterisks or quotes; the site italicises them. Change nothing else in the file, add no license line, and edit no other file.
+3. kind: recreation only when the piece deliberately redraws that specific work (the owner must then choose a licence for it, so don't use it loosely); inspiration when the work inspired the idea; reference for background on a technique, genre, place or phenomenon; data for a dataset the piece plots.
+4. Write the kept list as \`sources:\` in wallpapers/<slug>/meta.yaml: each item has kind, then title, author, year (a number) and url when known. A title names a work: the site italicises it, so a studio or artist with no single work gets author and no title. Titles are plain text with no asterisks or quotes. Change nothing else in the file, add no license line, and edit no other file.
 Never run \`walldye build\`. Return, per piece, the sources you wrote and the leads you dropped with the reason.
 PIECES AND LEADS:
 ${json(group.map(s => ({ slug: s, leads: pieces[s].idea.leads })))}`, { label: `sources:${group.join(',')}`, phase: 'Sources', schema: SOURCED })))

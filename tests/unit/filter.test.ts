@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { normaliseSearch } from '../../src/lib/content';
 import { countFor, matches, ordered, parseQuery, serialiseQuery, type Filterable } from '../../src/scripts/filter';
 
 const item = (slug: string, title: string, added: string, facets: string[], search = title.toLowerCase()): Filterable => ({
@@ -50,6 +51,13 @@ describe('matches / countFor', () => {
   it('searches the normalised text', () => {
     const s = parseQuery(new URLSearchParams('q=  GEORG   Nées '));
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['d']);
+  });
+
+  it('matches typewriter and typographer\'s apostrophes alike', () => {
+    const baldur = item('e', 'Baldur’s Gate', '2026-02-01', [], normaliseSearch('Baldur’s Gate'));
+    for (const q of ["baldur's", 'Baldur’s gate']) {
+      expect(matches(baldur, parseQuery(new URLSearchParams({ q })))).toBe(true);
+    }
   });
 
   it('counts a box against the other facets only', () => {

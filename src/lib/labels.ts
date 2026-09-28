@@ -99,5 +99,8 @@ export const TAKEDOWN_CONTACT = 'takedown@walldye.com';
  * shows nothing); no licence names or identifiers. A licence missing here fails the build. The
  * fan-work line is built by the detail page from `franchise` and TAKEDOWN_CONTACT.
  */
-export const LICENCE_LINES: Record<string, string> = {};
+export const LICENCE_LINES: Record<string, string> = {
+  // "Above" is the caption's "after …" line and the credit, which reuse under CC BY has to keep.
+  'CC-BY-4.0': 'Free to use, with credit as given above.',
+};
 

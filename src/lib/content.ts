@@ -146,9 +146,16 @@ export function sortPieces<T extends { data: SortKey }>(pieces: T[], order: Sort
   return pieces.slice().sort((a, b) => comparePieces(a.data, b.data, order));
 }
 
-/** Lowercase, accents stripped and whitespace collapsed; applied to both the search text and the query. */
+/** Lowercase, accents stripped, curly quotes straightened and whitespace collapsed; applied to both the search text and the query. */
 export function normaliseSearch(text: string): string {
-  return text.normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return text
+    .normalize('NFD')
+    .replace(/\p{M}+/gu, '')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** What the index search matches for a piece: title, description and source authors and titles. */
@@ -164,15 +171,47 @@ export interface CaptionSource {
 
 /**
  * Sources named in the caption: the recreations ("after …"), or when there are none the
- * inspirations ("suggested by …"); reference and data sources appear only as footnotes.
+ * inspirations ("inspired by …"); reference and data sources appear only as footnotes.
  */
-export function captionSources(p: Piece): { kind: 'recreation' | 'inspiration'; items: CaptionSource[] } | undefined {
+export function captionSources(p: Pick<Piece, 'sources'>): { kind: 'recreation' | 'inspiration'; items: CaptionSource[] } | undefined {
   const numbered = p.sources.map((source, i) => ({ source, n: i + 1 }));
   for (const kind of ['recreation', 'inspiration'] as const) {
     const items = numbered.filter((s) => s.source.kind === kind);
     if (items.length) return { kind, items };
   }
   return undefined;
+}
+
+/** One caption source as the text around its italic title. */
+export interface CaptionPart {
+  /** The list separator, then "{author}, " (or the bare author when there is no title). */
+  before: string;
+  title?: string;
+  lang?: string;
+  /** ", {year}" for a recreation with a year, else empty. */
+  after: string;
+  /** 1-based footnote number. */
+  n: number;
+}
+
+/**
+ * The caption's attribution (docs/design.md, Detail): "after " for recreations or "inspired by " for
+ * inspirations, then each source as "{author}, {title}" (recreations add ", {year}"), listed as
+ * "A, B and C" with missing fields dropped. A source by the same author as the one before it leaves
+ * the name out: "Mark Rothko, No. 61 and Seagram murals". Undefined when no source is captioned.
+ */
+export function captionParts(p: Pick<Piece, 'sources'>): { lead: string; parts: CaptionPart[] } | undefined {
+  const caption = captionSources(p);
+  if (!caption) return undefined;
+  const { kind, items } = caption;
+  const parts = items.map(({ source: s, n }, i) => {
+    const sep = i === 0 ? '' : i === items.length - 1 ? ' and ' : ', ';
+    const sameAuthor = i > 0 && s.title !== undefined && s.author !== undefined && s.author === items[i - 1].source.author;
+    const author = s.author && !sameAuthor ? `${s.author}${s.title ? ', ' : ''}` : '';
+    const after = kind === 'recreation' && s.year !== undefined ? `, ${s.year}` : '';
+    return { before: sep + author, title: s.title, lang: s.lang, after, n };
+  });
+  return { lead: kind === 'recreation' ? 'after ' : 'inspired by ', parts };
 }
 
 /** "27 September 2026" from an ISO date. */

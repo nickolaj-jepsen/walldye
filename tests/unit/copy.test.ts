@@ -1,7 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { captionParts, type Source } from '../../src/lib/content';
 import { loadMeta, slugs } from '../../src/lib/hash';
-import { colourWords, lintCopy, sentences } from '../../src/lib/meta';
+import { colourWords, lintCopy, sentences, smartQuotes, typesetMeta } from '../../src/lib/meta';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -46,5 +47,75 @@ describe('copy lint (h)', () => {
     expect(lintCopy({ description: 'Squares 12px wide.' })).toEqual(['description: machinery number "12px"']);
     expect(lintCopy({ description: 'One square in the accent.' })).toEqual(['description: theme role as a noun "the accent"']);
     expect(lintCopy({ description: 'Square accent cells, one picked out.' })).toEqual([]);
+  });
+});
+
+describe('typographer\'s quotes outside the notes', () => {
+  it('curls apostrophes and quotes, and leaves primes after figures', () => {
+    expect(smartQuotes("Pey'j's hovercraft on Jade's lighthouse")).toBe('Pey’j’s hovercraft on Jade’s lighthouse');
+    expect(smartQuotes("The players' 'best' lap, the \"W\", the '90s")).toBe('The players’ ‘best’ lap, the “W”, the ’90s');
+    expect(smartQuotes("Le Club de l'Ouest")).toBe('Le Club de l’Ouest');
+    expect(smartQuotes("16½''' ETA 6497-1, 12\" wide")).toBe("16½''' ETA 6497-1, 12\" wide");
+  });
+
+  it('applies to titles, descriptions, variant copy, sources and the franchise, not notes', () => {
+    const meta = {
+      title: "Baldur's Gate from the harbour",
+      description: "Wyrm's Rock at dusk.",
+      notes: "Markdown's own.",
+      sources: [{ kind: 'inspiration', title: "Mirror's Edge", author: 'DICE', year: 2008 }],
+      franchise: { title: "Baldur's Gate 3", owner: 'Larian Studios' },
+      variants: { default: { label: 'Harbour' }, night: { label: "Night's end", description: "The keep's lamps.", draft: true } },
+    };
+    expect(typesetMeta(meta)).toEqual({
+      ...meta,
+      title: 'Baldur’s Gate from the harbour',
+      description: 'Wyrm’s Rock at dusk.',
+      sources: [{ kind: 'inspiration', title: 'Mirror’s Edge', author: 'DICE', year: 2008 }],
+      franchise: { title: 'Baldur’s Gate 3', owner: 'Larian Studios' },
+      variants: { default: { label: 'Harbour' }, night: { label: 'Night’s end', description: 'The keep’s lamps.', draft: true } },
+    });
+    expect(meta.title).toBe("Baldur's Gate from the harbour");
+  });
+});
+
+describe('caption attribution', () => {
+  /** The caption as text, titles between asterisks where the page sets them in italics. */
+  const caption = (sources: Partial<Source>[]) => {
+    const c = captionParts({ sources: sources as Source[] });
+    return c && c.lead + c.parts.map((p) => `${p.before}${p.title ? `*${p.title}*` : ''}${p.after}`).join('');
+  };
+
+  it('lists sources as "A, B and C", even when an author has an "and" of its own', () => {
+    expect(
+      caption([
+        { kind: 'inspiration', author: 'NetHack DevTeam', title: 'NetHack' },
+        { kind: 'inspiration', author: 'Michael Toy and Glenn Wichman', title: 'Rogue' },
+        { kind: 'inspiration', author: 'Brian Walker', title: 'Brogue' },
+      ]),
+    ).toBe('inspired by NetHack DevTeam, *NetHack*, Michael Toy and Glenn Wichman, *Rogue* and Brian Walker, *Brogue*');
+  });
+
+  it('names an author once for consecutive works, and keeps years for recreations only', () => {
+    expect(
+      caption([
+        { kind: 'recreation', author: 'Mark Rothko', title: 'No. 61', year: 1953 },
+        { kind: 'recreation', author: 'Mark Rothko', title: 'Seagram murals', year: 1958 },
+      ]),
+    ).toBe('after Mark Rothko, *No. 61*, 1953 and *Seagram murals*, 1958');
+    expect(caption([{ kind: 'inspiration', author: 'Georg Nees', title: 'Schotter', year: 1968 }])).toBe('inspired by Georg Nees, *Schotter*');
+  });
+
+  it('prefers recreations, drops missing fields and leaves out references and data', () => {
+    expect(
+      caption([
+        { kind: 'inspiration', title: 'Uranometria' },
+        { kind: 'recreation', author: 'eBoy' },
+      ]),
+    ).toBe('after eBoy');
+    expect(caption([{ kind: 'inspiration', title: 'The Thames Tunnel' }, { kind: 'inspiration', author: 'ECM Records' }])).toBe(
+      'inspired by *The Thames Tunnel* and ECM Records',
+    );
+    expect(caption([{ kind: 'reference', title: 'Synthwave' }, { kind: 'data', title: 'd3-celestial' }])).toBeUndefined();
   });
 });

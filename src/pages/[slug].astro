@@ -42,7 +42,7 @@ const fanWork = p.licence === FAN_WORK ? p.franchise : undefined;
 const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LICENCE_LINES[p.licence] : undefined;
 ---
 
-<Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} ogType="article" mainClass="detail">
+<Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.description} ogType="article" mainClass="detail">
   <figure class="spread">
     <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div></PlateBox>
   </figure>
@@ -54,7 +54,7 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
       {captionSources(p) && <p class="attr"><Attribution piece={p} refs /></p>}
       <p class="desc" id="desc">{p.description}</p>
       <p class="credit">{credit.map((c) => (c.lnum ? <span class="lnum">{c.text}</span> : c.text))}</p>
-      {fanWork && <p class="licence">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact {TAKEDOWN_CONTACT} for takedown.</p>}
+      {fanWork && <p class="licence">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact <a href={`mailto:${TAKEDOWN_CONTACT}`}>{TAKEDOWN_CONTACT}</a> for takedown.</p>}
       {licenceLine && <p class="licence">{licenceLine}</p>}
       <dl class="facts hair-t">
         {technique.length > 0 && <Fragment><dt>Technique</dt><dd>{technique.map((f, i) => <Fragment>{i > 0 && ', '}{f.href ? <a href={f.href}>{f.label}</a> : f.label}</Fragment>)}</dd></Fragment>}

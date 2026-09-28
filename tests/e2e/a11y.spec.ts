@@ -6,7 +6,7 @@ const THEMES = ['fireproof', 'flexoki-light', 'nord'] as const;
 
 /**
  * Violations accepted on purpose, by rule and the selector of every node it flags.
- * The footnote back link is a lone "↑" after the sentence (SPEC 6.8), so its glyph, not its colour,
+ * The footnote back link is a lone "↑" after the sentence (docs/site.md §6.8), so its glyph, not its colour,
  * sets it apart from the text; axe cannot tell a symbol from a word.
  */
 const ACCEPTED: Record<string, string> = { 'link-in-text-block': '.back' };
@@ -140,6 +140,12 @@ test.describe('structure', () => {
     await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', /\/schotter$/);
     await expect(page.locator('meta[name=robots]')).toHaveCount(0);
   });
+
+  test('robots.txt lets every crawler in and names the sitemap', async ({ request }) => {
+    const robots = await request.get('/robots.txt');
+    expect(robots.status()).toBe(200);
+    expect(await robots.text()).toBe('User-agent: *\nAllow: /\n\nSitemap: https://walldye.com/sitemap-index.xml\n');
+  });
 });
 
 interface Stop {
@@ -159,7 +165,7 @@ async function tabStops(page: Page, limit = 80): Promise<Stop[]> {
       if (!el || el === document.body) return null;
       const r = el.getBoundingClientRect();
       const cs = getComputedStyle(el);
-      // Plate links draw their ring on the plate (SPEC 5); segmented radios on the label text.
+      // Plate links draw their ring on the plate (docs/site.md §5); segmented radios on the label text.
       const plate = el.querySelector('.plate');
       const ringOn = plate ? getComputedStyle(plate, '::after').boxShadow : '';
       const seg = el.matches('.seg input') ? getComputedStyle(el.nextElementSibling as Element).outlineStyle : 'none';

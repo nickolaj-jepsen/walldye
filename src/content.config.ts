@@ -6,7 +6,7 @@ import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
 import YAML from 'yaml';
 import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
-import { DEFAULT_LICENSE, FAN_WORK, isDraft, licenseOf, namedVariants, variantsMeta } from './lib/meta';
+import { DEFAULT_LICENSE, FAN_WORK, isDraft, licenseOf, namedVariants, typesetMeta, variantsMeta } from './lib/meta';
 import { FACET_LABELS, LICENCE_LINES, TAXONOMY_FACETS, UNLISTED, type TaxonomyFacet } from './lib/labels';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
@@ -131,7 +131,7 @@ const wallpaper = z
     script: z.string().nullable(),
     /** Aspects the piece composes natively, in SITE_ASPECTS order; the rest are crops of 16:9. */
     aspects: z.array(z.string()).min(1),
-    /** The default version's build, which the index, the social card and nixos show. */
+    /** The default version's build, which the index and the social card show. */
     ...build,
     /**
      * The versions a visitor can switch between, the default first and then the named variants in
@@ -275,7 +275,7 @@ function typesetNotes(html: string): string {
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
  * templates and their content-hashed URLs, the same for each named variant, design.py and the
  * resolved licence. Draft pieces and draft variants load only in `astro dev`; notes Markdown is
- * rendered into the entry (`render(entry)`).
+ * rendered into the entry (`render(entry)`), and the other visible text gets typographer's quotes.
  */
 function wallpapers(): Loader {
   return {
@@ -299,6 +299,8 @@ function wallpapers(): Loader {
             throw new Error(`${filePath}: not valid YAML: ${(e as Error).message}`);
           }
           if (typeof meta !== 'object' || Array.isArray(meta)) throw new Error(`${filePath}: must be a mapping`);
+          // meta.yaml keeps typewriter quotes; the notes get the same curling from Markdown.
+          meta = typesetMeta(meta);
           if (isDraft(meta) && !dev) continue;
           let attached;
           try {

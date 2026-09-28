@@ -2,7 +2,11 @@
 name = "walldye"
 version = "0.2.0"
 description = "Procedural SVG wallpapers recoloured from three seed colours."
-license = "GPL-3.0-or-later"
+readme = "README.md"
+authors = [{ name = "Nickolaj Jepsen" }]
+# font.py carries Spleen's glyphs under BSD-2-Clause; the rest of the package is GPL.
+license = "GPL-3.0-or-later AND BSD-2-Clause"
+license-files = ["LICENSE", "LICENSES/BSD-2-Clause.txt"]
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.5.3",
@@ -13,6 +17,10 @@ dependencies = [
     "scipy>=1.18.1",
     "shapely>=2.1.2",
 ]
+
+[project.urls]
+Homepage = "https://walldye.com"
+Repository = "https://github.com/nickolaj-jepsen/walldye"
 
 [project.scripts]
 walldye = "walldye.tools.cli:main"
@@ -42,7 +50,6 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-extend-exclude = ["import", "scripts/fonts/.cache"]
 
 [tool.ruff.lint]
 # Import sorting counts as formatting; the rest is ruff's default rule set.

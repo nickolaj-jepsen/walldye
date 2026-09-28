@@ -31,7 +31,6 @@ flags.
    has seeds, with the ones already built marked. Then check it doesn't exist yet:
    ```bash
    uv run walldye list | rg -i '<word>'
-   rg -il '<word>' ~/nixos/modules/desktop/dms/wallgen/designs/   # until the M2 import
    ```
    If it does, change the subject or the composition, not the parameters.
 2. Scaffold, with your own display name and model id, such as `"Claude Opus 5.5"` and
@@ -140,8 +139,10 @@ Keep the keys `walldye new` wrote, in that order, and add no comments: review re
 - `technique`, `subject`, `lineage`: only values listed in taxonomy.yaml. Put anything missing
   in `proposed_facets` (`{technique: [value]}`, drafts only); the owner decides in review.
 - `sources`: a list of `{kind, title, author, year, url}`. `kind` is `recreation` (after a
-  specific work), `inspiration` (suggested by one), `reference` (a technique, paper or fact)
-  or `data` (real data drawn). Leave out any field you can't confirm. Fetch every URL with
+  specific work), `inspiration` (inspired by one), `reference` (a technique, paper or fact)
+  or `data` (real data drawn). `title` names a work, and the site sets it in italics: an
+  artist or studio with no single work goes in `author` alone, and a genre, style, place or
+  phenomenon is a `reference`. Leave out any field you can't confirm. Fetch every URL with
   WebFetch before writing it, and keep it only when the page loads and shows what you cite.
   Never write a URL from memory.
 - `license`: leave it out for the CC0-1.0 default. A recreation needs an explicit one from

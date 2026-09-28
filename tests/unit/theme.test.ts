@@ -180,7 +180,7 @@ describe('site CSS', () => {
     expect(cssVars(PRESETS['flexoki-light'])).toEqual(resolveVars(light));
   });
 
-  it('matches the contrast figures in SPEC.md', () => {
+  it('matches the contrast figures in docs/site.md §2', () => {
     const ratio = (a: string, b: string) => contrast(a, b).toFixed(2);
     const f = cssVars(PRESETS.fireproof);
     expect(ratio(f['--text'], f['--bg'])).toBe('12.03');

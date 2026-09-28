@@ -40,7 +40,7 @@ META = {
 # vitest (b) themes: a 1-unit neighbour of fireproof (derived model), two presets, and a light
 # corner, so each regime is recoloured under two themes other than its template's.
 RECOLOUR_THEMES = ["1c1b1b-dad8ce-cf6a4c", "nord", "flexoki-light", "ffffff-000000-0000ff"]
-# The M1 pieces; every one of their templates gets reference renders under RECOLOUR_THEMES.
+# Every template of these pieces gets reference renders under RECOLOUR_THEMES.
 REFERENCE_PIECES = ["dither-moon", "radar-sweep", "schotter"]
 # The resvg-wasm parity reference: slug, aspect, theme, width in px.
 RESVG = ("schotter", "16:9", "nord", 960)

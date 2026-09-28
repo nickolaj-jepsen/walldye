@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { entries, pickTemplate, prepareTemplate, recolour, select, type Slots, type SlotsEntry } from '../../src/lib/recolour';
@@ -18,7 +18,7 @@ interface Manifest {
   resvg: { svg: string };
 }
 const MANIFEST = JSON.parse(read('tests/fixtures/manifest.json')) as Manifest;
-const M1 = Object.keys(MANIFEST.pieces);
+const REFERENCE_PIECES = Object.keys(MANIFEST.pieces);
 
 /** Largest per-channel difference between the slot colours of two SVGs with the same skeleton. */
 function maxSlotError(a: string, b: string): number {
@@ -33,7 +33,7 @@ function maxSlotError(a: string, b: string): number {
 }
 
 describe('fireproof passthrough (a)', () => {
-  const templates = M1.flatMap((slug) => entries(slotsOf(slug)).map(([key, entry]) => ({ slug, key, entry })));
+  const templates = REFERENCE_PIECES.flatMap((slug) => entries(slotsOf(slug)).map(([key, entry]) => ({ slug, key, entry })));
 
   it.each(templates)('$slug $key is returned byte for byte', ({ slug, entry }) => {
     const template = read(`wallpapers/${slug}/build/${entry.file}`);
@@ -44,7 +44,7 @@ describe('fireproof passthrough (a)', () => {
 
 describe('recolour matches the Python renders (b)', () => {
   it('uses fixtures made from the committed builds', () => {
-    for (const slug of M1) expect(slotsOf(slug).design_sha, `${slug}: rerun tests/python/fixtures/regen.py`).toBe(MANIFEST.pieces[slug].design_sha);
+    for (const slug of REFERENCE_PIECES) expect(slotsOf(slug).design_sha, `${slug}: rerun tests/python/fixtures/regen.py`).toBe(MANIFEST.pieces[slug].design_sha);
     expect(MANIFEST.themes).toHaveLength(4);
   });
 
@@ -136,9 +136,10 @@ describe('template choice', () => {
   });
 });
 
-describe('every committed template', () => {
-  it('has as many slots as slots.json says', () => {
-    for (const slug of readdirSync(`${ROOT}wallpapers`).filter((d) => M1.includes(d))) {
+// check-artifacts covers every other piece's templates in CI.
+describe("the reference pieces' templates", () => {
+  it('have as many slots as slots.json says', () => {
+    for (const slug of REFERENCE_PIECES) {
       for (const [key, e] of entries(slotsOf(slug))) {
         expect(findColours(read(`wallpapers/${slug}/build/${e.file}`)).length, `${slug} ${key}`).toBe(e.n);
       }
