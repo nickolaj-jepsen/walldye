@@ -114,18 +114,36 @@ export function filterGroups(pieces: Piece[]): FilterGroup[] {
 
 const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 
-export type SortOrder = 'newest' | 'title';
+/** The index's sort orders, in the order the form lists them; `newest` is the default. */
+export const SORT_ORDERS = ['newest', 'popular', 'views', 'title'] as const;
+export type SortOrder = (typeof SORT_ORDERS)[number];
+
+/** Whether `value` names a SortOrder. */
+export function isSortOrder(value: unknown): value is SortOrder {
+  return SORT_ORDERS.includes(value as SortOrder);
+}
 
 /** The fields the index sorts on; a Piece or an index `li`'s data attributes. */
 export interface SortKey {
   slug: string;
   title: string;
   added: string;
+  /** Every recorded page view. */
+  views: number;
+  /** Page views weighted towards the last few days. */
+  recent: number;
 }
 
-/** Index order: newest first (added descending) or by title, ties broken by slug. */
+/**
+ * Index order: newest first (added descending), by title, or most views first (`popular` by recent
+ * views, `views` by all of them). Title ties go by slug; the others by newest, then slug.
+ */
 export function comparePieces(a: SortKey, b: SortKey, order: SortOrder = 'newest'): number {
-  const primary = order === 'title' ? collator.compare(a.title, b.title) : b.added.localeCompare(a.added);
+  const newest = b.added.localeCompare(a.added);
+  const primary =
+    order === 'title'
+      ? collator.compare(a.title, b.title)
+      : (order === 'popular' ? b.recent - a.recent : order === 'views' ? b.views - a.views : 0) || newest;
   return primary || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
 }
 

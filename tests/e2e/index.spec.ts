@@ -10,7 +10,15 @@ async function catalogue(page: Page): Promise<Filterable[]> {
   const rows = await page.locator('.grid > li').evaluateAll((lis) =>
     lis.map((li) => {
       const d = (li as HTMLElement).dataset;
-      return { slug: d.slug ?? '', title: d.title ?? '', added: d.added ?? '', facets: d.facets ?? '', search: d.search ?? '' };
+      return {
+        slug: d.slug ?? '',
+        title: d.title ?? '',
+        added: d.added ?? '',
+        views: Number(d.views ?? 0),
+        recent: Number(d.recent ?? 0),
+        facets: d.facets ?? '',
+        search: d.search ?? '',
+      };
     }),
   );
   return rows.map((r) => ({ ...r, facets: new Set(r.facets.split(' ').filter(Boolean)) }));
@@ -96,6 +104,19 @@ test.describe('index filters', () => {
     expect(order).toEqual(shown(items, state({}, '', 'title')));
     expect(order).not.toEqual(shown(items, state({})));
     expect(new URL(page.url()).search).toBe('?sort=title');
+  });
+
+  test('the view sorts, when the build has views', async ({ page }) => {
+    await page.goto('/?sort=popular');
+    const popular = page.locator('#facets input[name=sort][value=popular]');
+    test.skip((await popular.count()) === 0, 'no stats/views/ in this build');
+    const items = await catalogue(page);
+    const order = () => page.locator('.grid > li').evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
+    await expect(popular).toBeChecked();
+    expect(await order()).toEqual(shown(items, state({}, '', 'popular')));
+    await page.locator('#facets input[name=sort][value=views]').check({ force: true });
+    expect(await order()).toEqual(shown(items, state({}, '', 'views')));
+    expect(new URL(page.url()).search).toBe('?sort=views');
   });
 
   test('a filtered load fills the count before it becomes the live region', async ({ page }) => {

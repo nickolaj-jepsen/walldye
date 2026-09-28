@@ -7,6 +7,8 @@ import { filterGroups, sortPieces } from '../lib/content';
 const entries = sortPieces(await getCollection('wallpapers'));
 const groups = filterGroups(entries.map((e) => e.data));
 const total = entries.length;
+// The view orders need a recorded view to mean anything (none in local builds without stats/).
+const viewed = entries.some((e) => e.data.views > 0);
 ---
 
 <Base description="Wallpapers drawn with code, in colours you choose." nav="index" mainClass="index">
@@ -22,6 +24,8 @@ const total = entries.length;
         <legend class="sc">Sort</legend>
         <div class="seg">
           <label><input type="radio" name="sort" value="newest" checked /><span>newest</span></label>
+          {viewed && <label><input type="radio" name="sort" value="popular" /><span>popular</span></label>}
+          {viewed && <label><input type="radio" name="sort" value="views" /><span>most viewed</span></label>}
           <label><input type="radio" name="sort" value="title" /><span>title</span></label>
         </div>
       </fieldset>

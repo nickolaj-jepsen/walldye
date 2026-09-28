@@ -8,10 +8,13 @@ import YAML from 'yaml';
 import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
 import { DEFAULT_LICENSE, FAN_WORK, isDraft, licenseOf, namedVariants, typesetMeta, variantsMeta } from './lib/meta';
 import { FACET_LABELS, LICENCE_LINES, MODEL_NAMES, TAXONOMY_FACETS, type TaxonomyFacet } from './lib/labels';
+import { DAY_FILE, parseDay, renames, viewTotals, type Day, type Views } from './lib/views';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
 const ROOT = resolve('.');
 const WALLPAPERS = join(ROOT, 'wallpapers');
+/** The `stats` branch's day files, checked out by CI; absent locally unless fetched. */
+const VIEWS = join(ROOT, 'stats', 'views');
 
 /** `path` relative to the project root, with forward slashes; the endpoints read files by it. */
 const rootPath = (path: string) => relative(ROOT, path).split(sep).join('/');
@@ -140,6 +143,10 @@ const wallpaper = z
      * meta.yaml order, draft ones only in `astro dev`; [] when no named variant is shown.
      */
     versions: z.array(version),
+    /** Page views on walldye.com, all of them. */
+    views: z.number().int().nonnegative(),
+    /** Page views weighted by age, a day's halving every HALF_LIFE_DAYS (src/lib/views.ts); rounded to 0.01. */
+    recent: z.number().nonnegative(),
   })
   .strict()
   .superRefine((m, ctx) => {
@@ -255,6 +262,23 @@ function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn:
   };
 }
 
+/** Views by slug from VIEWS, renames in public/_redirects folded in; empty without VIEWS. Throws naming a malformed file. */
+function loadViews(): Map<string, Views> {
+  if (!existsSync(VIEWS)) return new Map();
+  const days = new Map<string, Day>();
+  for (const file of readdirSync(VIEWS).sort()) {
+    const date = DAY_FILE.exec(file)?.[1];
+    if (!date) continue;
+    try {
+      days.set(date, parseDay(readFileSync(join(VIEWS, file), 'utf8')));
+    } catch (e) {
+      throw new Error(`${rootPath(join(VIEWS, file))}: ${(e as Error).message}`);
+    }
+  }
+  const redirects = join(ROOT, 'public', '_redirects');
+  return viewTotals(days, existsSync(redirects) ? renames(readFileSync(redirects, 'utf8')) : new Map());
+}
+
 /** Notes HTML with `<em>` as `<i>` (italics mark titles), acronyms in `<abbr>` and letter-like figures (Z64, 5.5) in `.lnum`; tags, entities and code are left alone. */
 function typesetNotes(html: string): string {
   const skip = /^<(\/?)(code|pre|abbr|kbd|samp)\b/i;
@@ -279,9 +303,10 @@ function typesetNotes(html: string): string {
 
 /**
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
- * templates and their content-hashed URLs, the same for each named variant, design.py and the
- * resolved licence. Draft pieces and draft variants load only in `astro dev`; notes Markdown is
- * rendered into the entry (`render(entry)`), and the other visible text gets typographer's quotes.
+ * templates and their content-hashed URLs, the same for each named variant, design.py, the
+ * resolved licence and the page views in stats/views/. Draft pieces and draft variants load only in
+ * `astro dev`; notes Markdown is rendered into the entry (`render(entry)`), and the other visible
+ * text gets typographer's quotes.
  */
 function wallpapers(): Loader {
   return {
@@ -292,6 +317,7 @@ function wallpapers(): Loader {
 
       const sync = async () => {
         const seen = new Set<string>();
+        const views = loadViews();
         const slugs = readdirSync(WALLPAPERS, { withFileTypes: true })
           .filter((d) => d.isDirectory() && existsSync(join(WALLPAPERS, d.name, 'meta.yaml')))
           .map((d) => d.name)
@@ -319,7 +345,9 @@ function wallpapers(): Loader {
             }
             throw e;
           }
-          const data = await parseData<Record<string, unknown>>({ id: slug, data: { ...meta, ...attached }, filePath });
+          const v = views.get(slug);
+          const counts = { views: v?.views ?? 0, recent: Math.round((v?.recent ?? 0) * 100) / 100 };
+          const data = await parseData<Record<string, unknown>>({ id: slug, data: { ...meta, ...attached, ...counts }, filePath });
           const notes = typeof data.notes === 'string' && data.notes.trim() ? data.notes : undefined;
           const rendered = notes ? await renderMarkdown(notes) : undefined;
           if (rendered) rendered.html = typesetNotes(rendered.html);

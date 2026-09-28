@@ -140,7 +140,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - Set like a book index: 20px entries with dot leaders and mono counts under small-caps legends, each row one full-width target, lowercase and sorted by label.
 - The groups are Technique, Subject, "Inspired by" (the lineage facet) and Other, which holds the computed facets: "has references", "fits any screen", "has source code", "made with Claude" and "human-made". Labels come from `src/lib/labels.ts`. An entry that matches every piece or none is left out.
 - Counts are live: each shows how many pieces its box would add (OR within a facet, AND across facets). A box that would add none is disabled, its term in `--text-dim` and its count hidden.
-- Search matches the title, the description and the sources' authors and titles. Sort is newest or title, ties broken by slug.
+- Search matches the title, the description and the sources' authors and titles. Sort is newest, popular (views, recent ones weighted up), most viewed or title. Title ties go by slug, the view orders' by newest; the view orders are left out of a build with no views.
 - The results line is the page's one live region: "234 wallpapers" or "4 of 234 wallpapers", with "Try fewer filters or a shorter search." under it when nothing matches. "clear" shows while anything is checked or searched.
 - On phones the filter is a closed disclosure whose summary shows "Filter" and the active terms. There is a skip link.
 

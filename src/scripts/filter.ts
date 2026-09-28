@@ -1,11 +1,11 @@
 /**
  * The index filter as pure functions: search over the normalised
- * `search` text, OR within a facet, AND across facets, sort by newest or title with ties by slug.
+ * `search` text, OR within a facet, AND across facets, and the orders of comparePieces().
  *
- * The query string is the facets form's own GET serialisation: `q=<text>`, `sort=title` (left out for
- * newest) and one `<facet>=<value>` per checked box.
+ * The query string is the facets form's own GET serialisation: `q=<text>`, `sort=<order>` (left out
+ * for newest) and one `<facet>=<value>` per checked box.
  */
-import { comparePieces, normaliseSearch, type SortKey, type SortOrder } from '../lib/content';
+import { comparePieces, isSortOrder, normaliseSearch, type SortKey, type SortOrder } from '../lib/content';
 
 /** Query keys that carry facet values, in the order the index form lists them. */
 export const FILTER_FACETS = ['technique', 'subject', 'lineage', 'other'] as const;
@@ -27,8 +27,8 @@ export interface Filterable extends SortKey {
 }
 
 /**
- * The filter state in `params`. `accept(facet, value)` drops values the index has no box for;
- * any `sort` other than `title` means newest.
+ * The filter state in `params`. `accept(facet, value)` drops values the index has no box for, and
+ * `accept('sort', order)` orders it has no radio for; an unknown or dropped `sort` means newest.
  */
 export function parseQuery(params: URLSearchParams, accept: (facet: string, value: string) => boolean = () => true): FilterState {
   const facets = new Map<string, Set<string>>();
@@ -39,7 +39,8 @@ export function parseQuery(params: URLSearchParams, accept: (facet: string, valu
       facets.get(facet)!.add(value);
     }
   }
-  return { q: params.get('q') ?? '', sort: params.get('sort') === 'title' ? 'title' : 'newest', facets };
+  const sort = params.get('sort');
+  return { q: params.get('q') ?? '', sort: isSortOrder(sort) && accept('sort', sort) ? sort : 'newest', facets };
 }
 
 /**
@@ -49,7 +50,7 @@ export function parseQuery(params: URLSearchParams, accept: (facet: string, valu
 export function serialiseQuery(state: FilterState, order?: readonly (readonly [facet: string, value: string])[]): string {
   const params = new URLSearchParams();
   if (state.q.trim()) params.append('q', state.q);
-  if (state.sort === 'title') params.append('sort', 'title');
+  if (state.sort !== 'newest') params.append('sort', state.sort);
   const pairs = order ?? FILTER_FACETS.flatMap((f) => [...(state.facets.get(f) ?? [])].map((v) => [f, v] as const));
   for (const [facet, value] of pairs) if (state.facets.get(facet)?.has(value)) params.append(facet, value);
   return params.toString();

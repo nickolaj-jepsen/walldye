@@ -14,7 +14,7 @@ const { versions, drafts } = versionCount(p);
 const described = [versions > 1 && `v-${s}`, attributed && `a-${s}`].filter(Boolean).join(' ') || undefined;
 ---
 
-<li data-slug={s} data-title={p.title} data-added={p.added} data-facets={facetPairs(p).join(' ')} data-search={searchText(p)}>
+<li data-slug={s} data-title={p.title} data-added={p.added} data-views={p.views} data-recent={p.recent} data-facets={facetPairs(p).join(' ')} data-search={searchText(p)}>
   <a href={`/${s}`} aria-labelledby={`t-${s}`} aria-describedby={described}><figure>
     <PlateBox piece={p} only169 lazy />
     <figcaption class="label-s"><h2 class="t" id={`t-${s}`}>{p.title}</h2>{versions > 1 && <span class="v lnum" id={`v-${s}`}>{versions} versions{drafts > 0 && ` (${drafts} draft)`}</span>}{attributed && <span class="a" id={`a-${s}`}><Attribution piece={p} /></span>}</figcaption>

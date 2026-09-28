@@ -2,6 +2,7 @@
  * The index page: facet filtering, search and sort with the state in the query string, live counts
  * and the results line, and lazily recoloured plates.
  */
+import { isSortOrder } from '../lib/content';
 import { tokenOf, type Seeds } from '../lib/theme';
 import { currentSeeds, onThemeChange } from './current-theme';
 import { countFor, matches, ordered, parseQuery, serialiseQuery, type Filterable, type FilterState } from './filter';
@@ -19,6 +20,8 @@ const items: Item[] = [...(grid?.querySelectorAll<HTMLLIElement>(':scope > li') 
   slug: li.dataset.slug ?? '',
   title: li.dataset.title ?? '',
   added: li.dataset.added ?? '',
+  views: Number(li.dataset.views ?? 0),
+  recent: Number(li.dataset.recent ?? 0),
   facets: new Set((li.dataset.facets ?? '').split(' ').filter(Boolean)),
   search: li.dataset.search ?? '',
   plate: li.querySelector<HTMLElement>('.plate'),
@@ -46,7 +49,8 @@ if (form && grid) {
       if (!facets.has(b.name)) facets.set(b.name, new Set());
       facets.get(b.name)!.add(b.value);
     }
-    return { q: search.value, sort: sorts.find((r) => r.checked)?.value === 'title' ? 'title' : 'newest', facets };
+    const sort = sorts.find((r) => r.checked)?.value;
+    return { q: search.value, sort: isSortOrder(sort) ? sort : 'newest', facets };
   };
 
   const write = (s: FilterState) => {
@@ -90,7 +94,8 @@ if (form && grid) {
     if (url.href !== location.href) history.replaceState(history.state, '', url.href);
   };
 
-  write(parseQuery(new URLSearchParams(location.search), (facet, value) => boxes.some((b) => b.name === facet && b.value === value)));
+  const controls = [...boxes, ...sorts];
+  write(parseQuery(new URLSearchParams(location.search), (name, value) => controls.some((c) => c.name === name && c.value === value)));
   apply();
   // The count only becomes a live region once it matches the address, so a filtered load is not announced.
   status?.setAttribute('role', 'status');

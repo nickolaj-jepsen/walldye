@@ -27,6 +27,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `src/`: the site. `src/lib/` has the TypeScript ports of the theme, recolour and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`; `src/lib/labels.ts` has the words visitors see for facet values and licences.
 - `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
+- `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.
 - `infra/www-redirect/`: the Worker that sends www.walldye.com to the apex, deployed by hand.
 - `.claude/skills/walldye/`: the skill for designing the wallpapers the owner names, or reworking one. `.claude/workflows/wallpaper-batch.js` invents a batch of new ones from research; `.claude/workflows/README.md` explains its arguments.
 

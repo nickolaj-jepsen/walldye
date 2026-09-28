@@ -1,0 +1,62 @@
+name: Views (daily)
+
+# Records each finished day's page views on the stats branch, then redeploys main so the index's
+# view sorts include them. Cloudflare samples a day once it is a few days old, so run it daily.
+on:
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: views
+  cancel-in-progress: false
+
+jobs:
+  views:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # Push to stats, and start ci.yml: a push made with GITHUB_TOKEN starts no workflow.
+      contents: write
+      actions: write
+    steps:
+      # Credentials stay for the push to stats; nothing below installs or runs third-party code.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Check out the stats branch
+        run: |
+          if git fetch --depth=1 origin stats; then
+            git worktree add --detach stats FETCH_HEAD
+          else
+            git worktree add --detach stats
+            git -C stats switch --orphan stats
+          fi
+      - name: Fetch the missing days
+        env:
+          CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.CLOUDFLARE_ANALYTICS_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/views/fetch.ts stats/views
+      - id: push
+        name: Commit and push them
+        working-directory: stats
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          last=$(git diff --cached --name-only | sort | tail -n 1 | sed 's|^views/||; s|\.json$||')
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "views through $last"
+          git push origin HEAD:refs/heads/stats
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+      - if: steps.push.outputs.changed == 'true'
+        name: Redeploy main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run ci.yml --ref main -f deploy=true
