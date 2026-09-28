@@ -60,6 +60,9 @@ export function otherValues(p: Piece): OtherValue[] {
   if (p.sources.length) out.push('references');
   if (fitsAnyScreen(p)) out.push('any-screen');
   if (p.hasScript) out.push('source-code');
+  // The Drawing section's two powers: a new draw of some version, and labelled knobs.
+  if (p.drawable && [p, ...p.versions].some((v) => v.redraw)) out.push('draw-another');
+  if (p.drawable && p.knobs.length) out.push('adjustable');
   out.push(p.model ? 'claude' : 'human-made');
   return out;
 }

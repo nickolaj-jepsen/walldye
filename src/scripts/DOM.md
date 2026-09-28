@@ -52,7 +52,7 @@ When storage cannot be written, `src/lib/theme-store.ts` keeps the token on `<ht
 | `#facets` | `form[action="/"][method=get][role=search]` | Stop `submit`. On `reset`, defer the re-apply by one task. |
 | `#q` | `input[type=search][name=q]` | Normalise with `normaliseSearch()` from `src/lib/content.ts` and match against `data-search`. |
 | `#facets input[name=sort]` | radios `newest` (checked), `popular`, `views` and `title` | `popular` and `views` are there only when a piece has a recorded view. |
-| `#facets input[type=checkbox][name=<facet>][value=<value>]` | inside `label.entry` | `<facet>` is `technique`, `subject`, `lineage` or `other`; `other` takes `references`, `any-screen`, `source-code`, `claude` or `human-made`. |
+| `#facets input[type=checkbox][name=<facet>][value=<value>]` | inside `label.entry` | `<facet>` is `technique`, `subject`, `lineage` or `other`; `other` takes `references`, `any-screen`, `source-code`, `draw-another`, `adjustable`, `claude` or `human-made`. |
 | `label.entry .count` | `span.count` | Starts at the unfiltered count. Disable a box when its live count is 0 and it is not checked. |
 | `#result-count` | `span`, the one live region | Starts as "N wallpapers". Add `role=status` after the first render from the query string, so a filtered load is not announced; then write it only when the text changes. |
 | `.results-line .clear` | `button[type=reset][form=facets][hidden]` | Show it while any box is checked or the search is not empty. |

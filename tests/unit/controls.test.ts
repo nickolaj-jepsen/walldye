@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { otherValues, type Piece } from '../../src/lib/content';
 import {
   DRAW_MAX,
   DRAW_MIN,
@@ -51,6 +52,19 @@ describe('text knobs', () => {
     expect(shellWord('sweep=200')).toBe('sweep=200');
     expect(editsSuffix(e, KNOBS)).toBe('-wordit_s_a_long_word');
     expect(editsSuffix({ draw: null, knobs: { word: 'abcdefghijklmnopq' } }, KNOBS)).toBe('-wordabcdefghijklmnop');
+  });
+});
+
+describe('index filters', () => {
+  it('offer "can draw another" and "can be adjusted" only for pieces the page can redraw', () => {
+    const base: Record<string, unknown> = { sources: [], aspects: ['16:9'], hasScript: true, model: 'claude-opus-5-5', drawable: true, knobs: [], redraw: false, versions: [] };
+    const piece = (p: Record<string, unknown>) => ({ ...base, ...p }) as unknown as Piece;
+    const other = (p: Piece) => otherValues(p).filter((v) => v === 'draw-another' || v === 'adjustable');
+    expect(other(piece({}))).toEqual([]);
+    expect(other(piece({ redraw: true }))).toEqual(['draw-another']);
+    expect(other(piece({ versions: [{ redraw: false }, { redraw: true }] }))).toEqual(['draw-another']);
+    expect(other(piece({ knobs: [SWEEP] }))).toEqual(['adjustable']);
+    expect(other(piece({ drawable: false, redraw: true, knobs: [SWEEP] }))).toEqual([]);
   });
 });
 
