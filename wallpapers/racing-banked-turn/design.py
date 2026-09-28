@@ -1,4 +1,4 @@
-"""A drafted cross-section of a Daytona turn to scale, with one car's force triangle lit at its centre of mass."""
+"""A drafted cross-section of a Daytona turn to scale, keyed to a plan of the oval, with one car's force triangle lit at its centre of mass."""
 
 import math
 
@@ -41,6 +41,19 @@ W_LEN = 12.0  # the weight arrow, in feet of the sheet
 OFF = 19.0  # the width dimension's offset from the surface
 ARC_R = 13.0  # the angle dimension's radius
 DASHDOT = (22, 6, 3, 6)
+# key plan: data/tri-oval.json is the oval's centreline in feet, in travel order, from the
+# centre of the first and second turns; the section cuts it along +x at CUT_X
+CUT_X = 991.0
+PLAN_X, PLAN_Y = (-4333.0, CUT_X), (-1615.0, 1010.0)  # the plan's extent
+KP = 0.075  # key plan scale, px per foot, beside a 15 px per foot section
+REACH, LEG = 32, 32  # the cutting plane either side of the track, and its arrows
+GAP = 60  # between the cutting plane and the section's infield
+
+
+def whole(length: float) -> float:
+    """The longest run up to `length` that ends a DASHDOT line on a whole dash."""
+    period, dash = sum(DASHDOT), DASHDOT[0]
+    return length if length < dash else (length - dash) // period * period + dash
 
 
 def ang(p: Vec, q: Vec) -> float:
@@ -56,11 +69,19 @@ def box(x0: float, z0: float, x1: float, z1: float) -> list[tuple[float, float]]
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     if s.landscape:
-        k, x_in = 15.0, X_IN
-        toe = Vec(round(s.w * 0.56), round(s.h * 0.8))
+        # key plan and section side by side on the line of action, shrunk to fit if need be
+        scaled = (PLAN_X[1] - PLAN_X[0]) * KP + (X_OUT + 0.7 - X_IN) * 15
+        f = min(1.0, (s.w - 240 - REACH - GAP) / scaled)
+        k, kp, x_in = 15 * f, KP * f, X_IN
+        left = (s.w - scaled * f - REACH - GAP) / 2
+        left += min(200.0, max(0.0, left - 140))  # wide screens: the pair sits right of centre
+        toe = Vec(
+            round(left + (PLAN_X[1] - PLAN_X[0]) * kp + REACH + GAP - X_IN * k), round(s.h * 0.8)
+        )
     else:
-        # width-bound: the wall keeps its margin and the infield runs off the left edge
-        k = 13.5
+        # width-bound: the wall keeps its margin and the infield runs off the left edge; the
+        # key plan stands above
+        k, kp = 13.5, 0.1
         toe = Vec(round(s.w - 100 - (X_OUT + 0.7) * k), round(s.h * 0.75))
         x_in = -toe.x / k - 2
     m = Affine.translate(toe.x, toe.y) @ Affine.scale(k, -k)
@@ -162,7 +183,6 @@ def draw(s: Canvas) -> None:
     tip = top + (0.0, -W_LEN)
     g, a, b = at(cg), at(top), at(tip)
     legs, result = P().M(g).L(a).L(b), P().M(g).L(b)
-    s.stroke(P().M(b.x - 12, b.y).H(at((x_in, 0)).x), UI_ALT, 1.2, dash=DASHDOT)
     s.stroke(P().M(g).L(a).L(b).M(g).L(b), BG, 5, cap="round", join="round")
     s.stroke(legs, ACCENT, 1.6, join="round")
     s.stroke(result, ACCENT, 2.4)
@@ -173,6 +193,24 @@ def draw(s: Canvas) -> None:
     cg_mark(heads, g, 6)
     s.fill(heads, ACCENT)
     s.stroke(P().circle(g, 6), ACCENT, 1.4)
+
+    # the line of action runs on to the turn's centre in the key plan beside the section, or
+    # off the edge when the plan stands above it
+    if s.landscape:
+        centre = Vec(at((x_in, 0)).x - GAP - REACH - CUT_X * kp, b.y)
+        run = b.x - 12 - (centre.x + CUT_X * kp + REACH + 6)
+        stretch = run / whole(run)  # a few percent, so the line ends on a dash at the cut
+        action = P().M(b.x - 12, b.y).H(b.x - 12 - run)
+        s.stroke(action, UI_ALT, 1.2, dash=[d * stretch for d in DASHDOT])
+    else:
+        mid = Vec(s.w * 0.45, at((fx, f1)).y - 130)
+        centre = mid + Vec(-sum(PLAN_X) / 2, sum(PLAN_Y) / 2) * kp
+        s.stroke(P().M(b.x - 12, b.y).H(0), UI_ALT, 1.2, dash=DASHDOT)
+    inner = centre.x + CUT_X * kp - REACH - 6
+    if inner - centre.x - 12 >= DASHDOT[0]:
+        stub = P().M(inner, centre.y).H(inner - whole(inner - centre.x - 12))
+        s.stroke(stub, UI_ALT, 1.2, dash=DASHDOT)
+    key_plan(s, s.data("tri-oval.json"), centre, kp)
 
     # dimensions: the banking angle at the top, the width up the slope, the fence height
     ext, dims, arrows = P(), P(), P()
@@ -199,6 +237,30 @@ def draw(s: Canvas) -> None:
     s.stroke(ext, UI, 1.2)
     s.stroke(dims, UI_ALT, 1.2)
     s.fill(arrows, UI_ALT)
+
+
+def key_plan(s: Canvas, loop: list[list[float]], centre: Vec, kp: float) -> None:
+    """The oval in plan at `kp` px per foot, with the centre of the cut turn at `centre`: the
+    track as a fixed-width band, the cutting plane across the turn with arrows looking along the direction of
+    travel, and a centre mark."""
+    mp = Affine.translate(*centre) @ Affine.scale(kp, -kp)
+    line = np.asarray(loop, dtype=float)
+    for _ in range(2):  # Chaikin corner cutting evens out the tracing
+        nxt = np.roll(line, -1, axis=0)
+        line = np.stack([0.75 * line + 0.25 * nxt, 0.25 * line + 0.75 * nxt], axis=1).reshape(-1, 2)
+    track = P().poly(mp.apply(line), closed=True)
+    s.stroke(track, UI, 8, join="round")  # widened well past scale so the loop reads as a track
+    cross = mp((CUT_X, 0.0))
+    ends = [Vec(cross.x - REACH, cross.y), Vec(cross.x + REACH, cross.y)]
+    plane, heads = P(), P()
+    for e in ends:
+        plane.M(e.x, e.y + 1).V(e.y - LEG + 6)
+        heads.arrowhead((e.x, e.y - LEG), 16, deg=-90, width=5)
+    plane.M(ends[0]).L(ends[1])
+    s.stroke(plane, UI_HI, 2.2, dash=(14, 4, 4, 4))
+    s.fill(heads, UI_HI)
+    mark = P().M(centre.x - 9, centre.y).H(centre.x + 9).M(centre.x, centre.y - 9).V(centre.y + 9)
+    s.stroke(mark, UI_ALT, 1.4)
 
 
 def cg_mark(d: Path, c: Vec, r: float) -> None:
