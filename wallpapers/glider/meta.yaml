@@ -1,0 +1,19 @@
+title: Escaping glider
+description: One glider escapes up and to the right from a burnt-out Game of Life soup, three fading echoes behind it.
+notes: |
+  A random soup of cells ran for 1,500 generations of Conway's rules. Anything still changing was then cleared, which leaves still lifes and blinkers, and only the largest cluster was kept. A glider moves one cell diagonally every four generations, so its echoes show where it was 12, 24 and 36 generations earlier.
+technique: [simulation, pixel]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    topic: Conway's Game of Life
+    author: John Horton Conway
+    year: 1970
+    url: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+  - kind: inspiration
+    topic: Hacker emblem
+    author: Eric S. Raymond
+    url: https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
+added: 2026-09-27
+model: claude-opus-5-5
