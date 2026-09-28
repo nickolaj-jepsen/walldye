@@ -1,0 +1,15 @@
+title: Double slit
+description: Seen side on, crest arcs from two slits cross in rows of beads. Each row runs to a bright fringe in the comb of lines drawn out from the screen.
+notes: |
+  Light arrives as a plane wave and leaves each slit as circular crests. Where a crest from one slit crosses a crest from the other, the two add up, and those crossings fall along curves where the paths to the two slits differ by a whole number of wavelengths. Each curve ends on a bright fringe.
+
+  Each line of the comb is as long as the light is bright at that point on the screen. Near the middle, the fringes are spaced by the wavelength times the distance to the screen, divided by the slit spacing. Each slit is a quarter as wide as that spacing, so the spread of light through one slit alone, traced by the dashed curve, dims the fringes in groups and all but removes every fourth one.
+technique: [line]
+subject: [physics]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    topic: Double-slit experiment
+    url: https://en.wikipedia.org/wiki/Double-slit_experiment
+added: 2026-09-27
+model: claude-opus-5-5

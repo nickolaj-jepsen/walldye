@@ -1,0 +1,20 @@
+title: Great comet
+description: A hundred curved lines, one per dust grain size, peel away from a comet's straight ion tail.
+notes: |
+  Each curved line is a syndyne: the positions, at one moment, of all the grains of one size that the nucleus has shed since it passed closest to the Sun. The lines come from integrating 110 grain sizes along a parabolic orbit, following Finson and Probstein's model of dust tails.
+
+  Sunlight pushes the smallest grains hardest, so their lines run furthest, close beside the ion tail before curving away; the largest grains barely leave the nucleus and form the short inner arcs. The ion tail, gas the solar wind blows away from the Sun, is a single straight line. The fanned tail recalls Comet McNaught, the great comet of 2007.
+technique: [line, simulation]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    topic: Comet McNaught (C/2006 P1)
+    url: https://en.wikipedia.org/wiki/Comet_McNaught
+  - kind: reference
+    title: A theory of dust comets. I. Model and equations
+    author: Michael L. Finson and Ronald F. Probstein
+    year: 1968
+    url: https://adsabs.harvard.edu/pdf/1968ApJ...154..327F
+added: 2026-09-27
+model: claude-opus-5-5

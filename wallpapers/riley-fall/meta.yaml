@@ -1,0 +1,17 @@
+title: Rippling rows
+description: Level lines fill the lower screen, rippling faster towards the right edge, their crests leaning. One line is picked out.
+notes: |
+  Takes from Bridget Riley's *Fall* (1963) the idea of one wavy line repeated until its tightening waves start to move.
+
+  Here the lines lie flat and quicken towards the right, and each one lags a little behind the one below it, so the crests lean instead of stacking.
+technique: [line]
+subject: []
+lineage: [op-art]
+sources:
+  - kind: inspiration
+    title: Fall
+    author: Bridget Riley
+    year: 1963
+    url: https://www.tate.org.uk/art/artworks/riley-fall-t00616
+added: 2026-09-27
+model: claude-opus-5-5

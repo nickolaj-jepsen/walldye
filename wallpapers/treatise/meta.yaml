@@ -1,0 +1,20 @@
+title: Graphic score
+description: 'A graphic score strung along one line: a bisected circle, a triangle, a staff bending upward and one filled note.'
+notes: |
+  Cornelius Cardew made *Treatise* between 1963 and 1967: 193 pages of lines, symbols and geometric shapes, with no instructions for the players. Through most of its pages runs a nearly unbroken line that Cardew called "the lifeline of the reader". This page hangs its shapes on that line.
+technique: [line]
+subject: [music]
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: Treatise
+    author: Cornelius Cardew
+    year: 1967
+    url: https://en.wikipedia.org/wiki/Treatise_(music)
+  - kind: reference
+    title: The Infinite Readings of Cornelius Cardew's Treatise
+    author: Hannah Edgar
+    year: 2023
+    url: https://daily.bandcamp.com/features/cornelius-cardew-treatise-feature
+added: 2026-09-27
+model: claude-opus-5-5

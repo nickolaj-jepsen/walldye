@@ -1,0 +1,18 @@
+title: Dandelion clock
+description: Six parachutes drift from the bald side of a hairline dandelion clock, the farthest two picked out.
+notes: |
+  The head holds 260 parachutes spread evenly over a sphere, seen at a slight turn, so those pointing towards or away from you look shorter. Those at the back are thinned out and drawn fainter, and bare stalks mark where the drifting ones broke off.
+technique: [line]
+subject: [flora-fauna]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Urformen der Kunst
+    author: Karl Blossfeldt
+    year: 1928
+    url: https://de.wikipedia.org/wiki/Karl_Blossfeldt
+  - kind: reference
+    topic: Pappus (botany)
+    url: https://en.wikipedia.org/wiki/Pappus_(botany)
+added: 2026-09-27
+model: claude-opus-5-5

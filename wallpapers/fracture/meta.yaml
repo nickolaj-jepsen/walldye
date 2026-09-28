@@ -1,0 +1,15 @@
+title: Struck pane
+description: Glass struck high on the right. Cracks run to every edge, ringed by shorter ones, and the shards at the impact are filled in.
+notes: |
+  Each long crack is a random walk that turns a little at every step, thinning and fading as it runs out to the edge of the screen. Shorter cracks join neighbouring long ones in rings that spread wider each time and sag toward the impact, and a few branches grow off them until they meet another crack. The shards are an irregular star cut apart along the cracks, around a crushed core where some pieces are missing.
+technique: [line]
+subject: []
+lineage: [creative-coding]
+sources:
+  - kind: inspiration
+    title: Fracture
+    author: Anders Hoff
+    year: 2015
+    url: https://github.com/inconvergent/fracture
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,26 @@
+title: Harmonograph
+description: A damped pendulum drawing at two to three. Its loops shrink inward to a few lit turns around an eye with one dot.
+notes: Each axis adds two damped swings, as a two-pendulum harmonograph does, and one swing per axis runs slightly fast, so every loop lands a little turned from the last.
+technique: [line]
+subject: [maths, physics]
+lineage: [early-computer-art]
+sources:
+  - kind: reference
+    topic: Harmonograph
+    url: https://en.wikipedia.org/wiki/Harmonograph
+  - kind: inspiration
+    title: Oszillogramme
+    author: Herbert W. Franke
+    year: 1956
+    url: https://history.siggraph.org/artwork/herbert-w-franke-serie-1956-oszillogramme/
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Two to three
+  octave:
+    label: One to two
+    description: At one to two, the damped pendulum sweeps a wide fan around a round eye with one dot.
+  twelfth:
+    label: One to three
+    description: At one to three, a damped pendulum draws four blades meeting at a small eye with one dot.

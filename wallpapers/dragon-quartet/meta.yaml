@@ -1,0 +1,17 @@
+title: Dragon quartet
+description: 'Four Heighway dragons pinwheel from one point: three in faint outline, the fourth filled in.'
+notes: |
+  Fold a strip of paper in half ten times, open every crease to a right angle, and its edge traces a Heighway dragon of 1,024 steps. Here each step becomes a small square with the step as its diagonal. Four copies, each a quarter turn from the next around their shared start, fit together without overlapping.
+technique: [line, flat]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    topic: Dragon curve
+    url: https://en.wikipedia.org/wiki/Dragon_curve
+  - kind: reference
+    title: Number representations and dragon curves
+    author: Chandler Davis and Donald Knuth
+    year: 1970
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,21 @@
+title: Tree rings
+description: A felled trunk's rings fill one corner. One fire year is picked out, and a drying crack splits in from the bark.
+notes: |
+  Each ring is one year of growth, wide after a wet season and narrow after a drought. Here the widths narrow with age and swing with a slow climate cycle, with four fat years and a run of three drought years just outside the fire year. Tree-ring studies date past wildfires from the scars they leave in the ring of that year.
+
+  The crack is a drying check. Wood shrinks more around the rings than across them, so the end of a log splits in from the bark as it dries.
+technique: [line]
+subject: [flora-fauna]
+lineage: []
+sources:
+  - kind: reference
+    topic: Dendrochronology
+    url: https://en.wikipedia.org/wiki/Dendrochronology
+  - kind: reference
+    topic: Dendropyrochronology
+    url: https://en.wikipedia.org/wiki/Dendropyrochronology
+  - kind: reference
+    topic: Wood drying
+    url: https://en.wikipedia.org/wiki/Wood_drying
+added: 2026-09-27
+model: claude-opus-5-5

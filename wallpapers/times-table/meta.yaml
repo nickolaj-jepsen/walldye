@@ -1,0 +1,17 @@
+title: Times table
+description: Two hundred nails on a ring, each strung to double its number. The strings trace a cardioid, lit at its cusp.
+notes: |
+  Number the nails 0 to 199 and run a string from each nail n to nail 2n, counting past 199 round from 0 again. Every string touches the cardioid at one point and is drawn brightest there, so the curve shows where the strings crowd together.
+technique: [line]
+subject: [maths]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Times Tables, Mandelbrot and the Heart of Mathematics
+    author: Mathologer
+    url: https://www.youtube.com/watch?v=qhbuKbxJsk8
+  - kind: reference
+    topic: Cardioid
+    url: https://en.wikipedia.org/wiki/Cardioid
+added: 2026-09-27
+model: claude-opus-5-5

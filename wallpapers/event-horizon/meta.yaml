@@ -1,0 +1,23 @@
+title: Event horizon
+description: Accretion-disk rings bend over an event horizon's shadow, most heavily lit on the side swinging towards us.
+notes: |
+  Each line is an isoradial: every point of the disk at one distance from the hole, the curves Jean-Pierre Luminet plotted in 1979 for his simulated photograph of such a disk. Light from the far half passes close to the hole on its way to us, so that half appears lifted over the top of the shadow; a point-lens formula stands in here for tracing each ray. The thin rim under the shadow is the disk's underside, its light bent around the hole.
+
+  The disk turns with its left side coming towards us. Relativistic beaming boosts the light from that side, so the rings grow stronger from right to left, and the outer, cooler rings fade out.
+technique: [line]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    title: Image of a spherical black hole with thin accretion disk
+    author: Jean-Pierre Luminet
+    year: 1979
+    url: https://adsabs.harvard.edu/pdf/1979A%26A....75..228L
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Slightly above
+  edge-on:
+    label: Edge-on
+    description: Nearly edge-on, an accretion disk crosses the event horizon's shadow as a thin band, its far side arched overhead.

@@ -1,0 +1,18 @@
+title: Star trails
+description: Hundreds of star trails, three of them lit, wheel round a pole off the upper left toward a ridge of spruces.
+notes: |
+  A long exposure aimed at the celestial pole turns each star into an arc of a circle around it. The sky turns about 15 degrees an hour, so these 38-degree trails stand for roughly two and a half hours of exposure.
+
+  The trails thin out towards the upper right. The forest is one outline: a low canopy where it grows dense, with taller spruces rising from it.
+technique: [line]
+subject: [space, landscape]
+lineage: []
+sources:
+  - kind: reference
+    topic: Star trail
+    url: https://en.wikipedia.org/wiki/Star_trail
+  - kind: reference
+    topic: Diurnal motion
+    url: https://en.wikipedia.org/wiki/Diurnal_motion
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,28 @@
+title: One-line moon
+description: One closed line through 3,500 stipple points draws a crescent moon beside a thin circle for the unlit disc.
+notes: |
+  The method is Kaplan and Bosch's TSP art. The points come from weighted Voronoi stippling: scattered in proportion to how brightly each part of the moon is lit, then moved twelve times to the centre of mass of their Voronoi cells.
+
+  A path that always steps to the nearest unvisited point links them into a loop. 2-opt and Or-opt moves then shorten it, swapping pairs of links or moving short runs of points, until no change among nearby points helps.
+technique: [line, stipple]
+subject: [space]
+lineage: [creative-coding]
+sources:
+  - kind: reference
+    title: TSP Art
+    author: Craig S. Kaplan and Robert Bosch
+    year: 2005
+    url: https://archive.bridgesmathart.org/2005/bridges2005-301.html
+  - kind: reference
+    title: Weighted Voronoi stippling
+    author: Adrian Secord
+    year: 2002
+    url: https://www.cs.ubc.ca/labs/imager/tr/2002/secord2002b/
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Crescent moon
+  gibbous:
+    label: Gibbous moon
+    description: One closed line through 16,000 stipple points draws a gibbous moon lit from the lower left.

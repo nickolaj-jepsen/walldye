@@ -1,0 +1,19 @@
+title: Vinyl record
+description: A long-playing record runs off the screen, five tracks of groove spiralling in to a filled label.
+notes: |
+  The grooves are drawn as separate rings rather than one spiral, each nudged off its spacing by a hair, with wider bands of bare vinyl between the tracks. Past the last track the lead-out groove circles the label three times and ends in the locked groove, the silent loop that keeps the needle off the label.
+technique: [line]
+subject: [music]
+lineage: []
+sources:
+  - kind: reference
+    topic: LP record
+    url: https://en.wikipedia.org/wiki/LP_record
+  - kind: reference
+    topic: Unusual types of gramophone records
+    url: https://en.wikipedia.org/wiki/Unusual_types_of_gramophone_records
+  - kind: inspiration
+    author: ECM Records
+    url: https://en.wikipedia.org/wiki/ECM_Records
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,18 @@
+title: Core rope
+description: Fifty-two wires thread through eight ring cores or loop around them. The lit one passes through four.
+notes: |
+  Core rope memory held the fixed program of the Apollo Guidance Computer. A sense wire threaded through a core stores a 1, and one routed around it stores a 0; read along the picked-out wire, these eight cores hold 10110010.
+technique: [line]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    title: 'Software woven into wire: Core rope and the Apollo Guidance Computer'
+    author: Ken Shirriff
+    year: 2019
+    url: https://www.righto.com/2019/07/software-woven-into-wire-core-rope-and.html
+  - kind: reference
+    topic: Core rope memory
+    url: https://en.wikipedia.org/wiki/Core_rope_memory
+added: 2026-09-27
+model: claude-opus-5-5
