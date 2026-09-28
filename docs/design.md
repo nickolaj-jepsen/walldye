@@ -1,6 +1,6 @@
 # walldye: design decisions
 
-Decided 2026-09-27 in a design interview, then corrected by a review of the plan against the `feat/wallgen-skill` code and the nixos config. This is the source of truth for milestones 1 and 2; update it when a decision changes.
+Decided 2026-09-27 in a design interview, then corrected by a review of the plan against the `feat/wallgen-skill` code and the nixos config. The design API was redesigned on 2026-09-28 in a second interview (API v2); [api.md](api.md) is its reference, with every signature, and this file links there instead of repeating them. This is the source of truth for milestones 1 and 2; update it when a decision changes.
 
 ## What it is
 
@@ -9,34 +9,43 @@ Procedural SVG wallpapers, each a small seeded Python script, published as a sta
 ## Ownership and repos
 
 - This repo (`nickolaj-jepsen/walldye`, private, checked out at `~/dev/walldye`) owns the library, the designs, their metadata, the generated artifacts and the Claude tooling.
-- `~/nixos` stops owning `modules/desktop/dms/wallgen/` and the imported SVGs in `backgrounds/`. Files that are not imported (geometry.svg and unknown.svg until their provenance is confirmed) stay there as local files. It consumes this repo as a `flake = false` input (cutover in M2).
-- The library starts from the theme-aware `wallgen.py` on nixos branch `feat/wallgen-skill` (0a62994), renamed `walldye`. Re-verified 2026-09-27: all 208 current nixos design scripts reproduce their committed SVGs byte-for-byte under the branch library's fireproof preset (Python 3.13, numpy 2.5.3).
+- `~/nixos` will stop owning `modules/desktop/dms/wallgen/` and the imported SVGs in `backgrounds/`, and will consume this repo as a `flake = false` input. That cutover is out of scope for now (see Milestones); until it happens nixos keeps its own copies, and afterwards it reads only the default variant's templates (`build/16x9.svg`, and `build/10x16.svg` for portrait).
+- The library started from the theme-aware `wallgen.py` on nixos branch `feat/wallgen-skill` (0a62994), renamed `walldye`. Re-verified 2026-09-27: all 208 nixos design scripts reproduced their committed SVGs byte-for-byte under that library's fireproof preset (Python 3.13, numpy 2.5.3). API v2 gives up byte identity: the port re-baselines every design and the owner reviews the changes (Milestones, M2).
 - Python is a uv project: `pyproject.toml`, `uv.lock`, `.python-version`, console script `walldye`. Prebuilt wheels need `programs.nix-ld.enable` on NixOS (on for this host, `~/nixos/modules/system/ld.nix:3`); the README says so. No Nix devShell.
-- CI never runs Python (ruff's standalone binary checks formatting there). Python is formatted with ruff: line length 100, import sorting, config in pyproject.toml. Render drift from dependency bumps or other machines is caught locally by `walldye build --verify`, which the skill runs before committing.
+- CI never runs Python (ruff's standalone binary checks formatting there). Python is formatted with ruff: line length 100, import sorting, config in pyproject.toml; all Python passes `ruff format --check` and `ruff check`. Types are checked locally with Pyrefly, a uv dev dependency: the library at the strictest preset through a pytest test, each design at the standard level inside `walldye check` (api.md, Lint, typing and formatting). Render drift from dependency bumps or other machines is caught locally by `walldye build --verify`, which the skill runs before committing.
 - The Claude skill is repo-only. The branch's install-anywhere packaging, `export` command and compositor monitor detection (`detect_screens`) are not carried over.
 
 ## Layout
 
 ```
 walldye/
-  __init__.py             # design API (old wallgen.py); set_theme/set_canvas mutate THIS module's globals
+  __init__.py             # the core design API: re-exports only (api.md, Module layout)
+  geom.py field.py pixel.py   # helper modules designs import
+  _colour.py _vec.py _affine.py _path.py _params.py _noise.py _canvas.py _document.py _design.py
+                          # the core's implementation; nothing module-global changes per render
+  _aspect.py              # SITE_ASPECTS, canvas_size, template names
   __main__.py             # `python -m walldye` -> tools CLI (used by the _hashes determinism subprocess)
-  _theme.py               # PRESETS, derive_theme, mix, rgb_to_hex, luminance, parse_theme, is_light
+  _theme.py               # PRESETS, derive_theme, mix (hex), rgb_to_hex, luminance, parse_theme, is_light
+  _basis.py               # basis, held-out and probe themes
   font.py                 # Spleen glyphs (SPDX header, BSD-2-Clause)
   tools/                  # CLI, check, review.html; excluded from the render hash
 wallpapers/<slug>/
-  design.py               # draw(s); absent for legacy pieces
+  design.py               # @design(...) def draw(s: Canvas[...]); absent for legacy pieces
+  data/                   # optional: .json, .txt and .npy files read with s.data(); part of design_sha
   source.svg, palette.yaml  # legacy script-less pieces only
   meta.yaml
   build/                  # generated, committed; only `walldye build` writes here
-    16x9.svg              # fireproof template, dark regime (nixos rasterises it; 10x16.svg feeds its portrait set)
+    16x9.svg              # default variant: fireproof template, dark regime (nixos rasterises it; 10x16.svg feeds its portrait set)
     16x9.light.svg        # rendered under flexoki-light; only when light geometry differs
-    <aspect>.svg          # 16x10, 21x9, 32x9, 9x19.5, 10x16; only for designs declaring ASPECTS
+    <aspect>.svg          # 16x10, 21x9, 32x9, 9x19.5, 10x16; only for designs declaring those aspects
     <aspect>.light.svg    # per native aspect, only when light geometry differs
     slots.json            # design_sha, focus, cells, probes, checked, and per "<aspect>/<regime>": {file, sha256, n, coefs, occ}
-wallpapers/index.json     # generated by build, review and drop: slug -> {draft, license, title, aspects}; nixos reads it
+    <variant>/            # one directory per named variant: the same templates and its own slots.json
+wallpapers/index.json     # generated by build, review and drop: slug -> {aspects, draft, license, title, variants} for built pieces; nixos reads it
+wallpapers/pyrefly.toml   # the type-check level for designs (standard)
 wallpapers/.render-lib.sha256  # generated: hash of the render inputs
 taxonomy.yaml
+docs/api.md               # the design API reference
 src/                      # Astro site
 infra/www-redirect/       # www -> apex Worker, deployed by hand
 .claude/skills/walldye/   # single-design skill
@@ -47,7 +56,8 @@ import/                   # M2 inputs (untracked): nixos-ideas/, nixos-wallgen-2
 ## Theme model
 
 - Three seeds: `bg`, `fg`, `accent`. All 21 tokens derive from them through `derive_theme` (linear mixes).
-- Two regimes. Light means `luminance(bg) > luminance(fg)`, and ties count as dark (the exact complement of `dark = luminance(bg) <= luminance(fg)`, branch `wallgen.py:127`). `_theme.is_light(bg, fg)` is the pure test and `walldye.is_light()` (no arguments, for designs) applies it to the current BG/FG. derive_theme, build's regime selection, the TS port and designs all use it; designs never test luminance inline.
+- Two regimes. Light means `luminance(bg) > luminance(fg)`, and ties count as dark (the exact complement of `dark = luminance(bg) <= luminance(fg)`, branch `wallgen.py:127`). `_theme.is_light(bg, fg)` is the one test: derive_theme, build's regime selection, colour resolution and the TS port all use it.
+- Designs never see colour values. Tokens and `mix()` are symbolic `Colour` formulas that compare and hash by formula and resolve to hex only when a document is serialised under a theme (api.md, Colours). The only theme fact a design can read is `s.light`, the regime it is being drawn for, and `by_regime(dark, light)` picks a colour per regime without branching.
 - Presets: fireproof, flexoki-light, gruvbox-dark, nord, catppuccin-mocha, tokyo-night, rose-pine, everforest-dark, ayu-dark, dracula, solarized-light.
 - `fireproof` pins all 21 tokens by hand, and they are well off the derived values: accent_1..3 by 20-21 units, accent_4..8 by 4-11, accent_hi by 14, orange_dark by 47, and five greys by 1.
   - Exact fireproof seeds, compared as uppercase #RRGGBB, resolve to the pinned preset everywhere. The site serves the template untouched, the site CSS uses the pinned table, and the CLI resolves `--theme 1c1b1a-dad8ce-cf6a4c` to `fireproof`.
@@ -100,40 +110,38 @@ Internal links carry no `?t=`; a "copy link" control always includes it. The inl
 ## Recolouring pipeline
 
 - Every output colour is `a*bg + b*fg + c*accent + d` (scalars a, b, c; constant RGB vector d), with one coefficient set per regime. `mix()` is linear, so this is exact up to 8-bit rounding.
+- Render model: a design is drawn once per (variant, aspect, regime) into a document, and that document is serialised under every theme the fit and the checks need. A two-regime piece costs 6 draws per aspect and variant in check (draw, in-process repeat and subprocess repeat per regime) instead of 52 fresh module runs; the per-theme work is resolving colours, which is cheap. `walldye check --paranoid` redraws for every theme as v1 did and requires identical output (api.md, The render model).
 - Basis:
-  - `walldye build` renders each template under a committed basis of 8 themes per regime. The basis is generated once from a fixed seed and stored in walldye, and build asserts cond <= 15 for the stacked seed matrix. (A basis of 4 presets missed radar-sweep's held-out themes by 13 units.)
+  - `walldye build` serialises each regime's document under a committed basis of 8 themes per regime. The basis is generated once from a fixed seed and stored in walldye, and build asserts cond <= 15 for the stacked seed matrix. (A basis of 4 presets missed radar-sweep's held-out themes by 13 units.)
   - Held-out set: every preset except fireproof; corner themes (#000000/#FFFFFF extremes, accent==fg, accent==bg, a bg/fg luminance gap of about 0.05); and 4 seeded random themes per regime.
-  - Two probe themes join the skeleton check but not the fit. bg=fg=accent collapses every token, so colour-keyed dicts merge. #3F0000/#00C0C0 makes token hex strings sort opposite to fireproof's.
+  - Two probe themes join the checks but not the fit. bg=fg=accent collapses every token, so colour-keyed dicts merge. #3F0000/#00C0C0 makes token hex strings sort opposite to fireproof's. Under the render model geometry cannot vary with the theme, so the probes now test the fit and the constant-slot rule, and catch geometry leaks only under `--paranoid`.
   - The fireproof-pinned render is skeleton-checked against the basis and never fitted.
 - Coefficients are fitted per colour occurrence (a "slot"), not per hex value. The same fireproof hex can come from different formulas: ten nixos designs do this, through rounding in adjacent fade steps. Per-occurrence slots are exact and cost nothing.
 - Held-out themes must be predicted within 2 RGB units or build fails.
-- Constant slots: there is no mask special case in the browser. A hardcoded colour fits as a constant slot (a=b=c=0) and recolours to itself. `walldye check` allows a constant slot only inside `<mask>`/`<clipPath>`, or in a gradient or pattern referenced only from those. A theme-dependent slot inside a mask is an error, and any other constant slot counts as hardcoded and fails.
+- Constant slots: there is no mask special case in the browser. A hardcoded colour fits as a constant slot (a=b=c=0) and recolours to itself. `walldye check` allows a constant slot only inside `<mask>`/`<clipPath>`, or in a gradient or pattern referenced only from those. A theme-dependent slot inside a mask is an error, and any other constant slot counts as hardcoded and fails. The API makes both mistakes hard to write: the only constant colours are `MASK_WHITE`, `MASK_BLACK` and mixes of the two, which only a mask surface accepts, and a mask surface rejects theme colours; raw hex strings are rejected wherever a paint goes. The rule stays as the backstop, and it is what catches legacy SVGs.
 - Light ladder, in order of preference:
   1. Tokens only.
-  2. A per-regime token choice (`STRUCT = MUTED if is_light() else UI`), which keeps one template.
-  3. A geometry branch under `is_light()`, which costs a light template per native aspect.
+  2. A per-regime colour, `STRUCT = by_regime(UI, MUTED)` (dark first), which keeps one template.
+  3. A geometry branch under `s.light`, which costs a light template per native aspect.
   4. `themes: [dark]`, only after steps 2-3 were tried, with the reason in `notes`.
 - A `themes: [dark]` piece under light seeds renders with the visitor's bg and fg swapped, through the dark coefficients. That is a valid dark theme, so it equals a real render within 2 units. The caption says "Made for dark themes, shown here with your colours swapped", and the same applies to export. The run command, the export file-name token and the resvg `background` all use the swapped theme (`<fg>-<bg>-<accent>`), so `walldye render` needs no swap logic. The meta schema allows `themes` to be `[dark, light]` or `[dark]` only.
 - Legacy script-less SVGs become `source.svg` plus `palette.yaml`, which maps each distinct hex to a token or a two-token mix.
   - 16 of the 19 legacy colours are exact fireproof tokens. The rest fit within 0.8 units: #201A18 ≈ mix(bg_deep, accent_8, .68), #2B2220 ≈ mix(bg_alt, accent_7, .47), #3A2420 ≈ mix(bg, accent_4, .37).
-  - Build substitutes the mapped tokens per basis theme and runs the normal skeleton check and fit.
+  - Build cuts source.svg into a document at its colour slots, gives each slot its mapped formula, and serialises and fits it like any other document (api.md, Legacy pieces). Legacy pieces have only the default variant, at 16:9.
 - Slot tokenizer: one spec, with a fixture shared by Python and TS.
   - It matches colour values only in paint contexts: the attributes fill, stroke, stop-color, flood-color, lighting-color and color, and the same properties inside `style=` and `<style>`.
   - Values are hex3, hex6 or named. `none`, `currentColor` and `url(...)` are skipped; a bare-hex regex would rewrite `url(#ad1)`.
   - Build rewrites every matched value to uppercase #RRGGBB in the committed template (pixels unchanged).
 - slots.json holds, per template, `{file, sha256, n, coefs: [[a,b,c,dr,dg,db], ...] (deduplicated, 5 dp), occ: [coef index per occurrence]}`. The browser asserts `n` and falls back to the untouched template on a mismatch.
 - Display is `<img src=blob:>`. Inline SVG is avoided because ids like `lg1` repeat across files.
-- Designs whose shapes change with the theme, and designs with hardcoded colours, are listed by `walldye check --all` at the start of M2. The 2026-09-27 scan (8 basis plus 10 held-out themes per regime) found:
-  - Varying in both regimes: apollonian, fracture, glyph-hexdump, glyph-rain, mc-torchlit-cave, riley-fall, stipple-nautilus, theta-maze.
-  - Varying in dark only: phyllotaxis. Varying in light only: vinyl.
-  - Hardcoded: compass-construction, mc-chunk-map, oxenfree-rift-dither, pendulum-wave, pine-mist, planetrise, pond-ripples, punch-card, rothko, schematic, sunspot, typebar-fan.
-  - The root fix for `glyphs()` is to take a key or role separate from the colour.
+- Designs whose shapes changed with the theme under v1 used hex strings as identity: dict keys, `==`, sorts, and `glyphs()` grouping by hex. The 2026-09-27 scan without probe themes found 10 (apollonian, fracture, glyph-hexdump, glyph-rain, mc-torchlit-cave, riley-fall, stipple-nautilus and theta-maze in both regimes, phyllotaxis in dark, vinyl in light); the 2026-09-28 scan with probes found 56. Symbolic colours fix all of them by construction. Designs that sorted by colour (apollonian, fracture, stipple-nautilus) need an explicit sort key, because colours have no order.
+- 12 designs hardcode hex colours and are rewritten by the port with visual review: compass-construction, mc-chunk-map, oxenfree-rift-dither, pendulum-wave, pine-mist, planetrise, pond-ripples, punch-card, rothko, schematic, sunspot, typebar-fan.
 
 ## Aspect ratios
 
-- The aspect set is `walldye.SITE_ASPECTS`: 16:9, 16:10, 21:9, 32:9, 9:19.5, 10:16. check, build and the site all use it.
-- Designs that declare `ASPECTS` (e.g. `["any"]`, which expands to SITE_ASPECTS) compose from the import-bound `W`/`H`. set_canvas runs before each fresh module load, and `s.w`/`s.h` are copies.
-- The short side stays 1080:
+- The aspect set is `SITE_ASPECTS` (in `walldye._aspect`): 16:9, 16:10, 21:9, 32:9, 9:19.5, 10:16. check, build and the site all use it.
+- A design declares the aspects it composes for in `@design(aspects=...)`: `"any"` (all of SITE_ASPECTS) or a tuple of them. 16:9 is always native. It composes from `s.w` and `s.h`, usually through `s.frac`, `s.pick(landscape=, portrait=, snap=)`, `s.center` and `s.inset(margin)`; module-level code cannot see the canvas.
+- Coordinates are pixels and the short side stays 1080, so there is no unit factor (v1's `U` was always 1):
 
   | Aspect | Canvas |
   |---|---|
@@ -143,7 +151,7 @@ Internal links carry no `?t=`; a "copy link" control always includes it. The inl
   | 32:9 | 3840x1080 |
   | 9:19.5 | 1080x2340 |
   | 10:16 | 1080x1728 |
-- Templates are named after the aspect: `16x9.svg`, `16x10.svg`, `21x9.svg`, `32x9.svg`, `9x19.5.svg`, `10x16.svg`, with `.light` before `.svg`. Parse names with `^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)(\.light)?\.svg$`.
+- Templates are named after the aspect: `16x9.svg`, `16x10.svg`, `21x9.svg`, `32x9.svg`, `9x19.5.svg`, `10x16.svg`, with `.light` before `.svg`. Parse names with `^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)(\.light)?\.svg$`. A named variant's templates carry the same names inside `build/<variant>/`, and every variant is built for every native aspect.
 - Other designs get a crop of the 16:9 template:
   - The crop spans the full height (or width) and moves on one axis.
   - It is an `<input type=range>` plus a drag handle, clamped to the canvas.
@@ -156,19 +164,20 @@ Internal links carry no `?t=`; a "copy link" control always includes it. The inl
 ### Hashes
 
 - Each hash is sha256 over lines `<posix path>\t<sha256 of bytes>`, sorted by path.
-- `design_sha` (in slots.json) covers design.py (or source.svg plus palette.yaml) and a `themes\t<sorted list>` line from meta.yaml.
+- `design_sha` (in slots.json) covers design.py (or source.svg plus palette.yaml), every file in `data/`, and a `themes\t<sorted list>` line from meta.yaml. A named variant's `design_sha` adds the line `variant\t<name>`; the default variant's has none. Variant values live in design.py, which the hash already covers (api.md, Hashes).
 - The render-lib hash (`wallpapers/.render-lib.sha256`) covers:
   - git-tracked files under `walldye/`, except `walldye/tools/**` and `__pycache__`;
   - `dep\t<name>==<version>` lines for numpy, scipy, shapely and scikit-image, taken from uv.lock;
   - a `python\t<.python-version>` line.
-- slots.json also stores `probes`: the sha256 of the fireproof render and of one basis render per regime. When the render-lib hash changes, `walldye build --all` re-renders only the probes. If they match, it restamps the hash; otherwise it re-renders and refits that design.
-- `.gitattributes`: `* text=auto eol=lf`. One hash test vector is asserted by both pytest and vitest.
+- slots.json also stores `probes`: the sha256 of the fireproof render and of one basis render per regime. When the render-lib hash changes, `walldye build --all` re-renders only the probes, per variant. If they match, it restamps the hash; otherwise it re-renders and refits that variant.
+- Each named variant has its own slots.json in `build/<variant>/`, with `"variant": "<name>"` after `design_sha`.
+- `.gitattributes`: `* text=auto eol=lf`. The hash test vectors (one plain design, one with a data file and a variant line) are asserted by both pytest and vitest.
 
 ### CI (GitHub Actions, Node only)
 
-1. Recompute design hashes and the render-lib hash, and fail with "run walldye build" on a mismatch.
+1. Recompute design hashes and the render-lib hash, and fail with "run walldye build" on a mismatch. Variant names come from meta.yaml `variants:`, which check keeps equal to the names declared in design.py; each needs a `build/<variant>/slots.json` with its own `design_sha`, and no other variant directory may exist.
 2. Check each template's sha256 against slots.json (catches hand edits).
-3. Check `wallpapers/index.json` against meta.yaml.
+3. Check `wallpapers/index.json` against meta.yaml and slots.json, including `variants`.
 4. Require `checked: <walldye version>` in every slots.json. Build writes slots only after check passes.
 5. vitest, Playwright, `astro build`, deploy (jobs, engines and triggers under Hosting and analytics).
 
@@ -176,24 +185,33 @@ Toolchain: package.json `"packageManager": "pnpm@12.3.4"`, `.node-version` set t
 
 ### `walldye check <slug>`
 
-`walldye build` runs check first and refuses to write if it fails. Check runs, in order:
+`walldye build` runs check first and refuses to write if it fails. Check covers every variant unless `--variant` names one, and runs, in order:
 
-1. Determinism: two in-process renders must be equal, plus a subprocess render under `PYTHONHASHSEED=4242` (`python -m walldye _hashes`). This runs for every native aspect and one basis theme per regime, and fails as a determinism error before any geometry check.
-2. `viewBox="0 0 W H"` exact per aspect.
-3. Skeleton invariance per regime, including the probe themes.
-4. Held-out error <= 2 units.
-5. The constant-slot rule.
-6. Errors: `<text>`, any `<filter>`, any `<image>`, more than 1 MB or 20k elements.
-7. Warnings:
+1. Load: import design.py once. A missing or malformed `@design`, a bad `Params` class or a bad variant fails here.
+2. Source: the design lint (banned imports and calls, module-level rules; api.md, Design lint), `ruff format --check` and `ruff check`, Pyrefly at the standard level, the meta.yaml rules including `variants:`, and the `data/` rules. Ruff and Pyrefly run once over all target files.
+3. Determinism, per variant, native aspect and regime: two in-process draws must serialise identically under the regime's first basis theme, and one subprocess per piece under `PYTHONHASHSEED=4242` (`python -m walldye _hashes`) must reproduce every hash. A failure stops the check before any geometry step.
+4. `viewBox="0 0 W H"` exact per aspect.
+5. Templates: the dark template is the fireproof serialisation; the light regime shares it when the two documents' skeletons match, else gets a flexoki-light template.
+6. Fit per regime over the basis, held-out error <= 2 units, and every probe theme serialises.
+7. The constant-slot rule.
+8. Errors: `<text>`, any `<filter>`, any `<image>`, more than 1 MB or 20k elements. The API cannot emit the first three; the check stays as a backstop.
+9. Variant siblings: the 16:9 dark templates of any two variants of the piece (the default included) must have an ink-map cosine below 0.93. Ink maps and `focus` measure the distance from the template's own background (the design's `bg`), not from fireproof's bg. Only pairs with a freshly checked side are compared: with `--variant`, that variant's fresh template against the other variants' committed ones, skipping, with a note, any not built yet; in a build, the variants it re-checks. Passing is necessary, not sufficient: on a fine-textured piece a 4% nudge of one value can measure 0.91, so review still judges whether the subject changed.
+10. Warnings:
    - more than 600 kB or 15k elements;
-   - `luminance(`, `hex_to_rgb(` or `colorsys` in design.py;
    - colour words in the docstring, comments or meta.yaml;
-   - a non-integer grid origin in grid_runs, glyphs or sprite designs.
-8. `--set`: advisory near-clone pairs (ink-map cosine >= 0.93), read from the committed build/16x9.svg, and a list of skipped designs.
+   - a non-integer grid origin in grid_runs, glyphs or sprite designs;
+   - a variant whose check took more than 120 seconds;
+   - a named variant's value outside its knob's soft `lo`..`hi` range.
+11. `--similar` (v1's `--set`, renamed so it cannot be confused with `--set k=v`): advisory near-clone pairs across pieces (ink-map cosine >= 0.93), read from the default variants' committed build/16x9.svg, and a list of skipped designs.
+12. `--paranoid`: every serialisation is compared with a fresh import and draw of the design under that theme.
 
-`walldye build --verify [<slug>...]` is the local drift check. It re-renders the committed templates of each named design, or of every design when none is named, under their template theme (fireproof, or flexoki-light for `.light.svg`), and diffs them against the committed files without writing. The skill and batch run it on all designs before committing, and the owner runs it before committing a uv.lock or .python-version change.
+`walldye check` and `walldye build` run in a process pool, one task per piece and variant (so one piece's versions run in parallel too), with `--jobs` workers (default: every core); the parent does all printing and writing. Measured after the render model landed (2026-09-28, 16 cores): the eight skill examples check in 36 s together, ribbons alone in 32 s and hitomezashi in 2.4 s, and `build --all` of the three M1 pieces with their variants takes 11 s; v1 took 7.1 hours for one serial 16:9 check of the catalogue. The catalogue is measured again after the import, and a disk cache for heavy pure work waits for those numbers.
+
+`walldye build --verify [<slug>...]` is the local drift check. It re-renders the committed templates of every variant of each named design, or of every design when none is named, under their template theme (fireproof, or flexoki-light for `.light.svg`), and diffs them against the committed files without writing. The skill and batch run it on all designs before committing, and the owner runs it before committing a uv.lock or .python-version change.
 
 ### Tests
+
+pytest covers the library and tools (api.md, Tests lists what each part adds), including a Pyrefly run that must report 0 errors for `walldye/` at the strictest preset (less `unused-call-result`) and for the skill examples at the standard level, and a draw-once test: one document serialised under N themes equals N fresh draws, for the M1 pieces and the skill examples.
 
 vitest:
 - (a) Exact fireproof seeds return the template bytes unchanged.
@@ -202,11 +220,12 @@ vitest:
 - (d) The contrast guard holds over the 8 presets and 1,000 random triples.
 - (e) Tokenizer and theme-token fixtures are shared with pytest.
 - (f) A synthetic design where two roles collide on one fireproof hex: per-hex fitting fails and per-occurrence fitting passes.
-- (g) The hash test vector.
-- (h) The copy lint (see Copy rules).
+- (g) The hash test vectors.
+- (h) The copy lint (see Copy rules), including variant labels and descriptions.
 
 Playwright, on Chromium only for pull requests and on Chromium, Firefox and WebKit for pushes to main and manual runs:
 - Change the theme, check that the index recolours, export a PNG.
+- Switch versions on a detail page with variants: `?v=` updates, the plate and description change, and the export file name carries the variant.
 - Perf (Chromium, local only): the 20 heaviest current SVGs with about 24 plates visible at 4x CPU throttle; no long task over 200 ms on a theme change. It runs as the `perf` project after the engine projects, which CI never selects, and until M2 it reads the SVGs from the nixos backgrounds (or `WALLDYE_PERF_SVGS`).
 - One resvg-wasm pixel comparison against a reference PNG that resvg-py renders locally and that is committed under `tests/fixtures/` (CI only reads the PNG).
 
@@ -241,6 +260,9 @@ franchise:                   # required when license is LicenseRef-fan-work
   owner: Mobius Digital
 draft: false                 # true hides from the production site and nixos
 proposed_facets: {}          # only while draft: true
+variants:                    # only when design.py declares named variants
+  default: {label: Sideways}
+  settled: {label: Settled, draft: true}
 ```
 
 - `license` covers the whole folder (design.py, meta.yaml, build/).
@@ -248,10 +270,15 @@ proposed_facets: {}          # only while draft: true
   - `ai_generated: true` defaults the licence to `CC0-1.0`, except that any piece with a `kind: recreation` source must set `license:` explicitly, and the build fails otherwise.
   - Human-made pieces must always set it.
 - `LicenseRef-fan-work` covers fan pieces from games and other franchises (39 game pieces plus seele), which are published and credited in sources.
-  - No licence is granted for the folder.
-  - The site shows: "Unofficial fan tribute, not affiliated with or endorsed by {franchise.owner}. {franchise.title} and its characters are trademarks of their owners. Non-commercial; contact <takedown address> for takedown."
-  - The text lives in `LICENSES/LicenseRef-fan-work.txt`.
-- Drafts live on main. Batch runs write `draft: true` folders, `walldye review` flips approved ones to `draft: false`, and rejects are deleted after confirmation. The site loader shows drafts only in `astro dev`, and nixos filters them out via index.json.
+  - No licence is granted for the folder, and meta.yaml must carry `franchise: {title, owner}`.
+  - The site shows: "Unofficial fan tribute, not affiliated with or endorsed by {franchise.owner}. {franchise.title} and its characters are trademarks of their owners. Non-commercial; contact takedown@walldye.com for takedown."
+  - `LICENSES/LicenseRef-fan-work.txt` says the same things: no licence is granted; the piece is an unofficial fan tribute; trademarks belong to their owners; non-commercial; takedown requests go to takedown@walldye.com.
+- Variants (api.md, meta.yaml variants):
+  - The values live in design.py (`@design(variants=...)`); meta.yaml holds only copy and state, under `variants:`.
+  - The keys are exactly `default` plus the declared names. Every entry needs a `label`, a few plain words that name the version in the detail page's switcher. A named variant may add a `description`, shown instead of the piece's when that version is on screen, and `draft`.
+  - Draft is per variant: a draft variant is built and reviewed but hidden from the production site and nixos. Agents write `draft: true`, and `walldye review` approves each variant on its own. A piece-level `draft: true` hides every variant.
+  - Variant copy follows the Copy rules.
+- Drafts live on main. Batch runs write `draft: true` folders, `walldye review` flips approved ones to `draft: false`, and rejects are deleted after confirmation. The site loader shows drafts (pieces and variants) only in `astro dev`, and nixos filters them out via index.json.
 - URLs are optional. When present, the skill fetches them before writing them, and CI runs a link checker.
 - The content loader's zod schema checks facets against taxonomy.yaml, the licence rules and reserved slugs. Agents never add facet values. They write `proposed_facets` (allowed only while `draft: true`). In `walldye review`, accepting one appends it to taxonomy.yaml and moves it into the piece's facets, and approval is refused while any remain.
 - Computed facets, with the labels visitors see: "has source code" (has a script), "fits any screen" (composes for every site aspect), "works in light themes" (themes include light), "has references" (any source), "made with Claude" / "human-made" (ai_generated). An entry that matches every piece or none is hidden.
@@ -277,17 +304,19 @@ proposed_facets: {}          # only while draft: true
 
 - URLs are `/<slug>`, with astro.config `build: {format: 'file'}`, `trailingSlash: 'never'`, and `site` from env.
 - The meta schema rejects the slugs about, index, t, og, fonts, 404, robots, sitemap*, favicon and anything starting with `_`.
-- Renames go in `public/_redirects`. Filters and crop live in the query string. `?t=` is only an entry parameter, read once and stripped (see Resolution and persistence).
+- Renames go in `public/_redirects`. Filters, crop and the version (`?v=<variant>`, absent for the default) live in the query string. `?t=` is only an entry parameter, read once and stripped (see Resolution and persistence).
+- One page per design. Variants never get their own URL, so there is no `x.html` next to an `x/` directory.
 - Content comes from a custom `wallpapers()` loader in `src/content.config.ts`. It:
   - globs `wallpapers/*/meta.yaml`, using the folder name as the id;
   - attaches slots.json, the templates with content hashes, the design.py text and hasScript;
+  - attaches each named variant's `build/<variant>/` slots and templates with its meta.yaml label, description and draft flag, leaving out draft variants in production;
   - calls `watcher.add('wallpapers')` so rebuilds refresh in `astro dev`.
 - A prerendered endpoint serves templates and slots at `/t/<sha256[:12]>.svg` and `.slots.json`.
 - `_headers`:
   - `/t/*` and `/_astro/*`: `immutable, max-age=31536000`.
   - HTML: `max-age=0, must-revalidate`.
   - `https://:project.pages.dev/*`: `X-Robots-Tag: noindex`.
-- Each piece gets a prerendered `/og/<slug>.jpg` (a 1200x630 crop of the fireproof template), `summary_large_image`, a meta description equal to its description, a `<link rel=canonical>` without a query, and an entry from @astrojs/sitemap.
+- Each piece gets a prerendered `/og/<slug>.jpg` (a 1200x630 crop of the default variant's fireproof template), `summary_large_image`, a meta description equal to its description, a `<link rel=canonical>` without a query, and one entry from @astrojs/sitemap. Variants add none of these.
 
 ### Header
 
@@ -302,7 +331,7 @@ proposed_facets: {}          # only while draft: true
   - Search over title, description and source names.
   - Sort by newest or title, breaking ties by slug.
 - On phones the column becomes a `<details>` "filter" disclosure above the grid. There is a skip link and one polite live region.
-- Plates are `<a aria-labelledby="t-{slug}"><img alt="{description}"><figcaption>`. The caption is a tombstone: title (an `<h2>`), the dark-only note when shown, attribution. The description is the alt text and is searched through a data attribute.
+- Plates are `<a aria-labelledby="t-{slug}"><img alt="{description}"><figcaption>`, one per design, showing the default variant. The caption is a tombstone: title (an `<h2>`), "N versions" when the design has published named variants (N counts the default; `astro dev` counts drafts too and adds "(N draft)"), the dark-only note when shown, attribution. The description is the alt text and is searched through a data attribute.
   - Loading uses an IntersectionObserver with a 1-viewport rootMargin and at most 6 concurrent fetches.
   - Grid rows use `content-visibility: auto`.
   - A theme change re-templates only the plates in view and marks the rest stale. Each swap waits for `await img.decode()`, then revokes the old blob URL. The template LRU cache holds about 8 MB.
@@ -314,6 +343,10 @@ proposed_facets: {}          # only while draft: true
 - Layout (the "catalogue spread"): the plate at full content width, the label below-left, theme and export controls below-right.
   - The label shows title, attribution, description, the credit "Made with {author}" (e.g. "Made with Claude Opus 5.5"), and facts (Technique, Inspired by, Shape, Added). There are no previous/next or back-to-index links; the header's Index link is the way back. A CC0 piece shows no licence. Any other licence gets one plain-words line under the credit, which for `LicenseRef-fan-work` is the fan-work disclaimer. No licence identifiers.
   - Sources are numbered footnotes, and notes render as Markdown.
+- Versions: when a design has published named variants, a radio group headed "Versions" sits with the controls and lists the default's label first, then the others in meta.yaml order.
+  - Choosing one swaps the plate (templates, slots, focus and cells of that variant), the description and alt text (the variant's description when it has one), the export file names and the run command, and writes `?v=<name>` with `history.replaceState` (removed for the default). Theme and crop are kept.
+  - An unknown or draft `?v=` shows the default.
+  - PlateBox carries the variants in a `data-variants` attribute, and the plate cache is keyed by variant as well as aspect and theme.
 - Captions by source kind:
   - recreation: "after {author}, *{title}*, {year}".
   - inspiration: "suggested by {author}, *{title}*".
@@ -324,7 +357,7 @@ proposed_facets: {}          # only while draft: true
   - Copy takes the raw source from a `<template>`.
 - The run command appears on two lines:
   - `git clone https://github.com/nickolaj-jepsen/walldye && cd walldye`
-  - `uv run walldye render <slug> --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>-<token>-<aspect>.svg`
+  - `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg`, with `--variant` and `--<name>` only for a named variant
 
   It is headed "Run it yourself" and uses the preset name when the seeds match one. There is no note about how closely the output matches the site. Script-less entries drop the source code and run command and say "The script for this wallpaper has been lost."
 - `f` toggles fullscreen, hidden when `requestFullscreen` is unavailable. It ignores input, textarea, select, `[role=slider]`, contenteditable and modified keys, and the page does not advertise it. There is no neighbour navigation (no previous/next links, no arrow-key shortcuts, no `?from=`).
@@ -365,14 +398,16 @@ Plain TypeScript modules, no UI framework.
   - grid_runs, glyphs and sprite record their cell size and tag their paths (class `px`), and build writes `cells` into slots.json.
   - The exporter adds `shape-rendering="crispEdges"` to tagged paths only, at export time. A root-level crispEdges would make the curves in 19 of the pixel designs jagged.
   - It shows "cells render 3-4 px wide at this size" when cell × scale is not an integer.
-- File names:
-  - Raster: `<slug>-<token>-<w>x<h>.<ext>`.
-  - SVG: `<slug>-<token>-<aspect>[-crop].svg`, with `<title>`/`<desc>` "walldye.com/<slug> · <license> · theme <token>".
+- File names (`--<variant>` only for a named variant; slugs and variant names never contain `--`, so the name splits back unambiguously):
+  - Raster: `<slug>[--<variant>]-<token>-<w>x<h>.<ext>`.
+  - SVG: `<slug>[--<variant>]-<token>-<aspect>[-crop].svg`, with `<title>`/`<desc>` "walldye.com/<slug>[?v=<variant>] · <license> · theme <token>".
+- Every variant can be exported at every aspect the design declares.
 
 ## Copy rules
 
 - Claude drafts; the owner approves.
-- UI copy uses plain words a visitor would use. Internal terms never reach visitors: regime, seed, token, native, hand-tuned, light-ready, preset, contrast ratios, colour tolerances, licence identifiers.
+- UI copy uses plain words a visitor would use. Internal terms never reach visitors: regime, seed, token, native, hand-tuned, light-ready, preset, variant, param, contrast ratios, colour tolerances, licence identifiers. Visitors see variants as "versions".
+- Variant labels are a few plain words naming what that version shows ("Late in the turn", "Open water"), theme-neutral, unique within the piece. A variant description follows the description rules below.
 - Italics only for titles of works.
 - No hint lines: keyboard shortcuts, tolerances and the site's internals are not explained on the page.
 - Descriptions:
@@ -385,7 +420,7 @@ Plain TypeScript modules, no UI framework.
 - 92 existing docstrings say "terracotta" and 100 contain some colour word. The M2 import rewrites docstrings as well as descriptions.
 - Enforcement:
   - `walldye check` warns on a colour-word list in design.py and meta.yaml.
-  - A vitest copy lint covers meta.yaml title, description and notes: colour words, at most two sentences, banned adjectives, at most 30 words.
+  - A vitest copy lint covers meta.yaml title, description and notes, and variant labels and descriptions: colour words, at most two sentences, banned adjectives, at most 30 words.
 
 ## Claude tooling
 
@@ -393,17 +428,19 @@ Plain TypeScript modules, no UI framework.
 
 Steps:
 1. Brief, then dedupe: rg the meta.yaml titles; until M2, also the ~/nixos designs' docstrings.
-2. `uv run walldye new <slug> --author "<model display name>" --model <model id>`. This writes design.py, plus meta.yaml with ai_generated true, added today and `draft: true`, and no `license:` line (the CC0-1.0 default applies unless a recreation source requires an explicit choice).
-3. Write design.py starting from the nearest example, and decide ASPECTS.
+2. `uv run walldye new <slug> --author "<model display name>" --model <model id>`. This writes the v2 template design.py (api.md, CLI), plus meta.yaml with ai_generated true, added today and `draft: true`, and no `license:` line (the CC0-1.0 default applies unless a recreation source requires an explicit choice).
+3. Write design.py starting from the nearest example, and decide the aspects: `aspects="any"` whenever the composition can follow `s.pick`, `s.frac` and `s.inset`.
 4. Preview loop, at least 3 rounds:
    - a `--crop` into the busiest area;
    - `--aspect 32:9`, `--aspect 9:19.5` and `--aspect 10:16`;
-   - after round 1, `--theme flexoki-light` and `--theme nord`.
+   - after round 1, `--theme flexoki-light` and `--theme nord`;
+   - `sheet <slug> --seeds 0..7` (and `--wedge` over a knob) when choosing a seed or a value.
 5. Work through the light ladder.
-6. Fill meta.yaml: facets from taxonomy.yaml (suggest new ones as `proposed_facets`), WebFetch every source URL, follow the copy rules. If any source has `kind: recreation`, ask the owner for `license:`; build fails without it.
-7. `walldye check <slug>`.
-8. `walldye build <slug>`. Before committing, `walldye build --verify` on all designs (read-only; the one exception to "always pass a slug").
-9. `walldye review <slug>` with run_in_background. Confirm with the owner before `drop`.
+6. Variants, only where the piece has a natural one (see Variant policy): at most 3 proposed, each written in design.py, previewed with `--variant`, passing `walldye check <slug> --variant <name>` before it is proposed, and listed in meta.yaml with `draft: true`.
+7. Fill meta.yaml: facets from taxonomy.yaml (suggest new ones as `proposed_facets`), WebFetch every source URL, follow the copy rules. If any source has `kind: recreation`, ask the owner for `license:`; build fails without it.
+8. `walldye check <slug>`, which includes ruff and Pyrefly; `uv run ruff format wallpapers/<slug>/design.py` fixes formatting.
+9. `walldye build <slug>`. Before committing, `walldye build --verify` on all designs (read-only; the one exception to "always pass a slug").
+10. `walldye review <slug>` with run_in_background. Confirm with the owner before `drop`.
 
 Ground rules:
 - Edit only `wallpapers/<slug>/` by hand. `walldye build <slug>` also rewrites `wallpapers/index.json`, which is committed with the folder. Never edit `walldye/` or taxonomy.yaml.
@@ -411,45 +448,55 @@ Ground rules:
 - Previews go to `$WALLDYE_PREVIEW`.
 
 Geometry rules:
-- Key dicts and sorts by role or index, never by hex.
-- Never compare token values, or feed colour distances into geometry.
-- `if is_light():` is the only theme-dependent control flow.
-- Mask content is #fff/#000 only.
+- Colours are formulas, never values: key and group by role or index (`s.buckets`, a `ladder`), and give an explicit sort key where order matters; sorting colours raises.
+- `s.light` is the only theme-dependent control flow; for a per-regime colour use `by_regime`.
+- Mask content is `MASK_WHITE`, `MASK_BLACK` and mixes of the two.
+- Randomness only from `s.rng`, `s.np_rng` and `s.noise`; nothing at module level is mutated while drawing.
 
-References, adapted from the branch:
-- api.md: rename wallgen to walldye and document `is_light()`. Fix :10 ("one terracotta ..." becomes theme-neutral), :86-87 (fireproof is pinned and does not "match these fractions") and :104-105 (the `luminance(BG) < luminance(UI)` test becomes `is_light()`). Replace :107-109 (palette_distance) with the constant-slot and mask rule.
-- SKILL.md: fix :94 ("terracotta") when carrying text over.
-- principles.md: verbatim, except the palette-lint wording (:28, :56) becomes `walldye check`. Add two checklist lines: "geometry identical across themes in a regime (or an intentional light template)" and "meta.yaml copy theme-neutral, sources fetched".
-- themes.md: keep the token table and presets. Drop per-token and preset overrides (:20-31) and dotfile theme discovery (:49-96). Replace "Light themes" (:98-104) with the light ladder.
+Variant policy:
+- A variant must change what is depicted (a moon phase, a rule number, a reaction regime, the moment of a sweep), not nudge a value.
+- At most 4 named variants per design, so at most 5 versions with the default, and every pair of versions of a design keeps an ink-map cosine below 0.93 (check enforces it). The gate is necessary, not sufficient: on a fine-textured piece a 4% nudge (interference rings, wavelength 48 to 50) measures 0.91 and passes, so critics and review still judge whether the subject changed.
+- Each one is approved in `walldye review`. Agents propose variants only as drafts; batch and port agents propose at most 3.
+- A new seed is a variant only when the result shows something different; seed ladders are for `sheet --seeds`, never for the site.
+- A seed-only or detail-only variant of a piece with a large fixed structure fails the 0.93 rule: radar-sweep's afterglow and rings dominate its ink map, so a new coast measures 0.98 against the default and only moving the arm passes (api.md, Worked example). Run `walldye check` on a variant before proposing it.
+- SKILL.md (Variant policy), taste.md, ideas.md (lesson 9) and principles.md (checklist and failure modes) carry this policy; it replaced the old "don't make several variants of one design".
+
+References:
+- api.md: rewritten for API v2 as a working guide for designing one piece (anatomy, colours and the light ladder, canvas and layout, drawing, helpers, params and variants, the lint), linking to `docs/api.md` for exact signatures.
+- SKILL.md: the steps above; examples use v2.
+- principles.md: the palette-lint wording (:28, :56) says `walldye check`. Checklist lines: "geometry identical across themes in a regime (or an intentional light template)", "meta.yaml copy theme-neutral, sources fetched", and "any variant changes what is depicted".
+- themes.md: keep the token table and presets; the light ladder uses `by_regime` and `s.light`.
 - ideas.md: mark the 114 of 152 seeds already built. Keep the review lessons verbatim.
-- `references/taste.md`: a theme-neutral copy of `~/.claude/projects/-home-nickolaj-nixos/memory/wallpaper-taste.md` (accent, not terracotta; no hex values; no `just wallgen` commands).
-- Examples: the 8 branch examples with theme-neutral docstrings. dither-moon and radar-sweep are fixed as in M1, and glyph-terrain switches to `is_light()`.
+- `references/taste.md`: a theme-neutral copy of `~/.claude/projects/-home-nickolaj-nixos/memory/wallpaper-taste.md` (accent, not terracotta; no hex values; no `just wallgen` commands), with the variant policy.
+- Examples: the 8 examples ported to v2 with theme-neutral docstrings, passing `walldye check`'s lint, ruff and Pyrefly.
 
 ### CLI
 
-Commands: new, preview, check, build, render, review, sheet, list, drop, themes. What each one takes from the branch:
+Commands: new, preview, check, build, render, review, sheet, params, list, drop, themes. api.md (CLI) has the flags; this is what each part is for and where it came from:
 
 - **Packaging:** a uv project with a `walldye` console script; `from .font import FONTS`; keep `sys.dont_write_bytecode = True`; gitignore `__pycache__/`. The branch commit included .pyc files, which are not copied.
-- **Theme core:** derive_theme, mix, rgb_to_hex, PRESETS, canvas_size, set_canvas and set_theme are copied verbatim into the hashed library. The one change is that derive_theme's inline `dark = luminance(bg) <= luminance(fg)` becomes `dark = not is_light(bg, fg)`.
+- **Theme core:** derive_theme, mix (hex), rgb_to_hex and PRESETS stay in `walldye/_theme.py` as copied from the branch, with derive_theme's inline `dark = luminance(bg) <= luminance(fg)` changed to `dark = not is_light(bg, fg)`. set_theme, set_canvas and the module-level tokens and W/H are gone in v2; canvas_size and the template naming live in `walldye/_aspect.py`.
 - **parse_theme:** follows the theme-token grammar. It rejects other keys and preset+override, and maps exact fireproof seeds to the pinned preset.
-- **Loading:** set_theme, then set_canvas, then a fresh exec for each theme × aspect. A slug resolves to `wallpapers/<slug>/design.py` with module name `_walldye_<slug>`. The design dir is not put on sys.path, and check rejects local imports.
+- **Loading:** a slug resolves to `wallpapers/<slug>/design.py`, imported once per process as module `_walldye_<slug>` and drawn for every (variant, aspect, regime). The design dir is not put on sys.path, and check rejects local imports.
 - **Flags and env:** no `--designs`/`--out` flags, because the layout is fixed. The env vars are `WALLDYE_THEME` and `WALLDYE_PREVIEW` (default `<tmp>/walldye`).
 - **Aspects:** keep `supports()` (1% ratio match). Replace CHECK_ASPECTS with SITE_ASPECTS. Name 16:9 `16x9.svg` and parse names with the regex.
-- **render:** writes to the cwd, `-o PATH` or `-o -`, never into build/. It gains `--aspect` and `--crop`.
-- **preview:** keeps `--theme/--aspect/--crop/--width/--renderer` and prints the PNG path and lint lines. File names carry the full theme token (branch names truncated and collided). It also prints the regime and whether light geometry differs.
+- **Variants:** `--variant NAME` on preview, render, check and build, where check and build default to every variant and `default` names the unnamed one. `--set k=v` overrides one param on preview, render and sheet for exploring; build refuses it, because published values belong in a named variant.
+- **render:** writes to the cwd, `-o PATH` or `-o -`, never into build/. It gains `--aspect`, `--crop`, `--variant` and `--set`.
+- **preview:** keeps `--theme/--aspect/--crop/--width/--renderer` and prints the PNG path and lint lines. File names carry the full theme token (branch names truncated and collided) and the variant. It also prints the regime and whether light geometry differs.
+- **params:** prints a design's params (type, default, range or choices, unit, doc) and its variants' values; `--json` for scripts.
 - **Rasteriser:** `resvg_py` with RGB conversion, plus the `--crop` viewBox rewrite, unchanged. Inkscape stays only as an optional `--renderer` debug flag.
-- **lint:** follows the check list above. `palette_distance` survives only as a fast hint in preview.
-- **Determinism:** the double render plus the `PYTHONHASHSEED=4242` subprocess via `[sys.executable, '-m', 'walldye', '_hashes', ...]`, run inside build before fitting. This also fixes the double count of `bad` (branch cli.py:385, 395).
+- **lint:** follows the check list above. preview runs the design lint only; check adds ruff and Pyrefly. `palette_distance` is gone.
+- **Determinism:** the double draw plus the `PYTHONHASHSEED=4242` subprocess via `[sys.executable, '-m', 'walldye', '_hashes', ...]`, run inside build before fitting. This also fixes the double count of `bad` (branch cli.py:385, 395).
 - **review:**
   - Serves on localhost and blocks until Done. This was the branch's `--wait` mode and is now the only one, so the flag is dropped. Keeps review.html (keys, notes, debounced /state, /done, JSON on exit, --timeout) and serves `wallpapers/<slug>/build/*.svg`.
   - Defaults to `draft: true` slugs.
-  - Cards show the meta.yaml title, description, sources, licence and `proposed_facets`, the dark template, and a light view. The light view is build/16x9.light.svg when present, otherwise 16x9.svg recoloured through slots.json under flexoki-light (the same path as `sheet --theme`). A strip of native aspects follows.
-  - Approval writes `draft: false` and regenerates index.json.
+  - Cards show the meta.yaml title, description, sources, licence and `proposed_facets`, the dark template, and a light view. The light view is build/16x9.light.svg when present, otherwise 16x9.svg recoloured through slots.json under flexoki-light (the same path as `sheet --theme`). A strip of native aspects follows, then a strip of the named variants with their labels.
+  - Approval writes `draft: false` and regenerates index.json. Each variant is approved on its own, which writes its `draft: false` under `variants:`. Review never edits design.py: a rejected variant keeps `draft: true` with the note, and is removed from design.py by hand.
   - State goes in a gitignored `.walldye-review.json`.
   - It never renders missing SVGs; it tells you to run `walldye build`.
   - The static file:// mode is dropped.
-- **sheet:** sheets build/16x9.svg by default, including legacy pieces. With `--theme` it recolours through slots.json.
-- **list:** prints slug, title, description, draft and native aspects. Its output feeds the batch's existing list.
+- **sheet:** sheets build/16x9.svg by default, including legacy pieces. With `--theme` it recolours through slots.json, and `--variant` picks `build/<variant>/`. With `--wedge k=a..b..step` or `--seeds a..b` it renders one design afresh for every combination instead, for choosing values and seeds.
+- **list:** prints slug, title, description, draft, native aspects and named variants. Its output feeds the batch's existing list.
 - **drop:** runs `rm -r wallpapers/<slug>/`, regenerates index.json and clears the review state. It needs owner confirmation.
 - **themes:** `--json` writes the vitest fixture.
 - **new, build:** new commands, as described above.
@@ -460,8 +507,8 @@ Commands: new, preview, check, build, render, review, sheet, list, drop, themes.
 - Changes:
   - Ideas get `facets` and `leads: [{kind, title, author, year, url}]`, and `family` is dropped. The curator caps each technique facet at 10%.
   - The existing list comes from `walldye list` (meta.yaml), plus the ~/nixos designs' docstrings until M2.
-  - Builders run `walldye new` and write design.py and meta.yaml. They return `{meta_ok, light: tokens|choice|branch|opt-out, aspects}` (light ladder steps 1-4).
-  - Critics also judge the flexoki-light and nord renders and return `light_verdict` and `copy_fixes`.
+  - Builders run `walldye new` and write design.py and meta.yaml against API v2. They return `{meta_ok, light: tokens|choice|branch|opt-out, aspects, variants}` (light ladder steps 1-4; `variants` names the drafts they proposed under the Variant policy, usually none).
+  - Critics also judge the flexoki-light and nord renders and return `light_verdict` and `copy_fixes`, and judge each proposed variant against the Variant policy.
   - A per-design sources agent runs after keep: it WebFetches every lead, drops failures, and returns `{sources, dropped}`.
   - One set-level copy agent does a single pass over all new descriptions.
   - The {TOOL} block says: only `wallpapers/<your slugs>/`; never `walldye/`, taxonomy.yaml, other wallpapers or build/; never run `walldye build`.
@@ -513,28 +560,39 @@ Commands: new, preview, check, build, render, review, sheet, list, drop, themes.
   - Set the landscape centre to W*0.71875, H*5/9 so 16:9 stays at 1380,600.
   - Its hex reuse is only rounding, so the vitest collision fixture is what proves per-occurrence slots.
 
-M1 delivers the library and CLI, slot fitting, the site (index, detail, theming, export, about), the skill and batch workflow, CI and the deploy.
+M1 delivers the library and CLI, slot fitting, the site (index, detail, theming, export, about), the skill and batch workflow, CI and the deploy. The three M1 pieces were written against the v1 API; M2 ports them.
 
-### M2: full import and nixos cutover
+### M2: API v2, the port and the import, in this repo
 
-Entry gate (all must hold):
-- (a) The owner confirms the fidelity pass is done. It appears finished: 04ec4d4 committed 39 game SVGs.
-- (b) No busy nixos dms session.
-- (c) `git -C ~/nixos status --porcelain -- modules/desktop/dms/backgrounds` is empty.
-- (d) Re-rendering every design shows 0 `cmp` diffs.
-- (e) Write `import/SNAPSHOT` with the nixos HEAD sha and a sha256 manifest of wallgen/.
-- (f) Re-check the manifest before the nixos deletion.
+M2 happens entirely in this repo; the nixos cutover is out of scope for now (next section).
 
-Import:
-- 208 design scripts, rewriting `from wallgen import` to `from walldye import`, with docstrings and descriptions made theme-neutral.
+1. API v2 (api.md), built as four parallel parts: the core library, the helper modules, the tools and config, and the site, docs and content (api.md, Implementation split). Ruff was made green on the whole repo first, and an integration step after the four parts regenerates the builds and fixtures and runs every check repo-wide. No compatibility layer: old names are deleted. The M1 pieces and the 8 skill examples are ported to v2 and rebuilt, and docs/design.md, docs/api.md, the skill (SKILL.md, references, examples), the `walldye new` template, the batch workflow and AGENTS.md describe v2. Done 2026-09-28: the M1 pieces and seven of the examples draw what v1 drew, within 0.04% of pixels at 16:9, 21:9 and 9:19.5 in both regimes (schotter's template is byte-identical); glyph-terrain draws a different island, because its noise fields lost the v1 padding. Proposed as drafts: dither-moon's `crescent` and `full` phases and radar-sweep's `late` sweep, for the owner's review.
+2. The port and import, a later workflow:
+   - A libcst codemod does the mechanical part: imports, `def draw(s)` to the decorated and typed signature, W and H inside `draw` to `s.w` and `s.h`, `is_light()` to `s.light`, the four generator families with literal seeds to `s.rng`, `s.np_rng` and `s.noise`, `s.g` to `s.group`, `fill="none"` paths to `s.stroke`, element methods to `P()` primitives, and a module-level `BG` to `@design(bg=...)`.
+   - Then one agent per design, straight through with no pilot. Each agent finishes what the codemod left (module-level W/H constants and the helpers that read them, module-level generators, sorts by colour, raw markup to sub-surfaces, hex arithmetic), adopts the helper modules where they fit, makes the design aspect-aware (`aspects="any"` through `s.pick` and `s.frac`) where the composition allows, proposes up to 3 named variants as drafts where natural, rewrites the docstring and description to the Copy rules, assigns facets, and researches sources with fetched URLs (the `import/nixos-ideas/` ideas.json fields are leads only). Two typing rules for the brief (api.md, Typing): annotate every `s.data(...)` result where it is read, since it is `Any`; and resolve each `# TODO(port): star-args` by typing the point as `tuple[float, float]` or `Vec`, or indexing it, since Pyrefly miscounts `f(*x, y)` when `x` has no known length.
+   - The 12 hardcoded-hex designs (Recolouring pipeline) are rewritten to tokens.
+   - The gate is a re-baseline, not byte identity: output may change. The owner reviews before/after sheets (the nixos SVG against the new 16:9 dark template) sorted by pixel-diff score, at the end of the run.
+
+Import rules:
+- All 208 nixos design scripts land as `wallpapers/<slug>/` folders with `draft: true`.
 - An existing walldye folder wins, and the importer reports it.
-- For eclipse-contours, hitomezashi, patent-lamp, pixel-invaders and ribbons, whose branch versions differ from nixos, import the nixos version as `<slug>` and the branch version as `<slug>-branch`, both `draft: true`. Review approves one and `drop` deletes the other; a surviving `-branch` folder is renamed to `<slug>`. glyph-terrain (branch-only) is imported as a `draft: true` folder and reviewed the same way.
-- Fix the geometry-varying and hardcoded designs that `check --all` reports.
+- For eclipse-contours, hitomezashi, patent-lamp, pixel-invaders and ribbons, whose branch versions differ from nixos, import the nixos version as `<slug>` and the branch version as `<slug>-branch`, both `draft: true`. Review approves one and `drop` deletes the other; a surviving `-branch` folder is renamed to `<slug>`. They are rewrites of 39-233 diff lines, not variants. glyph-terrain (branch-only) is imported as a `draft: true` folder and reviewed the same way.
+- The 8 designs that embed more than 3 kB of data may move it to `data/` and read it with `s.data()`.
 - 39 game pieces as `LicenseRef-fan-work`, each with `franchise`. games-keep.json lists 14 more that were cut.
 - seele is script-less: import it as a legacy entry (source.svg plus palette.yaml, script lost; its colours #1C1B1A/#CF6A4C map to bg/accent) with `license: LicenseRef-fan-work` and `franchise: {title: Neon Genesis Evangelion, owner: khara}`.
 - 19 early generated SVGs as legacy entries (source.svg plus palette.yaml; Claude Opus 5.5, CC0, script lost).
 - geometry.svg and unknown.svg only after their provenance is confirmed; otherwise they stay local in nixos.
-- Metadata from docstrings, plus the `import/nixos-ideas/` inspiration fields (leads only: ideas describe intent, not the finished piece), plus a verified sources pass.
+
+Entry gate for the import:
+- (a) The owner confirms the fidelity pass is done. It appears finished: 04ec4d4 committed 39 game SVGs.
+- (b) API v2 has landed: `uv run pytest`, `walldye check --all` and `pnpm test` pass.
+- (c) Write `import/SNAPSHOT` with the nixos HEAD sha and a sha256 manifest of wallgen/, and import from that snapshot.
+
+### Later: nixos cutover (out of scope for now)
+
+Not part of M2, and nothing in this repo waits for it. Until then nixos keeps `wallgen/` and its backgrounds. When it happens it reads index.json (ignoring `variants`) and only the default variant's `build/16x9.svg` and `build/10x16.svg`, so named variants never reach it.
+
+Gate, at that time: no busy nixos dms session; `git -C ~/nixos status --porcelain -- modules/desktop/dms/backgrounds` is empty; the `import/SNAPSHOT` manifest still matches before anything is deleted.
 
 nixos, in a worktree:
 - In the dmsSession activation (`default.nix:109-120`), normalise DMS's saved `wallpaperPath` by basename: `if test("^/nix/store/") then "<dataHome>/backgrounds/" + (split("/") | last) else . end`, falling back to the default if the file is missing. Per-slug derivations change the store path, so a prefix regex is not enough. DMS stores the resolved store path, so the comment at `background.nix:31` is wrong.
@@ -556,9 +614,11 @@ Done:
 - Cloudflare: walldye.com registered; the Pages project `walldye` (Direct Upload, production branch main); the scoped token; walldye.com attached; the www redirect; Web Analytics enabled.
 - The local dir is `~/dev/walldye` (`svg-walls` is a symlink to it).
 - schotter's `license:` is CC0-1.0.
+- The takedown contact in the fan-work disclaimer is takedown@walldye.com.
 
 Remaining:
 - Add the `CLOUDFLARE_API_TOKEN` repository secret. On 2026-09-27 only `CLOUDFLARE_ACCOUNT_ID` was set, so the deploy job cannot authenticate.
+- Make sure takedown@walldye.com receives mail.
 - Protect `~/nixos/modules/desktop/dms/wallgen/`: it is untracked, and a `git stash -u` or `git clean` would lose all 208 scripts. A tarball is in `import/nixos-wallgen-2026-09-27.tar.gz`. Also committing it to a nixos branch such as `wip/wallgen-designs` (without `__pycache__`) is recommended; no such branch exists yet.
-- Choose the takedown contact address shown in the fan-work disclaimer.
 - Confirm where geometry.svg and unknown.svg came from (M2).
+- Review the port's before/after sheets and approve variants in `walldye review` (M2).
