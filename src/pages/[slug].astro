@@ -49,7 +49,7 @@ const licenseLine = p.resolvedLicense !== DEFAULT_LICENSE && p.resolvedLicense !
 
 <Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.description} ogType="article" mainClass="detail">
   <figure class="spread">
-    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div></PlateBox>
+    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div><span class="frame"></span></PlateBox>
   </figure>
 
   <div class="below">
@@ -119,8 +119,12 @@ const licenseLine = p.resolvedLicense !== DEFAULT_LICENSE && p.resolvedLicense !
   .spread :global(.plate img:not([data-aspect='16:9'])) {
     object-position: center;
   }
-  .spread :global(.plate:has(> img:not([data-aspect='16:9']))::before) {
-    content: '';
+  .frame {
+    display: none;
+  }
+  /* Not the plate's ::before: that is the empty plate's spacer, and Chrome scores one pseudo-element turning into the other as a layout shift. */
+  .spread :global(.plate:has(> img:not([data-aspect='16:9']))) .frame {
+    display: block;
     position: absolute;
     z-index: 1;
     inset: 0;
@@ -153,7 +157,7 @@ const licenseLine = p.resolvedLicense !== DEFAULT_LICENSE && p.resolvedLicense !
     object-position: center;
   }
   .spread :global(.plate:fullscreen .crop),
-  .spread :global(.plate:fullscreen::before),
+  .spread :global(.plate:fullscreen) .frame,
   .spread :global(.plate:fullscreen::after) {
     display: none;
   }

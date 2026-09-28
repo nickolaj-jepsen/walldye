@@ -93,7 +93,7 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
      data-slots="/t/a1422a6b6f79.slots.json" data-alt="…description…"
      [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…"},"late":{…}}']>
   <noscript><img src="/t/9c3c8499b388.svg" alt="…" width="1920" height="1080" …></noscript>
-  <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div> -->
+  <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div><span class="frame"></span> -->
 </div>
 ```
 
@@ -101,7 +101,7 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 - `data-slots` is the piece's `build/slots.json`, byte for byte (`focus`, `cells`, and per key `{file, sha256, n, coefs, occ}`), fetched once per piece. If `n` does not match, show the untouched template.
 - `data-alt` is the description, for the `alt` of the inserted `<img>`.
 - `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. The client reads these attributes once and never writes them.
-- Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; the CSS frames a non-16:9 template from `data-aspect`. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
+- Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; the CSS frames a non-16:9 template from `data-aspect`, with the detail page's `.frame`. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
 - While an image fades in over the one it replaces, `site.css` stacks the second `img` over the first.
 - When the template or slots.json fails to load, an empty plate gets the untouched template, and the recolor is retried on the `RETRY_MS` schedule and on the `online` event (`keepShowing()` in `plates.ts`).
 
