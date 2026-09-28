@@ -25,14 +25,15 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 - A newer run cancels an older one on the same pull request or branch.
 - The deploy job has no checkout. It runs `wrangler pages deploy dist --project-name=walldye --branch=<branch> --commit-hash=<sha>` through `cloudflare/wrangler-action`, so wrangler gets the commit explicitly.
 
-Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days, and the next run then renders the whole catalogue: over an hour on a private repository's 2-core runners, hence the 120-minute timeout. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
+Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days, and the next run then renders the whole catalogue from scratch, hence the 120-minute timeout. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
 
 ## What is set up
 
 GitHub:
-- The repository `nickolaj-jepsen/walldye`, the `origin` remote. It stays private until going live (below).
-- Fork pull requests: while the repository is private, their workflows do not run. Once it is public they always run, without the secrets and without deploying, and going live adds an approval step for outside contributors.
-- Repository secrets: `CLOUDFLARE_API_TOKEN`, a token scoped to Account / Cloudflare Pages / Edit, and `CLOUDFLARE_ACCOUNT_ID`. They are repository secrets because private repositories on the Free plan have no deployment environments. Once the repository is public, they can move to an environment limited to `main`.
+- The public repository `nickolaj-jepsen/walldye`, the `origin` remote, with walldye.com as its website. The About page links to it, and every "Run it yourself" command clones it.
+- A ruleset keeps `main` from being deleted or force-pushed. Secret scanning with push protection and Dependabot alerts are on.
+- Fork pull requests run their workflows without the secrets and never deploy. Runs from outside contributors wait for approval (Settings > Actions > General).
+- Repository secrets: `CLOUDFLARE_API_TOKEN`, a token scoped to Account / Cloudflare Pages / Edit, and `CLOUDFLARE_ACCOUNT_ID`. Previews of branches in this repository need them too, so they are not limited to `main`.
 
 Cloudflare:
 - walldye.com is registered with Cloudflare Registrar, and its zone is in the account.
@@ -44,12 +45,7 @@ Cloudflare:
 
 ## Going live
 
-1. Land the work on `main`. The push deploys it to production; until then walldye.com has no deployment and answers 404.
-2. Close the draft pull requests #1 and #2 if landing did not merge them, and delete the `m1` and `m2` branches. Both would become public with the repository.
-3. Make the repository public: `gh repo edit nickolaj-jepsen/walldye --visibility public --accept-visibility-change-consequences`. The About page links to it, and every "Run it yourself" command clones it.
-4. Make workflows from fork pull requests wait for approval: Settings > Actions > General > "Require approval for all external contributors", or `gh api -X PUT repos/nickolaj-jepsen/walldye/actions/permissions/fork-pr-contributor-approval -f approval_policy=all_external_contributors`. GitHub only offers this setting on public repositories.
-5. Set the repository's website: `gh repo edit nickolaj-jepsen/walldye --homepage https://walldye.com`.
-6. Run the checks below against walldye.com.
+A push to `main` deploys only when `ci.yml` runs, and it skips docs-only changes, so walldye.com answers 404 until the first push to `main` that changes more than docs. Then run the checks below against it.
 
 ## Check that it works
 
