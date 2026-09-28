@@ -1,0 +1,14 @@
+title: Zigzag runner
+description: A road of lit triangles zigzags twice across a woven runner of half-square chevrons, fringed at both ends, lighting up more strongly as it goes.
+notes: The weave of half-square triangles and the stepped road come from mid-century weaving. Here the cloth lies across as a runner, the road makes a W from one corner, and about one cell in ten turns its diagonal the other way, picked out one step stronger.
+technique: [flat]
+subject: [textile]
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: Study for Camino Real
+    author: Anni Albers
+    year: 1967
+    url: https://www.albersfoundation.org/art/highlights/study-for-camino-real
+added: 2026-09-27
+model: claude-opus-5-5

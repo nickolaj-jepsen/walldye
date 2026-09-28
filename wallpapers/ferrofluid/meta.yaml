@@ -1,0 +1,18 @@
+title: Ferrofluid crown
+description: Under a magnet, ferrofluid rises into a crown of spikes, lit along their edges from the right.
+notes: |
+  A strong vertical magnetic field makes the flat surface of a magnetic fluid unstable, and it settles into a regular pattern of peaks and valleys, known as the Rosensweig or normal-field instability. Here the peaks stand on a hexagonal lattice, tallest at the middle of the puddle.
+technique: [flat]
+subject: [physics]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Protrude, Flow
+    author: Sachiko Kodama and Minako Takeno
+    year: 2000
+    url: https://en.wikipedia.org/wiki/Sachiko_Kodama
+  - kind: reference
+    topic: Ferrofluid
+    url: https://en.wikipedia.org/wiki/Ferrofluid
+added: 2026-09-27
+model: claude-opus-5-5

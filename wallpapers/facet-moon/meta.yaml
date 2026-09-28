@@ -1,0 +1,21 @@
+title: Faceted moon
+description: A low-poly moon lit from behind, so only a crescent of facets on its upper left catches the light.
+notes: The moon starts as an icosahedron whose 20 faces are each cut into 16 triangles and pushed out onto a sphere, 320 facets in all. Corners on the near side are nudged a little so the facets look cut by hand, and each facet's tone steps down with the angle between its face and the sun.
+technique: [flat]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    topic: Geodesic polyhedron
+    url: https://en.wikipedia.org/wiki/Geodesic_polyhedron
+  - kind: reference
+    topic: Lambertian reflectance
+    url: https://en.wikipedia.org/wiki/Lambertian_reflectance
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Crescent moon
+  half:
+    label: Half moon
+    description: A low-poly moon at first quarter, lit from the side, its upper left half catching the light up to a stepped edge.

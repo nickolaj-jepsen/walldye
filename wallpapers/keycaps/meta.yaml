@@ -1,0 +1,13 @@
+title: Keycaps
+description: A mechanical keyboard's top-left corner, seen at a tilt. Escape is picked out, and the other keys fade into the plate.
+notes: |
+  Each keycap is four stacked rounded rectangles: the skirt, a top face set back so its front wall shows, a dish shaded at its back wall, and the floor of the dish. The keys follow the ANSI tenkeyless layout.
+technique: [flat]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    topic: Esc key
+    url: https://en.wikipedia.org/wiki/Esc_key
+added: 2026-09-27
+model: claude-opus-5-5

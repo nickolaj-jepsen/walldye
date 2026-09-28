@@ -1,0 +1,17 @@
+title: Four-note rings
+description: Thirteen rings of arcs circle a filled dot, each playing three short notes and a long one, a beat later than the ring inside. One long note is lit.
+notes: |
+  Takes the segmented rings of Josef Müller-Brockmann's *Beethoven* poster (1955).
+
+  Each ring here is one bar over a three-quarter turn, three short notes and a long one, started a beat later than the ring inside it, so the rests wind outward instead of lining up.
+technique: [flat]
+subject: [music]
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: Beethoven
+    author: Josef Müller-Brockmann
+    year: 1955
+    url: https://peoplesgdarchive.org/item/5754/beethoven-poster-for-the-zurich-town-hall
+added: 2026-09-27
+model: claude-opus-5-5

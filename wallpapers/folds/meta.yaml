@@ -1,0 +1,15 @@
+title: Folds
+description: Four ribbons sweep up from the lower left, shadowing one another. The top one turns over, its underside filled in.
+notes: |
+  The twist turns the top ribbon about its centre line: its width follows the cosine of the turn, and each stretch between two edge-on points gets its own gradient, lit from the upper left.
+technique: [flat]
+subject: []
+lineage: []
+sources:
+  - kind: inspiration
+    title: Bloom
+    author: Microsoft and Six N. Five
+    year: 2021
+    url: https://blogs.windows.com/windowsexperience/2021/10/06/windows-11-blossoms-with-bloom-a-new-symbol-for-a-new-operating-system/
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,15 @@
+title: Ear-reddening move
+description: Shusaku and Gennan's 1846 game replayed to move 127, the ear-reddening move picked out near the centre.
+notes: |
+  A doctor watching the game is said to have seen Gennan's ears flush when Shusaku played move 127, and it has been called the ear-reddening move ever since. Shusaku won by two points.
+technique: [flat]
+subject: [games]
+lineage: []
+sources:
+  - kind: data
+    topic: Ear-reddening game
+    author: Hon'inbō Shūsaku, Inoue Gennan Inseki
+    year: 1846
+    url: https://en.wikipedia.org/wiki/Ear-reddening_game
+added: 2026-09-27
+model: claude-opus-5-5

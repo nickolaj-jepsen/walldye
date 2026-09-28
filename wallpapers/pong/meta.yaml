@@ -1,0 +1,14 @@
+title: Pong, mid-rally
+description: Pong frozen mid-rally, the ball trailing three afterimages. A dotted path runs back off the top wall to the left paddle.
+notes: After Atari's *Pong* (1972). Where the ball meets the wall the drawing turns into a diagram, with its outline at contact, the dashed normal and the two equal angles either side.
+technique: [flat]
+subject: [games]
+lineage: [arcade-games]
+sources:
+  - kind: inspiration
+    title: Pong
+    author: Atari
+    year: 1972
+    url: https://en.wikipedia.org/wiki/Pong
+added: 2026-09-27
+model: claude-opus-5-5

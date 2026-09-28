@@ -1,0 +1,16 @@
+title: Enso and seal
+description: One brushstroke of enso breaks into dry bristle streaks as the ink runs out, beside a small carved seal.
+notes: |
+  The stroke is built from three dozen separate bristles, each running dry at its own rate, so the ring splits into streaks on its way round and thins to a few hairs at the tail. The seal is cut in the baiwen style, with a made-up character carved out of the stone and printing as gaps.
+technique: [flat]
+subject: []
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    topic: Ensō
+    url: https://en.wikipedia.org/wiki/Ens%C5%8D
+  - kind: reference
+    topic: Seals in the Sinosphere
+    url: https://en.wikipedia.org/wiki/Seals_in_the_Sinosphere
+added: 2026-09-27
+model: claude-opus-5-5

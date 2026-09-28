@@ -1,0 +1,15 @@
+title: Barragán walls
+description: Two tall walls stand before a long one with a doorway. A still pool reflects them in widening strips.
+notes: |
+  After Luis Barragán's Cuadra San Cristóbal (1966–68) in Mexico City, where a long stucco wall pierced by portals stands over a horse pool. Here the walls are flat planes, with shadows cast from the upper left.
+technique: [flat]
+subject: [architecture]
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    topic: Cuadra San Cristóbal
+    author: Luis Barragán
+    year: 1968
+    url: https://www.barragan-foundation.org/works/list/cuadra-san-cristobal
+added: 2026-09-27
+model: claude-opus-5-5

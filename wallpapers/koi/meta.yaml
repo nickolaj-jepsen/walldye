@@ -1,0 +1,11 @@
+title: Koi pond
+description: Two blotched koi curve through a pond, ripples ringing their tails, as a faint third noses in from the edge.
+technique: [flat]
+subject: [flora-fauna]
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    topic: Koi
+    url: https://en.wikipedia.org/wiki/Koi
+added: 2026-09-27
+model: claude-opus-5-5
