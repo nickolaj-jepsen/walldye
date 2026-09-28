@@ -31,8 +31,10 @@ export const FACET_LABELS: Record<TaxonomyFacet, Record<string, string>> = {
     instrument: 'instrument displays',
     tiling: 'tiling',
     simulation: 'simulations',
-    stipple: 'stippling',
+    stipple: 'stippling and hatching',
     field: 'flow fields and contours',
+    flat: 'flat shapes',
+    line: 'line art',
   },
   subject: {
     space: 'space',
@@ -42,17 +44,34 @@ export const FACET_LABELS: Record<TaxonomyFacet, Record<string, string>> = {
     computing: 'computing',
     textile: 'textiles',
     games: 'games',
+    maths: 'mathematics',
+    'flora-fauna': 'plants and animals',
+    machines: 'machines',
+    architecture: 'architecture',
+    music: 'music and sound',
+    sport: 'sport',
   },
   lineage: {
     'early-computer-art': 'early computer art',
+    'op-art': 'op art',
+    modernism: 'modernism',
+    'creative-coding': 'creative coding',
+    'japanese-art': 'Japanese art',
+    'patent-drawings': 'patent drawings',
+    'scientific-illustration': 'scientific illustration',
+    'vintage-computers': 'vintage computers',
+    'arcade-games': 'arcade games',
   },
 };
 
-/** Values with no filter entry and no fact: the caption's "after …" line and "has references" already cover homage. */
+/**
+ * Values with no filter entry and no fact: the caption's "after …" line and "has references"
+ * already cover homage, and the fan-tribute line under the credit covers fan-work.
+ */
 export const UNLISTED: Record<TaxonomyFacet, readonly string[]> = {
   technique: [],
   subject: [],
-  lineage: ['homage'],
+  lineage: ['homage', 'fan-work'],
 };
 
 /** Computed facets (the "Other" group): query value -> label. */

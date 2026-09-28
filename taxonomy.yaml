@@ -10,6 +10,8 @@ technique:
   - simulation
   - stipple
   - field
+  - flat
+  - line
 subject:
   - space
   - landscape
@@ -18,6 +20,21 @@ subject:
   - computing
   - textile
   - games
+  - maths
+  - flora-fauna
+  - machines
+  - architecture
+  - music
+  - sport
 lineage:
   - homage
   - early-computer-art
+  - op-art
+  - modernism
+  - creative-coding
+  - japanese-art
+  - patent-drawings
+  - scientific-illustration
+  - vintage-computers
+  - arcade-games
+  - fan-work

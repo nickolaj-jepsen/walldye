@@ -106,12 +106,16 @@ export const COLOUR_WORDS: ReadonlySet<string> = new Set([
   'burgundy', 'charcoal', 'khaki', 'sienna', 'cerulean', 'ultramarine', 'chartreuse', 'fuchsia',
 ]);
 
-/** Colour words in `text`, lowercased and sorted; ALL-CAPS words (token names like ORANGE_DARK) are not prose. */
+/**
+ * Colour words in `text` as written, lowercased and sorted, plurals included ("greys" matches via "grey");
+ * ALL-CAPS words (token names like ORANGE_DARK) are not prose.
+ */
 export function colourWords(text: string): string[] {
   const found = new Set<string>();
   for (const [w] of text.matchAll(/(?<![\p{L}\p{N}_])[A-Za-z]+(?![\p{L}\p{N}_])/gu)) {
-    const upper = w === w.toUpperCase();
-    if (COLOUR_WORDS.has(w.toLowerCase()) && !upper) found.add(w.toLowerCase());
+    const lower = w.toLowerCase();
+    const stems = [lower, lower.replace(/s$/, ''), lower.replace(/es$/, '')];
+    if (w !== w.toUpperCase() && stems.some((t) => COLOUR_WORDS.has(t))) found.add(lower);
   }
   return [...found].sort();
 }

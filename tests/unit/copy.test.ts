@@ -20,6 +20,15 @@ describe('copy lint (h)', () => {
     expect(colourWords('reddish Blueprint')).toEqual([]);
   });
 
+  it('flags plural colour words', () => {
+    expect(colourWords('Greys and whites under the ambers; GREYS, BLUES, crimsons')).toEqual([
+      'ambers',
+      'crimsons',
+      'greys',
+      'whites',
+    ]);
+  });
+
   it('limits descriptions to 30 words and two sentences', () => {
     const long = Array.from({ length: 31 }, () => 'dot').join(' ');
     expect(lintCopy({ description: long })).toEqual(['description: 31 words, over 30']);
