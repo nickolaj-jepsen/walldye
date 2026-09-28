@@ -1,4 +1,4 @@
-/* Fireproof tokens from src/styles/site.css; --mat, --keep and --drop are this tool's own. */
+/* Fireproof tokens from src/styles/site.css; --mat, --keep, --edit and --drop are this tool's own. */
 :root {
   color-scheme: dark;
   --bg: #1c1b1a;
@@ -13,6 +13,7 @@
   --control: #676764;
   --mat: #0e0e0d;
   --keep: #879a39;
+  --edit: #d0a215;
   --drop: #d14d41;
 }
 
@@ -134,6 +135,11 @@ kbd {
 .badge.keep {
   border-color: var(--keep);
   color: var(--keep);
+}
+
+.badge.edit {
+  border-color: var(--edit);
+  color: var(--edit);
 }
 
 .badge.drop {
@@ -283,6 +289,12 @@ kbd {
 .decide button.keep[aria-pressed="true"] {
   background: var(--keep);
   border-color: var(--keep);
+  color: var(--bg);
+}
+
+.decide button.edit[aria-pressed="true"] {
+  background: var(--edit);
+  border-color: var(--edit);
   color: var(--bg);
 }
 
@@ -459,6 +471,11 @@ kbd {
 .squares button.keep {
   background: var(--keep);
   border-color: var(--keep);
+}
+
+.squares button.edit {
+  background: var(--edit);
+  border-color: var(--edit);
 }
 
 .squares button.drop {

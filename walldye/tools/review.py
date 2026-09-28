@@ -47,7 +47,7 @@ class Step:
 
 
 def load_state() -> State:
-    """Review state {slug: {versions?: {name: {status?: keep|drop, note?}}, edits?: {title?,
+    """Review state {slug: {versions?: {name: {status?: keep|edit|drop, note?}}, edits?: {title?,
     description?, notes?, technique?, subject?, lineage?, variants?: {name: {label?,
     description?}}}, facets?: {facet: {value: accept|decline}}, labels?: {facet: {value:
     label}}}}; {} if unreadable."""
@@ -340,11 +340,13 @@ def _dropped(group: Sequence[Step], status: Mapping[str, str]) -> bool:
 def summarise(steps: Sequence[Step], state: State) -> dict[str, object]:
     """The decisions in `state` for `steps`: approved, rejected ([{slug, note}]) and undecided
     over the unpublished default versions; notes ([{slug, variant, note}]) over every step;
+    edit ([{slug, variant, published, note}]) over every step sent back for changes;
     variants: {approved, rejected, undecided} ([{slug, variant, note?}]) over the unpublished
-    named versions, leaving out those of a rejected piece."""
+    named versions. The named versions of a rejected piece are in none of these but notes."""
     pieces: dict[str, list[object]] = {"approved": [], "rejected": [], "undecided": []}
     named: dict[str, list[dict[str, str]]] = {"approved": [], "rejected": [], "undecided": []}
     notes: list[dict[str, str]] = []
+    edit: list[dict[str, object]] = []
     for slug, group in _grouped(steps).items():
         entry = _dict(state.get(slug))
         decided = _dict(entry.get("versions"))
@@ -354,7 +356,11 @@ def summarise(steps: Sequence[Step], state: State) -> dict[str, object]:
             status, note = _text(d, "status"), _text(d, "note")
             if note != "":
                 notes.append({"slug": slug, "variant": step.variant, "note": note})
-            if step.published:
+            moot = dropped and step.variant != "default"
+            if status == "edit" and not moot:
+                item = {"slug": slug, "variant": step.variant, "published": step.published}
+                edit.append({**item, "note": note})
+            if step.published or status == "edit":
                 continue
             kind = {"keep": "approved", "drop": "rejected"}.get(status, "undecided")
             if step.variant == "default":
@@ -362,7 +368,7 @@ def summarise(steps: Sequence[Step], state: State) -> dict[str, object]:
             elif not dropped:
                 item = {"slug": slug, "variant": step.variant}
                 named[kind].append({**item, "note": note} if kind == "rejected" else item)
-    return {**pieces, "notes": notes, "variants": named}
+    return {**pieces, "notes": notes, "edit": edit, "variants": named}
 
 
 def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
@@ -370,15 +376,17 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
 
     Per piece: its edits and proposed-facet decisions (edited()); a kept unpublished version
     gets `draft: false` (the default version on the piece, a named one on its variants:
-    entry), and a dropped published one `draft: true`. The named versions of a dropped
-    unpublished piece are left alone. A new facet value is appended to taxonomy.yaml (only its
+    entry), and a dropped published one `draft: true`. A version sent back for an edit keeps
+    its draft flag. The named versions of a dropped unpublished piece are left alone. A new
+    facet value is appended to taxonomy.yaml (only its
     leading comment lines survive the rewrite) and its label to FACET_LABELS in labels.ts.
     A piece is refused, and nothing of it written, when an edit adds a lint error, a new
     facet value is malformed or has no label, or it would be published with proposed facets
     undecided. Everything is decided before the first write; index.json is rewritten after.
 
     Afterwards each written piece keeps only its decisions and notes in the state file, minus
-    the status of each version it unpublished, so a later review asks about that one again.
+    the status of each version it unpublished and the whole decision of each version sent back
+    for an edit, so a later review asks about those again.
 
     Returns {published, published_variants: [{slug, variant}], unpublished: [{slug,
     variant}], refused: [{slug, reason}], edits: [{slug, variant, field, before, after}],
@@ -393,6 +401,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
     changed: dict[str, common.Meta] = {}
     written: list[str] = []
     unpublished: list[Step] = []
+    sent_back: list[Step] = []
     out: dict[str, list[object]] = {k: [] for k in RESULT_KEYS if k != "new_facets"}
     for slug, group in _grouped(steps).items():
         entry = _dict(state.get(slug))
@@ -403,11 +412,16 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
         _, _, reasons = _problems(slug, meta, m, known_now, merged)
         results: dict[str, list[object]] = {k: [] for k in out}
         mine: list[Step] = []
+        back: list[Step] = []
         dropped = _dropped(group, status)
         own = _dict(m.get("variants"))
         for step in group:
             s = status.get(step.variant, "")
             item = {"slug": slug, "variant": step.variant}
+            if s == "edit":
+                if step.variant == "default" or not dropped:
+                    back.append(step)
+                continue
             if step.variant == "default":
                 if not step.published and s == "keep":
                     proposed = _dict(m.pop("proposed_facets", None))
@@ -442,6 +456,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
             out[k] += items
         written.append(slug)
         unpublished += mine
+        sent_back += back
         if m != meta:
             changed[slug] = m
     fresh = {
@@ -463,7 +478,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
         from walldye.tools.build import write_index
 
         write_index()
-    _settle(state, written, unpublished)
+    _settle(state, written, unpublished, sent_back)
     new_facets = [
         {"facet": f, "value": v, "label": x} for f, vs in added.items() for v, x in vs.items()
     ]
@@ -489,13 +504,18 @@ def _diff(slug: str, before: common.Meta, after: common.Meta) -> list[object]:
     return rows
 
 
-def _settle(state: State, written: Sequence[str], unpublished: Sequence[Step]) -> None:
-    """Drop the applied edits, facet decisions and labels of the `written` pieces from `state`
-    and the status of each version in `unpublished`, then save it."""
-    for step in unpublished:
+def _settle(
+    state: State, written: Sequence[str], unpublished: Sequence[Step], sent_back: Sequence[Step]
+) -> None:
+    """Drop the applied edits, facet decisions and labels of the `written` pieces from `state`,
+    the status of each version in `unpublished` and the status and note of each in
+    `sent_back`, then save it."""
+    for step in [*unpublished, *sent_back]:
         decided = _dict(state.get(step.slug, {}).get("versions"))
         version = _dict(decided.get(step.variant))
         version.pop("status", None)
+        if step in sent_back:
+            version.pop("note", None)
         if len(version) > 0:
             decided[step.variant] = version
         else:

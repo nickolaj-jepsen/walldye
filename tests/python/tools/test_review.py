@@ -246,8 +246,47 @@ def test_apply_leaves_the_versions_of_a_dropped_piece(wallpapers, review_files):
         "rejected": [{"slug": "versions", "note": ""}],
         "undecided": [],
         "notes": [],
+        "edit": [],
         "variants": {"approved": [], "rejected": [], "undecided": []},
     }
+
+
+def test_apply_sends_edits_back_and_asks_again(wallpapers, review_files):
+    versions(wallpapers, "v", draft=False)
+    piece(wallpapers, "a")
+    state = {
+        "v": {"versions": {"default": {"status": "edit", "note": "thinner rings"}, "late": {"status": "edit"}, "bare": {"status": "keep", "note": "more like this"}}},
+        "a": {"versions": {"default": {"status": "edit", "note": "less dense"}}, "edits": {"title": "Ring"}},
+    }  # fmt: skip
+    steps = review.queue(["v", "a"])
+    assert review.summarise(steps, state) == {
+        "approved": [],
+        "rejected": [],
+        "undecided": [],
+        "notes": [
+            {"slug": "v", "variant": "default", "note": "thinner rings"},
+            {"slug": "v", "variant": "bare", "note": "more like this"},
+            {"slug": "a", "variant": "default", "note": "less dense"},
+        ],
+        "edit": [
+            {"slug": "v", "variant": "default", "published": True, "note": "thinner rings"},
+            {"slug": "v", "variant": "late", "published": False, "note": ""},
+            {"slug": "a", "variant": "default", "published": False, "note": "less dense"},
+        ],
+        "variants": {"approved": [{"slug": "v", "variant": "bare"}], "rejected": [], "undecided": []},
+    }  # fmt: skip
+    result = review.apply(steps, state)
+    assert (result["published"], result["published_variants"], result["unpublished"]) == (
+        [],
+        [{"slug": "v", "variant": "bare"}],
+        [],
+    )
+    assert meta("v")["draft"] is False and meta("v")["variants"]["late"]["draft"] is True
+    assert meta("a")["draft"] is True and meta("a")["title"] == "Ring"
+    assert review.load_state() == {
+        "v": {"versions": {"bare": {"status": "keep", "note": "more like this"}}}
+    }
+    assert review.queue([]) == [Step("a", "default", False), Step("v", "late", False)]
 
 
 def test_apply_refuses_edits_that_break_the_lint(wallpapers, review_files):
@@ -271,6 +310,7 @@ def test_summarise_lists_notes_and_versions():
         "approved": [],
         "rejected": [],
         "undecided": ["a"],
+        "edit": [],
         "notes": [
             {"slug": "a", "variant": "default", "note": "look again"},
             {"slug": "b", "variant": "default", "note": "fine"},
@@ -395,6 +435,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
             {"slug": "a", "variant": "default", "note": "keep"},
             {"slug": "c", "variant": "bare", "note": "empty"},
         ],
+        "edit": [],
         "variants": {
             "approved": [{"slug": "c", "variant": "late"}],
             "rejected": [{"slug": "c", "variant": "bare", "note": "empty"}],

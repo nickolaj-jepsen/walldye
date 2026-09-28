@@ -76,9 +76,12 @@ flags.
    all pieces; a `DRIFT` line means a committed render changed and needs a look first.
 10. `uv run walldye review <slug>` with `run_in_background`. It serves a local page, blocks
     until the owner presses Apply, then prints JSON: the approved, rejected and undecided
-    versions, notes, what was published, unpublished or refused, and the owner's own edits to
-    the words and facets (`edits`, `new_facets`; see docs/api.md §14.4). Act on the notes, and
-    read the edits: they show the copy the owner wants. Review never edits design.py: remove a
+    versions, the versions sent back for an edit, notes, what was published, unpublished or
+    refused, and the owner's own edits to the words and facets (`edits`, `new_facets`; see
+    docs/api.md §14.4). Act on the notes: one on an approved version usually asks for more,
+    such as another variant like it. Rework each version in `edit` as its note says, then
+    build and review it again; it keeps its draft flag until then. Read the edits: they show
+    the copy the owner wants. Review never edits design.py: remove a
     rejected variant from design.py and meta.yaml by hand. Confirm with the owner before
     `uv run walldye drop <slug> --yes` on a reject; an unpublished piece is not a reject.
 

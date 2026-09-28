@@ -419,7 +419,7 @@ For about ten or more pieces in one run. Research agents propose ideas per lens,
 | `render` | one SVG to the working directory or `-o`, never into `build/` |
 | `check` | the gate above |
 | `build` | check, then write `build/`, slots.json and index.json; `--verify` diffs without writing |
-| `review` | a localhost page that goes through versions one at a time to keep, drop or unpublish them and edit their words and facets; blocks until Apply |
+| `review` | a localhost page that goes through versions one at a time to accept, send back for an edit (with a note), remove or unpublish them, and edit their words and facets; blocks until Apply |
 | `sheet` | contact sheets of committed templates, or of one piece over `--wedge` and `--seeds` |
 | `params` | a design's params, ranges and variants |
 | `list` | slug, title, description, draft, aspects and variants, tab-separated |

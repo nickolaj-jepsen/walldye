@@ -289,6 +289,10 @@ const REVIEWED = {
       items: { type: 'object', properties: { slug: str, note: str }, required: ['slug'] },
     },
     undecided: strs,
+    edit: {
+      type: 'array',
+      items: { type: 'object', properties: { slug: str, variant: str, published: { type: 'boolean' }, note: str }, required: ['slug', 'variant'] },
+    },
     notes: {
       type: 'array',
       items: { type: 'object', properties: { slug: str, variant: str, note: str }, required: ['slug', 'note'] },
@@ -848,16 +852,17 @@ if (A.review === false) {
 1. Start it with Bash run_in_background: \`uv run walldye review ${built.join(' ')} --port ${REVIEW_PORT} > ${WORK}/review.out 2>&1\`. The owner was told this port. Only if it fails because the port is taken, start it again with --port 0; the URL it prints is then the one to return.
 2. Wait without ending your turn. Repeat \`timeout 580 tail --pid=$(pgrep -of '[w]alldye review') -f /dev/null; tail -c 6000 ${WORK}/review.out\` with a 600000 ms Bash timeout until the output ends with the JSON summary (it has a "finished" key). Never kill the process: the owner is deciding.
 3. If there is no background Bash, run \`uv run walldye review ${built.join(' ')} --port ${REVIEW_PORT} --timeout 570\` in the foreground instead (600000 ms timeout), and repeat it with \`--no-open\` added until "finished" is true or 2 hours have passed. Decisions persist between runs.
-Return the summary: url (from the first output line), finished, approved, rejected, undecided, notes as [{slug, variant, note}], edits as [{slug, variant, field, before, after}], published, refused and error. If review exits at once (for example "not built: ..."), return finished false with that message as error.`, { label: 'review', phase: 'Review', schema: REVIEWED, effort: 'low' })
+Return the summary: url (from the first output line), finished, approved, rejected, undecided, edit as [{slug, variant, published, note}], notes as [{slug, variant, note}], edits as [{slug, variant, field, before, after}], published, refused and error. If review exits at once (for example "not built: ..."), return finished false with that message as error.`, { label: 'review', phase: 'Review', schema: REVIEWED, effort: 'low' })
   if (!review) log('The review agent returned nothing')
 
-  if (review && (review.approved.length || review.rejected.length)) {
-    const reviewed = uniq([...review.approved, ...review.rejected.map(r => r.slug)]).filter(s => pieces[s])
+  if (review && (review.approved.length || review.rejected.length || review.edit?.length)) {
+    const reviewed = uniq([...review.approved, ...review.rejected.map(r => r.slug), ...(review.edit ?? []).map(e => e.slug)]).filter(s => pieces[s])
     const res = await agent(`Turn the owner's review of a wallpaper batch into lessons for the next batch: what kinds of pieces survived, what kinds died, and why. Be specific about subjects, techniques and composition. Write a short plain paragraph or two, no colour names, in the manner of:
 "Kept: instruments and science pieces (radar, oscilloscope, Smith chart), quiet textures with a small accent event (Penrose, hitomezashi), crisp patent-style technical drawings, a few bold graphics. Loves dither, pixel art and glyph art. Rejected: big saturated flat accent masses, clip-art-ish illustrations (single tree, iceberg, snowflake), maximalist low-poly landscapes, busy full-sheet blueprints."
 ${LESSONS}
 The owner may also have rewritten titles, descriptions or facets in the review (edits); say what those rewrites teach about the copy they want.
-REVIEW: ${json({ approved: review.approved, rejected: review.rejected, notes: review.notes ?? [], edits: review.edits ?? [] })}
+Versions sent back for an edit were worth keeping but not yet right; their notes say what to change. Notes on approved versions often ask for more of the same.
+REVIEW: ${json({ approved: review.approved, rejected: review.rejected, sent_back_for_edit: review.edit ?? [], notes: review.notes ?? [], edits: review.edits ?? [] })}
 PIECES: ${json(reviewed.map(s => ({ slug: s, concept: pieces[s].idea.concept, facets: pieces[s].idea.facets, critic_score: pieces[s].score })))}`, { label: 'lessons', phase: 'Review', schema: LESSONS_OUT, effort: 'low' })
     lessons = res?.lessons ?? null
   }
@@ -869,6 +874,7 @@ if (!final.verify_ok) next.push('Look at the `walldye build --verify` drift befo
 if (!review && A.review !== false && built.length) next.push(`Run \`uv run walldye review ${built.join(' ')}\` with run_in_background.`)
 if (A.review === false && built.length) next.push(`When the owner has time: \`uv run walldye review ${built.join(' ')}\` with run_in_background.`)
 if (review?.rejected.length) next.push(`Confirm with the owner, then \`uv run walldye drop ${review.rejected.map(r => r.slug).join(' ')} --yes\`.`)
+if (review?.edit?.length) next.push(`The owner sent these back for changes; rework each as its note says, then build and review it again: ${review.edit.map(e => `${e.variant === 'default' ? e.slug : `${e.slug} (${e.variant})`}: ${e.note || 'no note'}`).join('; ')}.`)
 if (review?.undecided.length) next.push(`Undecided pieces stay draft: true; review them later with \`uv run walldye review ${review.undecided.join(' ')}\`.`)
 if (review?.error) next.push(`walldye review ended with an error, so nothing was published: ${review.error}`)
 if (review?.refused?.length) next.push(`Approval refused for ${review.refused.map(r => r.slug).join(', ')} (see review.refused).`)

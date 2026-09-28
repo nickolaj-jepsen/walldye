@@ -83,7 +83,7 @@ function setDecision(s, key, value) {
   });
 }
 
-// A named version of a dropped new piece is not asked about.
+// A named version of a removed new piece is not asked about.
 function isMoot(s) {
   if (s.variant === "default") return false;
   const d = STEPS.find((t) => t.slug === s.slug && t.variant === "default");
@@ -96,12 +96,18 @@ function kindOf(s) {
 }
 
 function kindLine(s) {
+  const edit = "edit sends it back to the agent with your note";
   if (!s.published && s.variant === "default")
-    return "A new piece. Keep publishes it; drop leaves it a draft, to be deleted.";
-  if (!s.published) return "A new version of this piece. Keep publishes it.";
+    return `A new piece. Accept publishes it; ${edit}; remove leaves it a draft, to be deleted.`;
+  if (!s.published) return `A new version of this piece. Accept publishes it; ${edit}; remove leaves it a draft.`;
   if (s.variant === "default")
-    return "On the site. Keep changes nothing; unpublish hides the piece and all its versions.";
-  return "On the site. Keep changes nothing; unpublish hides this version.";
+    return `On the site. Accept changes nothing; ${edit}; unpublish hides the piece and all its versions.`;
+  return `On the site. Accept changes nothing; ${edit}; unpublish hides this version.`;
+}
+
+// What the step's decision is called: the published versions are unpublished, not removed.
+function wordOf(s, st) {
+  return { keep: "accept", edit: "edit", drop: s.published ? "unpublish" : "remove" }[st];
 }
 
 function nameOf(s) {
@@ -331,10 +337,10 @@ function renderTop() {
   $("version").textContent = hasVersions(s.slug)
     ? versionText(s.slug, s.variant, "label") || s.variant
     : "";
-  const word = { keep: "keep", drop: s.published ? "unpublish" : "drop" }[st];
+  const word = wordOf(s, st);
   const badge = $("badge");
   badge.className = `badge ${st}`;
-  badge.textContent = isMoot(s) ? "Piece dropped" : word ? `${kindOf(s)} · ${word}` : kindOf(s);
+  badge.textContent = isMoot(s) ? "Piece removed" : word ? `${kindOf(s)} · ${word}` : kindOf(s);
 }
 
 function renderShapes() {
@@ -366,7 +372,7 @@ function decideSection(s) {
     return el(
       "section",
       { class: "decide" },
-      el("p", { class: "kind", text: "Not asked: the piece is dropped. Undo that to decide this one." }),
+      el("p", { class: "kind", text: "Not asked: the piece is removed. Undo that to decide this one." }),
     );
   }
   const st = statusOf(s);
@@ -374,7 +380,11 @@ function decideSection(s) {
     id: "note",
     rows: 2,
     value: decisionOf(s).note || "",
-    placeholder: st === "drop" ? "What's wrong with it? Enter to go on" : "",
+    placeholder: {
+      keep: "Anything to add, like more versions of this? Enter to go on",
+      edit: "What should change? Enter to go on",
+      drop: "What's wrong with it?",
+    }[st],
   });
   note.oninput = () => setDecision(s, "note", note.value.trim() ? note.value : "");
   note.onkeydown = (e) => {
@@ -400,12 +410,18 @@ function decideSection(s) {
     el(
       "div",
       { class: "buttons" },
-      button("keep", "Keep", "K", keep),
-      button("drop", s.published ? "Unpublish" : "Drop", "X", drop),
+      button("keep", "Accept", "A", accept),
+      button("edit", "Edit", "E", edit),
+      button("drop", s.published ? "Unpublish" : "Remove", "R", remove),
+    ),
+    el(
+      "div",
+      { class: "buttons" },
       el("button", { type: "button", disabled: !st, onclick: undo }, "Undo", el("kbd", { text: "U" })),
+      el("button", { type: "button", onclick: skip }, "Skip", el("kbd", { text: "S" })),
     ),
     el("p", { id: "flash", class: "flash", "aria-live": "polite" }),
-    el("label", { class: "field" }, st === "drop" ? "Why" : "Note", note),
+    el("label", { class: "field" }, { edit: "What to change", drop: "Why" }[st] || "Note", note),
   );
 }
 
@@ -602,8 +618,7 @@ function renderQueue() {
     const s = STEPS[i];
     const moot = isMoot(s);
     const st = moot ? "" : statusOf(s);
-    b.classList.toggle("keep", st === "keep");
-    b.classList.toggle("drop", st === "drop");
+    for (const k of ["keep", "edit", "drop"]) b.classList.toggle(k, st === k);
     b.classList.toggle("moot", moot);
     b.classList.toggle("here", i === view.i);
     b.title = `${nameOf(s)} (${kindOf(s).toLowerCase()})`;
@@ -657,7 +672,14 @@ function advance() {
   } else go(j);
 }
 
-function keep() {
+// The note field takes the focus, and Enter in it goes on to the next undecided.
+function askNote() {
+  render();
+  noteAdvances = true;
+  $("note").focus();
+}
+
+function accept() {
   const s = cur();
   if (isMoot(s)) return;
   if (s.variant === "default" && !s.published) {
@@ -665,17 +687,31 @@ function keep() {
     if (pending.length) return flash(`Accept or decline the suggested facets first: ${pending.join(", ")}.`);
   }
   setDecision(s, "status", "keep");
-  advance();
+  if (document.fullscreenElement) return advance();
+  askNote();
 }
 
-function drop() {
+// An edit needs its note, so it leaves fullscreen to show the field.
+function edit() {
+  const s = cur();
+  if (isMoot(s)) return;
+  setDecision(s, "status", "edit");
+  if (document.fullscreenElement) document.exitFullscreen();
+  askNote();
+}
+
+function remove() {
   const s = cur();
   if (isMoot(s)) return;
   setDecision(s, "status", "drop");
-  if (document.fullscreenElement) return advance();
-  render();
-  noteAdvances = true;
-  $("note").focus();
+  advance();
+}
+
+// Leaves the step undecided; the queue comes back to it after the others.
+function skip() {
+  const j = nextUndecided(view.i);
+  if (j < 0 || j === view.i) return toast("Nothing else is undecided.");
+  go(j);
 }
 
 function undo() {
@@ -726,13 +762,15 @@ async function openSummary() {
 }
 
 function renderSummary() {
-  const groups = { publish: [], drop: [], unpublish: [], undecided: [] };
+  const groups = { publish: [], edit: [], drop: [], unpublish: [], undecided: [], noted: [] };
   let checked = 0;
   STEPS.forEach((s, i) => {
     if (isMoot(s)) return;
     const st = statusOf(s);
-    if (!s.published) groups[st === "keep" ? "publish" : st === "drop" ? "drop" : "undecided"].push(i);
+    if (st === "edit") groups.edit.push(i);
+    else if (!s.published) groups[st === "keep" ? "publish" : st === "drop" ? "drop" : "undecided"].push(i);
     else if (st === "drop") groups.unpublish.push(i);
+    else if (st === "keep" && decisionOf(s).note?.trim()) groups.noted.push(i);
     else if (st === "keep") checked++;
   });
   const problems = [];
@@ -771,14 +809,22 @@ function renderSummary() {
   sheet.append(
     ...section("Publish", "", groups.publish.map((i) => row(i))),
     ...section(
+      "Edit",
+      "the agent changes these; they stay as they are until the next review",
+      groups.edit.map((i) =>
+        row(i, !decisionOf(STEPS[i]).note?.trim() && el("span", { class: "why blocking", text: "No note: the agent will not know what to change." })),
+      ),
+    ),
+    ...section(
       "Unpublish",
       "hidden from the site; the files stay",
       groups.unpublish.map((i) =>
         row(i, STEPS[i].variant === "default" && el("span", { class: "why", text: "Hides every version of the piece." })),
       ),
     ),
-    ...section("Drop", "they stay drafts until the agent deletes them, after asking you", groups.drop.map((i) => row(i))),
+    ...section("Remove", "they stay drafts until the agent deletes them, after asking you", groups.drop.map((i) => row(i))),
     ...section("Undecided", "they stay drafts", groups.undecided.map((i) => row(i))),
+    ...section("Accepted with a note", "already on the site; the agent reads the note", groups.noted.map((i) => row(i))),
   );
   if (checked) sheet.append(el("p", { class: "why", text: `${checked} already on the site were checked and stay as they are.` }));
 
@@ -838,6 +884,7 @@ function renderResult(res) {
   const version = (v) => (v.variant === "default" ? v.slug : `${v.slug} (${v.variant})`);
   const lines = [
     ["Published", [...(res.published || []), ...(res.published_variants || []).map(version)]],
+    ["Sent back for an edit", res.error ? [] : (res.edit || []).map((v) => `${version(v)}: ${v.note || "no note"}`)],
     ["Unpublished", (res.unpublished || []).map(version)],
     ["Changed text and facets", [...new Set((res.edits || []).map((e) => version(e)))]],
     ["New facet values", (res.new_facets || []).map((f) => `${f.facet}: ${f.value} (“${f.label}”)`)],
@@ -905,8 +952,10 @@ function init() {
       t: () => theme(1),
       T: () => theme(-1),
       " ": () => e.repeat || compare(true),
-      k: keep,
-      x: drop,
+      a: accept,
+      e: edit,
+      r: remove,
+      s: skip,
       u: undo,
       n: () => $("note")?.focus(),
       f: toggleFull,
