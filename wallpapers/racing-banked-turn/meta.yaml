@@ -1,0 +1,43 @@
+title: Daytona banking
+description: Daytona's 31° banking in cross-section, infield to catch fence. A lit triangle on one car sums its weight and the track's push into a pull towards the turn's centre.
+notes: |
+  Drawn to one scale from published figures for the turns at Daytona International Speedway, which opened in 1959. The racing surface is 40 feet wide and banked at 31 degrees, so its outer edge stands about 21 feet above the apron, and each turn has a radius of 1,000 feet. The apron is given as 12 to 30 feet wide and is drawn at 20. Since 2004 the outside wall in the turns has carried a barrier of rectangular steel tubing backed by foam blocks, and since 2010 the catch fence on top of the wall has stood 22 feet high, its steel cables crossing the section as dots. The heights of the wall and barrier, and the number of cables, are estimates.
+
+  The car is seen from behind. The track pushes on it square to the surface, so the push leans towards the infield by the banking angle. Added to the car's weight, it leaves a level force pointing at the centre of the turn, along the dash-dot line. The triangle is to scale: the push is 1.17 times the weight and the level force 0.6 times it, enough to hold a car in the turn at about 95 mph with no grip from the tyres. Race cars take the turn at nearly twice that speed, and there the tyres' grip down the slope supplies more than half of the pull.
+
+  The banks were built from soil dug out of the infield, and the hole filled with groundwater to become Lake Lloyd.
+technique: [drafting]
+subject: [sport, architecture, physics]
+lineage: [scientific-illustration]
+sources:
+  - kind: reference
+    topic: Daytona International Speedway
+    url: https://en.wikipedia.org/wiki/Daytona_International_Speedway
+  - kind: reference
+    title: 'Daytona International Speedway: 5 Fast Facts You Need to Know'
+    year: 2015
+    url: https://heavy.com/sports/2015/02/daytona-international-speedway-track-location-dimensions-maps-seating-chart-renovation-facts-info-details/
+  - kind: reference
+    title: Daytona installs SAFER
+    year: 2004
+    url: https://au.motorsport.com/automotive/news/daytona-installs-safer/1142099/
+  - kind: reference
+    title: Daytona catch fence fully repaired
+    author: David Newton
+    year: 2013
+    url: https://www.espn.com/racing/nascar/cup/story/_/id/8980292/daytona-international-speedway-fence-fully-repaired-sunday-sprint-cup-race
+  - kind: reference
+    title: Daytona, Catchfences and Flying Cars
+    author: Diandra Leslie-Pelecky
+    year: 2015
+    url: https://buildingspeed.org/2015/07/07/a-catchfence-primer/
+  - kind: reference
+    topic: 2026 Daytona 500
+    url: https://en.wikipedia.org/wiki/2026_Daytona_500
+  - kind: reference
+    topic: Banked turn
+    url: https://en.wikipedia.org/wiki/Banked_turn
+added: 2026-09-28
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}
