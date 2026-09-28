@@ -13,7 +13,7 @@ sources:
     author: Brembo
     url: https://www.brembo.com/en/motorsport/formula1/ventilation-holes
   - kind: reference
-    title: "20 years of F1 brake discs: Brembo's transformation"
+    title: '20 years of F1 brake discs: Brembo''s transformation'
     author: Brembo
     url: https://www.brembo.com/en/news-archive/20-years-f1-brake-discs
   - kind: reference
@@ -22,5 +22,3 @@ sources:
     url: https://www.brembo.com/en/motorsport/formula1/f1-brake-ventilation
 added: 2026-09-28
 model: claude-opus-5-5
-draft: true
-proposed_facets: {}

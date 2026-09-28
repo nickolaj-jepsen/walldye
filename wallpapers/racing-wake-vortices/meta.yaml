@@ -36,8 +36,9 @@ sources:
     url: https://en.wikipedia.org/wiki/Particle_image_velocimetry
 added: 2026-09-28
 model: claude-opus-5-5
-draft: true
-proposed_facets: {}
 variants:
-  default: {label: Five metres back}
-  ten: {label: Ten metres back, description: Arrows on a square grid plot the air ten metres behind an open-wheel racing car. The vortices from its diffuser have climbed well above those from its rear wing., draft: true}
+  default:
+    label: Five metres back
+  ten:
+    label: Ten metres back
+    description: Arrows on a square grid plot the air ten metres behind an open-wheel racing car. The vortices from its diffuser have climbed well above those from its rear wing.

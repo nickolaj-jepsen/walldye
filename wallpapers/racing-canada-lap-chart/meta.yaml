@@ -19,5 +19,3 @@ model: claude-opus-5-5
 franchise:
   title: Formula 1
   owner: Formula One Group
-draft: true
-proposed_facets: {}
