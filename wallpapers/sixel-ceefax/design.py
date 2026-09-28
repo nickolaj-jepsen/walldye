@@ -3,7 +3,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, design
+from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, Params, design, knob
 from walldye.pixel import glyphs
 
 SW, SH = 24, 15  # sixel pitch; 80x72 sixels = a 40x24 teletext page
@@ -11,7 +11,13 @@ GW, GH = 18, 11  # lit block inside the pitch, the rest is the separated-mode gu
 COLS, ROWS = 80, 72
 HORIZON = 42  # first row of character row 14: the horizon gets a text row to itself
 SUN = (52, 42, 4, 6.4)  # centre col/row, radius in cols/rows
-HEADER = "P101  TELETEXT 101  Sun 27 Sep 19:04"
+
+
+class Page(Params):
+    # 40 characters fill a teletext row
+    header: str = knob(default="P101  TELETEXT 101  Sun 27 Sep 19:04", max_len=40, doc="top row")
+
+
 # sixel kinds in rising priority: the highest one in a 2x3 character cell recolours the rest
 SEA, LINE, FAR, NEAR, REFL, DISC = range(1, 7)
 TONES = (BG_ALT, UI, ACCENT_3, ACCENT)
@@ -25,7 +31,7 @@ def bumps(c: NDArray[np.floating], *hs: tuple[float, float, float]) -> NDArray[n
 
 
 @design()
-def draw(s: Canvas) -> None:
+def draw(s: Canvas[Page]) -> None:
     g = np.zeros((ROWS, COLS), int)
     rr, cc = np.mgrid[0:ROWS, 0:COLS]
     c = np.arange(COLS) + 0.5
@@ -60,4 +66,4 @@ def draw(s: Canvas) -> None:
         for row, col in np.argwhere(g).tolist():
             x, y = col * SW + (SW - GW) // 2, row * SH + (SH - GH) // 2
             b[int(ink[row, col])].rect(x, y, GW, GH)
-    glyphs(s, [HEADER], UI_ALT, at=(48, 10), font="5x8", px=3, gap=1)
+    glyphs(s, [s.params.header], UI_ALT, at=(48, 10), font="5x8", px=3, gap=1)
