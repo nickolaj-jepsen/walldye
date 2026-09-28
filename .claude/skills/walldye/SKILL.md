@@ -179,8 +179,9 @@ drafts, the owner approves.
 - Italics only for titles of works (`*Schotter*` in notes). Source titles stay plain text;
   the site italicises them itself.
 - The design.py docstring is one theme-neutral line: concept plus technique. Comments name
-  tokens or roles (`UI`, the accent ladder), never hues. The colour-word lint is a plain word
-  list, so "golden section" and "black" trip it as well.
+  tokens or roles (`UI`, the accent ladder), never hues or temperatures ("warm", "cool"). The
+  colour-word lint is a plain word list that also matches plurals, so "golden section",
+  "black" and "greys" trip it as well. It does not know temperatures; avoid them by hand.
 
 ## References
 

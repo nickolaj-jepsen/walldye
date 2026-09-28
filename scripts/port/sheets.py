@@ -10,10 +10,12 @@ size and compared. The score is the percentage of pixels whose largest channel d
 exceeds 8; mean absolute difference (0-255) and SSIM are reported beside it.
 
 Writes `import/review/index.html` (gitignored), one card per piece sorted by score, highest
-first, with the pair, a difference map, the light theme and the named variants, and the new
-meta.yaml copy; and `import/review/summary.json` with the same data. Without slugs every
-wallpapers/ folder is compared, or every SVG in --after-dir. Rasters are cached by content in
-`<out>/.cache`.
+first, with the pair, a difference map, the light theme, the other native aspects and the named
+variants, and the new meta.yaml copy. Above the cards: the `<slug>`/`<slug>-branch` twins side by
+side at every aspect, and lists of the draft pieces and versions, the recreations with their
+licence, the fan pieces, and the pieces kept at 16:9 or a few aspects. `import/review/summary.json`
+holds the same data. Without slugs every wallpapers/ folder is compared, or every SVG in
+--after-dir. Rasters are cached by content in `<out>/.cache`.
 """
 
 import argparse
@@ -24,6 +26,7 @@ import json
 import os
 import re
 import sys
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -35,6 +38,7 @@ import yaml
 from PIL import Image
 from skimage.metrics import structural_similarity
 
+from walldye._aspect import SITE_ASPECTS
 from walldye._theme import hex_to_rgb, parse_theme, rgb_to_hex
 from walldye.tools.tokenize import find_colours, substitute
 
@@ -42,6 +46,7 @@ ROOT = Path(__file__).resolve().parents[2]
 NIXOS = Path.home() / "nixos" / "modules" / "desktop" / "dms" / "backgrounds"
 THRESHOLD = 8  # a pixel counts as changed above this channel difference (anti-aliasing noise)
 LIGHT = "flexoki-light"
+STRIP = 300  # raster height of the other native aspects
 
 
 @dataclass
@@ -60,7 +65,15 @@ class Piece:
     light: str = ""
     light_note: str = ""
     variants: list[dict[str, str]] = field(default_factory=list)
+    aspects: list[dict[str, str]] = field(default_factory=list)  # native aspects besides 16:9
+    native: list[str] = field(default_factory=list)  # every native aspect, from slots.json
+    legacy: bool = False  # source.svg, no design.py
     copy: dict[str, object] = field(default_factory=dict)
+
+
+def viewbox(svg: str) -> tuple[float, float]:
+    m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
+    return (float(m.group(1)), float(m.group(2))) if m else (16.0, 9.0)
 
 
 def rasterise(svg: str, width: int, cache: Path) -> Image.Image:
@@ -69,8 +82,7 @@ def rasterise(svg: str, width: int, cache: Path) -> Image.Image:
     hit = cache / f"{key}.png"
     if hit.exists():
         return Image.open(hit).convert("RGB")
-    m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
-    w, h = (float(m.group(1)), float(m.group(2))) if m else (16.0, 9.0)
+    w, h = viewbox(svg)
     data = bytes(resvg_py.svg_to_bytes(svg_string=svg, width=width, height=round(width * h / w)))
     img = Image.open(io.BytesIO(data)).convert("RGB")
     cache.mkdir(parents=True, exist_ok=True)
@@ -126,6 +138,21 @@ def light_svg(build: Path) -> tuple[str, str] | None:
         return None
     template = (build / str(entry["file"])).read_text()
     return recolour(template, entry, seeds), caption
+
+
+def native_templates(build: Path) -> list[tuple[str, str]]:
+    """(aspect, file) of the default version's dark templates, in SITE_ASPECTS order; [] when
+    build/slots.json is missing or unreadable."""
+    try:
+        slots = json.loads((build / "slots.json").read_text())
+    except (OSError, ValueError):
+        return []
+    out: list[tuple[str, str]] = []
+    for aspect in SITE_ASPECTS:
+        entry = slots.get(f"{aspect}/dark")
+        if isinstance(entry, dict) and "file" in entry:
+            out.append((aspect, str(entry["file"])))
+    return out
 
 
 def docstring(path: Path) -> str:
@@ -213,6 +240,17 @@ def review(slug: str, opts: Options) -> Piece:
         if light is not None:
             img = thumb(rasterise(light[0], opts.width, opts.cache), small)
             piece.light, piece.light_note = save(img, opts.out, f"img/{slug}/light.webp"), light[1]
+        piece.legacy = (folder / "source.svg").exists() and not (folder / "design.py").exists()
+        for aspect, file in native_templates(build):
+            piece.native.append(aspect)
+            if aspect == "16:9" or not (build / file).exists():
+                continue
+            svg = (build / file).read_text()
+            w, h = viewbox(svg)
+            img = rasterise(svg, round(STRIP * w / h), opts.cache)
+            name = aspect.replace(":", "x")
+            rel = save(img, opts.out, f"img/{slug}/a-{name}.webp")
+            piece.aspects.append({"aspect": aspect, "img": rel})
         labels = meta.get("variants")
         # meta.yaml order, as on the site; a build/ directory it does not list is stale.
         for name, info in labels.items() if isinstance(labels, dict) else ():
@@ -247,7 +285,8 @@ CSS = """
   :root { --bg: #fbfaf6; --fg: #1d1c1a; --dim: #5d5b56; --rule: #d6d3ca; --mark: #a8452a; } }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
-header, main { max-width: 1500px; margin: 0 auto; padding: 16px; }
+header, main, .twins { max-width: 1500px; margin: 0 auto; padding: 16px; }
+.twins h2 { font-size: 20px; }
 header p { color: var(--dim); margin: 4px 0; }
 .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
 input, select { font: inherit; background: transparent; color: inherit;
@@ -268,6 +307,15 @@ figcaption { font-size: 13px; color: var(--dim); margin-top: 2px; }
 .copy dd { margin: 0; }
 .note { color: var(--mark); }
 .hidden { display: none; }
+.strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: flex-end; }
+.strip figure img { height: 150px; width: auto; }
+.lists details { border-top: 1px solid var(--rule); padding: 8px 0; }
+.lists summary { cursor: pointer; font-weight: 600; }
+.lists ul { margin: 6px 0; padding-left: 20px; columns: 2 28em; }
+.lists li { break-inside: avoid; margin-bottom: 2px; }
+.twin { border-top: 1px solid var(--rule); padding: 12px 0; }
+.twin h3 { font-size: 16px; margin: 0 0 4px; }
+.stats { font-family: ui-monospace, monospace; font-size: 13px; }
 @media (max-width: 700px) { .row { grid-template-columns: 1fr; } }
 """
 
@@ -386,6 +434,11 @@ def card(rank: int, p: Piece) -> str:
         caption = f"version {v['name']}" + (f": {v['label']}" if v["label"] else "")
         small.append(figure(v["img"], caption + (f" ({v['draft']})" if v["draft"] else "")))
     extra = f'<div class="row small">{"".join(small)}</div>' if small else ""
+    if p.aspects:
+        shapes = "".join(figure(a["img"], a["aspect"]) for a in p.aspects)
+        extra += f'<div class="strip">{shapes}</div>'
+    if p.native:
+        extra += f'<div class="metrics">native: {html.escape(", ".join(p.native))}</div>'
     attrs = (
         f'id="{html.escape(p.slug)}" tabindex="0" data-score="{p.score}" data-mad="{p.mad}"'
         f' data-ssim="{p.ssim}" data-text="{html.escape(text)}"'
@@ -393,11 +446,198 @@ def card(rank: int, p: Piece) -> str:
     return f"<article {attrs}>{head}{metrics}{pair}{extra}{copy_html(p.copy)}</article>"
 
 
-def page(pieces: list[Piece], width: int) -> str:
-    counts: dict[str, int] = {}
+def sources_of(p: Piece, kind: str) -> list[dict[str, object]]:
+    sources = p.copy.get("sources")
+    items = sources if isinstance(sources, list) else []
+    return [s for s in items if isinstance(s, dict) and s.get("kind") == kind]
+
+
+def credit(src: dict[str, object]) -> str:
+    return ", ".join(str(src[k]) for k in ("author", "title", "year") if src.get(k))
+
+
+def licence(p: Piece) -> str:
+    return str(p.copy.get("license") or "CC0-1.0 (default)")
+
+
+def entry(p: Piece, **extra: object) -> dict[str, object]:
+    return {"slug": p.slug, "title": str(p.copy.get("title", "")), **extra}
+
+
+def lists(pieces: list[Piece]) -> dict[str, list[dict[str, object]]]:
+    """The review's lists, each sorted by slug: draft pieces, draft versions, recreations with
+    their licence, fan pieces, pieces kept at 16:9, pieces with some but not all aspects, and
+    legacy pieces."""
+    out: dict[str, list[dict[str, object]]] = {
+        k: []
+        for k in (
+            "draft_pieces",
+            "draft_versions",
+            "recreations",
+            "fan_pieces",
+            "kept_16x9",
+            "some_aspects",
+            "legacy",
+        )
+    }
+    for p in sorted(pieces, key=lambda p: p.slug):
+        if p.copy.get("draft"):
+            out["draft_pieces"].append(entry(p))
+        variants = p.copy.get("variants")
+        for name, info in variants.items() if isinstance(variants, dict) else ():
+            if name != "default" and isinstance(info, dict) and info.get("draft"):
+                out["draft_versions"].append(entry(p, name=name, label=info.get("label", "")))
+        if made := sources_of(p, "recreation"):
+            out["recreations"].append(entry(p, license=licence(p), after=[credit(s) for s in made]))
+        if p.copy.get("license") == "LicenseRef-fan-work":
+            franchise = p.copy.get("franchise")
+            f = franchise if isinstance(franchise, dict) else {}
+            out["fan_pieces"].append(
+                entry(p, franchise=f.get("title", ""), owner=f.get("owner", ""))
+            )
+        if p.native == ["16:9"]:
+            out["kept_16x9"].append(entry(p, legacy=p.legacy))
+        elif p.native and len(p.native) < len(SITE_ASPECTS):
+            out["some_aspects"].append(entry(p, aspects=p.native))
+        if p.legacy:
+            out["legacy"].append(entry(p))
+    return out
+
+
+def twins(pieces: list[Piece], opts: Options) -> list[dict[str, object]]:
+    """Each `<slug>-branch` with its `<slug>` twin: both drafts flags and the share of pixels
+    that differ between their 16:9 templates (None when either is not built)."""
+    by_slug = {p.slug: p for p in pieces}
+    out: list[dict[str, object]] = []
+    for p in sorted(pieces, key=lambda p: p.slug):
+        base = by_slug.get(p.slug.removesuffix("-branch"))
+        if not p.slug.endswith("-branch") or base is None:
+            continue
+        score = None
+        paths = [opts.wallpapers / s / "build" / "16x9.svg" for s in (base.slug, p.slug)]
+        if all(path.exists() for path in paths):
+            a, b = (rasterise(path.read_text(), opts.width, opts.cache) for path in paths)
+            score = compare(a, b)[0]
+        out.append(
+            {
+                "base": base.slug,
+                "branch": p.slug,
+                "score": score,
+                "base_draft": bool(base.copy.get("draft")),
+                "branch_draft": bool(p.copy.get("draft")),
+            }
+        )
+    return out
+
+
+def anchor(item: dict[str, object]) -> str:
+    slug = html.escape(str(item["slug"]))
+    title = html.escape(str(item.get("title", "")))
+    return f'<a href="#{slug}">{slug}</a>' + (f" · {title}" if title else "")
+
+
+def joined(value: object, sep: str) -> str:
+    return sep.join(map(str, value)) if isinstance(value, list) else str(value)
+
+
+type Item = dict[str, object]
+
+LISTS: dict[str, tuple[str, Callable[[Item], str]]] = {
+    "draft_pieces": ("Draft pieces", lambda i: ""),
+    "draft_versions": ("Draft versions", lambda i: f": {i['name']} ({i['label']})"),
+    "recreations": (
+        "Recreations and their licence",
+        lambda i: f": {i['license']}, after {joined(i['after'], '; ')}",
+    ),
+    "fan_pieces": ("Fan pieces", lambda i: f": {i['franchise']} ({i['owner']})"),
+    "kept_16x9": ("Kept at 16:9", lambda i: " (legacy)" if i.get("legacy") else ""),
+    "some_aspects": ("Some aspects only", lambda i: f": {joined(i['aspects'], ', ')}"),
+}
+
+
+def lists_html(data: dict[str, list[dict[str, object]]]) -> str:
+    parts = []
+    for key, (title, detail) in LISTS.items():
+        items = data[key]
+        rows = "".join(f"<li>{anchor(i)}{html.escape(detail(i))}</li>" for i in items)
+        parts.append(f"<details><summary>{title} ({len(items)})</summary><ul>{rows}</ul></details>")
+    return f'<section class="lists">{"".join(parts)}</section>'
+
+
+def twins_html(pairs: list[dict[str, object]], by_slug: dict[str, Piece]) -> str:
+    if not pairs:
+        return ""
+    parts = []
+    for t in pairs:
+        base, branch = by_slug[str(t["base"])], by_slug[str(t["branch"])]
+        score = "not built" if t["score"] is None else f"{t['score']:.2f}% of pixels differ at 16:9"
+        flag = {True: " (draft)", False: " (published)"}
+        head = (
+            f'<h3><a href="#{html.escape(base.slug)}">{html.escape(base.slug)}</a>{flag[base.copy.get("draft") is True]}'
+            f' and <a href="#{html.escape(branch.slug)}">{html.escape(branch.slug)}</a>'
+            f"{flag[branch.copy.get('draft') is True]} · {score}</h3>"
+        )
+        row = (
+            '<div class="row">'
+            + figure(base.before, "nixos original", base.before_svg)
+            + figure(base.after, f"{base.slug} 16:9", base.after_svg)
+            + figure(branch.after, f"{branch.slug} 16:9", branch.after_svg)
+            + "</div>"
+        )
+        strips = ""
+        for p in (base, branch):
+            shapes = "".join(figure(a["img"], f"{p.slug} {a['aspect']}") for a in p.aspects)
+            strips += f'<div class="strip">{shapes}</div>' if shapes else ""
+        parts.append(
+            f'<article class="twin" id="twin-{html.escape(base.slug)}">{head}{row}{strips}</article>'
+        )
+    return (
+        '<section class="twins"><h2>Twins: the nixos import and the branch rewrite</h2>'
+        "<p>Review keeps one of each pair; the other is dropped, and a kept -branch folder is"
+        " renamed.</p>" + "".join(parts) + "</section>"
+    )
+
+
+def stats(pieces: list[Piece], data: dict[str, list[dict[str, object]]]) -> dict[str, object]:
+    """Counts for the page header and summary.json."""
+    compared = [p for p in pieces if p.status == "compared"]
+    buckets = {"0%": 0, "under 1%": 0, "1-5%": 0, "5-20%": 0, "20% and over": 0}
+    for p in compared:
+        key = (
+            "0%" if p.score == 0 else "under 1%" if p.score < 1 else "1-5%" if p.score < 5
+            else "5-20%" if p.score < 20 else "20% and over"
+        )  # fmt: skip
+        buckets[key] += 1
+    statuses: dict[str, int] = {}
     for p in pieces:
-        counts[p.status] = counts.get(p.status, 0) + 1
-    summary = ", ".join(f"{n} {k}" for k, n in counts.items())
+        statuses[p.status] = statuses.get(p.status, 0) + 1
+    return {
+        "pieces": len(pieces),
+        "published": sum(1 for p in pieces if not p.copy.get("draft")),
+        "statuses": statuses,
+        "changed_pixels": buckets,
+        "every_aspect": sum(1 for p in pieces if len(p.native) == len(SITE_ASPECTS)),
+        **{k: len(v) for k, v in data.items()},
+    }
+
+
+def page(pieces: list[Piece], width: int, pairs: list[dict[str, object]] | None = None) -> str:
+    data = lists(pieces)
+    s = stats(pieces, data)
+    statuses = s["statuses"]
+    summary = (
+        ", ".join(f"{n} {k}" for k, n in statuses.items()) if isinstance(statuses, dict) else ""
+    )
+    buckets = s["changed_pixels"]
+    spread = ", ".join(f"{n} {k}" for k, n in buckets.items()) if isinstance(buckets, dict) else ""
+    facts = (
+        f'<p class="stats">{s["published"]} published, {s["draft_pieces"]} draft pieces,'
+        f" {s['draft_versions']} draft versions; {s['every_aspect']} at every aspect,"
+        f" {s['some_aspects']} at some, {s['kept_16x9']} at 16:9 only; {s['recreations']}"
+        f" recreations, {s['fan_pieces']} fan pieces, {s['legacy']} legacy.<br>Changed pixels at"
+        f" 16:9: {html.escape(spread)}.</p>"
+    )
+    by_slug = {p.slug: p for p in pieces}
     cards = "\n".join(card(i, p) for i, p in enumerate(pieces, 1))
     return f"""<!doctype html>
 <html lang="en">
@@ -413,6 +653,7 @@ def page(pieces: list[Piece], width: int) -> str:
 <p>{len(pieces)} pieces: {html.escape(summary)}. Rendered {width} px wide; changed = pixels
 whose largest channel difference exceeds {THRESHOLD}. Generated {datetime.now(UTC).astimezone():%Y-%m-%d %H:%M}.</p>
 <p>j and k move between pieces, / filters. Each image links to its SVG.</p>
+{facts}
 <div class="controls">
 <label>Sort <select id="sort">
 <option value="score">changed pixels</option>
@@ -422,7 +663,9 @@ whose largest channel difference exceeds {THRESHOLD}. Generated {datetime.now(UT
 </select></label>
 <label>Filter <input id="filter" type="search" placeholder="slug or title"></label>
 </div>
+{lists_html(data)}
 </header>
+{twins_html(pairs or [], by_slug)}
 <main>
 {cards}
 </main>
@@ -461,11 +704,16 @@ def main(argv: list[str] | None = None) -> int:
         with ProcessPoolExecutor(args.jobs) as pool:
             pieces = list(pool.map(review, slugs, [opts] * len(slugs)))
     pieces = order(pieces)
-    (args.out / "index.html").write_text(page(pieces, args.width))
+    pairs = twins(pieces, opts)
+    (args.out / "index.html").write_text(page(pieces, args.width, pairs))
+    data = lists(pieces)
     summary = {
         "generated": datetime.now(UTC).astimezone().isoformat(timespec="seconds"),
         "width": args.width,
         "threshold": THRESHOLD,
+        "stats": stats(pieces, data),
+        "lists": data,
+        "twins": pairs,
         "pieces": [asdict(p) for p in pieces],
     }
     (args.out / "summary.json").write_text(json.dumps(summary, indent=2, default=str) + "\n")

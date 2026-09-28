@@ -467,8 +467,9 @@ units, and constant colours may appear only inside masks and clips.
 Errors: `<text>`, `<filter>` or `<image>` (the API cannot write them), more than 1 MB or 20,000
 elements, and two versions that look alike. Warnings: more than 600 kB or 15,000 elements,
 colour words in the docstring, comments or meta.yaml copy (the list includes black, white,
-grey and golden, so "golden section" trips it), a fractional pixel-grid origin, a version
-whose check took over 2 minutes, and a variant value outside its knob's `lo`..`hi`.
+grey and golden, and plurals such as "greys" match, so "golden section" trips it), a
+fractional pixel-grid origin, a version whose check took over 2 minutes, and a variant value
+outside its knob's `lo`..`hi`.
 
 Staying under the limits:
 
