@@ -1,0 +1,31 @@
+title: Silverstone friction circle
+description: Each driver's fastest lap in 2024 Silverstone qualifying, stippled by braking and cornering g. Russell's pole lap is lit from the brakes for Vale round into Club.
+notes: |
+  A g-g diagram plots a car's sideways acceleration across and its forward acceleration up, with braking below the middle and a ring for every g. Each dot is a moment from one of the twenty drivers' fastest laps in qualifying for the 2024 British Grand Prix, thinned out where they crowd. Braking passes 4 g and the fast corners 5 g, while accelerating tops out near 1.8 g.
+
+  George Russell took pole in 1:25.819, and the lit line is his run from the braking for Vale into Club: straight down as he brakes, round to the left through Vale, over the top as he picks up speed, and out to the right as he turns in for Club. Qualifying was held on a wet track, and the first round ran about three seconds slower than the second, so the five laps from the drivers knocked out there sit inside the rest.
+
+  FastF1 gives each car's speed and position about four times a second. Forward acceleration is the slope of a smooth curve through the speed readings, with each run of equal readings counted once, at its middle. Sideways acceleration is the speed squared times the curvature of the cars' line, found by averaging the twenty laps' positions and smoothing over about 10 metres, with the positions moved a tenth of a second later to line up with the speed. Both are read every tenth of a second.
+technique: [instrument, stipple]
+subject: [sport]
+lineage: []
+sources:
+  - kind: data
+    topic: FastF1
+    url: https://github.com/theOehrly/Fast-F1
+  - kind: reference
+    topic: 2024 British Grand Prix
+    url: https://en.wikipedia.org/wiki/2024_British_Grand_Prix
+  - kind: reference
+    topic: Silverstone Circuit
+    url: https://en.wikipedia.org/wiki/Silverstone_Circuit
+  - kind: reference
+    topic: Circle of forces
+    url: https://en.wikipedia.org/wiki/Circle_of_forces
+added: 2026-09-28
+model: claude-opus-5-5
+franchise:
+  title: Formula 1
+  owner: Formula One Group
+draft: true
+proposed_facets: {}
