@@ -1,0 +1,19 @@
+title: Oscilloscope
+description: A three-to-two Lissajous figure on an oscilloscope graticule, lit more strongly wherever the beam slows.
+notes: |
+  In XY mode an oscilloscope steers its beam with two signals, one side to side and one up and down. Two sine waves at a whole-number frequency ratio close into a Lissajous figure. The trace is cut into four tones by how far the beam moves between samples, and a faint copy just off it stands in for the afterglow of the phosphor.
+technique: [instrument]
+subject: [physics]
+lineage: []
+sources:
+  - kind: reference
+    topic: Lissajous curve
+    url: https://en.wikipedia.org/wiki/Lissajous_curve
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Three to two
+  five-four:
+    label: Five to four
+    description: At five to four, an oscilloscope beam knots a dense Lissajous figure.

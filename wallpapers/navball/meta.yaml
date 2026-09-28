@@ -1,0 +1,18 @@
+title: Navball
+description: A spacecraft navball tilted on all three axes. Its grid splits into sky and ground behind the lit aircraft symbol.
+notes: |
+  On crewed spacecraft the attitude indicator is a ball that turns behind a fixed aircraft symbol, showing pitch, roll and yaw against a frame fixed in space rather than the ground. This one is an orthographic projection of its latitude and longitude lines, pitched 25 degrees, rolled 18 and yawed 30.
+technique: [instrument]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    topic: Attitude indicator
+    url: https://en.wikipedia.org/wiki/Attitude_indicator
+  - kind: inspiration
+    title: Kerbal Space Program
+    author: Squad
+    year: 2015
+    url: https://en.wikipedia.org/wiki/Kerbal_Space_Program
+added: 2026-09-27
+model: claude-opus-5-5
