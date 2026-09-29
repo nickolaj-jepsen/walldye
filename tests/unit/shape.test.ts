@@ -36,7 +36,7 @@ describe('crop geometry', () => {
     expect(cropBox('10:16', Number.NaN).x).toBeCloseTo((1920 - 675) / 2);
   });
 
-  it('centres the default crop on the focus, clamped to the canvas', () => {
+  it('centers the default crop on the focus, clamped to the canvas', () => {
     // schotter's focus x 0.4633; the 16:10 box spans 0.9 of the width.
     expect(focusPosition('16:10', [0.4633, 0.4788])).toBe(0.133);
     expect(focusPosition('16:10', [0.99, 0.5])).toBe(1);
@@ -48,7 +48,7 @@ describe('crop geometry', () => {
 });
 
 describe('fitRect / exportScale', () => {
-  it('takes the largest centred box of the ratio', () => {
+  it('takes the largest centered box of the ratio', () => {
     expect(fitRect({ x: 0, y: 0, w: 1920, h: 1080 }, 16 / 9)).toEqual({
       x: 0,
       y: 0,

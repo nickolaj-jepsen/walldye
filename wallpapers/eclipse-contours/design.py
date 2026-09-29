@@ -8,7 +8,7 @@ from walldye.field import iso_lines, sample_field
 
 R, CELL = 330, 6  # disc radius; field sample spacing
 SPAN = 420  # px per noise unit
-AT = (1240 / SPAN, 540 / SPAN)  # the noise-plane point under the disc centre
+AT = (1240 / SPAN, 540 / SPAN)  # the noise-plane point under the disc center
 LEVELS = [-0.3 + k * 0.035 for k in range(18)]
 # one tone per level, skipping the near-background end of the ladder so every line reads
 TONES = ladder((BG, ACCENT_4, ACCENT), len(LEVELS) + 4)[4:]
@@ -17,10 +17,10 @@ TONES = ladder((BG, ACCENT_4, ACCENT), len(LEVELS) + 4)[4:]
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     # about 0.65 along the long axis (clear of the left-side windows on a desktop, below the
-    # clock on a phone), centred on the short axis
+    # clock on a phone), centered on the short axis
     c = s.pick(landscape=(0.646, 0.5), portrait=(0.5, 0.6))
     noise = s.noise(7)
-    # Sample only the disc's bounding box, relative to its centre, so every aspect shows the
+    # Sample only the disc's bounding box, relative to its center, so every aspect shows the
     # same planet.
     half = int(np.ceil((R + 2 * CELL) / CELL))
 

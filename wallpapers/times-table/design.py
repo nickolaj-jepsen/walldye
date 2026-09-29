@@ -13,7 +13,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     P,
     Params,
     design,
@@ -38,7 +38,7 @@ LV, HV = 12, 6  # brightness and warmth levels
 KNEE = 0.6  # brightness level that maps to UI; only strings near the lit cusp may exceed it
 
 
-def tone(lv: int, hv: int) -> Colour:
+def tone(lv: int, hv: int) -> Color:
     """Brightness level `lv`, from near BG through UI to between UI_ALT and UI_HI, blended
     toward the accent ramp by warmth level `hv`."""
     g = lv / (LV - 1)
@@ -53,7 +53,7 @@ TONES = tuple(tone(lv, hv) for lv in range(LV) for hv in range(HV))  # index lv 
 @design(aspects="any")
 def draw(s: Canvas[Table]) -> None:
     k = s.params.multiplier
-    # landscape: right of centre, the cusp facing the empty side; portrait: under the clock
+    # landscape: right of center, the cusp facing the empty side; portrait: under the clock
     c = s.pick(landscape=(0.651, 0.5), portrait=(0.5, 0.42))
     # The envelope is an epicycloid with k - 1 cusps on a circle of radius R (k - 1) / (k + 1).
     # An even k puts one opposite nail 0; an odd k turns the ring half a cusp gap so one faces left.

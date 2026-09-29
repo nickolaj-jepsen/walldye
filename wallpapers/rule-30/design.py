@@ -16,7 +16,7 @@ class Automaton(Params):
     )
 
 
-# Rule 90's centre column dies after the seed, so it picks out its two always-live edges;
+# Rule 90's center column dies after the seed, so it picks out its two always-live edges;
 # Rule 110 grows one way only, so its seed column is its straight edge.
 VARIANTS = {"rule-90": Automaton(rule=90, trace="edges"), "rule-110": Automaton(rule=110)}
 
@@ -44,7 +44,7 @@ def evolve(rule: int, rows: int, cols: int, seed: int) -> NDArray[np.bool_]:
 
 @design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Automaton]) -> None:
-    # Right of centre, leaving the upper left empty. The right flank runs off the right edge,
+    # Right of center, leaving the upper left empty. The right flank runs off the right edge,
     # except on the widest screens, where the whole triangle fits and keeps clear of it.
     fx = 0.75 if s.w < 3 * s.h else 0.66
     seed = s.pick(landscape=(fx, 0), portrait=(0.7, 0), snap=CELL)

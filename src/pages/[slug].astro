@@ -8,7 +8,7 @@ import PlateBox from '../components/PlateBox.astro';
 import SourceCode from '../components/SourceCode.astro';
 import Base from '../layouts/Base.astro';
 import { captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery, relatedPieces, type Piece } from '../lib/content';
-import { LICENCE_LINES, MODEL_NAMES, TAKEDOWN_CONTACT, facetLabel, type TaxonomyFacet } from '../lib/labels';
+import { LICENSE_LINES, MODEL_NAMES, TAKEDOWN_CONTACT, facetLabel, type TaxonomyFacet } from '../lib/labels';
 import { DEFAULT_LICENSE, FAN_WORK } from '../lib/meta';
 
 export async function getStaticPaths() {
@@ -43,8 +43,8 @@ const aspectsText = p.aspects.join(', ');
 
 // Figures inside names ("Opus 5.5") take lining numerals.
 const credit = (p.model ? `Made with ${MODEL_NAMES[p.model]}` : `Made by ${p.author}`).split(/(\S*\d\S*)/).map((text, i) => ({ text, lnum: i % 2 === 1 }));
-const fanWork = p.licence === FAN_WORK ? p.franchise : undefined;
-const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LICENCE_LINES[p.licence] : undefined;
+const fanWork = p.resolvedLicense === FAN_WORK ? p.franchise : undefined;
+const licenseLine = p.resolvedLicense !== DEFAULT_LICENSE && p.resolvedLicense !== FAN_WORK ? LICENSE_LINES[p.resolvedLicense] : undefined;
 ---
 
 <Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.description} ogType="article" mainClass="detail">
@@ -58,8 +58,8 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
       {captionSources(p) && <p class="attr"><Attribution piece={p} refs /></p>}
       <p class="desc" id="desc">{p.description}</p>
       <p class="credit">{credit.map((c) => (c.lnum ? <span class="lnum">{c.text}</span> : c.text))}</p>
-      {fanWork && <p class="licence">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact <a href={`mailto:${TAKEDOWN_CONTACT}`}>{TAKEDOWN_CONTACT}</a> for takedown.</p>}
-      {licenceLine && <p class="licence">{licenceLine}</p>}
+      {fanWork && <p class="license">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact <a href={`mailto:${TAKEDOWN_CONTACT}`}>{TAKEDOWN_CONTACT}</a> for takedown.</p>}
+      {licenseLine && <p class="license">{licenseLine}</p>}
       <dl class="facts hair-t">
         {technique.length > 0 && <Fragment><dt>Technique</dt><dd>{technique.map((f, i) => <Fragment>{i > 0 && ', '}{f.href ? <a href={f.href}>{f.label}</a> : f.label}</Fragment>)}</dd></Fragment>}
         {lineage.length > 0 && <Fragment><dt>Inspired by</dt><dd>{lineage.map((f, i) => <Fragment>{i > 0 && ', '}{f.href ? <a href={f.href}>{f.label}</a> : f.label}</Fragment>)}</dd></Fragment>}
@@ -110,12 +110,12 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
 </Base>
 
 <style>
-  /* One line per licence notice under the credit, in the credit's type. */
-  .licence {
+  /* One line per license notice under the credit, in the credit's type. */
+  .license {
     font-size: var(--fs-2);
     color: var(--text-2);
   }
-  /* A shape with its own template shows that template whole, centred in the 16:9 box, inside a frame like the crop window's so the shape reads. */
+  /* A shape with its own template shows that template whole, centered in the 16:9 box, inside a frame like the crop window's so the shape reads. */
   .spread :global(.plate img:not([data-aspect='16:9'])) {
     object-position: center;
   }
@@ -147,7 +147,7 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
   .spread :global(.plate:has(> img[data-aspect='10:16'])) {
     --shape: 0.625;
   }
-  /* Fullscreen (the f key): the wallpaper alone, centred on its ground. */
+  /* Fullscreen (the f key): the wallpaper alone, centered on its ground. */
   .spread :global(.plate:fullscreen img) {
     height: 100%;
     object-position: center;

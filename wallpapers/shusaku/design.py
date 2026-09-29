@@ -23,7 +23,7 @@ def replay() -> tuple[dict[Cell, bool], Cell]:
     captured groups removed; and the last move's point."""
     board: dict[Cell, bool] = {}
 
-    def neighbours(p: Cell) -> list[Cell]:
+    def neighbors(p: Cell) -> list[Cell]:
         x, y = p
         adjacent = ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
         return [(i, j) for i, j in adjacent if 0 <= i < N and 0 <= j < N]
@@ -32,7 +32,7 @@ def replay() -> tuple[dict[Cell, bool], Cell]:
         """The group at `p` when it has no liberty left, else an empty set."""
         group, stack = {p}, [p]
         while stack:
-            for q in neighbours(stack.pop()):
+            for q in neighbors(stack.pop()):
                 if q not in board:
                     return set()
                 if board[q] == board[p] and q not in group:
@@ -44,7 +44,7 @@ def replay() -> tuple[dict[Cell, bool], Cell]:
     for k, m in enumerate(RECORD.split()):
         last, black = (ord(m[0]) - 97, ord(m[1]) - 97), k % 2 == 0
         board[last] = black
-        for q in neighbours(last):
+        for q in neighbors(last):
             if q in board and board[q] != black:
                 for r in captured(q):
                     del board[r]
@@ -53,7 +53,7 @@ def replay() -> tuple[dict[Cell, bool], Cell]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: on the right third, pulled in to keep MARGIN; portrait: centred, below the middle
+    # landscape: on the right third, pulled in to keep MARGIN; portrait: centered, below the middle
     c = s.pick(landscape=(0.71875, 0.5), portrait=(0.5, 0.6), snap=2)
     if s.landscape:
         c = Vec(min(c.x, s.w - MARGIN - SPAN / 2), c.y)

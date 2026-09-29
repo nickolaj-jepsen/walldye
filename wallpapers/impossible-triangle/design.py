@@ -74,7 +74,7 @@ def draw(s: Canvas) -> None:
     ring = np.asarray(outline.exterior.coords)
 
     # lattice x runs along screen +x, lattice y up and to the left; one cube edge is E units, and
-    # the silhouette's bounding box is centred on c (right of centre, or high on a phone)
+    # the silhouette's bounding box is centered on c (right of center, or high on a phone)
     iso = Affine(1, 0, -0.5, -math.sqrt(3) / 2, 0, 0)
     flat = iso.apply(ring)
     mid = (flat.min(axis=0) + flat.max(axis=0)) / 2

@@ -12,8 +12,8 @@ import {
   isLight,
   luminance,
   mix,
-  normaliseSeed,
-  normaliseSeeds,
+  normalizeSeed,
+  normalizeSeeds,
   PRESETS,
   parseToken,
   presetOf,
@@ -51,7 +51,7 @@ function randomSeeds(count: number, seed = 20260927): Seeds[] {
       .padStart(6, '0')
       .toUpperCase()}`;
   return Array.from({ length: count }, () =>
-    normaliseSeeds({ bg: hex(), fg: hex(), accent: hex() }),
+    normalizeSeeds({ bg: hex(), fg: hex(), accent: hex() }),
   );
 }
 
@@ -104,11 +104,11 @@ describe('derive_theme (c)', () => {
     expect(fixture.random.light.every((e) => e.light)).toBe(true);
   });
 
-  it('pins fireproof and derives its 1-unit neighbour', () => {
-    expect(themeTokens(normaliseSeeds({ bg: '#1c1b1a', fg: 'dad8ce', accent: '#CF6A4C' }))).toEqual(
+  it('pins fireproof and derives its 1-unit neighbor', () => {
+    expect(themeTokens(normalizeSeeds({ bg: '#1c1b1a', fg: 'dad8ce', accent: '#CF6A4C' }))).toEqual(
       FIREPROOF,
     );
-    const near = themeTokens(normaliseSeeds({ bg: '#1C1B1B', fg: '#DAD8CE', accent: '#CF6A4C' }));
+    const near = themeTokens(normalizeSeeds({ bg: '#1C1B1B', fg: '#DAD8CE', accent: '#CF6A4C' }));
     expect(near.accent_1).not.toBe(FIREPROOF.accent_1);
     expect(deriveTheme({ ...PRESETS.fireproof, ...FIREPROOF })).toEqual(FIREPROOF);
   });
@@ -138,22 +138,22 @@ describe('theme tokens (e)', () => {
     expect(parseToken(spec)).toBeNull();
   });
 
-  it('canonicalises to the preset name or lowercase hex', () => {
-    expect(tokenOf(normaliseSeeds({ bg: '1c1b1a', fg: '#DAD8CE', accent: 'cf6a4c' }))).toBe(
+  it('canonicalizes to the preset name or lowercase hex', () => {
+    expect(tokenOf(normalizeSeeds({ bg: '1c1b1a', fg: '#DAD8CE', accent: 'cf6a4c' }))).toBe(
       'fireproof',
     );
-    expect(tokenOf(normaliseSeeds({ bg: '#fff', fg: '#000', accent: '#F80' }))).toBe(
+    expect(tokenOf(normalizeSeeds({ bg: '#fff', fg: '#000', accent: '#F80' }))).toBe(
       'ffffff-000000-ff8800',
     );
-    expect(presetOf(normaliseSeeds({ bg: '#2e3440', fg: '#eceff4', accent: '#88c0d0' }))).toBe(
+    expect(presetOf(normalizeSeeds({ bg: '#2e3440', fg: '#eceff4', accent: '#88c0d0' }))).toBe(
       'nord',
     );
     expect(
-      presetOf(normaliseSeeds({ bg: '#2e3441', fg: '#eceff4', accent: '#88c0d0' })),
+      presetOf(normalizeSeeds({ bg: '#2e3441', fg: '#eceff4', accent: '#88c0d0' })),
     ).toBeNull();
-    expect(normaliseSeed(' #aBc ')).toBe('#AABBCC');
-    expect(normaliseSeed('#abcd')).toBeNull();
-    expect(() => normaliseSeeds({ bg: 'nope', fg: '#000', accent: '#000' })).toThrow(/bg/);
+    expect(normalizeSeed(' #aBc ')).toBe('#AABBCC');
+    expect(normalizeSeed('#abcd')).toBeNull();
+    expect(() => normalizeSeeds({ bg: 'nope', fg: '#000', accent: '#000' })).toThrow(/bg/);
   });
 
   it('never resolves a name inherited from Object.prototype', () => {
@@ -296,7 +296,7 @@ describe('contrast guard (d)', () => {
     expect(contrast(mix(sol['--text-2'], sol['--bg'], DIM), sol['--bg'])).toBeLessThan(3);
   });
 
-  it('switches the rules one grey step up in the light regime', () => {
+  it('switches the rules one gray step up in the light regime', () => {
     const dark = cssVars(PRESETS.nord);
     const t = themeTokens(PRESETS.nord);
     expect([dark['--rule'], dark['--rule-strong']]).toEqual([t.ui_alt, t.ui_hi]);

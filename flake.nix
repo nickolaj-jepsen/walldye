@@ -1,5 +1,5 @@
 {
-  description = "walldye: procedural SVG wallpapers recoloured from three seed colours";
+  description = "walldye: procedural SVG wallpapers recolored from three seed colors";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -69,9 +69,9 @@
           filter = path: type: !(type == "directory" && baseNameOf path == "build");
         };
 
-      catalogue =
+      catalog =
         pkgs:
-        pkgs.runCommand "walldye-catalogue" { } ''
+        pkgs.runCommand "walldye-catalog" { } ''
           mkdir $out
           cp -r ${wallpapersIn ./wallpapers} $out/wallpapers
           cp ${./taxonomy.yaml} $out/taxonomy.yaml
@@ -142,7 +142,7 @@
                 nativeBuildInputs = [ pkgs.makeWrapper ];
                 passthru.mkWallpaper = mkWallpaper pkgs venv;
                 meta = {
-                  description = "Procedural SVG wallpapers recoloured from three seed colours";
+                  description = "Procedural SVG wallpapers recolored from three seed colors";
                   homepage = "https://walldye.com";
                   license = with lib.licenses; [
                     gpl3Plus
@@ -153,7 +153,7 @@
               }
               ''
                 makeWrapper ${venv}/bin/walldye $out/bin/walldye \
-                  --set-default WALLDYE_ROOT ${catalogue pkgs}
+                  --set-default WALLDYE_ROOT ${catalog pkgs}
               '';
         in
         walldye;

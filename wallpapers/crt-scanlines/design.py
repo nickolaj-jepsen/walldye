@@ -40,7 +40,7 @@ BEZEL_FILL, BEZEL_EDGE = by_regime(BG_DEEP, BG_ALT), by_regime(BG_ALT, UI)
 
 
 def superellipse(c: Vec, a: float, b: float, n: int = 360) -> NDArray[np.float64]:
-    """`n` points around the superellipse of half-axes `a`, `b` centred on `c`."""
+    """`n` points around the superellipse of half-axes `a`, `b` centered on `c`."""
     t = np.linspace(0, 2 * math.pi, n, endpoint=False)
     cos, sin = np.cos(t), np.sin(t)
     e = 2 / SQUARENESS
@@ -88,7 +88,7 @@ def draw(s: Canvas) -> None:
                 rung = TONES.rung((glow - dt + FLOOR) / (1 + FLOOR))
                 line = barrel(xs, y)
                 # Each run of one rung is a band 1 + 3.2 * glow thick, ending on the next run's
-                # first sample so neighbouring bands meet without a gap.
+                # first sample so neighboring bands meet without a gap.
                 for k in range(1, len(TONES)):
                     for i0, i1 in runs(rung == k):
                         end = min(i1, len(xs) - 1)

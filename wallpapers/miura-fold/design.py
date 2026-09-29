@@ -27,7 +27,7 @@ type Floats = NDArray[np.float64]
 
 A, B, ALPHA = 48, 64.7, math.radians(60)  # crease lengths and sector angle
 S0, L0, V0 = B * math.sin(ALPHA), A, B * math.cos(ALPHA)  # flat cell 56x48, zigzag offset 32
-LENS = (1440, 560)  # lens centre from lattice vertex (0, 0): sets which facets face the light
+LENS = (1440, 560)  # lens center from lattice vertex (0, 0): sets which facets face the light
 RX, RY = 177, 156  # fold lens 1/e radii
 THETA_MAX = math.radians(58)
 TILT = 0.45  # oblique view: screen y -= TILT * height

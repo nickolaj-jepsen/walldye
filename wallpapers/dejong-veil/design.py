@@ -81,7 +81,7 @@ def density(p: Attractor, g: NpRng) -> Field:
 
 def region(field: Field, level: float, corner: Vec, min_area: float = 4.0) -> Path:
     """Even-odd path of the smooth region where `field` >= `level`, with the grid's top-left
-    cell centred on `corner`; islands under `min_area` square units are dropped."""
+    cell centered on `corner`; islands under `min_area` square units are dropped."""
     d = P()
     padded = np.pad(field, 1, constant_values=field.min())
     rings = iso_lines(padded, level, cell=CELL, origin=corner - (CELL, CELL), simplify=0.25 * CELL)
@@ -96,7 +96,7 @@ def region(field: Field, level: float, corner: Vec, min_area: float = 4.0) -> Pa
 @design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Attractor]) -> None:
     p = s.params
-    # right of centre on a landscape screen, the left kept for windows; high on a portrait one
+    # right of center on a landscape screen, the left kept for windows; high on a portrait one
     c = s.pick(landscape=(0.6875, 0.5), portrait=(0.5, 0.42))
     corner = c - (SIZE / 2 - CELL / 2, SIZE / 2 - CELL / 2)
     lg = np.log1p(gaussian_filter(density(p, s.np_rng(1)), 0.7))

@@ -28,7 +28,7 @@ TYPED = mix(BG_ALT, UI, 0.17)
 
 
 def slug(c: Point, deg: float, w: float = 7, h: float = 18) -> NDArray:
-    """Corners of a type slug: an `h` by `w` block centred on `c`, its long side along `deg`."""
+    """Corners of a type slug: an `h` by `w` block centered on `c`, its long side along `deg`."""
     corners = [(-h / 2, -w / 2), (h / 2, -w / 2), (h / 2, w / 2), (-h / 2, w / 2)]
     return Affine.frame(c, deg=deg).apply(corners)
 
@@ -49,7 +49,7 @@ def typed(c: Vec, rng: Rng, rows: int = 5) -> Path:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the print point: right of centre on landscape, centred and a little high on portrait
+    # the print point: right of center on landscape, centered and a little high on portrait
     c = s.pick(landscape=(0.6875, 0.38), portrait=(0.5, 0.42), snap=1)
     s.fill(P().rect(c.x - 150, c.y - 270, 300, 270), PAPER)
     s.fill(typed(c, s.rng(3)), TYPED)

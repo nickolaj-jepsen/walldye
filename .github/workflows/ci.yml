@@ -31,7 +31,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # A cold cache means rendering the whole catalogue from scratch.
+    # A cold cache means rendering the whole catalog from scratch.
     timeout-minutes: 120
     permissions:
       contents: read

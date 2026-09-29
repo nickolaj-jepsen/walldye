@@ -10,7 +10,7 @@ from walldye import ACCENT, ACCENT_HI, UI, UI_ALT, UI_HI, Canvas, P, Path, Vec, 
 from walldye.geom import Affine, bezier_points, hatch, spline_points
 from walldye.pixel import glyphs, text_width
 
-# The figure is laid out on a 1920x1080 sheet and centred on wider screens.
+# The figure is laid out on a 1920x1080 sheet and centered on wider screens.
 K, X0, GY = 0.225, 290, 730  # px per mm, nose tip, ground line
 BUB, BR = Vec(1640, 300), 165  # detail A
 FIG_CX = 1002  # middle of the figure, from the ground line's start to detail A's rim
@@ -18,8 +18,8 @@ FIG_CX = 1002  # middle of the figure, from the ground line's start to detail A'
 # Car coordinates in mm, as the 2026 technical regulations set them: x back from the front
 # axle, z up from the reference plane under the floor, which sits 65 above the ground.
 WB, NOSE_X, TAIL_X, TOP_Z, GROUND = 3400, -1300, 4200, 970, -65
-FRONT, REAR = (0, 290), (WB, 285)  # axle centres
-R_FRONT, R_REAR, RIM_LIP, RIM_SEAT = 352.5, 355, 248, 231  # tyres on 18-inch rims
+FRONT, REAR = (0, 290), (WB, 285)  # axle centers
+R_FRONT, R_REAR, RIM_LIP, RIM_SEAT = 352.5, 355, 248, 231  # tires on 18-inch rims
 
 # Nose from the chassis floor round the tip to the cockpit, then the cockpit rim and headrest.
 NOSE = (
@@ -101,7 +101,7 @@ RAMP = ((2740, 50), (2960, 50), (3065, 86))  # a quadratic
 FLOOR_NOSE = ((360, 215), (395, 180), (418, 100), (440, 30), (480, 4), (540, 0))
 TAIL_TOP = ((3700, 490), (3800, 432), (3905, 381), (4000, 374), (4200, 372))
 TAIL_UNDER = ((4200, 238), (3950, 205), (3760, 172))
-# Endplates: the front one's top rises to z 375 and its back follows the tyre at r 462.5.
+# Endplates: the front one's top rises to z 375 and its back follows the tire at r 462.5.
 FW_TOP = ((-1050, 75), (-1056, 230), (-1040, 256), (-900, 312), (-760, 368), (-700, 375))
 FW_ARC = (Vec(0, 360), 462.5)
 RW_PLATE = (
@@ -120,8 +120,8 @@ UPPER_ARM, LOWER_ARM = ((0, 455), (720, 430)), ((0, 250), (720, 274))
 CG = (1870, 220)  # 45% of the mass on the front axle
 
 # NACA sections: chord, camber, camber position, thickness, angle of attack (deg), leading edge.
-# Front wing, the centre of the mainplane ahead of the endplate, then mainplane and two flaps.
-FW_CENTRE = (440, 0.04, 0.4, 0.08, 2, (-1287, 88))
+# Front wing, the center of the mainplane ahead of the endplate, then mainplane and two flaps.
+FW_CENTER = (440, 0.04, 0.4, 0.08, 2, (-1287, 88))
 FRONT_WING = (
     (300, 0.05, 0.4, 0.08, 3, (-1045, 112)),
     (170, 0.06, 0.4, 0.10, 15, (-760, 143)),
@@ -171,7 +171,7 @@ def rounded(pts: NDArray[np.float64], r: float) -> Polygon:
 
 
 def cross(d: Path, c: Vec, r: float) -> None:
-    """A centre mark: two strokes of half-length `r` through `c`."""
+    """A center mark: two strokes of half-length `r` through `c`."""
     d.M(c.x - r, c.y).H(c.x + r).M(c.x, c.y - r).V(c.y + r)
 
 
@@ -201,7 +201,7 @@ def draw(s: Canvas) -> None:
         radii = [R_FRONT * K, R_REAR * K]
         hidden = unary_union([Point(c).buffer(r + 5, quad_segs=64) for c, r in zip(hubs, radii)])
 
-        # Hidden-line work: the tyres, endplates, board, mirror and halo tube stand in front.
+        # Hidden-line work: the tires, endplates, board, mirror and halo tube stand in front.
         (cx, cz), cr = FW_ARC
         ang = np.linspace(math.asin((375 - cz) / cr), math.asin((75 - cz) / cr), 24)
         arc = np.column_stack([cx - cr * np.cos(ang), cz + cr * np.sin(ang)])
@@ -245,22 +245,22 @@ def draw(s: Canvas) -> None:
                 .offset_curve(side * STAY_W * K / 2)
                 .intersection(stay.buffer(0.5))
             )
-        for arm in (UPPER_ARM, LOWER_ARM):  # front wishbones, from behind the tyre
+        for arm in (UPPER_ARM, LOWER_ARM):  # front wishbones, from behind the tire
             fine.shape(LineString(m.apply(arm)).difference(hidden).difference(board))
         for sec in FRONT_WING:
             wing.poly(m.apply(naca(*sec, n=24)), closed=True)
-        wing.shape(Polygon(m.apply(naca(*FW_CENTRE, n=24))).exterior.difference(front))
+        wing.shape(Polygon(m.apply(naca(*FW_CENTER, n=24))).exterior.difference(front))
         rw = Affine.translate(*RW_AT)
         for sec in REAR_WING:
             wing.poly(m.apply(rw.apply(naca(*sec, n=24))), closed=True)
 
-        # wheels: tyre, rim lip and hub; the rim's bead seat shares the thinner leader stroke
+        # wheels: tire, rim lip and hub; the rim's bead seat shares the thinner leader stroke
         rings, lips = P(), P()
         for c, r in zip(hubs, radii):
             rings.circle(c, r).circle(c, RIM_LIP * K).circle(c, 45 * K)
             lips.circle(c, RIM_SEAT * K)
             cross(fine, c, 16)
-        cross(fine, m(CG), 14)  # centre of gravity
+        cross(fine, m(CG), 14)  # center of gravity
         fine.circle(m(CG), 5)
 
         # dimensions: wheelbase and overall length, and height over the reference plane

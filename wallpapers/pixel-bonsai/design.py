@@ -32,7 +32,7 @@ DEEP, SHADE, BODY, SIDE, LIT = 1, 2, 3, 4, 5
 TURN = 5
 PALETTE = (None, BG_DEEP, BG_ALT, UI, UI_ALT, UI_HI, None, ACCENT_5, ACCENT_3, ACCENT_1, ACCENT)
 
-# Positions are in cells from the centre of the pot's rim.
+# Positions are in cells from the center of the pot's rim.
 # Trunk spine (x, y, radius), pot to apex; the branches fork off it.
 TRUNK: Spine = (
     (-2, 2, 8.5),

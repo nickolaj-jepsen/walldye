@@ -7,7 +7,7 @@ from walldye.geom import Affine
 
 R, HALF = 300, 95  # disc radius; half the width of the wedge's base
 AXIS = Vec(860, -330)  # wedge base to tip on a landscape screen
-TIP = Vec(0, 20)  # the tip lands just below the disc's centre
+TIP = Vec(0, 20)  # the tip lands just below the disc's center
 PORTRAIT_TURN = -38  # deg: steeper on a portrait screen, so the wedge fits the width
 # fragments in wedge-axis space: distance from the base, offset across the axis, width, height
 FRAGS = (
@@ -22,7 +22,7 @@ FRAG_TONES = (UI_ALT, mix(UI_ALT, UI_HI, 0.5))
 
 
 def corners(w: float, h: float) -> list[tuple[float, float]]:
-    """The corners of a `w` by `h` rectangle centred on the origin."""
+    """The corners of a `w` by `h` rectangle centered on the origin."""
     return [(-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)]
 
 

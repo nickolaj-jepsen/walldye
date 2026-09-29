@@ -52,11 +52,11 @@ FILL = np.array([0, P_FACE, P_FACE, P_WALL, P_WALL, P_WALL, P_FACE, P_FACE, P_FA
 # on, with its outer wall
 PART = np.array([0, 1, 2, 3, 3, 3, 4, 5, 5])
 GLOW = np.array([0, G1, G2, G3])
-DASH = (26, 6, 3, 5)  # a centre line's dash, gap, dot and gap
+DASH = (26, 6, 3, 5)  # a center line's dash, gap, dot and gap
 
 
 def dashed(d: NDArray[np.float64]) -> NDArray[np.bool_]:
-    """Whether distance d along a centre line falls on a dash or a dot."""
+    """Whether distance d along a center line falls on a dash or a dot."""
     m = np.abs(d) % sum(DASH)
     return (m < DASH[0]) | ((m >= sum(DASH[:2])) & (m < sum(DASH[:3])))
 
@@ -142,8 +142,8 @@ def draw(s: Canvas) -> None:
     zt = z.max(axis=0)
     grid = FILL[label]
 
-    # holes: circles on the rim, alternate rows offset by half a pitch, each centred on a
-    # whole cell so that holes of one size all rasterise to the same shape
+    # holes: circles on the rim, alternate rows offset by half a pitch, each centered on a
+    # whole cell so that holes of one size all rasterize to the same shape
     pitch = ROW_PITCH * k
     row = np.clip(np.round(h / pitch), -(ROWS // 2), ROWS // 2)
     step = 2 * math.pi / PER_ROW
@@ -160,7 +160,7 @@ def draw(s: Canvas) -> None:
     hole = (label == RIM) & (sa > 0.45) & (u**2 + v**2 < (HOLE * k / 2) ** 2)
     grid[hole] = P_HOLE
 
-    # outlines: a cell whose neighbour shows another part lying behind it; the bore walls
+    # outlines: a cell whose neighbor shows another part lying behind it; the bore walls
     # take none, so the tabs seen through the bore make no second toothed ring
     part = PART[label]
     # near the limb the face's edge and the rim's silhouette would run as a tramline, so only
@@ -179,14 +179,14 @@ def draw(s: Canvas) -> None:
     grid[edge & ~caliper] = P_LINE
     grid[edge & caliper] = P_CLINE
 
-    # centre lines on the face's plane, dash and dot, running just past the disc and hidden by
+    # center lines on the face's plane, dash and dot, running just past the disc and hidden by
     # the rim
     across = (y + T / 2 * st) / ct
     reach = 1.06 * R
-    centre = (np.abs(across) * ct < CELL * 0.75) & (np.abs(x) < reach) & dashed(x)
-    centre |= (np.abs(x) < CELL * 0.75) & (np.abs(across) < reach) & dashed(across * ct)
-    centre &= np.isin(label, (SKY, FACE, TIP, ROOT, SIDE)) & ~edge
-    grid[centre] = P_LINE
+    center = (np.abs(across) * ct < CELL * 0.75) & (np.abs(x) < reach) & dashed(x)
+    center |= (np.abs(x) < CELL * 0.75) & (np.abs(across) < reach) & dashed(across * ct)
+    center &= np.isin(label, (SKY, FACE, TIP, ROOT, SIDE)) & ~edge
+    grid[center] = P_LINE
 
     # heat: hottest where the rim leaves the caliper, cooling as the disc turns on
     face = label == FACE

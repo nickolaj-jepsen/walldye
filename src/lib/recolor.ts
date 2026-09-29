@@ -1,10 +1,10 @@
 /**
- * The browser recolour, a port of walldye/tools/build.py select() and recolour(): a template's colour
+ * The browser recolor, a port of walldye/tools/build.py select() and recolor(): a template's color
  * slots are set from the seeds through the per-occurrence coefficients in slots.json.
  */
 
 import { hexToRgb, isFireproof, type Regime, regimeOf, rgbToHex, type Seeds } from './theme';
-import { findColours, joinSlots, splitSlots } from './tokenize';
+import { findColors, joinSlots, splitSlots } from './tokenize';
 
 /** One slots.json template entry, keyed "<aspect>/<regime>". coefs rows are [a, b, c, dr, dg, db]; occ[i] is slot i's row. */
 export interface SlotsEntry {
@@ -26,13 +26,13 @@ export interface Slots {
   [key: string]: unknown;
 }
 
-/** A template split at its colour slots, so recolouring it repeatedly skips the tokenizer. */
+/** A template split at its color slots, so recoloring it repeatedly skips the tokenizer. */
 export interface PreparedTemplate {
   svg: string;
   parts: string[];
 }
 
-/** The entry to recolour with and its slots.json key. */
+/** The entry to recolor with and its slots.json key. */
 export interface Picked {
   key: string;
   entry: SlotsEntry;
@@ -66,18 +66,18 @@ export function select(slots: Slots, aspect: string, seeds: Seeds): Picked {
 }
 
 export function prepareTemplate(svg: string): PreparedTemplate {
-  return { svg, parts: splitSlots(svg, findColours(svg)) };
+  return { svg, parts: splitSlots(svg, findColors(svg)) };
 }
 
 /**
- * `template` (the file `entry` names) recoloured for `seeds`. Slot i becomes coefs[occ[i]] =
+ * `template` (the file `entry` names) recolored for `seeds`. Slot i becomes coefs[occ[i]] =
  * [a, b, c, dr, dg, db] evaluated per channel as ((a*bg + b*fg) + c*accent) + d, rounded half to even
  * and clamped.
  *
  * Returns the template unchanged for exact fireproof seeds, and as the fallback when its slot count is
  * not `entry.n` or `entry.occ` does not index `entry.coefs` once per slot.
  */
-export function recolour(
+export function recolor(
   template: string | PreparedTemplate,
   entry: SlotsEntry,
   seeds: Seeds,

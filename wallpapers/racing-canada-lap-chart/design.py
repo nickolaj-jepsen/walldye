@@ -101,19 +101,19 @@ def draw(s: Canvas) -> None:
         xy = at(np.array(marks))
         return xy[[lit_path.distance(Point(p)) >= 6 for p in xy.tolist()]]
 
-    grey = P()
+    gray = P()
     ends, pit = [], []
     for car in cars:
         if car is win:
             continue
         pts = line(car)
-        grey.poly(at(pts[: HALT + 1]))
+        gray.poly(at(pts[: HALT + 1]))
         if len(pts) > HALT + 1:
-            grey.poly(at(pts[HALT + 1 :]))
+            gray.poly(at(pts[HALT + 1 :]))
         if car["out"]:
             ends.append(pts[-1])
         pit += [pts[idx(k)] for k in car["pits"]]
-    s.stroke(grey, UI, 1.2, join="round")
+    s.stroke(gray, UI, 1.2, join="round")
     s.fill(P().dots(clear(pit), 2.2), UI_ALT)
     s.fill(P().dots(clear(ends), 2.5), UI_ALT)
 

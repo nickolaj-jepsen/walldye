@@ -28,12 +28,12 @@ class Tiling(Params):
 
 PHI = (1 + 5**0.5) / 2
 EDGE = 42  # rhomb edge, and the long edge of a kite or dart
-# Deflation rounds. The patch round the centre repeats every 4 rounds, so 12 draws the same
+# Deflation rounds. The patch round the center repeats every 4 rounds, so 12 draws the same
 # rhombs as 8 while the wheel (radius EDGE * PHI**12, about 13,500) covers any screen. For the
-# kites, 11 rounds put five darts at the centre (the star); 12 would put five kites there.
+# kites, 11 rounds put five darts at the center (the star); 12 would put five kites there.
 GENS = {"rhombs": 12, "kites": 11}
 ORIGIN = Vec(0, 0)
-# Fills, and per ring outward from the centre vertex the (thin or kite, thick or dart) index
+# Fills, and per ring outward from the center vertex the (thin or kite, thick or dart) index
 # into them; rings past these are outlines only.
 FILLS = (ACCENT, ACCENT_1, ACCENT_3, ACCENT_5, ACCENT_6)
 RING_FILLS = {"rhombs": ((1, 0), (1, 2), (4, 3)), "kites": ((0, 0), (2, 2), (4, 3))}
@@ -128,7 +128,7 @@ def trails(edges: list[Edge]) -> list[list[Key]]:
 @design(aspects="any", variants={"kites": Tiling(tiles="kites")})
 def draw(s: Canvas[Tiling]) -> None:
     kind_of = s.params.tiles
-    # right of centre in the upper half on a landscape screen, the upper third on a portrait one
+    # right of center in the upper half on a landscape screen, the upper third on a portrait one
     c = s.pick(landscape=(1340 / 1920, 420 / 1080), portrait=(0.62, 0.36), snap=1)
     # the tiling is built round the origin, so the canvas is shifted by -c and grown by two edges
     view = s.inset(-2 * EDGE)
@@ -150,7 +150,7 @@ def draw(s: Canvas[Tiling]) -> None:
         for u, v in zip(quad, quad[1:] + quad[:1], strict=True):
             by_edge.setdefault(edge(u, v), []).append(i)
 
-    # rings by edge adjacency, from the tiles meeting at the centre vertex
+    # rings by edge adjacency, from the tiles meeting at the center vertex
     ring = {i: 0 for i, (_, q) in enumerate(tiles) if min(abs(v) for v in q) < 1}
     front = list(ring)
     for n in range(1, len(RING_SEAMS)):

@@ -1,4 +1,4 @@
-"""A broadcast vectorscope reading colour bars: a hexagonal trace with pixel-binned persistence, and one lit cell cluster on the skin-tone line."""
+"""A broadcast vectorscope reading color bars: a hexagonal trace with pixel-binned persistence, and one lit cell cluster on the skin-tone line."""
 
 import math
 
@@ -72,7 +72,7 @@ def binned(pts: Pts, origin: Vec, cell: int) -> NDArray[np.int64]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen, leaving the left for windows; low on a portrait
+    # right of center on a landscape screen, leaving the left for windows; low on a portrait
     # one, under the clock; on even units so the 2 px cells and the square marks stay crisp
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.6), snap=2)
     grid_at = c - (R, R)

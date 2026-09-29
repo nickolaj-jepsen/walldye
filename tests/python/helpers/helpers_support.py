@@ -5,7 +5,7 @@ import json
 import re
 from pathlib import Path
 
-from walldye import Canvas, Colour, MaskColour, Params
+from walldye import Canvas, Color, MaskColor, Params
 from walldye._document import Builder
 
 HERE = Path(__file__).parent
@@ -23,17 +23,17 @@ def canvas(w: int = 1920, h: int = 1080) -> tuple[Canvas, Builder]:
     return Canvas(Params(), w=w, h=h, light=False, doc=doc, source=HERE / "design.py"), doc
 
 
-def drawn(doc: Builder) -> list[tuple[Colour | MaskColour, str, str]]:
+def drawn(doc: Builder) -> list[tuple[Color | MaskColor, str, str]]:
     """(fill, d, the element's text with the fill cut out) of each drawn path, in order;
-    each path must carry exactly one colour."""
+    each path must carry exactly one color."""
     document = doc.finish()
     lines = [ln for ln in document.skeleton().splitlines() if ln.startswith("<path")]
-    colours = document.colours()
-    assert len(colours) == len(lines)
+    colors = document.colors()
+    assert len(colors) == len(lines)
     out = []
-    for colour, line in zip(colours, lines, strict=True):
+    for color, line in zip(colors, lines, strict=True):
         d = line.split(' d="')[1].split('"')[0]
-        out.append((colour, d, line))
+        out.append((color, d, line))
     return out
 
 

@@ -224,8 +224,8 @@ def shards(
     ]
     pieces = burst.difference(unary_union(cuts))
 
-    centre = Point(c)
-    cells = sorted((g for g in parts(pieces) if g.area > 3), key=lambda g: -g.distance(centre))
+    center = Point(c)
+    cells = sorted((g for g in parts(pieces) if g.area > 3), key=lambda g: -g.distance(center))
     dim = 0
     with s.buckets(SHARDS, "fill") as fill:
         for g in cells:
@@ -236,12 +236,12 @@ def shards(
             elif rng.random() < 0.06:
                 continue
             elif (
-                g.distance(centre) > 22
+                g.distance(center) > 22
                 and g.area < 200
                 and dim < 0.2 * len(cells)
                 and rng.random() < 0.5
             ):
                 k, dim = 2, dim + 1  # only snapped-off outer tips go dim
             else:
-                k = rng.choice(2, p=[0.55, 0.45] if g.distance(centre) < 22 else [0.25, 0.75])
+                k = rng.choice(2, p=[0.55, 0.45] if g.distance(center) < 22 else [0.25, 0.75])
             fill[k].shape(g)

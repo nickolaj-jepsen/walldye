@@ -4,7 +4,7 @@ from walldye import ACCENT, ACCENT_6, UI, UI_ALT, Canvas, P, Vec, design
 
 COLS, ROWS, PITCH, SIDE = 29, 9, 50, 46
 ORIGIN = Vec(190, 285)  # top-left corner of the band
-ESCAPED = Vec(1775, 845)  # centre of the filled square
+ESCAPED = Vec(1775, 845)  # center of the filled square
 # The three strays leave holes at the band's corner and trail towards the escaped square with
 # widening gaps: their direction, then gaps and tilts (deg), nearest the square first.
 STRAY_DIR, STRAY_GAPS, STRAY_TILT = Vec(0.55, 0.835), (58, 72, 90), (20, 28, 35)
@@ -32,7 +32,7 @@ def draw(s: Canvas) -> None:
             if (COLS - 1 - i) + (ROWS - 1 - j) < 2:
                 continue
             home = ORIGIN + (i * PITCH + SIDE / 2, j * PITCH + SIDE / 2)
-            # resample jitter that would stack a square on a neighbour, or crowd the three strays
+            # resample jitter that would stack a square on a neighbor, or crowd the three strays
             while True:
                 c = home + (rng.gauss(0, t * 18), rng.gauss(0, t * 18))
                 if all(abs(c - p) > (24 if k >= 3 else 44) for k, p in enumerate(placed)):

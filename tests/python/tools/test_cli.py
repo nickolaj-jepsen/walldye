@@ -210,7 +210,7 @@ def test_render_png_at_exact_pixel_sizes(wallpapers, tmp_path):
     assert e.value.code == 2
 
 
-def test_fit_crop_centres_on_the_focus_within_the_canvas():
+def test_fit_crop_centers_on_the_focus_within_the_canvas():
     assert common.fit_crop("16:9", (0.1, 0.9)) == (0.0, 0.0, 1920.0, 1080.0)
     x, y, w, h = common.fit_crop("21:9", (0.5, 1.0))
     assert (x, w) == (0.0, 1920.0) and h == pytest.approx(822.857, abs=1e-3)
@@ -254,8 +254,8 @@ def test_preview_prints_lint_lines(wallpapers, tmp_path, monkeypatch, capsys):
     lines = capsys.readouterr().out.splitlines()
     assert lines[0].startswith("error: line 3: imports random;")
     assert lines[1:4] == [
-        "warning: colour words in docstrings or comments: crimson (name tokens or roles, never hues)",
-        "warning: colour words in meta.yaml copy: crimson (describe the shape or what it picks out, without naming colours)",
+        "warning: color words in docstrings or comments: crimson (name tokens or roles, never hues)",
+        "warning: color words in meta.yaml copy: crimson (describe the shape or what it picks out, without naming colors)",
         "warning: pixel grid origin (0.5, 3) is not a whole unit; snap it to the 4-unit cell grid",
     ]
     assert lines[4] == "lint: 1 error(s), 3 warning(s)"
@@ -385,7 +385,7 @@ def test_themes_prints_tokens(capsys):
 # --- sheet ---------------------------------------------------------------------------------
 
 
-def test_sheet_recolours_through_slots(wallpapers, tmp_path, capsys):
+def test_sheet_recolors_through_slots(wallpapers, tmp_path, capsys):
     piece(wallpapers, "tiny")
     piece(wallpapers, "flat", FLAT)
     versions(wallpapers)

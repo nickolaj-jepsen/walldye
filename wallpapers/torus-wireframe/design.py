@@ -16,7 +16,7 @@ type Curve = Callable[[Arr], tuple[Arr, Arr]]  # t -> (points to draw, points to
 R, r = 580, 235  # ring and tube radii at full size
 TILT, SPIN = math.radians(58), math.radians(-8)
 MERIDIANS, PARALLELS, ACCENT_U = 30, 18, 1  # accent meridian: fully in frame, right of the hole
-LEFT, DROP = 440, 155  # centre: this far right of the left edge and above the bottom edge
+LEFT, DROP = 440, 155  # center: this far right of the left edge and above the bottom edge
 REACH = 811  # projected half-width at full size: the far rim ends at LEFT + REACH
 MARGIN = 100  # the least room between the far rim and the right edge
 TOL = 0.1  # Douglas-Peucker tolerance for the drawn lines, in canvas units
@@ -30,8 +30,8 @@ M = np.array(
 def surface(u: Arr, v: Arr) -> tuple[Arr, Arr]:
     """View-space points and unit normals for same-shape arrays u (azimuth), v (tube angle)."""
     n = np.stack([np.cos(v) * np.cos(u), np.cos(v) * np.sin(u), np.sin(v)], -1)
-    centre = np.stack([R * np.cos(u), R * np.sin(u), 0 * u], -1)
-    return (centre + r * n) @ M.T, n @ M.T
+    center = np.stack([R * np.cos(u), R * np.sin(u), 0 * u], -1)
+    return (center + r * n) @ M.T, n @ M.T
 
 
 def visible(p: Arr) -> NDArray[np.bool_]:
@@ -79,7 +79,7 @@ def outline(off: float) -> Curve:
 
 def trace(d: Path, fn: Curve, t: Arr, c: Vec, k: float) -> None:
     """Append to `d` the visible stretches of `fn` over `t`, each bisected out to its exact
-    visibility edge, scaled by `k` about the torus centre `c`."""
+    visibility edge, scaled by `k` about the torus center `c`."""
     pts, test = fn(t)
     vis = visible(test)
     flip = np.flatnonzero(vis[1:] != vis[:-1])

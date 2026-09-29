@@ -1,7 +1,7 @@
 """Theme model: three seeds (bg, fg, accent) derive the 21 tokens; pure functions only.
 
 Tokens are relative to the seeds, so light themes invert on their own: BG_DEEP and BLACK sit
-beyond bg, the greys step from bg to fg and ACCENT_1..8 from accent to bg. `fireproof` pins all
+beyond bg, the grays step from bg to fg and ACCENT_1..8 from accent to bg. `fireproof` pins all
 21 tokens by hand; its exact seeds resolve to that table, any other seeds are derived.
 
 Theme token grammar (parse_seeds): a preset name, `bg-fg-accent`, `bg,fg,accent` or
@@ -19,7 +19,7 @@ TOKENS = (
     "accent_5", "accent_6", "accent_7", "accent_8", "orange_dark",
 )  # fmt: skip
 # Fractions fitted to the hand-picked Flexoki/terracotta values of the default theme.
-_GREY_T = {
+_GRAY_T = {
     "bg_alt": 0.063,
     "ui": 0.126,
     "ui_alt": 0.189,
@@ -33,7 +33,7 @@ _ACCENT_T = {
 }  # fmt: skip
 
 PRESETS: dict[str, dict[str, str]] = {
-    # Pinned so the hand-picked greys and terracotta ramp render exactly.
+    # Pinned so the hand-picked grays and terracotta ramp render exactly.
     "fireproof": {
         "black": "#100F0F",
         "bg_deep": "#181716",
@@ -93,7 +93,7 @@ def mix(a: str, b: str, t: float) -> str:
 
 
 def luminance(c: str) -> float:
-    """WCAG relative luminance of a hex colour, 0..1."""
+    """WCAG relative luminance of a hex color, 0..1."""
 
     def lin(v: float) -> float:
         v /= 255
@@ -112,7 +112,7 @@ def _recipe(light: bool) -> dict[str, tuple[str, str, float]]:
     """Every derived token as (x, y, t) for mix(x, y, t), where x and y name a seed or are the
     pole beyond bg (#000000 in the dark regime, #FFFFFF in the light one)."""
     beyond = "#FFFFFF" if light else "#000000"
-    # Thin grey structure reads fainter on paper than on a dark ground; widen the low steps.
+    # Thin gray structure reads fainter on paper than on a dark ground; widen the low steps.
     boost = 1.6 if light else 1.0
     return {
         "bg_deep": ("bg", beyond, 0.15),
@@ -120,7 +120,7 @@ def _recipe(light: bool) -> dict[str, tuple[str, str, float]]:
         "accent_hi": ("accent", "fg", 0.28),
         **{
             k: ("bg", "fg", min(v * boost, 0.5) if k in ("bg_alt", "ui", "ui_alt", "ui_hi") else v)
-            for k, v in _GREY_T.items()
+            for k, v in _GRAY_T.items()
         },
         **{k: ("accent", "bg", v) for k, v in _ACCENT_T.items()},
         "orange_dark": ("accent", "bg", _ACCENT_T["accent_1"]),
@@ -143,7 +143,7 @@ def derive_theme(seeds: dict[str, str]) -> dict[str, str]:
     return {k: t[k].upper() for k in TOKENS}
 
 
-# (a, b, c, dr, dg, db): a colour equal to a*bg + b*fg + c*accent + d per channel, with the
+# (a, b, c, dr, dg, db): a color equal to a*bg + b*fg + c*accent + d per channel, with the
 # seeds and d in 0..255 channel units; a slots.json coefficient row.
 type Coefs = tuple[float, float, float, float, float, float]
 
@@ -178,14 +178,14 @@ def token_coefs(name: str, light: bool) -> Coefs:
     return _COEFS[light][name]
 
 
-def normalise_seed(c: str) -> str:
+def normalize_seed(c: str) -> str:
     """`c` (3 or 6 hex digits, optional `#`, any case) as uppercase #RRGGBB.
 
     Raises ValueError otherwise.
     """
     m = _SEED.fullmatch(c.strip())
     if m is None:
-        raise ValueError(f"bad seed colour {c!r} (want 3 or 6 hex digits, optional #)")
+        raise ValueError(f"bad seed color {c!r} (want 3 or 6 hex digits, optional #)")
     h = m.group(1)
     return "#" + (h if len(h) == 6 else "".join(ch * 2 for ch in h)).upper()
 
@@ -211,23 +211,23 @@ def parse_seeds(spec: str | None) -> dict[str, str]:
                 f"theme {spec!r}: keyed form takes exactly bg=, fg= and accent=,"
                 " no preset or other tokens"
             )
-        return {k: normalise_seed(values[k]) for k in SEEDS}
+        return {k: normalize_seed(values[k]) for k in SEEDS}
     parts = spec.split("," if "," in spec else "-")
     if len(parts) != 3:
         raise ValueError(
             f"unknown theme {spec!r}: use a preset ({', '.join(PRESETS)}) or bg-fg-accent hex seeds"
         )
-    return {k: normalise_seed(v) for k, v in zip(SEEDS, parts)}
+    return {k: normalize_seed(v) for k, v in zip(SEEDS, parts)}
 
 
 def theme_tokens(seeds: dict[str, str]) -> dict[str, str]:
     """All 21 tokens for exactly {bg, fg, accent}: the pinned fireproof table for fireproof's
-    exact seeds, derive_theme otherwise. Seeds are normalised first; ValueError on other keys."""
+    exact seeds, derive_theme otherwise. Seeds are normalized first; ValueError on other keys."""
     if seeds.keys() != set(SEEDS):
         raise ValueError(
             f"theme seeds must be exactly bg, fg, accent (got {', '.join(sorted(seeds))})"
         )
-    s = {k: normalise_seed(seeds[k]) for k in SEEDS}
+    s = {k: normalize_seed(seeds[k]) for k in SEEDS}
     return derive_theme(PRESETS["fireproof"] if s == _preset_seeds("fireproof") else s)
 
 
@@ -239,7 +239,7 @@ def parse_theme(spec: str | None) -> dict[str, str]:
 def theme_token(seeds: dict[str, str]) -> str:
     """Canonical token for {bg, fg, accent}: the preset name when the seeds equal a preset's,
     else lowercase `bg-fg-accent` without `#`."""
-    s = {k: normalise_seed(seeds[k]) for k in SEEDS}
+    s = {k: normalize_seed(seeds[k]) for k in SEEDS}
     for name in PRESETS:
         if s == _preset_seeds(name):
             return name

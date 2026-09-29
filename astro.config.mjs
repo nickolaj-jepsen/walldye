@@ -59,7 +59,7 @@ export default defineConfig({
     },
   ],
   vite: {
-    // The export rasteriser runs in a module Worker that imports resvg-wasm.
+    // The export rasterizer runs in a module Worker that imports resvg-wasm.
     worker: { format: 'es' },
   },
 });

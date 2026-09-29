@@ -28,7 +28,7 @@ from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye.tools import common, hashing, knobs, lint
-from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialise_aspect
+from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialize_aspect
 from walldye.tools.common import Regime
 
 HASH_SEED: Final = "4242"
@@ -192,7 +192,7 @@ def check_variant(task: Task) -> Result:
     """Check one (slug, variant): determinism (two in-process draws per native aspect and
     regime, then a PYTHONHASHSEED subprocess), viewBox, the templates and their slot tables, the
     constant-slot rule, the template limits, pixel origins, probes, focus and the ink map,
-    and with task.paranoid a fresh import per serialisation. A determinism failure stops it
+    and with task.paranoid a fresh import per serialization. A determinism failure stops it
     before any geometry step; so does an exception from the design."""
     common.WALLPAPERS = Path(task.wallpapers)
     start = time.perf_counter()
@@ -258,7 +258,7 @@ def _check(task: Task, r: Result) -> None:
         if (got := common.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
             r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
     for aspect in piece.aspects:
-        templates, entries, errors = serialise_aspect(
+        templates, entries, errors = serialize_aspect(
             {g: docs[aspect, g] for g in common.REGIMES}, aspect
         )
         r.templates.update(templates)
@@ -276,8 +276,8 @@ def _check(task: Task, r: Result) -> None:
     dark = r.templates.get("16x9.svg")
     if dark is not None:
         bg = common.background(dark)
-        r.focus = common.focus(common.rasterise(dark, common.FOCUS_WIDTH), bg)
-        r.ink = common.ink_map(common.rasterise(dark, INK_WIDTH), bg)
+        r.focus = common.focus(common.rasterize(dark, common.FOCUS_WIDTH), bg)
+        r.ink = common.ink_map(common.rasterize(dark, INK_WIDTH), bg)
     if task.paranoid and not isinstance(piece, common.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
 
@@ -318,8 +318,8 @@ def _fresh_errors(run: subprocess.CompletedProcess[str], expected: Mapping[str, 
 
 
 def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Document]) -> list[str]:
-    """Errors where a fresh import of the design, drawn for one serialisation, differs from
-    the shared document serialised under the same theme."""
+    """Errors where a fresh import of the design, drawn for one serialization, differs from
+    the shared document serialized under the same theme."""
     errors: list[str] = []
     for (aspect, regime), doc in docs.items():
         rest = _check_themes.PROBES[regime] + _check_themes.HELD_OUT[regime]
@@ -343,7 +343,7 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
 
 def hashes_main(args: Sequence[str]) -> int:
     """`python -m walldye _hashes <wallpapers dir> <slug@variant@aspect@regime>...`: print a
-    JSON object mapping each key to the sha256 of that draw serialised under the regime's
+    JSON object mapping each key to the sha256 of that draw serialized under the regime's
     sample theme, made in this process. Design errors propagate (non-zero exit)."""
     common.WALLPAPERS = Path(args[0])
     out: dict[str, str] = {}
@@ -389,7 +389,7 @@ def built_ink(slug: str, variant: str) -> Ink | None:
     if not path.exists():
         return None
     svg = path.read_text()
-    return common.ink_map(common.rasterise(svg, INK_WIDTH), common.background(svg))
+    return common.ink_map(common.rasterize(svg, INK_WIDTH), common.background(svg))
 
 
 def siblings(report: Report, names: Sequence[str], fresh: Mapping[str, Ink | None]) -> None:

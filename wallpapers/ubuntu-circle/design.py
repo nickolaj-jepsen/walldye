@@ -8,7 +8,7 @@ from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design, pola
 from walldye.geom import parts
 
 Q = 6  # the unit every radius is a whole number of
-# Radii in Q, snapped from the official 2022 artwork: the ring, the orbit of the head centres,
+# Radii in Q, snapped from the official 2022 artwork: the ring, the orbit of the head centers,
 # a head, and the clearance cut round each head.
 RING_IN, RING_OUT, ORBIT, HEAD, CLEAR = 27, 36, 30, 11, 16
 PITCH = RING_OUT - RING_IN  # the ring's width, stepped outward as the grid
@@ -88,7 +88,7 @@ def draw(s: Canvas) -> None:
     fade = s.radial_gradient([(0, BG_ALT), (R * 1.15 / FADE, BG_ALT), (1, BG)], c, FADE)
     s.stroke(lines, fade, 1.2)
 
-    # centre lines through the heads and the circumscribed circle
+    # center lines through the heads and the circumscribed circle
     cl = P()
     for a in axes:
         cl.M(polar(c, R + 72, deg=a)).L(polar(c, R + 72, deg=a + 180))

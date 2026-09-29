@@ -67,13 +67,13 @@ def draw(s: Canvas) -> None:
     onset = max(ev.x, x1 - LONGEST)
 
     loud, tail, coda = P(), P(), P()
-    with s.buckets((UI, BG_ALT), "stroke", stroke_width=1.4, stroke_linejoin="round") as grey:
+    with s.buckets((UI, BG_ALT), "stroke", stroke_width=1.4, stroke_linejoin="round") as gray:
         for i in range(rows):
-            y, quiet = MY + i * gap, grey[i % 2]
+            y, quiet = MY + i * gap, gray[i % 2]
             if i == event:
                 ys = y + noise(fine, rng) + quake(fine - onset, rng)
                 pre, end = fine < onset, fine >= x1 - FADE
-                lit = (fine >= onset - 1) & (fine <= x1 - FADE)  # overlaps each neighbour by one px
+                lit = (fine >= onset - 1) & (fine <= x1 - FADE)  # overlaps each neighbor by one px
                 trace(quiet, fine[pre], ys[pre])
                 trace(loud, fine[lit], ys[lit], ticks=False)
                 trace(tail, fine[end], ys[end], ticks=False)

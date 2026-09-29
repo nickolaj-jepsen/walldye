@@ -60,7 +60,7 @@ def angular(orbital: Orbital, x: Arr, y: Arr, z: Arr) -> Arr:
 
 
 def density(orbital: Orbital, x: Arr, y: Arr, z: Arr) -> Arr:
-    """|psi|^2 with a nodeless radial part, unnormalised: the harmonic squared times e^(-2r/n)."""
+    """|psi|^2 with a nodeless radial part, unnormalized: the harmonic squared times e^(-2r/n)."""
     n = ORBITALS[orbital][0]
     return angular(orbital, x, y, z) ** 2 * np.exp(-2 * np.sqrt(x * x + y * y + z * z) / n)
 
@@ -83,7 +83,7 @@ def sample(orbital: Orbital, rng: NpRng, count: int, extent: float) -> Arr:
 
 def column_density(orbital: Orbital, u: Arr, v: Arr, extent: float) -> Arr:
     """Line-of-sight integral of `accept` behind each screen point (u right, v up, in Bohr radii),
-    normalised to its maximum."""
+    normalized to its maximum."""
     w = np.linspace(-extent, extent, 160)[:, None]
     c, s = math.cos(TILT), math.sin(TILT)
     col = accept(orbital, u + 0 * w, -v * s + w * c, v * c + w * s).sum(0)
@@ -110,7 +110,7 @@ def thin(xy: Arr, dmin: Arr) -> list[int]:
 def draw(s: Canvas[Cloud]) -> None:
     orbital = s.params.orbital
     scale, extent = ORBITALS[orbital][2:]
-    # right of centre on a landscape screen, a little below the middle on a portrait one
+    # right of center on a landscape screen, a little below the middle on a portrait one
     c = s.pick(landscape=(0.6354, 0.5), portrait=(0.5, 0.55))
 
     x, y, z = sample(orbital, s.np_rng(7), 40000, extent).T

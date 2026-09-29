@@ -47,7 +47,7 @@
   --listing-gutter: var(--fg-alt);
 }
 
-/* ui_alt on a light ground is too faint to read as a rule, so rules step up one ui grey. */
+/* ui_alt on a light ground is too faint to read as a rule, so rules step up one ui gray. */
 [data-regime="light"] {
   color-scheme: light;
   --rule: var(--ui);
@@ -154,13 +154,13 @@ code, kbd, samp, pre { font-family: var(--mono); font-size: inherit; }
 code, kbd, samp, pre, .mono, .count, .presets .name, .hexfield input { font-variant-ligatures: none; }
 
 a { color: inherit; text-decoration: none; }
-.prose a, .facts dd a, .credit a, .licence a, .textbtn, .download .k {
+.prose a, .facts dd a, .credit a, .license a, .textbtn, .download .k {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
   text-decoration-color: var(--link-line);
 }
-.prose a:hover, .facts dd a:hover, .credit a:hover, .licence a:hover, .textbtn:hover, .download:hover .k {
+.prose a:hover, .facts dd a:hover, .credit a:hover, .license a:hover, .textbtn:hover, .download:hover .k {
   color: var(--text);
   text-decoration-color: currentColor;
 }
@@ -245,7 +245,7 @@ abbr {
 .nav { display: flex; gap: calc(4 * var(--u)); }
 .nav a { color: var(--text-2); }
 .nav a:hover { color: var(--text); }
-/* One convention for "current" everywhere: text colour, 1px underline in currentColor. */
+/* One convention for "current" everywhere: text color, 1px underline in currentColor. */
 .nav a[aria-current="page"],
 .seg input:checked + span,
 .presets [aria-pressed="true"] .name,
@@ -346,7 +346,7 @@ abbr {
 .entry input:checked { background: var(--text); border-color: var(--text); }
 .entry .term { color: var(--text-2); white-space: nowrap; }
 .entry:hover .term, .entry input:checked ~ .term { color: var(--text); }
-/* An entry that cannot narrow the grid fades; its term takes --text-dim, a colour guarded to 4.5:1, not opacity, which would drop it under that in some themes. */
+/* An entry that cannot narrow the grid fades; its term takes --text-dim, a color guarded to 4.5:1, not opacity, which would drop it under that in some themes. */
 .entry input:disabled, .entry input:disabled ~ .leader { opacity: 0.75; }
 .entry input:disabled ~ .term { color: var(--text-dim); }
 .entry input:disabled, .entry:has(input:disabled) { cursor: default; }
@@ -367,7 +367,7 @@ abbr {
 }
 .entry input:checked ~ .count { color: var(--text); }
 
-/* The presets as swatch buttons over the grid, so the first screen shows that the colours change. */
+/* The presets as swatch buttons over the grid, so the first screen shows that the colors change. */
 .themes { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--u); margin-bottom: var(--u); }
 .themes h2 { color: var(--text-2); margin-right: var(--u); }
 .themes .textbtn { margin-left: var(--u); }
@@ -381,7 +381,7 @@ abbr {
   cursor: pointer;
 }
 .themes [data-preset]:hover .chip { box-shadow: 0 0 0 1px var(--text); }
-/* "Current" as everywhere: a 1px underline in the text colour, here under the swatches. */
+/* "Current" as everywhere: a 1px underline in the text color, here under the swatches. */
 .themes [aria-pressed="true"] { background: linear-gradient(var(--text), var(--text)) left 50% bottom 3px / calc(100% - var(--u)) 1px no-repeat; }
 
 /* Plain text, not small caps: EB Garamond's small-cap 1 and 0 read as I and O. */
@@ -717,7 +717,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   background: var(--bg);
   color: var(--text);
   font-size: var(--fs-ui);
-  /* A bg-coloured matte, not a drop shadow: clears the captions behind the sides and bottom; the 1px extra offset keeps it off the rule row. */
+  /* A bg-colored matte, not a drop shadow: clears the captions behind the sides and bottom; the 1px extra offset keeps it off the rule row. */
   box-shadow: 0 calc(var(--u) + 1px) 0 var(--u) var(--bg);
 }
 .picker h3 { color: var(--text-2); }
@@ -884,11 +884,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 @media (scripting: none) {
   .seeds, .filter, .controls, .themes, [data-action="copy-source"] { display: none; }
   .index > .plates { grid-column: 2; }
-  /* The <noscript> image is always the fireproof template, whatever colours the page falls back to. */
+  /* The <noscript> image is always the fireproof template, whatever colors the page falls back to. */
   .plate { background: #1C1B1A; }
 }
 
-/* Forced colours drop backgrounds, gradients and box-shadows: redraw state, rules and swatches with system colours. */
+/* Forced colors drop backgrounds, gradients and box-shadows: redraw state, rules and swatches with system colors. */
 @media (forced-colors: active) {
   .entry input, .range { appearance: auto; -webkit-appearance: auto; }
   .search input, .hexfield input, .importfield input { border-bottom: 1px solid CanvasText; }

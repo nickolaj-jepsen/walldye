@@ -1,4 +1,4 @@
-"""The air swirling behind an open-wheel racing car as a vector plot of modelled vortices over the car's faint rear outline, with one of the rear wing's two tip vortices lit and its twin fainter."""
+"""The air swirling behind an open-wheel racing car as a vector plot of modeled vortices over the car's faint rear outline, with one of the rear wing's two tip vortices lit and its twin fainter."""
 
 import math
 
@@ -33,11 +33,11 @@ class Plane(Params):
 
 U = 70.0  # m/s, road speed
 # Right-hand members of the two counter-rotating pairs as they leave the car: y out from the
-# centreline and z up from the road (m), circulation (m^2/s) and core radius (m). Both turn the
+# centerline and z up from the road (m), circulation (m^2/s) and core radius (m). Both turn the
 # way a downforce wing's do: down outboard, up between the pair.
 WING = (0.58, 0.92, 30.0, 0.05)  # rear wing tips
 DIFFUSER = (0.33, 0.24, 25.0, 0.07)  # diffuser side walls
-SPREAD = 0.0012  # m^2 per metre travelled: turbulent growth of each core's area
+SPREAD = 0.0012  # m^2 per meter traveled: turbulent growth of each core's area
 
 PITCH = 36  # grid spacing
 K_MAX = 0.36  # drawing units per mm; smaller when the field needs the room
@@ -51,9 +51,9 @@ HEAD, HEAD_W = 7.0, 3.0
 LIT, TWIN = 1.6 * PITCH, 1.15 * PITCH  # reach of the lit arrows round the lit core and its twin
 DOT, MARK = 1.3, 4.0  # empty-node radius, half-size of the cross on each wing core
 
-# Rear view of the car, right half, in mm: y out from the centreline, z up from the road. Overall
+# Rear view of the car, right half, in mm: y out from the centerline, z up from the road. Overall
 # width, diffuser exit and rear wing span are the 2022 rules'; the rest is fitted around them.
-TYRE = (595, 1000, 0, 720)
+TIRE = (595, 1000, 0, 720)
 DIFF = (375, 0, 300)  # half width, bottom, roof
 FLOOR = (800, 0, 48)  # half width, bottom, top
 STRAKES = (130, 255)
@@ -61,7 +61,7 @@ BOX = (110, 300, 450)  # crash structure: half width, bottom, top
 BEAM = (470, 420, 470)  # beam wing: half span, bottom, top
 PYLON = (22, 450, 820)
 MAIN = (615, 800, 910)  # rear wing: half span, bottom, top of the upper band
-# the wing tip curling down to the beam wing, about 90 mm clear of the tyre
+# the wing tip curling down to the beam wing, about 90 mm clear of the tire
 LEG = ((595, 860), (560, 810), (500, 750), (465, 665), (452, 560), (448, 445))
 LEG_W = 40
 BODY = (
@@ -95,7 +95,7 @@ def pair_field(y: Pts, z: Pts, cores: list[Core]) -> tuple[Pts, Pts]:
 
 
 def advect(distance: float) -> list[Core]:
-    """The two right-hand cores carried `distance` metres downstream at road speed, each moved
+    """The two right-hand cores carried `distance` meters downstream at road speed, each moved
     by the others and the images (RK4), their cores widening as they go."""
     pos = np.array([WING[:2], DIFFUSER[:2]])
     gam = [WING[2], DIFFUSER[2]]
@@ -130,7 +130,7 @@ def reach(cores: list[Core]) -> tuple[float, float]:
 
 
 def both(pts: Pts) -> list[Pts]:
-    """The right-hand outline `pts` and its mirror across the centreline."""
+    """The right-hand outline `pts` and its mirror across the centerline."""
     return [pts, pts * (-1, 1)]
 
 
@@ -140,7 +140,7 @@ def rrect(y0: float, y1: float, z0: float, z1: float, r: float) -> Polygon:
 
 def car_parts() -> tuple[list[BaseGeometry], BaseGeometry]:
     """The car's rear-view solids in mm, nearest first, and the body behind them."""
-    ty0, ty1, tz0, tz1 = TYRE
+    ty0, ty1, tz0, tz1 = TIRE
     dw, dz0, dz1 = DIFF
     bw, bz0, bz1 = BOX
     mw, mz0, mz1 = MAIN
@@ -203,7 +203,7 @@ def draw(s: Canvas[Plane]) -> None:
     s.stroke(outline, UI, 1.2, join="round")
     s.stroke(P().M(0, gy).H(s.w), UI, 1.2)
 
-    # grid nodes, on the centreline and a whole number of pitches above the road
+    # grid nodes, on the centerline and a whole number of pitches above the road
     cols = np.arange(-(cx // PITCH), (s.w - cx) // PITCH + 1)
     rows = np.arange(1, gy // PITCH + 1)
     gx, gyy = np.meshgrid(cx + cols * PITCH, gy - rows * PITCH)

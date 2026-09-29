@@ -29,7 +29,7 @@ SKY, GROUND = mix(BG, BG_ALT, 0.8), mix(BG_ALT, UI, 0.85)
 # Grid lines by hemisphere, (sky, ground): minor every 10 degrees, major every 30.
 MINOR = (mix(SKY, UI, 0.6), mix(GROUND, BG, 0.5))
 MAJOR = (mix(UI, UI_ALT, 0.5), mix(GROUND, UI_ALT, 0.6))
-# The fixed aircraft symbol, relative to the ball centre.
+# The fixed aircraft symbol, relative to the ball center.
 WING = np.array([(-90, 0), (-36, 0), (-18, 20), (0, 2), (18, 20), (36, 0), (90, 0)])
 
 

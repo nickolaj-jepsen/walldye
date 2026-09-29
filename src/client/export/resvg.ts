@@ -1,6 +1,6 @@
 /**
- * Rasterising with resvg-wasm and PNG encoding, free of DOM and worker globals so the export worker
- * and the unit tests share it. initWasm() must have run once before rasterise().
+ * Rasterizing with resvg-wasm and PNG encoding, free of DOM and worker globals so the export worker
+ * and the unit tests share it. initWasm() must have run once before rasterize().
  */
 import { Resvg } from '@resvg/resvg-wasm';
 import { encode } from 'fast-png';
@@ -12,8 +12,8 @@ export interface Raster {
   pixels: Uint8Array;
 }
 
-/** `svg` drawn at its own width and height over `background` (a CSS colour). resvg's errors propagate. */
-export function rasterise(svg: string, background: string): Raster {
+/** `svg` drawn at its own width and height over `background` (a CSS color). resvg's errors propagate. */
+export function rasterize(svg: string, background: string): Raster {
   const resvg = new Resvg(svg, {
     background,
     fitTo: { mode: 'original' },

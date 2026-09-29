@@ -27,7 +27,7 @@ LINE_W = 0.6  # painted width of the guide line, m
 MARK = 25.0  # distance ahead to the two-mile marker, m
 MILE = 1609.344
 DIP = 6.8e-4  # the salt's horizon below eye level, rad: 5 km off, curvature less refraction
-CRACK = (0.8, 2.3)  # Poisson radius of the polygon centres, m: polygons 1 to 3 m across
+CRACK = (0.8, 2.3)  # Poisson radius of the polygon centers, m: polygons 1 to 3 m across
 EDGE = MARK - 3  # cells reaching past this are left smooth, clear of the lit mile, m
 NEAR = 12.0  # cells nearer than this are drawn a step louder, m
 
@@ -54,7 +54,7 @@ def draw(s: Canvas) -> None:
     vp = s.pick(landscape=(0.66, 0.68), portrait=(0.58, 0.76))
     vx, vy = float(vp.x), float(vp.y)
     z0 = F * EYE / (s.h - vy) * 0.9
-    half = max(vx, s.w - vx) / F + 0.05  # lateral reach per metre of depth
+    half = max(vx, s.w - vx) / F + 0.05  # lateral reach per meter of depth
 
     def proj(x: F64, z: F64) -> tuple[F64, F64]:
         return vx + F * x / z, vy + F * EYE / z
@@ -91,7 +91,7 @@ def draw(s: Canvas) -> None:
     zs = np.where(shown, seeds[:, 1], np.inf)
     znear = np.minimum(zs[rp[:, 0]], zs[rp[:, 1]])  # the nearer drawn cell sets the tone
     on = np.isfinite(znear) & (np.minimum(a[:, 1], b[:, 1]) >= lo - 1e-9)
-    # Fuse some neighbouring cells of one tone, so the crust is not one repeated polygon.
+    # Fuse some neighboring cells of one tone, so the crust is not one repeated polygon.
     used = ~shown
     loud_cell = zs < NEAR
     for i in s.np_rng(7).permutation(len(rp))[: len(rp) // 5]:

@@ -70,7 +70,7 @@ def lacquer(
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen; centred in the upper part of a portrait one
+    # right of center on a landscape screen; centered in the upper part of a portrait one
     c = s.pick(landscape=(0.65625, 0.5), portrait=(0.5, 0.41))
 
     def rim(deg: float, inset: float = 0) -> Vec:
@@ -79,7 +79,7 @@ def draw(s: Canvas) -> None:
     s.fill(P().circle(c + (14, 22), R + 6), BG_DEEP)  # cast shadow, down and to the right
     s.fill(P().circle(c, R), mix(BG_ALT, UI, 0.2))
     s.stroke(P().circle(c, R - LIP / 2), mix(BG_ALT, UI, 0.35), LIP)
-    # the well: lit near the wall, falling to background tone toward the centre, shaded away
+    # the well: lit near the wall, falling to background tone toward the center, shaded away
     # from the upper left
     rw = R - LIP
     well = s.radial_gradient([(0, BG), (0.4 * R / rw, BG), (1, BG_ALT)], c, rw)

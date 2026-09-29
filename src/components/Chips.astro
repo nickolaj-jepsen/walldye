@@ -1,10 +1,10 @@
 ---
 /** Three swatches (bg, fg, accent) as `.chips`; decorative, so hidden from assistive tech. */
 interface Props {
-  /** CSS colours, e.g. `var(--seed-bg)` or `#1C1B1A`. */
-  colours: readonly [string, string, string];
+  /** CSS colors, e.g. `var(--seed-bg)` or `#1C1B1A`. */
+  colors: readonly [string, string, string];
 }
-const { colours } = Astro.props;
+const { colors } = Astro.props;
 ---
 
-<span class="chips" aria-hidden="true">{colours.map((c) => <span class="chip" style={`--c:${c}`} />)}</span>
+<span class="chips" aria-hidden="true">{colors.map((c) => <span class="chip" style={`--c:${c}`} />)}</span>

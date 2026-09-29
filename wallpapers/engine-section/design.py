@@ -1,4 +1,4 @@
-"""A single-cylinder engine in drafted section at top dead centre: ruled hatching on the cut parts, a stippled burn in the combustion chamber."""
+"""A single-cylinder engine in drafted section at top dead center: ruled hatching on the cut parts, a stippled burn in the combustion chamber."""
 
 import math
 
@@ -24,7 +24,7 @@ YB = YH + 262  # barrel foot / crankcase flange
 THROW, ROD, PIN_DROP = 80, 270, 62
 CROWN_TDC = YH + 6
 CKY = CROWN_TDC + PIN_DROP + ROD + THROW
-CRANK = 0.0  # crank bearing; 0 is top dead centre, the rod on the bore axis
+CRANK = 0.0  # crank bearing; 0 is top dead center, the rod on the bore axis
 VALVE = 24  # valve axes lean this many degrees either side of the bore axis
 R_TOP = (DOME_C - HEAD_TOP) / math.cos(math.radians(VALVE))  # where a stem leaves the head
 STEM = R_TOP + 83 - RC
@@ -36,19 +36,19 @@ PHANTOM = (22, 5, 4, 5, 4, 5)
 
 
 def valve_axis(sgn: int) -> Affine:
-    """Local frame of one valve: the axis runs up local -y from the dome centre, and local +x
+    """Local frame of one valve: the axis runs up local -y from the dome center, and local +x
     points across it, clockwise of up."""
     return Affine.frame((0, DOME_C), deg=sgn * VALVE)
 
 
 def along(sgn: int, r: float, side: float = 0.0) -> Vec:
-    """The point `r` out along a valve axis from the dome centre, `side` across it."""
+    """The point `r` out along a valve axis from the dome center, `side` across it."""
     return valve_axis(sgn)((side, -r))
 
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on landscape screens; centred and larger on width-bound portrait ones
+    # right of center on landscape screens; centered and larger on width-bound portrait ones
     at = s.pick(landscape=(0.6458, 0.5), portrait=(0.49, 0.53))
     k = 0.88 if s.landscape else 1.35
     place = Affine.translate(at.x, at.y) @ Affine.scale(k) @ Affine.translate(0, -MID)
@@ -119,7 +119,7 @@ def draw(s: Canvas) -> None:
     )
 
     with s.group(transform=place, stroke_linejoin="round"):
-        # centre lines sit beneath everything so parts interrupt them
+        # center lines sit beneath everything so parts interrupt them
         cl = P()
         cl.M(0, HEAD_TOP - 170).V(CKY + 270)
         cl.M(-270, CKY).H(270)

@@ -20,11 +20,11 @@ LABEL = "2.5 Gb/s  UI 400ps  MASK HITS 3"
 def persistence(
     rng: NpRng, c: Vec, cols: int, rows: int, n: int = 4000, sigma: float = 0.135
 ) -> NDArray[np.float64]:
-    """Log-scaled hit counts per CELL, shape (rows, cols), normalised to a peak of 1.
+    """Log-scaled hit counts per CELL, shape (rows, cols), normalized to a peak of 1.
 
     `n` random six-bit streams with jittered edges, band-limited by a Gaussian of `sigma` bit
     periods (10-90% rise about 0.35 of a period), are folded so the bit edges cross at
-    `c.x` ± UI_PX / 2, and sampled once per pixel across the two periods centred on `c`.
+    `c.x` ± UI_PX / 2, and sampled once per pixel across the two periods centered on `c`.
     """
     t = np.arange(-0.5, 1.5, 1 / UI_PX)
     bits = rng.integers(0, 2, (n, 6)).astype(float)

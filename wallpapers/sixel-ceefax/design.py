@@ -10,9 +10,9 @@ SW, SH = 24, 15  # sixel pitch; 80x72 sixels = a 40x24 teletext page
 GW, GH = 18, 11  # lit block inside the pitch, the rest is the separated-mode gutter
 COLS, ROWS = 80, 72
 HORIZON = 42  # first row of character row 14: the horizon gets a text row to itself
-SUN = (52, 42, 4, 6.4)  # centre col/row, radius in cols/rows
+SUN = (52, 42, 4, 6.4)  # center col/row, radius in cols/rows
 HEADER = "P101  TELETEXT 101  Sun 27 Sep 19:04"
-# sixel kinds in rising priority: the highest one in a 2x3 character cell recolours the rest
+# sixel kinds in rising priority: the highest one in a 2x3 character cell recolors the rest
 SEA, LINE, FAR, NEAR, REFL, DISC = range(1, 7)
 TONES = (BG_ALT, UI, ACCENT_3, ACCENT)
 # kind -> TONES index: the far ridge shares the horizon line's step, the near one the sea's
@@ -20,7 +20,7 @@ INK = (0, 0, 1, 1, 0, 2, 3)
 
 
 def bumps(c: NDArray[np.floating], *hs: tuple[float, float, float]) -> NDArray[np.floating]:
-    """Smooth ridge height in rows: a sum of (height, centre col, width) Gaussians over `c`."""
+    """Smooth ridge height in rows: a sum of (height, center col, width) Gaussians over `c`."""
     return sum((h * np.exp(-(((c - m) / w) ** 2)) for h, m, w in hs), np.zeros_like(c))
 
 
@@ -51,7 +51,7 @@ def draw(s: Canvas) -> None:
     disc = ((cc + 0.5 - sc) / rx) ** 2 + ((rr + 0.5 - sr) / ry) ** 2 <= 1
     g[disc & (rr < HORIZON)] = DISC
 
-    # teletext allows one foreground colour per 2x3 character cell
+    # teletext allows one foreground color per 2x3 character cell
     top = g.reshape(ROWS // 3, 3, COLS // 2, 2).max(axis=(1, 3))
     g = np.where(g > 0, top.repeat(3, axis=0).repeat(2, axis=1), 0)
 

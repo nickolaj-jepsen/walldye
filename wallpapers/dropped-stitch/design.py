@@ -55,7 +55,7 @@ def leg(d: Path, a: Vec, b: Vec, bulge: float) -> Path:
 
 
 def stitch(d: Path, at: Vec, pull: float = 0.0) -> Path:
-    """Append a V stitch hanging from `at` (column centre, row top); `pull` shifts the top of
+    """Append a V stitch hanging from `at` (column center, row top); `pull` shifts the top of
     the V sideways so the stitch leans."""
     for sx in (-1, 1):
         a = at + (pull + sx * 9 * K, -K)
@@ -64,7 +64,7 @@ def stitch(d: Path, at: Vec, pull: float = 0.0) -> Path:
 
 
 def cell(c: int, r: int) -> Vec:
-    """The top centre of the stitch in column `c`, row `r` of the knit."""
+    """The top center of the stitch in column `c`, row `r` of the knit."""
     return Vec(c * SW + SW / 2, r * SH)
 
 
@@ -78,7 +78,7 @@ def draw(s: Canvas) -> None:
             knit.fill(d, tone)
     s.fill(P().rect(0, 0, s.w, s.h), knit.ref)
 
-    # the ladder hangs in the right third on landscape, a little right of centre on portrait,
+    # the ladder hangs in the right third on landscape, a little right of center on portrait,
     # snapped to the knit's columns and rows
     at = s.pick(landscape=(0.726, 0.285), portrait=(0.66, 0.36))
     col, top = round(at.x / SW - 0.5), round(at.y / SH)

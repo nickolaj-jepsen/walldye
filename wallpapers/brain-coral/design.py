@@ -36,15 +36,15 @@ class Coral(Params):
 
 
 RX, RY = 315, 292  # dome radii
-LIFT = 140  # dome centre above the seabed
-CELL = 2.2  # screen px per simulation cell at the dome's centre
+LIFT = 140  # dome center above the seabed
+CELL = 2.2  # screen px per simulation cell at the dome's center
 STEPS = 10000
 LIGHT = np.array([-0.45, -1.0, 0.4])
 # each band paints everything lit at least that much; the last catches the rest
 BANDS = ((0.6, ACCENT), (0.36, ACCENT_2), (0.14, ACCENT_3), (-9.0, ACCENT_5))
 STEP = 1.2  # contouring resolution in px
 RIM = 4  # bare ACCENT_8 band between the ridges and the silhouette
-PEBBLES = ((430, 5), (456, 3))  # offset right of the dome centre, radius
+PEBBLES = ((430, 5), (456, 3))  # offset right of the dome center, radius
 
 
 def lap_into(a: Grid, out: Grid) -> Grid:

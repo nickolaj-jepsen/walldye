@@ -95,7 +95,7 @@ async function tabStops(page: Page, limit = 80): Promise<Stop[]> {
 test.describe('focus order', () => {
   test.use({ viewport: { width: 1440, height: 1000 }, colorScheme: 'dark' });
 
-  test('the index runs header, filter, colours, then plates, each stop visible with a ring', async ({
+  test('the index runs header, filter, colors, then plates, each stop visible with a ring', async ({
     page,
   }) => {
     await page.goto('/');
@@ -127,7 +127,7 @@ test.describe('focus order', () => {
     }
   });
 
-  test('a detail page runs label, versions, colours, export, notes, see also, then the source code', async ({
+  test('a detail page runs label, versions, colors, export, notes, see also, then the source code', async ({
     page,
   }) => {
     await page.goto('/schotter');
@@ -138,7 +138,7 @@ test.describe('focus order', () => {
       expect(i, `${re} is not a stop in ${JSON.stringify(names)}`).toBeGreaterThanOrEqual(0);
       return i;
     };
-    // No neighbour links between the facts and the colours.
+    // No neighbor links between the facts and the colors.
     expect(names.filter((n) => /^a (← Index|Previous:|Next:)/.test(n))).toEqual([]);
     const order = [
       /^button#theme-button/,

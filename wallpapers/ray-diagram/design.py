@@ -15,7 +15,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     P,
     Path,
     Ref,
@@ -71,8 +71,8 @@ def trace(h: float, m: float, end: float) -> Pts:
     return [(x, AY - y) for x, y in pts]
 
 
-def fade(s: Canvas, stops: Sequence[tuple[float, Colour, float]]) -> Ref:
-    """A horizontal gradient through (canvas x, colour, opacity) stops."""
+def fade(s: Canvas, stops: Sequence[tuple[float, Color, float]]) -> Ref:
+    """A horizontal gradient through (canvas x, color, opacity) stops."""
     x0, x1 = stops[0][0], stops[-1][0]
     return s.linear_gradient([((x - x0) / (x1 - x0), c, a) for x, c, a in stops], (x0, 0), (x1, 0))
 

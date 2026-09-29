@@ -111,7 +111,7 @@ describe('copy lint over variants (h)', () => {
       }),
     ).toEqual([
       'variants.default.label: internal term "Seed"',
-      'variants.late.label: colour words red',
+      'variants.late.label: color words red',
       'variants.late.description: evaluative adjective "stunning"',
       'variants.open-sea.description: 31 words, over 30',
     ]);

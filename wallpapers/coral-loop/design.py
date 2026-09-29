@@ -43,7 +43,7 @@ def grow(rng: NpRng) -> Pts:
         el = np.linalg.norm(e, axis=1, keepdims=True) + 1e-6
         spring = e / el * (el - REST) * 0.25
         force = spring - np.roll(spring, 1, 0) + 0.3 * ((prev + nxt) / 2 - p)
-        # near-neighbours (gap 3+) repel too: that chain stiffness is what stops node-scale zigzags
+        # near-neighbors (gap 3+) repel too: that chain stiffness is what stops node-scale zigzags
         i, j = cKDTree(p).query_pairs(REPEL, output_type="ndarray").T
         gap = np.abs(i - j)
         keep = np.minimum(gap, n - gap) > 2
@@ -59,7 +59,7 @@ def grow(rng: NpRng) -> Pts:
         mag = np.linalg.norm(force, axis=1, keepdims=True)
         p = p + force * np.minimum(1, 1.5 / (mag + 1e-6)) + rng.normal(0, 0.03, p.shape)
         if n < TARGET:
-            # split edges at random, favouring uncrowded ones so the tips grow and the core settles
+            # split edges at random, favoring uncrowded ones so the tips grow and the core settles
             crowd = np.bincount(np.concatenate([i, j]), minlength=n)
             nxt = np.roll(p, -1, 0)
             w = np.linalg.norm(nxt - p, axis=1) / (1 + crowd)
@@ -85,7 +85,7 @@ def draw(s: Canvas) -> None:
     p = gaussian_filter1d(grow(s.np_rng(SEED)), 2, axis=0, mode="wrap") * SCALE
     if not s.landscape:
         p = Affine.rotate(deg=TURN).apply(p)
-    p = p - (p.min(0) + p.max(0)) / 2 + c  # centre the bounding box on c
+    p = p - (p.min(0) + p.max(0)) / 2 + c  # center the bounding box on c
     coral = Polygon(p)
     for dist, tone in ECHOES:
         # overshoot then shrink back so the ring rounds off channel mouths instead of forming cusps

@@ -1,7 +1,7 @@
-"""Slot coefficients: every colour occurrence ("slot") of a template as out = a*bg + b*fg +
+"""Slot coefficients: every color occurrence ("slot") of a template as out = a*bg + b*fg +
 c*accent + d.
 
-Per regime, each slot's six coefficients [a, b, c, dr, dg, db] come from its colour's formula
+Per regime, each slot's six coefficients [a, b, c, dr, dg, db] come from its color's formula
 (Document.coefs), with seeds and d in 0..255 channel units, and are checked against renders
 under the held-out themes (walldye._check_themes). The browser evaluates
 `((a*bg + b*fg) + c*accent) + d` per channel, rounds half to even and clamps to 0..255.
@@ -22,7 +22,7 @@ from walldye._check_themes import Theme
 from walldye._document import Document
 from walldye._theme import SEEDS, hex_to_rgb, rgb_to_hex, theme_token
 from walldye.tools.common import Regime, tokens_of
-from walldye.tools.tokenize import TAG, find_colours, skeleton
+from walldye.tools.tokenize import TAG, find_colors, skeleton
 
 TEMPLATE_THEMES: Final[dict[Regime, str]] = {"dark": "fireproof", "light": "flexoki-light"}
 MAX_ERROR = 2
@@ -54,9 +54,9 @@ def rgb(hexes: Sequence[str]) -> Floats:
     return np.array([hex_to_rgb(c) for c in hexes], dtype=np.float64).reshape(-1, 3)
 
 
-def colours(svg: str) -> Floats:
+def colors(svg: str) -> Floats:
     """(n, 3) float RGB of the slots of `svg`, in document order."""
-    return rgb([c for _, _, c in find_colours(svg)])
+    return rgb([c for _, _, c in find_colors(svg)])
 
 
 def compact(coefs: Floats) -> tuple[list[list[float]], list[int]]:
@@ -163,20 +163,20 @@ def first_diff(a: str, b: str) -> str:
 def slot_rule(svg: str, rows: Sequence[Sequence[float]], occ: Sequence[int]) -> list[str]:
     """Constant-slot rule errors for template `svg` with slot table `rows`/`occ`: a constant slot
     is allowed only in mask content (see mask_bound), a theme-dependent one never is."""
-    spans = find_colours(svg)
+    spans = find_colors(svg)
     table = np.array(rows, dtype=np.float64).reshape(-1, 6)
     const = constant(table)[list(occ)] if len(occ) > 0 else np.zeros(0, dtype=np.bool_)
     masked = mask_bound(svg, [s for s, _, _ in spans])
     hard: dict[str, list[int]] = {}
     themed: dict[str, list[int]] = {}
-    for (start, _, colour), c, m in zip(spans, const.tolist(), masked, strict=True):
+    for (start, _, color), c, m in zip(spans, const.tolist(), masked, strict=True):
         if c and not m:
-            hard.setdefault(colour, []).append(start)
+            hard.setdefault(color, []).append(start)
         elif not c and m:
-            themed.setdefault(colour, []).append(start)
+            themed.setdefault(color, []).append(start)
     return [
         *(
-            f"hardcoded {c} ×{len(at)} (line {_line(svg, at[0])}): use a token or mix(); constant colours belong only in <mask>/<clipPath>"
+            f"hardcoded {c} ×{len(at)} (line {_line(svg, at[0])}): use a token or mix(); constant colors belong only in <mask>/<clipPath>"
             for c, at in hard.items()
         ),
         *(
@@ -186,7 +186,7 @@ def slot_rule(svg: str, rows: Sequence[Sequence[float]], occ: Sequence[int]) -> 
     ]
 
 
-def serialise_aspect(
+def serialize_aspect(
     docs: Mapping[Regime, Document], aspect: str
 ) -> tuple[dict[str, str], dict[str, Entry], list[str]]:
     """The templates and slot entries of one native aspect of a design, given its document
@@ -195,9 +195,9 @@ def serialise_aspect(
     The dark template is the dark document under fireproof; the light regime shares it when
     the two documents' skeletons match, else gets its own template under flexoki-light. Each
     regime's slot coefficients must predict every held-out theme within MAX_ERROR units; the
-    template and probe serialisations must tokenize to the document's own slots. Returns
+    template and probe serializations must tokenize to the document's own slots. Returns
     (templates {file name: svg}, entries {"<aspect>/<regime>": Entry}, errors); a regime whose
-    serialisations disagree with its document gets no entry.
+    serializations disagree with its document gets no entry.
     """
     templates: dict[str, str] = {}
     entries: dict[str, Entry] = {}
@@ -242,7 +242,7 @@ def serialise_aspect(
                 misses.append((float(err[i]), t, i, a, p))
         if len(misses) > 0:
             worst, t, i, a_hex, p_hex = max(misses, key=lambda m: m[0])
-            line = _line(templates[name], find_colours(templates[name])[i][0])
+            line = _line(templates[name], find_colors(templates[name])[i][0])
             errors.append(
                 f"{aspect} {regime}: {len(misses)} of {len(_check_themes.HELD_OUT[regime])} held-out themes miss by more than {MAX_ERROR} units; "
                 f"worst {label(t)}, off by {worst:.0f} at the slot on line {line} of {name} ({a_hex}, predicted {p_hex}): "

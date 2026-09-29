@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { faviconColours, faviconSvg, faviconUrl } from '../../src/lib/favicon';
+import { faviconColors, faviconSvg, faviconUrl } from '../../src/lib/favicon';
 import { PRESETS } from '../../src/lib/theme';
 
 describe('favicon', () => {
   const seeds = PRESETS.fireproof;
 
   it('puts bg, fg and accent at three corners and a fg/accent blend at the fourth', () => {
-    const cells = faviconColours(seeds);
+    const cells = faviconColors(seeds);
     expect(cells).toHaveLength(16);
     expect(cells[0]).toBe(seeds.bg);
     expect(cells[3]).toBe(seeds.fg);
@@ -14,10 +14,10 @@ describe('favicon', () => {
     expect(cells[15]).toBe('#D4A18D');
   });
 
-  it('draws one filled cell per colour', () => {
+  it('draws one filled cell per color', () => {
     const svg = faviconSvg(seeds);
     expect(svg.match(/<rect /g)).toHaveLength(16);
-    for (const c of faviconColours(seeds)) expect(svg).toContain(`fill="${c}"`);
+    for (const c of faviconColors(seeds)) expect(svg).toContain(`fill="${c}"`);
     expect(decodeURIComponent(faviconUrl(seeds).replace('data:image/svg+xml,', ''))).toBe(svg);
   });
 

@@ -1,4 +1,4 @@
-"""A gas giant rising from the corner, its belts, turbulence and one storm oval quantised by serpentine Stucki error diffusion."""
+"""A gas giant rising from the corner, its belts, turbulence and one storm oval quantized by serpentine Stucki error diffusion."""
 
 import numpy as np
 from numpy.typing import NDArray
@@ -22,7 +22,7 @@ type Field = NDArray[np.float64]
 
 CELL = 3
 R = 900  # planet radius
-# planet centre: this far in from the right edge and below the bottom one; portrait screens
+# planet center: this far in from the right edge and below the bottom one; portrait screens
 # lift it, so the storm clears the bottom edge
 CORNER = (70, 170)
 CORNER_PORTRAIT = (40, 50)

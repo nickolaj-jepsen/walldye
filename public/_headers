@@ -2,7 +2,7 @@
 # Rules that match one request add up and repeat headers are comma-joined, so no two
 # Cache-Control rules below may match the same path.
 
-# Content-addressed: templates, slots and catalogue (/t/<sha256[:12]>.*), and Vite's hashed assets and fonts.
+# Content-addressed: templates, slots and catalog (/t/<sha256[:12]>.*), and Vite's hashed assets and fonts.
 /t/*
   Cache-Control: public, max-age=31536000, immutable
 /_astro/*

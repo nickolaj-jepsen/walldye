@@ -1,5 +1,5 @@
 """Shared helpers for the walldye tools: repo layout, metadata, loading and drawing designs,
-serialising and rasterising."""
+serializing and rasterizing."""
 
 import contextlib
 import hashlib
@@ -23,7 +23,7 @@ from numpy.typing import NDArray
 from PIL import Image
 
 from walldye._aspect import Aspect, canvas_size
-from walldye._colour import Colour, mix, token
+from walldye._color import Color, mix, token
 from walldye._design import Design, RenderSpec
 from walldye._document import Document
 from walldye._params import Params
@@ -32,12 +32,12 @@ from walldye._theme import (
     SEEDS,
     hex_to_rgb,
     is_light,
-    normalise_seed,
+    normalize_seed,
     parse_seeds,
     theme_tokens,
 )
 from walldye.tools import knobs
-from walldye.tools.tokenize import find_colours
+from walldye.tools.tokenize import find_colors
 
 sys.dont_write_bytecode = True  # imported designs must not leave __pycache__ in wallpapers/<slug>/
 
@@ -177,7 +177,7 @@ def seeds_of(theme: Theme) -> dict[str, str]:
         return parse_seeds(theme)
     if isinstance(theme, tuple):
         return dict(zip(SEEDS, theme, strict=True))
-    return {k: normalise_seed(theme[k]) for k in SEEDS}
+    return {k: normalize_seed(theme[k]) for k in SEEDS}
 
 
 def tokens_of(theme: Theme) -> dict[str, str]:
@@ -193,7 +193,7 @@ def regime_of(theme: Theme) -> Regime:
 
 @final
 class LegacyPiece:
-    """A script-less piece: source.svg with every colour mapped to a token or a two-token mix
+    """A script-less piece: source.svg with every color mapped to a token or a two-token mix
     by palette.yaml. It has only the default variant, at 16:9, and draws one document for
     both regimes."""
 
@@ -204,34 +204,34 @@ class LegacyPiece:
     def __init__(self, source: Path) -> None:
         """Cut source.svg at its slots and map each through palette.yaml, a mapping of hex to
         a token name or [token, token, t] for mix(). ValueError naming palette.yaml for a
-        malformed entry or a colour it does not map."""
+        malformed entry or a color it does not map."""
         self.source: Final = source
         self.variants: Final[Mapping[str, Params]] = MappingProxyType({})
         palette_path = source.with_name("palette.yaml")
         entries = as_dict(yaml.safe_load(palette_path.read_text()) or {})
         if entries is None:
-            raise ValueError(f"{palette_path}: must map colours to tokens")
-        palette: dict[str, Colour] = {}
+            raise ValueError(f"{palette_path}: must map colors to tokens")
+        palette: dict[str, Color] = {}
         for hex_, value in entries.items():
             try:
-                palette[normalise_seed(hex_)] = _palette_colour(value)
+                palette[normalize_seed(hex_)] = _palette_color(value)
             except (ValueError, TypeError) as e:
                 raise ValueError(
                     f"{palette_path}: {hex_}: entries are a token or [token, token, t] ({e})"
                 ) from e
         text = source.read_text()
         parts: list[str] = []
-        colours: list[Colour] = []
+        colors: list[Color] = []
         last = 0
-        for start, end, colour in find_colours(text):
-            if colour not in palette:
-                raise ValueError(f"{palette_path} does not map {colour} (used in source.svg)")
+        for start, end, color in find_colors(text):
+            if color not in palette:
+                raise ValueError(f"{palette_path} does not map {color} (used in source.svg)")
             parts.append(text[last:start])
-            colours.append(palette[colour])
+            colors.append(palette[color])
             last = end
         parts.append(text[last:])
         self._parts: Final = tuple(parts)
-        self._colours: Final = tuple(colours)
+        self._colors: Final = tuple(colors)
 
     def variant_names(self) -> tuple[str, ...]:
         """Only ("default",)."""
@@ -251,10 +251,10 @@ class LegacyPiece:
                 f" not {spec.aspect}"
             )
         w, h = canvas_size("16:9")
-        return Document(self._parts, self._colours, w=w, h=h, regime=spec.regime)
+        return Document(self._parts, self._colors, w=w, h=h, regime=spec.regime)
 
 
-def _palette_colour(value: object) -> Colour:
+def _palette_color(value: object) -> Color:
     if isinstance(value, str):
         return token(value)
     pair = as_list(value)
@@ -369,7 +369,7 @@ def render(
     overrides: Sequence[str] = (),
 ) -> str:
     """SVG text of one piece: `variant` (with `overrides`, `--set` items) at `aspect`, drawn
-    for the regime of `theme` and serialised under it. Documents are cached by spec; errors
+    for the regime of `theme` and serialized under it. Documents are cached by spec; errors
     from the design propagate unchanged."""
     piece = load(slug)
     params, _ = params_for(piece, variant, overrides)
@@ -404,7 +404,7 @@ def _sized(svg: str, w: float, h: float) -> str:
 def fit_crop(aspect: str, focus: tuple[float, float]) -> Crop:
     """The box of the 16:9 canvas an `aspect` it wasn't drawn for is cut from, as the site
     cuts it: the canvas's full height for a narrower aspect, else its full width, slid along
-    the other axis to centre on `focus` (fractions of the canvas), clamped to the canvas, the
+    the other axis to center on `focus` (fractions of the canvas), clamped to the canvas, the
     position rounded to 0.001."""
     cw, ch = canvas_size("16:9")
     aw, ah = canvas_size(aspect)
@@ -424,10 +424,10 @@ def template_focus(
 ) -> tuple[float, float]:
     """focus() of the piece's 16:9 dark template, the one build stores in slots.json."""
     svg = render(slug, "fireproof", "16:9", variant, overrides)
-    return focus(rasterise(svg, FOCUS_WIDTH), background(svg))
+    return focus(rasterize(svg, FOCUS_WIDTH), background(svg))
 
 
-def rasterise(svg: str, width: int, crop: Crop | None = None) -> Image.Image:
+def rasterize(svg: str, width: int, crop: Crop | None = None) -> Image.Image:
     """RGB image of `svg`, `width` px wide; the height follows the viewBox (or `crop`) aspect.
 
     `crop` is applied with crop_svg(). resvg's ValueError on invalid SVG propagates.

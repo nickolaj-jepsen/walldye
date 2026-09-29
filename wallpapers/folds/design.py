@@ -15,7 +15,7 @@ from walldye import (
     UI,
     UI_ALT,
     Canvas,
-    Colour,
+    Color,
     P,
     by_regime,
     design,
@@ -45,8 +45,8 @@ def left(p: NDArray[np.float64]) -> NDArray[np.float64]:
     return np.stack([d[:, 1], -d[:, 0]], 1) / np.linalg.norm(d, axis=1)[:, None]
 
 
-def tone(v: float, under: bool, accent: bool) -> Colour:
-    """The ribbon colour for brightness `v` in [0, 1]: the accent ladder on the twisted
+def tone(v: float, under: bool, accent: bool) -> Color:
+    """The ribbon color for brightness `v` in [0, 1]: the accent ladder on the twisted
     ribbon's underside, else a step from BG toward UI, dimmer on an underside."""
     if under and accent:
         return mix(ACCENT_2, ACCENT, v**1.4)
@@ -79,7 +79,7 @@ def draw(s: Canvas) -> None:
         else:
             phi = 0.25 + 0.1 * smoothstep(0.5, 1, t)
         cos = np.cos(phi)
-        # pin each fold to one sample of zero width so neighbouring runs meet in a clean point
+        # pin each fold to one sample of zero width so neighboring runs meet in a clean point
         pins = [
             i if abs(cos[i]) < abs(cos[i + 1]) else i + 1
             for i in np.flatnonzero(np.diff(np.sign(cos)))

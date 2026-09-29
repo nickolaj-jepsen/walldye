@@ -2,10 +2,10 @@ import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 import { focusPosition } from '../../src/client/export/shape';
-import { type CatalogueVersion, publishedPieces, templateUrl } from './helpers';
+import { type CatalogVersion, publishedPieces, templateUrl } from './helpers';
 
 /**
- * Versions on the real catalogue. PIECE is the first published piece with a published named
+ * Versions on the real catalog. PIECE is the first published piece with a published named
  * version, a portrait template of its own for every version, and a crop at 16:10; PLAIN is the
  * first published piece without versions, preferring a fan work so the disclaimer shows too.
  */
@@ -31,7 +31,7 @@ test.describe('versions', () => {
   test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
   test.skip(!PIECE, 'no published piece with versions, a portrait template and a 16:10 crop');
   const { slug, versions, license } = PIECE ?? { slug: '', versions: [], license: '' };
-  const [base, other] = versions as [CatalogueVersion, CatalogueVersion];
+  const [base, other] = versions as [CatalogVersion, CatalogVersion];
   const named = `${slug}--${other?.name}`;
 
   test('the index shows one plate per design, counting its published versions', async ({
@@ -109,7 +109,7 @@ test.describe('versions', () => {
   }) => {
     await page.goto(`/${slug}?t=nord`);
     await pick(page, 'asp', '16:10');
-    const at = (v: CatalogueVersion) => String(focusPosition('16:10', v.slots.focus));
+    const at = (v: CatalogVersion) => String(focusPosition('16:10', v.slots.focus));
     await expect(page.locator('#crop')).toHaveValue(at(base));
 
     await choose(page, other.label);
@@ -177,16 +177,16 @@ test.describe('versions', () => {
     await expect(page.locator('#versions')).toHaveCount(0);
     if (PLAIN.franchise) {
       const { title, owner } = PLAIN.franchise;
-      await expect(page.locator('.label .licence')).toHaveText(
+      await expect(page.locator('.label .license')).toHaveText(
         `Unofficial fan tribute, not affiliated with or endorsed by ${owner}. ${title} and its characters are trademarks of their owners. Non-commercial; contact takedown@walldye.com for takedown.`,
       );
-      await expect(page.locator('.label .licence a')).toHaveAttribute(
+      await expect(page.locator('.label .license a')).toHaveAttribute(
         'href',
         'mailto:takedown@walldye.com',
       );
     }
     await expect(page.locator('.spread .plate')).not.toHaveAttribute('data-variants');
-    await expect(page.locator('.controls')).toHaveAttribute('aria-label', 'Colours and export');
+    await expect(page.locator('.controls')).toHaveAttribute('aria-label', 'Colors and export');
     const sitemap = await (await request.get('/sitemap-0.xml')).text();
     for (const s of [slug, PLAIN.slug]) {
       expect(

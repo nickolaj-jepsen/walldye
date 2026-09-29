@@ -53,7 +53,7 @@ export function cropBox(aspect: string, t: number): Box {
   return { x: 0, y: p * (H169 - h), w: W169, h };
 }
 
-/** The position (rounded to the range input's 0.001 step) that centres the crop on `focus`, fractions of the canvas, clamped. */
+/** The position (rounded to the range input's 0.001 step) that centers the crop on `focus`, fractions of the canvas, clamped. */
 export function focusPosition(aspect: string, focus: readonly [number, number]): number {
   const span = cropSpan(aspect);
   if (span >= 1) return 0.5;
@@ -62,7 +62,7 @@ export function focusPosition(aspect: string, focus: readonly [number, number]):
   return Math.round(Math.min(1, Math.max(0, t)) * 1000) / 1000;
 }
 
-/** The largest box of width/height `ratio` inside `box`, centred in it. */
+/** The largest box of width/height `ratio` inside `box`, centered in it. */
 export function fitRect(box: Box, ratio: number): Box {
   if (box.w / box.h > ratio) {
     const w = box.h * ratio;
@@ -171,7 +171,7 @@ export function sourceBox(shape: ExportShape): { aspect: Aspect; box: Box } {
   return { aspect: '16:9', box: cropBox(shape.aspect, shape.t) };
 }
 
-/** The recoloured SVG as an SVG download: cut to the shape's box at its canvas size, titled. */
+/** The recolored SVG as an SVG download: cut to the shape's box at its canvas size, titled. */
 export function svgExport(svg: string, shape: ExportShape, title: string, desc: string): string {
   const { box } = sourceBox(shape);
   return withTitle(setRoot(svg, box, box.w, box.h), title, desc);
@@ -183,7 +183,7 @@ export function exportScale(shape: ExportShape, width: number, height: number): 
 }
 
 /**
- * The recoloured SVG prepared for rasterising at exactly `width`×`height` (the viewBox is the largest
+ * The recolored SVG prepared for rasterizing at exactly `width`×`height` (the viewBox is the largest
  * box of that ratio inside the shape's box, sliced to fill), and `scale`, pixels per canvas unit.
  */
 export function rasterSvg(

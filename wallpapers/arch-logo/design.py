@@ -16,20 +16,20 @@ DASHDOT = (24, 6, 3, 6)
 ARROW, ARROW_W = 13, 4.2
 # Grid points, y up from the middle of the base, snapped from the official archlinux-logo SVG
 APEX, FOOT = (0, 48), (24, 0)
-MID = 18  # height of the circumscribed circle's centre
+MID = 18  # height of the circumscribed circle's center
 FLANK_R = (384, 480)  # left and right: both flanks are faintly hollow arcs
-BASE_C = (14, -61)  # centre of the left base arc, across the axis; mirrored for the right
-CUT_C, CUT_R = (0, 11), (5.5, 9)  # the inner cut, an ellipse: centre and semi-axes
-NOTCH_L = ((0, 29), (22, 59), (10, 54))  # tip, then the centres of its upper and lower edges
-NOTCH_R = ((12, 13), (-7, -23), (7, -10))  # tip, then the centres of its lower and upper edges
+BASE_C = (14, -61)  # center of the left base arc, across the axis; mirrored for the right
+CUT_C, CUT_R = (0, 11), (5.5, 9)  # the inner cut, an ellipse: center and semi-axes
+NOTCH_L = ((0, 29), (22, 59), (10, 54))  # tip, then the centers of its upper and lower edges
+NOTCH_R = ((12, 13), (-7, -23), (7, -10))  # tip, then the centers of its lower and upper edges
 
 
 def disc(c: Vec, r: float) -> Polygon:
     return Point(c.x, c.y).buffer(r, quad_segs=256)
 
 
-def arc_centre(a: Vec, b: Vec, r: float, side: int) -> Vec:
-    """Centre of the circle of radius `r` through `a` and `b`, on `side` (1 or -1) of a to b."""
+def arc_center(a: Vec, b: Vec, r: float, side: int) -> Vec:
+    """Center of the circle of radius `r` through `a` and `b`, on `side` (1 or -1) of a to b."""
     m, d = (a + b) / 2, b - a
     return m + d.perp().unit() * side * math.sqrt(r * r - abs(d) ** 2 / 4)
 
@@ -71,8 +71,8 @@ def draw(s: Canvas) -> None:
 
     # the triangle in its square, both flanks hollowed by a long arc
     flanks = [
-        (arc_centre(apex, fl, FLANK_R[0] * G, 1), FLANK_R[0] * G),
-        (arc_centre(apex, fr, FLANK_R[1] * G, -1), FLANK_R[1] * G),
+        (arc_center(apex, fl, FLANK_R[0] * G, 1), FLANK_R[0] * G),
+        (arc_center(apex, fr, FLANK_R[1] * G, -1), FLANK_R[1] * G),
     ]
     hull = Polygon([apex, fl, fr]).difference(unary_union([disc(*o) for o in flanks]))
 
@@ -88,9 +88,9 @@ def draw(s: Canvas) -> None:
 
     # two notches, each a sliver between two arcs through its tip
     notches, notch_arcs = [], []
-    for tip, *centres in (NOTCH_L, NOTCH_R):
+    for tip, *centers in (NOTCH_L, NOTCH_R):
         t = at(*tip)
-        (a, ra), (b, rb_) = [(at(*o), abs(t - at(*o))) for o in centres]
+        (a, ra), (b, rb_) = [(at(*o), abs(t - at(*o))) for o in centers]
         notch_arcs += [(a, ra), (b, rb_)]
         side = box(0, 0, t.x, s.h) if tip[0] <= 0 else box(t.x, 0, s.w, s.h)
         sliver = disc(a, ra).symmetric_difference(disc(b, rb_)).intersection(side)
@@ -130,7 +130,7 @@ def draw(s: Canvas) -> None:
     cl = P().M(c.x, apex.y - 60).V(c.y + R + 60).M(e.x - ex - 30, e.y).H(e.x + ex + 30)
     s.stroke(cl.circle(c, R), UI, 1.2, dash=DASHDOT)
 
-    # the peak's arc: its centre, and its radius to where it meets the right flank
+    # the peak's arc: its center, and its radius to where it meets the right flank
     ext, dl, heads = P(), P(), P()
     ext.M(a0.x - 7, a0.y).H(a0.x + 7).M(a0.x, a0.y - 7).V(a0.y + 7)
     end = max(outline(peak), key=lambda v: v.x)

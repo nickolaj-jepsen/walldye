@@ -40,7 +40,7 @@ type Ellipse = tuple[float, float, float]
 # a quarter so the limb sits at the top.
 PEN: Ellipse = (265, 200, math.radians(-22))  # penumbra: semi-axes and rotation
 UMB: Ellipse = (108, 82, math.radians(-30))  # umbra
-PORE = Vec(242, -152)  # a lone pore, from the spot centre
+PORE = Vec(242, -152)  # a lone pore, from the spot center
 PORE_R = 13
 STRETCH, FALLOFF = 0.35, 0.45  # radial elongation of the granules just outside the penumbra
 LIMB_GAP, LIMB_MARGIN = 920, 400  # limb at least this far past the spot and in from the edge
@@ -66,7 +66,7 @@ GRAIN = np.array(
 
 
 def ellipse_r(e: Ellipse, a: float) -> float:
-    """Radius of the rotated ellipse `e` in direction `a` (screen radians) from its centre."""
+    """Radius of the rotated ellipse `e` in direction `a` (screen radians) from its center."""
     ax, ay, rot = e
     return ax * ay / math.hypot(ay * math.cos(a - rot), ax * math.sin(a - rot))
 
@@ -140,7 +140,7 @@ def draw(s: Canvas) -> None:
                 continue
             gran[GRAN.rung(v)].shape(cell)
         for tone, path in zip(GRAN, gran, strict=True):
-            # a round-joined stroke of the fill colour rounds the corners without extra vertices
+            # a round-joined stroke of the fill color rounds the corners without extra vertices
             s.path(path, fill=tone, stroke=tone, stroke_width=2.2, stroke_linejoin="round")
 
         # Penumbra: straight radial filaments with dark gaps, all ending on the same lobed

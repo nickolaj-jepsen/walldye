@@ -190,7 +190,7 @@ def test_sibling_rule_measures_from_the_designs_own_background(wallpapers, bg):
     design.write_text(text.replace("variants=VARIANTS)", f"variants=VARIANTS, bg={bg})"))
     r = report("versions")
     assert r.errors == []
-    # the disc sits at two o'clock, up and right of the centre a counted background pulls to
+    # the disc sits at two o'clock, up and right of the center a counted background pulls to
     fx, fy = r.results["default"].focus
     assert fx > 0.6 and fy < 0.4
 

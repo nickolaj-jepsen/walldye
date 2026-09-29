@@ -9,7 +9,7 @@ from walldye import (
     UI,
     UI_ALT,
     Canvas,
-    Colour,
+    Color,
     P,
     Path,
     Rng,
@@ -103,7 +103,7 @@ def draw(s: Canvas) -> None:
     r, h, g = cell(hi)
     s.fill(span(span(P(), r, h, h + 1), r, g, g), ACCENT_HI)
 
-    def paint(c: int, r: int, _ch: str) -> Colour | None:
+    def paint(c: int, r: int, _ch: str) -> Color | None:
         a = addr(c, r)
         if a is not None and lo <= a < hi:
             return ACCENT

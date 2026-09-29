@@ -15,7 +15,7 @@ TONES = ramp(UI_ALT, BG_ALT, RINGS + 1)  # the rest, quieter towards the outside
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: right of centre; portrait: centred, low
+    # landscape: right of center; portrait: centered, low
     c = s.pick(landscape=(0.7, 0.6), portrait=(0.6, 0.56))
     s.fill(P().circle(c, 22), ACCENT)
     for k in range(1, RINGS + 1):

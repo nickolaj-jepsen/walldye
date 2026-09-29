@@ -1,5 +1,5 @@
 {
- "spec": "Paint-context colour tokenizer (walldye/tools/tokenize.py). A slot is a colour value in the attributes fill, stroke, stop-color, flood-color, lighting-color, color or the same properties inside style=\"...\" and <style>; the value must be exactly hex3, hex6 or a named colour (whitespace and CSS !important aside), case-insensitive; names of attributes and properties are case-sensitive; comments are skipped. occurrences: [start, end, uppercase #RRGGBB] with input[start:end] the value as written (inputs are ASCII, so indices agree in JS). normalised: every slot rewritten to its #RRGGBB. skeleton: every slot replaced by skeleton_mark.",
+ "spec": "Paint-context color tokenizer (walldye/tools/tokenize.py). A slot is a color value in the attributes fill, stroke, stop-color, flood-color, lighting-color, color or the same properties inside style=\"...\" and <style>; the value must be exactly hex3, hex6 or a named color (whitespace and CSS !important aside), case-insensitive; names of attributes and properties are case-sensitive; comments are skipped. occurrences: [start, end, uppercase #RRGGBB] with input[start:end] the value as written (inputs are ASCII, so indices agree in JS). normalized: every slot rewritten to its #RRGGBB. skeleton: every slot replaced by skeleton_mark.",
  "skeleton_mark": "#",
  "named": {
   "aliceblue": "#F0F8FF",
@@ -167,18 +167,18 @@
      "#FFFFFF"
     ]
    ],
-   "normalised": "<rect fill=\"#1C1B1A\" stroke=\"#FFFFFF\"/>",
+   "normalized": "<rect fill=\"#1C1B1A\" stroke=\"#FFFFFF\"/>",
    "skeleton": "<rect fill=\"#\" stroke=\"#\"/>"
   },
   {
    "name": "skipped values",
    "input": "<path fill=\"none\" stroke=\"currentColor\"/><rect fill=\"url(#ad1)\"/><rect fill=\"url(#abc) #fff\" stroke=\"inherit\"/>",
    "occurrences": [],
-   "normalised": "<path fill=\"none\" stroke=\"currentColor\"/><rect fill=\"url(#ad1)\"/><rect fill=\"url(#abc) #fff\" stroke=\"inherit\"/>",
+   "normalized": "<path fill=\"none\" stroke=\"currentColor\"/><rect fill=\"url(#ad1)\"/><rect fill=\"url(#abc) #fff\" stroke=\"inherit\"/>",
    "skeleton": "<path fill=\"none\" stroke=\"currentColor\"/><rect fill=\"url(#ad1)\"/><rect fill=\"url(#abc) #fff\" stroke=\"inherit\"/>"
   },
   {
-   "name": "named colours, any case",
+   "name": "named colors, any case",
    "input": "<rect fill=\"White\" stroke=\"rebeccapurple\" color=\"transparent\"/>",
    "occurrences": [
     [
@@ -192,21 +192,21 @@
      "#663399"
     ]
    ],
-   "normalised": "<rect fill=\"#FFFFFF\" stroke=\"#663399\" color=\"transparent\"/>",
+   "normalized": "<rect fill=\"#FFFFFF\" stroke=\"#663399\" color=\"transparent\"/>",
    "skeleton": "<rect fill=\"#\" stroke=\"#\" color=\"transparent\"/>"
   },
   {
    "name": "non-paint attributes",
    "input": "<rect id=\"#abc\" data-fill=\"#abc\" fill-opacity=\"0.5\" stroke-width=\"2\" class=\"red\" href=\"#abc\"/>",
    "occurrences": [],
-   "normalised": "<rect id=\"#abc\" data-fill=\"#abc\" fill-opacity=\"0.5\" stroke-width=\"2\" class=\"red\" href=\"#abc\"/>",
+   "normalized": "<rect id=\"#abc\" data-fill=\"#abc\" fill-opacity=\"0.5\" stroke-width=\"2\" class=\"red\" href=\"#abc\"/>",
    "skeleton": "<rect id=\"#abc\" data-fill=\"#abc\" fill-opacity=\"0.5\" stroke-width=\"2\" class=\"red\" href=\"#abc\"/>"
   },
   {
    "name": "attribute names are case-sensitive",
    "input": "<rect FILL=\"#abc\" Fill=\"#abc\"/>",
    "occurrences": [],
-   "normalised": "<rect FILL=\"#abc\" Fill=\"#abc\"/>",
+   "normalized": "<rect FILL=\"#abc\" Fill=\"#abc\"/>",
    "skeleton": "<rect FILL=\"#abc\" Fill=\"#abc\"/>"
   },
   {
@@ -219,11 +219,11 @@
      "#AABBCC"
     ]
    ],
-   "normalised": "<stop offset=\"0\" stop-color = ' #AABBCC '/>",
+   "normalized": "<stop offset=\"0\" stop-color = ' #AABBCC '/>",
    "skeleton": "<stop offset=\"0\" stop-color = ' # '/>"
   },
   {
-   "name": "filter colours",
+   "name": "filter colors",
    "input": "<feFlood flood-color=\"#123456\"/><feDiffuseLighting lighting-color=\"#abc\"/>",
    "occurrences": [
     [
@@ -237,7 +237,7 @@
      "#AABBCC"
     ]
    ],
-   "normalised": "<feFlood flood-color=\"#123456\"/><feDiffuseLighting lighting-color=\"#AABBCC\"/>",
+   "normalized": "<feFlood flood-color=\"#123456\"/><feDiffuseLighting lighting-color=\"#AABBCC\"/>",
    "skeleton": "<feFlood flood-color=\"#\"/><feDiffuseLighting lighting-color=\"#\"/>"
   },
   {
@@ -250,14 +250,14 @@
      "#AABBCC"
     ]
    ],
-   "normalised": "<svg xmlns=\"http://www.w3.org/2000/svg\" color=\"#AABBCC\" viewBox=\"0 0 10 10\"></svg>",
+   "normalized": "<svg xmlns=\"http://www.w3.org/2000/svg\" color=\"#AABBCC\" viewBox=\"0 0 10 10\"></svg>",
    "skeleton": "<svg xmlns=\"http://www.w3.org/2000/svg\" color=\"#\" viewBox=\"0 0 10 10\"></svg>"
   },
   {
    "name": "hex lengths",
    "input": "<a fill=\"#abcd\"/><a fill=\"#abcdef0\"/><a fill=\"#ab\"/><a fill=\"abc\"/><a fill=\"#ggg\"/>",
    "occurrences": [],
-   "normalised": "<a fill=\"#abcd\"/><a fill=\"#abcdef0\"/><a fill=\"#ab\"/><a fill=\"abc\"/><a fill=\"#ggg\"/>",
+   "normalized": "<a fill=\"#abcd\"/><a fill=\"#abcdef0\"/><a fill=\"#ab\"/><a fill=\"abc\"/><a fill=\"#ggg\"/>",
    "skeleton": "<a fill=\"#abcd\"/><a fill=\"#abcdef0\"/><a fill=\"#ab\"/><a fill=\"abc\"/><a fill=\"#ggg\"/>"
   },
   {
@@ -275,7 +275,7 @@
      "#FF0000"
     ]
    ],
-   "normalised": "<rect style=\"fill:#AABBCC;stroke: #FF0000 ; stroke-width:2;fill-opacity:.5;stop-color:url(#g)\"/>",
+   "normalized": "<rect style=\"fill:#AABBCC;stroke: #FF0000 ; stroke-width:2;fill-opacity:.5;stop-color:url(#g)\"/>",
    "skeleton": "<rect style=\"fill:#;stroke: # ; stroke-width:2;fill-opacity:.5;stop-color:url(#g)\"/>"
   },
   {
@@ -293,14 +293,14 @@
      "#DDEEFF"
     ]
    ],
-   "normalised": "<rect style=\"fill: #AABBCC !important;stroke:#DDEEFF!important\"/>",
+   "normalized": "<rect style=\"fill: #AABBCC !important;stroke:#DDEEFF!important\"/>",
    "skeleton": "<rect style=\"fill: # !important;stroke:#!important\"/>"
   },
   {
    "name": "style property boundaries",
    "input": "<rect style=\"background-color:#abc;xfill:#abc;-fill:#abc;FILL:#abc\"/>",
    "occurrences": [],
-   "normalised": "<rect style=\"background-color:#abc;xfill:#abc;-fill:#abc;FILL:#abc\"/>",
+   "normalized": "<rect style=\"background-color:#abc;xfill:#abc;-fill:#abc;FILL:#abc\"/>",
    "skeleton": "<rect style=\"background-color:#abc;xfill:#abc;-fill:#abc;FILL:#abc\"/>"
   },
   {
@@ -323,7 +323,7 @@
      "#FFFFFF"
     ]
    ],
-   "normalised": "<style>.a{fill:#AABBCC}.b > rect { stroke : #0000FF; color:#1234 } .c:hover{stop-color:#FFFFFF!important}</style><rect class=\"a\"/>",
+   "normalized": "<style>.a{fill:#AABBCC}.b > rect { stroke : #0000FF; color:#1234 } .c:hover{stop-color:#FFFFFF!important}</style><rect class=\"a\"/>",
    "skeleton": "<style>.a{fill:#}.b > rect { stroke : #; color:#1234 } .c:hover{stop-color:#!important}</style><rect class=\"a\"/>"
   },
   {
@@ -336,7 +336,7 @@
      "#000000"
     ]
    ],
-   "normalised": "<style><![CDATA[.a{fill:#000000}]]></style>",
+   "normalized": "<style><![CDATA[.a{fill:#000000}]]></style>",
    "skeleton": "<style><![CDATA[.a{fill:#}]]></style>"
   },
   {
@@ -349,14 +349,14 @@
      "#000000"
     ]
    ],
-   "normalised": "<!-- <rect fill=\"#fff\"/> --><rect fill=\"#000000\"/>",
+   "normalized": "<!-- <rect fill=\"#fff\"/> --><rect fill=\"#000000\"/>",
    "skeleton": "<!-- <rect fill=\"#fff\"/> --><rect fill=\"#\"/>"
   },
   {
    "name": "text content is not a tag",
    "input": "<title>fill=\"#fff\"</title><desc>stroke:#fff</desc>",
    "occurrences": [],
-   "normalised": "<title>fill=\"#fff\"</title><desc>stroke:#fff</desc>",
+   "normalized": "<title>fill=\"#fff\"</title><desc>stroke:#fff</desc>",
    "skeleton": "<title>fill=\"#fff\"</title><desc>stroke:#fff</desc>"
   },
   {
@@ -369,11 +369,11 @@
      "#AABBCC"
     ]
    ],
-   "normalised": "<g data-x=\"a>b\" fill=\"#AABBCC\"/>",
+   "normalized": "<g data-x=\"a>b\" fill=\"#AABBCC\"/>",
    "skeleton": "<g data-x=\"a>b\" fill=\"#\"/>"
   },
   {
-   "name": "already normalised",
+   "name": "already normalized",
    "input": "<rect fill=\"#ABCDEF\" stroke=\"#000000\"/>",
    "occurrences": [
     [
@@ -387,7 +387,7 @@
      "#000000"
     ]
    ],
-   "normalised": "<rect fill=\"#ABCDEF\" stroke=\"#000000\"/>",
+   "normalized": "<rect fill=\"#ABCDEF\" stroke=\"#000000\"/>",
    "skeleton": "<rect fill=\"#\" stroke=\"#\"/>"
   },
   {
@@ -415,7 +415,7 @@
      "#CF6A4C"
     ]
    ],
-   "normalised": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#000000\"/><stop offset=\"1\" stop-color=\"#FFFFFF\" stop-opacity=\"0.5\"/></linearGradient><mask id=\"m2\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"1920\" height=\"1080\"><rect width=\"1920\" height=\"1080\" fill=\"url(#lg1)\"/></mask></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<g mask=\"url(#m2)\">\n<path d=\"M0 0h4v4h-4z\" fill=\"#CF6A4C\" class=\"px\"/>\n</g>\n</svg>\n",
+   "normalized": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#000000\"/><stop offset=\"1\" stop-color=\"#FFFFFF\" stop-opacity=\"0.5\"/></linearGradient><mask id=\"m2\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"1920\" height=\"1080\"><rect width=\"1920\" height=\"1080\" fill=\"url(#lg1)\"/></mask></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<g mask=\"url(#m2)\">\n<path d=\"M0 0h4v4h-4z\" fill=\"#CF6A4C\" class=\"px\"/>\n</g>\n</svg>\n",
    "skeleton": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#\"/><stop offset=\"1\" stop-color=\"#\" stop-opacity=\"0.5\"/></linearGradient><mask id=\"m2\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"1920\" height=\"1080\"><rect width=\"1920\" height=\"1080\" fill=\"url(#lg1)\"/></mask></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#\"/>\n<g mask=\"url(#m2)\">\n<path d=\"M0 0h4v4h-4z\" fill=\"#\" class=\"px\"/>\n</g>\n</svg>\n"
   }
  ]

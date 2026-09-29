@@ -24,7 +24,7 @@ from walldye import (
 from walldye.geom import Affine, Polyline
 
 R = 180  # loop radius
-LOOP = (0.65625, 330)  # loop centre: a fraction of the long side across, units down from the top
+LOOP = (0.65625, 330)  # loop center: a fraction of the long side across, units down from the top
 HALF = 60  # half the tape width
 PITCH, STEP = 18, 3  # row pitch; spine sample step (PITCH is a whole number of steps)
 SHADOW = (6, 9)
@@ -43,8 +43,8 @@ def parity(b: int) -> int:
     return b | (b.bit_count() & 1) << 7
 
 
-def centre(long: float) -> Vec:
-    """The loop centre in a landscape frame `long` by 1080."""
+def center(long: float) -> Vec:
+    """The loop center in a landscape frame `long` by 1080."""
     return Vec(LOOP[0] * long, LOOP[1])
 
 
@@ -52,7 +52,7 @@ def knots(long: float) -> NDArray[np.float64]:
     """Spline knots in a landscape frame `long` by 1080: in from the lower left, a loop entered
     along its tangent at 60 degrees so the opening stays round, out from its bottom to the upper
     right. At 1920 these are the 16:9 layout."""
-    c = centre(long)
+    c = center(long)
     start, approach, leave, end = (
         Vec(-120, 1010),
         c + (-360, 360),
@@ -87,7 +87,7 @@ def draw(s: Canvas) -> None:
     ds = np.arange(PITCH / 2, line.length, PITCH)
     rows = [Vec(x, y) for x, y in line.at(ds)]
     normals = [line.tangent(d).perp() for d in ds]
-    top = frame(centre(long) + (0, -R))
+    top = frame(center(long) + (0, -R))
     split = min(range(len(rows)), key=lambda i: abs(rows[i] - top))
     k = PITCH // STEP
 

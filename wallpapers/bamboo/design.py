@@ -26,7 +26,7 @@ from walldye.geom import ribbon
 
 
 class Culm(NamedTuple):
-    x: float  # centreline at the bottom edge
+    x: float  # centerline at the bottom edge
     width: float
     lean: float  # how far the top drifts sideways over a 1080-unit height
     depth: int  # 0 back .. 2 front
@@ -56,8 +56,8 @@ class Grove(NamedTuple):
     sx: float
     sl: float
 
-    def centre(self, c: Culm, y: float) -> float:
-        """Culm centreline x at height `y`: a gentle bow leaning from bottom to top."""
+    def center(self, c: Culm, y: float) -> float:
+        """Culm centerline x at height `y`: a gentle bow leaning from bottom to top."""
         t = 1 - y / self.h
         lean = c.lean * self.sl
         return c.x * self.sx + lean * t + 0.35 * lean * math.sin(math.pi * t)
@@ -78,7 +78,7 @@ def culm(
     ys = np.linspace(-20, g.h + 20, round(280 * (g.h + 40) / 1120))
     bulge = sum(np.exp(-(((ys - n) / 7) ** 2)) for n in nodes)
     half = c.width / 2 * (1 + 0.1 * bulge)
-    cx = np.array([g.centre(c, y) for y in ys])
+    cx = np.array([g.center(c, y) for y in ys])
     outline = ribbon(np.column_stack([cx, ys]), 2 * half)
     # the right flank, from 55% of the way across to the edge
     shade = ribbon(np.column_stack([cx + 0.775 * half, ys]), 0.45 * half)
@@ -158,7 +158,7 @@ def draw(s: Canvas) -> None:
         s.fill(P().poly(shade, closed=True), mix(body, node, 0.35))
         rings = P()
         for y in nodes:
-            cx, hw = g.centre(c, y), c.width / 2 * 1.12
+            cx, hw = g.center(c, y), c.width / 2 * 1.12
             rings.M(cx - hw, y - 1).Q(cx, y + 4, cx + hw, y - 1)  # a slightly smiling ring
         s.stroke(rings, node, 2 + c.depth * 0.4, cap="round")
         if i == LIT:
@@ -168,10 +168,10 @@ def draw(s: Canvas) -> None:
         count = round((1 + (c.depth == 2)) * s.h / 1080)  # more sprigs up a taller screen
         for y in rnd.sample(spots, min(len(spots), count)):
             n = rnd.choices([1, 2, 3], [1, 2, 3])[0]
-            sprig(leaves, twigs, rnd, Vec(g.centre(c, y) + c.width / 2, y), n)
+            sprig(leaves, twigs, rnd, Vec(g.center(c, y) + c.width / 2, y), n)
         if i == CROSS:
             # one fan reaching left across the lit culm ties it into the grove
-            root = Vec(g.centre(c, CROSS_Y) - c.width / 2, CROSS_Y)
+            root = Vec(g.center(c, CROSS_Y) - c.width / 2, CROSS_Y)
             sprig(leaves, twigs, rnd, root, 2, side=-1, hang=(18, 175))
         s.stroke(twigs, body, 1.6, cap="round")
         s.fill(leaves, body)

@@ -1,5 +1,5 @@
 title: Radiolarian
-description: A spined radiolarian shell on centre lines. The pores over its central capsule are lit in steps toward the middle.
+description: A spined radiolarian shell on center lines. The pores over its central capsule are lit in steps toward the middle.
 notes: |
   The pores are the cells of a Voronoi diagram on a sphere, built around evenly spread points, so most of them come out six-sided.
 technique: [line]

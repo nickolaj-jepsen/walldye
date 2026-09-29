@@ -16,7 +16,7 @@ CELL = 2
 # the canvas as one piece, so every screen shape gets the same plume.
 FRAME = (1920, 1080)
 EMBER = Vec(600, 958)
-# Strand centrelines in frame units: the stem, a wisp that breaks off right and curls, the main
+# Strand centerlines in frame units: the stem, a wisp that breaks off right and curls, the main
 # rise bending left, and a thinner branch across it.
 STEM = (
     (600, 958),
@@ -43,13 +43,13 @@ def curl(path: Pts, c: tuple[float, float], turns: float, shrink: float, sign: i
     """`path` continued from its last point into an inward spiral about `c`: `turns` turns
     (clockwise on screen for sign 1, anticlockwise for -1), the radius easing down to `shrink`
     times its starting length."""
-    centre = np.asarray(c, dtype=np.float64)
-    p = path[-1] - centre
+    center = np.asarray(c, dtype=np.float64)
+    p = path[-1] - center
     r0, a0 = np.hypot(p[0], p[1]), np.arctan2(p[1], p[0])
     t = np.linspace(0, 1, int(260 * turns))[1:]
     a = a0 + sign * t * turns * 2 * np.pi
     r = r0 * (1 - (1 - shrink) * t**0.8)
-    return np.vstack([path, centre + np.c_[np.cos(a), np.sin(a)] * r[:, None]])
+    return np.vstack([path, center + np.c_[np.cos(a), np.sin(a)] * r[:, None]])
 
 
 @design(aspects="any")

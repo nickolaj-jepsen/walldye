@@ -33,14 +33,14 @@ CLASS = np.array(
         [24, 16, 8, 27, 39, 47, 55, 36],
     ]
 )
-NEIGHBOURS = [
+NEIGHBORS = [
     (dy, dx, 2 if dy == 0 or dx == 0 else 1) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx
 ]
 
 
 def dot_diffusion(v: Field, levels: int) -> NDArray[np.int64]:
-    """Quantise `v` ((rows, cols) in [0, 1]) to 0 .. levels - 1, settling cells in CLASS order;
-    each passes its error only to neighbours of a later class, edge neighbours twice as much."""
+    """Quantize `v` ((rows, cols) in [0, 1]) to 0 .. levels - 1, settling cells in CLASS order;
+    each passes its error only to neighbors of a later class, edge neighbors twice as much."""
     rows, cols = v.shape
     n = levels - 1
     buf = np.pad(v * n, 1)
@@ -55,10 +55,10 @@ def dot_diffusion(v: Field, levels: int) -> NDArray[np.int64]:
         out[ys - 1, xs - 1] = new
         err = old - new
         wsum = np.zeros(len(ys))
-        for dy, dx, w in NEIGHBOURS:
+        for dy, dx, w in NEIGHBORS:
             wsum += w * (cls[ys + dy, xs + dx] > k)
-        wsum[wsum == 0] = 1  # "barons" with no later neighbour drop their error
-        for dy, dx, w in NEIGHBOURS:
+        wsum[wsum == 0] = 1  # "barons" with no later neighbor drop their error
+        for dy, dx, w in NEIGHBORS:
             ok = cls[ys + dy, xs + dx] > k
             buf[ys[ok] + dy, xs[ok] + dx] += err[ok] * w / wsum[ok]
     return out
@@ -103,7 +103,7 @@ def draw(s: Canvas) -> None:
         cols + 2 * pad,
         rows + 2 * pad,
     )
-    # Move the window so the brightest junction near the anchor (a wide blur favours where
+    # Move the window so the brightest junction near the anchor (a wide blur favors where
     # filaments meet) lands on the knot.
     win = dens[pad + kr - SEARCH : pad + kr + SEARCH + 1, pad + kc - SEARCH : pad + kc + SEARCH + 1]
     wr, wc = np.unravel_index(np.argmax(gaussian_filter(win, 7)), win.shape)

@@ -21,7 +21,7 @@ export function readJson<T>(el: HTMLElement, key: string, fallback: T): T {
   }
 }
 
-/** A form's entries as query parameters, the form's own GET serialisation. */
+/** A form's entries as query parameters, the form's own GET serialization. */
 export function formParams(form: HTMLFormElement): URLSearchParams {
   return new URLSearchParams([...new FormData(form)].map(([k, v]) => [k, String(v)]));
 }

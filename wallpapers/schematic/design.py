@@ -1,4 +1,4 @@
-"""Unlabelled op-amp circuits in schematic symbols on a dotted drafting grid, with the signal path picked out."""
+"""Unlabeled op-amp circuits in schematic symbols on a dotted drafting grid, with the signal path picked out."""
 
 import math
 from dataclasses import dataclass
@@ -71,7 +71,7 @@ class Ink:
 
 
 def resistor(body: Path, wire: Path, a: Vec, b: Vec, size: float = 64, amp: float = 9) -> None:
-    """Zigzag of six half-waves `amp` either side of a to b, `size` long and centred on the span;
+    """Zigzag of six half-waves `amp` either side of a to b, `size` long and centered on the span;
     the zigzag goes into `body`, the two leads into `wire`."""
     u = (b - a).unit()
     t0 = (abs(b - a) - size) / 2
@@ -276,7 +276,7 @@ def draw(s: Canvas[Sheet]) -> None:
     circuit = s.params.circuit
     box = {"lowpass": BOX, "wien": WIEN_BOX, "inamp": INAMP_BOX, "ramp": RAMP_BOX}[circuit]
 
-    # landscape: right of centre, pulled in to keep EDGE clear on narrow screens; portrait:
+    # landscape: right of center, pulled in to keep EDGE clear on narrow screens; portrait:
     # scaled down to the width and set in the upper half, above the dock
     scale = SCALE if s.landscape else (s.w - 2 * SIDE) / box.w
     c = s.pick(landscape=(0.6276, 0.5), portrait=(0.5, 0.42))

@@ -35,7 +35,7 @@ TALL_POND = 0.6
 
 
 def ripple(d: Path, c: Vec, unit: float, squash: float, age: int, rings: int) -> Path:
-    """Annular bands (pairs of ellipses) so even-odd never fills a centre disc."""
+    """Annular bands (pairs of ellipses) so even-odd never fills a center disc."""
     for k in range(age, age + rings):
         r = (k + 1) * unit
         w = unit * (0.55 - 0.05 * (k - age))

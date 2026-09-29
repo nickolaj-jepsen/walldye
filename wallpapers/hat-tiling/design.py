@@ -54,7 +54,7 @@ SHADE_R = 600
 
 
 def hexpt(x: float, y: float) -> Vec:
-    """A point of the hex grid, in units where neighbouring hex centres are 1 apart."""
+    """A point of the hex grid, in units where neighboring hex centers are 1 apart."""
     return Vec(x + 0.5 * y, HR3 * y)
 
 
@@ -162,7 +162,7 @@ class Meta:
         t, g = self.children[n]
         return t(g.shape[i % len(g.shape)])
 
-    def recentre(self) -> None:
+    def recenter(self) -> None:
         """Move the origin to the mean of the outline's vertices."""
         c = sum(self.shape, Vec(0, 0)) / len(self.shape)
         self.shape = [p - c for p in self.shape]
@@ -243,7 +243,7 @@ def hat_supertiles(pt: Meta) -> dict[str, Meta]:
         m = Meta(shape, kind)
         for c in kids:
             m.add(*pt.children[c])
-        m.recentre()
+        m.recenter()
         out[kind] = m
     return out
 
@@ -334,17 +334,17 @@ def draw(s: Canvas[Tiling]) -> None:
         axis=2,
     )  # (tiles, vertices, 2)
     gid = np.array(group)
-    polys -= polys.reshape(-1, 2).mean(axis=0)  # centre the tiling on the origin
+    polys -= polys.reshape(-1, 2).mean(axis=0)  # center the tiling on the origin
 
     # the inlay: of the supertiles holding the most odd tiles, the one nearest ANCHOR, moved
     # onto the focal point ((560, 380) on 16:9)
     ngroups = gid[-1] + 1
-    centres = np.array([polys[gid == g].mean(axis=(0, 1)) for g in range(ngroups)])
+    centers = np.array([polys[gid == g].mean(axis=(0, 1)) for g in range(ngroups)])
     counts = np.bincount(gid, weights=np.array(odd), minlength=ngroups)
-    near = np.hypot(*(centres - ANCHOR).T)
+    near = np.hypot(*(centers - ANCHOR).T)
     hot = int(np.argmin(np.where(counts == counts.max(), near, np.inf)))
     focus = s.pick(landscape=(560 / 1920, 380 / 1080), portrait=(0.36, 0.3))
-    polys += focus - centres[hot]
+    polys += focus - centers[hot]
 
     view = s.inset(-MARGIN)
     lo, hi = np.array([view.x, view.y]), np.array([view.x1, view.y1])

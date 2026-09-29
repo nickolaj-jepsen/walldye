@@ -1,7 +1,7 @@
 # Drawing with walldye
 
 How to draw a piece with the `walldye` API in practice. docs/api.md has every signature, and the
-docstrings in `walldye/` the exact behaviour; this file does not repeat them. The pieces in
+docstrings in `walldye/` the exact behavior; this file does not repeat them. The pieces in
 SKILL.md's Examples table are complete designs.
 
 ## Module level
@@ -36,13 +36,13 @@ anchor edge furniture to `s.w` and `s.h` (`s.h - 80`), loop full-bleed fields ov
 needs another arrangement (glyph-terrain turns its map 90° so the road climbs). A right-thirds
 point that works at 16:9 can be cramped at 9:19.5, so preview 32:9, 9:19.5 and 10:16.
 
-## Colours
+## Colors
 
-references/principles.md says which token plays which role. Colours are formulas, so:
+references/principles.md says which token plays which role. Colors are formulas, so:
 
-- Key buckets, dicts and sorts by index or role, never by colour: `sorted()`, `str()` and
-  f-strings of a colour raise.
-- Quantise continuous tone into a module-level ladder and bucket by rung, one element per rung:
+- Key buckets, dicts and sorts by index or role, never by color: `sorted()`, `str()` and
+  f-strings of a color raise.
+- Quantize continuous tone into a module-level ladder and bucket by rung, one element per rung:
   ```python
   TONES = ladder((BG_ALT, UI, ACCENT), 6)  # at module level
   with s.buckets(TONES, "stroke", stroke_width=1.4, stroke_linecap="round") as b:
@@ -50,10 +50,10 @@ references/principles.md says which token plays which role. Colours are formulas
           b[TONES.rung(v)].M(x, y).L(x + 8, y)
   ```
   `ladder((BG, ACCENT_4, ACCENT), 5)` is an accent ramp whose middle is already visibly accent.
-- `by_regime(dark, light)` is one colour that differs by regime, the dark one first (light
+- `by_regime(dark, light)` is one color that differs by regime, the dark one first (light
   ladder step 2).
-- A colour is never a param: use a `Literal` field and pick the colour in `draw`.
-- Don't fake overlaps with opacity: alpha composites land between tokens as off-ramp colours.
+- A color is never a param: use a `Literal` field and pick the color in `draw`.
+- Don't fake overlaps with opacity: alpha composites land between tokens as off-ramp colors.
   Compute the intersection with shapely and fill it with a token.
 
 ## Drawing
@@ -75,7 +75,7 @@ with s.mask() as m:
 s.path(texture, fill=UI, mask=m.ref)
 
 with s.pattern(10, 10) as pat:
-    pat.stroke(P().M(0, 10).L(10, 0), UI_ALT, 1)  # tile coordinates, theme colours
+    pat.stroke(P().M(0, 10).L(10, 0), UI_ALT, 1)  # tile coordinates, theme colors
 s.fill(P().circle(c, 200), pat.ref)
 
 fade = s.linear_gradient([(0, BG, 0), (1, BG)], (0, s.h * 0.6), (0, s.h))
@@ -123,7 +123,7 @@ uv run walldye sheet <slug> --wedge phase=-120..120..30 --seeds 0..3
 
 ## Fields
 
-- `noise_grid`'s range is narrower than ±1 (about ±0.6 at 3 octaves): normalise before
+- `noise_grid`'s range is narrower than ±1 (about ±0.6 at 3 octaves): normalize before
   thresholding.
 - `iso_lines(..., simplify=)` costs about 0.7 ms per line per draw, and a check draws each aspect
   and regime three times. On dense fields use a coarser cell or fewer levels instead.
@@ -149,7 +149,7 @@ Dither methods, with their look and cost at 480x270 cells. Vary the method from 
 | Method | Look | Cost |
 |---|---|---|
 | `bayer` | crisp crosshatch lattice, very "computer"; `matrix` 2, 4, 8 or 16 | 0.05 s |
-| `clustered` | print halftone: dots grow from cell centres | 0.05 s |
+| `clustered` | print halftone: dots grow from cell centers | 0.05 s |
 | `bluenoise` | even organic grain, no visible pattern | 0.25 s |
 | `lines` | a line screen thickening with tone; `matrix` is the pitch | 0.05 s |
 | `random` | white-noise grain, clumpy | 0.05 s |
@@ -199,7 +199,7 @@ glyphs(
 
 ## Data files
 
-Data that would bloat design.py (a star catalogue, a game record, a coastline) goes in `data/`
+Data that would bloat design.py (a star catalog, a game record, a coastline) goes in `data/`
 and is read with `s.data(name)` (docs/api.md §7.3). Annotate the value where you read it, or
 Pyrefly checks nothing downstream: `coast: list[list[float]] = s.data("coast.json")`. A folder
 with `data/` needs a `data` or `recreation` source saying where the files came from.
@@ -218,7 +218,7 @@ with `data/` needs a `data` or `recreation` source saying where the files came f
     `.buffer(-k).buffer(k)` rounds off corners.
   - `LineString(...).difference(obstacle.buffer(6))` breaks lines around a shape, for a
     technical-drawing gap. `parts(g)` from `walldye.geom` iterates any result.
-- scipy: `spatial.Delaunay`, `Voronoi` and `cKDTree` for meshes, cells and neighbours;
+- scipy: `spatial.Delaunay`, `Voronoi` and `cKDTree` for meshes, cells and neighbors;
   `ndimage.gaussian_filter`, `distance_transform_edt`, `label` and `map_coordinates` for
   fields; `interpolate.CubicSpline` for smooth rails.
 - scikit-image: `graph.route_through_array` finds cheapest paths over a cost grid;
@@ -245,7 +245,7 @@ check warns above 600 kB or 15,000 elements and fails above 1 MB or 20,000.
 
 - One path per paint and stroke style: accumulate subpaths in one `P()`, or use `s.buckets`.
   `grid_runs`, `glyphs` and `sprite` already merge runs.
-- Quantise continuous tone into 4 to 8 rungs of a `ladder`, never one element per value.
+- Quantize continuous tone into 4 to 8 rungs of a `ladder`, never one element per value.
 - `P()` rounds to 1 decimal, which is crisp at 4K; use `P(nd=2)` only for fine detail.
 - A 4-unit pixel cell gives 480x270 cells at 16:9, 50 to 400 kB after `grid_runs`. Use 2-unit
   cells only for sparse content; 32:9 doubles the cell count.

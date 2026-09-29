@@ -23,7 +23,7 @@ from walldye import (
 )
 from walldye.geom import ngon
 
-CELL = 196  # distance between neighbouring dodecagon centres
+CELL = 196  # distance between neighboring dodecagon centers
 SIDE = CELL / (2 + math.sqrt(3))  # the tiling's shared edge length
 ROW = CELL * math.sqrt(3) / 2
 R12, R3 = SIDE / (2 * math.sin(math.pi / 12)), SIDE / math.sqrt(3)  # circumradii
@@ -37,7 +37,7 @@ type Seg = tuple[Vec, Vec]
 
 
 def tiling(c: Vec, area: Rect) -> Iterator[list[Vec]]:
-    """The 3.12.12 polygons centred inside `area`, with a dodecagon centred on `c`."""
+    """The 3.12.12 polygons centered inside `area`, with a dodecagon centered on `c`."""
     for j in range(math.floor((area.y - c.y) / ROW), math.ceil((area.y1 - c.y) / ROW) + 1):
         lo = math.floor((area.x - c.x) / CELL - 0.5 * j)
         hi = math.ceil((area.x1 - c.x) / CELL - 0.5 * j)
@@ -46,7 +46,7 @@ def tiling(c: Vec, area: Rect) -> Iterator[list[Vec]]:
             if not area.contains(o):
                 continue
             yield [Vec(x, y) for x, y in ngon(o, R12, 12, deg=15)]
-            # the two gap triangles above-right and below-right of this centre
+            # the two gap triangles above-right and below-right of this center
             for dy, base in ((-1, 90), (1, -90)):
                 g = o + (CELL / 2, dy * CELL / (2 * math.sqrt(3)))
                 yield [Vec(x, y) for x, y in ngon(g, R3, 3, deg=base)]
@@ -55,14 +55,14 @@ def tiling(c: Vec, area: Rect) -> Iterator[list[Vec]]:
 def hankin(poly: list[Vec]) -> Iterator[Seg]:
     """Contact-angle rays from each edge midpoint, cut where each meets its partner ray."""
     n = len(poly)
-    centre = sum(poly[1:], poly[0]) / n
+    center = sum(poly[1:], poly[0]) / n
     mids: list[Vec] = []
     fwd: list[Vec] = []
     back: list[Vec] = []
     for a, b in zip(poly, poly[1:] + poly[:1], strict=True):
         m, e = (a + b) / 2, (b - a).unit()
         # turn each ray towards the polygon's inside
-        turn = CONTACT if e.perp().dot(centre - m) > 0 else -CONTACT
+        turn = CONTACT if e.perp().dot(center - m) > 0 else -CONTACT
         mids.append(m)
         fwd.append(e.rotate(deg=turn))
         back.append((-e).rotate(deg=-turn))
@@ -81,7 +81,7 @@ def hankin(poly: list[Vec]) -> Iterator[Seg]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre, below the middle on landscape; lower right of centre on portrait
+    # right of center, below the middle on landscape; lower right of center on portrait
     c = s.pick(landscape=(0.71875, 11 / 18), portrait=(0.62, 0.6))
     segs = [seg for poly in tiling(c, s.inset(-CELL)) for seg in hankin(poly)]
     near = [LineString(seg) for seg in segs if min(abs(p - c) for p in seg) < CELL * 2]

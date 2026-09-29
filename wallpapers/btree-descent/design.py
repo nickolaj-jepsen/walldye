@@ -34,13 +34,13 @@ def draw(s: Canvas) -> None:
 
     lit, edges, boxes, hot, links = P(), P(), P(), P(), P()
     dots, lit_dots = P(), P()
-    labels: list[tuple[Vec, str, Paint]] = []  # key cell centre, text, paint
+    labels: list[tuple[Vec, str, Paint]] = []  # key cell center, text, paint
 
     def node(
         x: float, y: float, keys: list[int], ptr: int | None = None, key: int | None = None
     ) -> list[Vec]:
         """Lay out the cells p k p k ... p of a node with its top-left corner at (x, y), filling
-        in pointer number `ptr` or the cell of key `key`; returns the pointer cell centres."""
+        in pointer number `ptr` or the cell of key `key`; returns the pointer cell centers."""
         ptrs: list[Vec] = []
         cx = x
         for i in range(2 * len(keys) + 1):
@@ -81,7 +81,7 @@ def draw(s: Canvas) -> None:
         for i, (lx, keys) in enumerate(pairs)
     ]
 
-    # inner nodes centred over their three leaves; each edge leaves from a pointer cell's foot
+    # inner nodes centered over their three leaves; each edge leaves from a pointer cell's foot
     inner_tops: list[Vec] = []
     for g, seps in enumerate(inner):
         kids = leaf_tops[3 * g : 3 * g + 3]

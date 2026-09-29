@@ -1,5 +1,5 @@
 {
- "spec": "Theme token grammar (walldye/_theme.py parse_seeds, theme_token). A theme is a preset name (exact, case-sensitive) or three seeds as `bg-fg-accent`; the CLI also accepts `bg,fg,accent`, `bg=..,fg=..,accent=..` (keys in any order, exactly these three) and null or \"\" for fireproof, marked cli_only. Each seed is 3 or 6 hex digits with an optional #, any case, surrounding whitespace ignored, and normalises to uppercase #RRGGBB. valid: spec -> seeds and the canonical token (the preset name when the seeds equal a preset's, else lowercase bg-fg-accent without #). invalid: rejected everywhere.",
+ "spec": "Theme token grammar (walldye/_theme.py parse_seeds, theme_token). A theme is a preset name (exact, case-sensitive) or three seeds as `bg-fg-accent`; the CLI also accepts `bg,fg,accent`, `bg=..,fg=..,accent=..` (keys in any order, exactly these three) and null or \"\" for fireproof, marked cli_only. Each seed is 3 or 6 hex digits with an optional #, any case, surrounding whitespace ignored, and normalizes to uppercase #RRGGBB. valid: spec -> seeds and the canonical token (the preset name when the seeds equal a preset's, else lowercase bg-fg-accent without #). invalid: rejected everywhere.",
  "valid": [
   {
    "spec": null,

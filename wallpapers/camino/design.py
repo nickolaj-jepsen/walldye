@@ -12,7 +12,7 @@ from walldye import (
     UI,
     UI_ALT,
     Canvas,
-    Colour,
+    Color,
     P,
     Vec,
     design,
@@ -49,7 +49,7 @@ def road() -> dict[tuple[int, int], tuple[int, bool]]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: the runner lies across, a little below centre; portrait: it hangs, mirrored
+    # landscape: the runner lies across, a little below center; portrait: it hangs, mirrored
     # across its diagonal so the road zigzags down the screen
     size = Vec(COLS * CELL, ROWS * CELL)
     wide = s.landscape
@@ -63,7 +63,7 @@ def draw(s: Canvas) -> None:
     def tri(t: Tri) -> Tri:
         return [at(p) for p in t]
 
-    def area(pieces: list[Tri], paint: Colour) -> None:
+    def area(pieces: list[Tri], paint: Color) -> None:
         """Fill the union of `pieces` as one shape, so no internal edge can seam."""
         s.fill(P().shape(unary_union([Polygon(tri(t)) for t in pieces])), paint)
 
@@ -87,7 +87,7 @@ def draw(s: Canvas) -> None:
                 ui.append(upper)
             else:
                 ui.append(lower)
-    # painted in layers so every edge blends into the colour beneath, not the wall
+    # painted in layers so every edge blends into the color beneath, not the wall
     s.fill(P().poly(tri([Vec(0, 0), Vec(size.x, 0), size, Vec(0, size.y)]), closed=True), BG_ALT)
     area(ui, UI)
     area(hi, UI_ALT)

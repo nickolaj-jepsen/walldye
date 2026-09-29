@@ -1,51 +1,51 @@
-"""Documents: a drawn SVG cut at every colour, serialised under any theme of its regime."""
+"""Documents: a drawn SVG cut at every color, serialized under any theme of its regime."""
 
 from collections.abc import Mapping, Sequence
 from typing import Final, Literal, final
 
-from ._colour import Colour, MaskColour, coefs, resolve
+from ._color import Color, MaskColor, coefs, resolve
 from ._theme import Coefs, is_light
 
 type Regime = Literal["dark", "light"]
-type Fragment = str | Colour | MaskColour
+type Fragment = str | Color | MaskColor
 type Line = list[Fragment]
 
 
 @final
 class Document:
-    """An SVG template whose colours are still formulas.
+    """An SVG template whose colors are still formulas.
 
-    The text is parts[0] + colour 0 + parts[1] + ... + parts[-1], so `parts` has one more
-    entry than `colours`. Every colour sits in a fill, stroke or stop-color value, so the slot
+    The text is parts[0] + color 0 + parts[1] + ... + parts[-1], so `parts` has one more
+    entry than `colors`. Every color sits in a fill, stroke or stop-color value, so the slot
     tokenizer finds exactly these slots, in this order.
     """
 
     def __init__(
         self,
         parts: Sequence[str],
-        colours: Sequence[Colour | MaskColour],
+        colors: Sequence[Color | MaskColor],
         *,
         w: int,
         h: int,
         regime: Regime,
         pixel_grids: Sequence[tuple[float, float, float]] = (),
     ) -> None:
-        """Raises ValueError unless len(parts) == len(colours) + 1 and `regime` is "dark" or
+        """Raises ValueError unless len(parts) == len(colors) + 1 and `regime` is "dark" or
         "light"."""
-        if len(parts) != len(colours) + 1:
-            raise ValueError(f"a document needs one more part than colours, got {len(parts)} parts")
+        if len(parts) != len(colors) + 1:
+            raise ValueError(f"a document needs one more part than colors, got {len(parts)} parts")
         if regime not in ("dark", "light"):
             raise ValueError(f"regime is 'dark' or 'light', got {regime!r}")
         self._parts: Final = tuple(parts)
-        self._colours: Final = tuple(colours)
+        self._colors: Final = tuple(colors)
         self.w: Final = w
         self.h: Final = h
         self.regime: Final = regime
         self.pixel_grids: Final = tuple(pixel_grids)
 
-    def colours(self) -> tuple[Colour | MaskColour, ...]:
-        """One colour per slot, in text order."""
-        return self._colours
+    def colors(self) -> tuple[Color | MaskColor, ...]:
+        """One color per slot, in text order."""
+        return self._colors
 
     def skeleton(self) -> str:
         """The text with every slot replaced by "#"; equals tokenize.skeleton(self.to_svg(t))
@@ -60,10 +60,10 @@ class Document:
         light = is_light(tokens["bg"], tokens["fg"])
         if light != (self.regime == "light"):
             theme = "light" if light else "dark"
-            raise ValueError(f"a {self.regime} document cannot be serialised under a {theme} theme")
-        memo: dict[Colour | MaskColour, str] = {}
+            raise ValueError(f"a {self.regime} document cannot be serialized under a {theme} theme")
+        memo: dict[Color | MaskColor, str] = {}
         out: list[str] = []
-        for c in self._colours:
+        for c in self._colors:
             h = memo.get(c)
             if h is None:
                 h = memo[c] = resolve(c, tokens)
@@ -71,11 +71,11 @@ class Document:
         return out
 
     def coefs(self) -> list[Coefs]:
-        """Each slot's Coefs in the document's regime (see _colour.coefs), in text order."""
+        """Each slot's Coefs in the document's regime (see _color.coefs), in text order."""
         light = self.regime == "light"
-        memo: dict[Colour | MaskColour, Coefs] = {}
+        memo: dict[Color | MaskColor, Coefs] = {}
         out: list[Coefs] = []
-        for c in self._colours:
+        for c in self._colors:
             k = memo.get(c)
             if k is None:
                 k = memo[c] = coefs(c, light)
@@ -83,7 +83,7 @@ class Document:
         return out
 
     def to_svg(self, tokens: Mapping[str, str]) -> str:
-        """The SVG text under the 21-token dict `tokens`, already normalised.
+        """The SVG text under the 21-token dict `tokens`, already normalized.
 
         Raises ValueError when the tokens belong to the other regime.
         """
@@ -135,16 +135,16 @@ class Builder:
                 stream.append("\n")
         stream.append("</svg>\n")
         parts: list[str] = []
-        colours: list[Colour | MaskColour] = []
+        colors: list[Color | MaskColor] = []
         text: list[str] = []
         for frag in stream:
             if isinstance(frag, str):
                 text.append(frag)
             else:
                 parts.append("".join(text))
-                colours.append(frag)
+                colors.append(frag)
                 text = []
         parts.append("".join(text))
         return Document(
-            parts, colours, w=self.w, h=self.h, regime=self.regime, pixel_grids=self.grids
+            parts, colors, w=self.w, h=self.h, regime=self.regime, pixel_grids=self.grids
         )

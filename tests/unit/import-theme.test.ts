@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { namedColours, pickAccent, seedsFromText } from '../../src/lib/import-theme';
+import { namedColors, pickAccent, seedsFromText } from '../../src/lib/import-theme';
 import type { Hex } from '../../src/lib/theme';
 
 const MOCHA = { bg: '#1E1E2E', fg: '#CDD6F4' };
-// Catppuccin Mocha's ANSI 1-6; blue is the most colourful of them.
+// Catppuccin Mocha's ANSI 1-6; blue is the most colorful of them.
 const BLUE = '#89B4FA';
 
 describe('seedsFromText', () => {
-  it('reads a theme token and three colours as before', () => {
+  it('reads a theme token and three colors as before', () => {
     expect(seedsFromText(' nord ')).toEqual({ bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' });
     expect(seedsFromText('#111, #eee, #f80')).toEqual({
       bg: '#111111',
@@ -150,16 +150,16 @@ base0D: "83a598" # blue`;
   });
 });
 
-describe('namedColours', () => {
+describe('namedColors', () => {
   it('keeps the first of a name and ignores keyless hex values', () => {
-    const named = namedColours('#FF0000\nbackground #111111\nbackground #222222');
+    const named = namedColors('#FF0000\nbackground #111111\nbackground #222222');
     expect([...named]).toEqual([['background', '#111111']]);
   });
 });
 
 describe('pickAccent', () => {
   const bg = '#1E1E2E' as Hex;
-  it('picks the most colourful candidate that stands out from the ground', () => {
+  it('picks the most colorful candidate that stands out from the ground', () => {
     expect(pickAccent(['#45475A', '#F38BA8', '#89B4FA'] as Hex[], bg)).toBe('#89B4FA');
     expect(pickAccent(['#330000', '#89B4FA'] as Hex[], bg)).toBe('#89B4FA');
   });

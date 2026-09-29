@@ -13,7 +13,7 @@ from walldye.geom import parts
 
 type F64 = NDArray[np.float64]
 
-# terrain.npy: elevation in metres on a CELL_M grid in the map frame (see draw), its first
+# terrain.npy: elevation in meters on a CELL_M grid in the map frame (see draw), its first
 # sample at ORIGIN_M. course.json: the course in the same frame, start line first.
 CELL_M = 100.0
 ORIGIN_M = np.array([-15600.0, -4400.0])
@@ -24,7 +24,7 @@ LOWEST = 47  # 9,400 ft, the first 200-ft contour above the start line; below it
 # stranded near the start line need the larger bound.
 SPECK, SPECK_MINOR = 30, 75
 LINE, BAR, DOT = 2.5, 16, 4.5  # the course, half the start line, the finish's radius
-GAP, STUB = 5, 22  # contours keep GAP from the course's centreline; pieces left under STUB go
+GAP, STUB = 5, 22  # contours keep GAP from the course's centerline; pieces left under STUB go
 SKIRT = 12  # a ring the clip misses but that runs this close to the course is dropped
 # A dark ground sits closer to its first step, so dark themes lift the contours one step.
 MINOR_TONE, INDEX_TONE = by_regime(UI, BG_ALT), by_regime(UI_ALT, UI)
@@ -64,12 +64,12 @@ def start_line(line: F64) -> F64:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # Map frame, in metres: u runs from the start line towards the summit, v across it, and
+    # Map frame, in meters: u runs from the start line towards the summit, v across it, and
     # the origin is the middle of the course. Landscape screens show u to the right; portrait
     # screens turn the map a quarter left so the course climbs.
     terrain: NDArray[np.int16] = s.data("terrain.npy")
     route: list[list[int]] = s.data("course.json")
-    k = 0.145  # canvas units per metre
+    k = 0.145  # canvas units per meter
     c = s.pick(landscape=(0.57, 0.52), portrait=(0.5, 0.54))
 
     def screen(uv: F64) -> F64:

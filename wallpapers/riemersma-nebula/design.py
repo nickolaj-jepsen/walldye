@@ -1,4 +1,4 @@
-"""An emission nebula cut by dust lanes beside open starfield, quantised to square cells by Riemersma dithering along a Hilbert curve."""
+"""An emission nebula cut by dust lanes beside open starfield, quantized to square cells by Riemersma dithering along a Hilbert curve."""
 
 import numpy as np
 from numpy.typing import NDArray
@@ -64,7 +64,7 @@ def field(s: Canvas, dx: Field, dy: Field) -> Field:
 
     gas = warp(fbm(s, 3, 110, 3))
     dust = np.abs(warp(fbm(s, 4, 150, 3)))  # ridged: dark lanes along zero crossings
-    grain = fbm(s, 5, 7, 2)  # keeps every region off a quantisation plateau
+    grain = fbm(s, 5, 7, 2)  # keeps every region off a quantization plateau
     ca, sa = np.cos(TILT), np.sin(TILT)
 
     def radius(ax: float, ay: float, wobble: float) -> Field:

@@ -33,7 +33,7 @@ SAMPLER_ORIGINS: Final = frozenset({
     "skimage.util.random_noise",
 })  # fmt: skip
 TYPE_ESCAPES: Final = frozenset({"typing.cast", "typing.Any"})
-CONSTRUCTORS: Final = frozenset({"Colour", "MaskColour", "Ref", "Canvas", "Document", "Design"})
+CONSTRUCTORS: Final = frozenset({"Color", "MaskColor", "Ref", "Canvas", "Document", "Design"})
 PROCESS_CALLS: Final = frozenset({
     "hash", "id", "open", "exec", "eval", "compile", "globals", "__import__",
 })  # fmt: skip
@@ -64,7 +64,7 @@ STR_METHODS: Final = frozenset({
     "split", "splitlines", "strip", "lstrip", "rstrip", "join", "replace", "ljust", "rjust",
     "center", "upper", "lower", "format", "zfill",
 })  # fmt: skip
-COLOURS: Final = frozenset(
+COLORS: Final = frozenset(
     f"walldye.{n}"
     for n in (
         "BLACK", "BG_DEEP", "BG", "BG_ALT", "UI", "UI_ALT", "UI_HI", "MUTED", "FG_ALT", "FG",
@@ -72,9 +72,9 @@ COLOURS: Final = frozenset(
         "ACCENT_6", "ACCENT_7", "ACCENT_8", "MASK_WHITE", "MASK_BLACK",
     )
 )  # fmt: skip
-COLOUR_CALLS: Final = frozenset({"walldye.mix", "walldye.by_regime"})
+COLOR_CALLS: Final = frozenset({"walldye.mix", "walldye.by_regime"})
 # Hues and named shades; copy must say "accent", "bg", roles. Token names (ALL CAPS) are fine.
-COLOUR_WORDS: Final = frozenset({
+COLOR_WORDS: Final = frozenset({
     "red", "orange", "yellow", "green", "blue", "purple", "violet", "pink", "brown", "black",
     "white", "grey", "gray", "cyan", "magenta", "teal", "turquoise", "indigo", "crimson",
     "scarlet", "maroon", "amber", "golden", "beige", "cream", "ivory", "terracotta", "ochre",
@@ -107,7 +107,7 @@ _ALLOWLIST: Final = (
 _RANDOM: Final = "draw randomness from s.rng(key), s.np_rng(key) or s.noise(key)"
 _SAMPLER: Final = "library samplers take random_state=s.np_rng(key) or rng=s.np_rng(key)"
 _UNCHECKED: Final = "designs are type-checked as written; fix what Pyrefly reports instead"
-_NO_TEXT: Final = "a colour has no text form; pass it to a drawing call"
+_NO_TEXT: Final = "a color has no text form; pass it to a drawing call"
 _ENTRY: Final = "a design has exactly one module-level @design(...) def draw(s: Canvas[...])"
 
 type Lints = tuple[list[str], list[str]]
@@ -142,24 +142,24 @@ def svg(text: str) -> Lints:
     ):
         if value > hard:
             errors.append(
-                f"{what} is over the limit of {hard:,}; merge shapes into one <path> per colour"
+                f"{what} is over the limit of {hard:,}; merge shapes into one <path> per color"
             )
         elif value > soft:
             warnings.append(
-                f"{what} is heavy (over {soft:,}); merge shapes into one <path> per colour"
+                f"{what} is heavy (over {soft:,}); merge shapes into one <path> per color"
             )
     return errors, warnings
 
 
-def colour_words(text: str) -> set[str]:
-    """Colour words in `text` as written, lowercased, plurals included ("greys" matches via
+def color_words(text: str) -> set[str]:
+    """Color words in `text` as written, lowercased, plurals included ("greys" matches via
     "grey"); ALL-CAPS words (token names like ACCENT_HI) are not prose."""
     words: list[str] = re.findall(r"\b[A-Za-z]+\b", text)
     prose = {w.lower() for w in words if not w.isupper()}
     return {
         w
         for w in prose
-        if not COLOUR_WORDS.isdisjoint({w, w.removesuffix("s"), w.removesuffix("es")})
+        if not COLOR_WORDS.isdisjoint({w, w.removesuffix("s"), w.removesuffix("es")})
     }
 
 
@@ -278,35 +278,33 @@ def _streamed(node: ast.Call) -> bool:
     )
 
 
-def _is_colour(d: _Design, node: ast.expr) -> bool:
-    """Whether `node` is certainly a colour: a token name or a mix()/by_regime() call."""
+def _is_color(d: _Design, node: ast.expr) -> bool:
+    """Whether `node` is certainly a color: a token name or a mix()/by_regime() call."""
     if isinstance(node, ast.Name):
-        return d.aliases.get(node.id) in COLOURS
-    return isinstance(node, ast.Call) and d.dotted(node.func) in COLOUR_CALLS
+        return d.aliases.get(node.id) in COLORS
+    return isinstance(node, ast.Call) and d.dotted(node.func) in COLOR_CALLS
 
 
-def _colour_strings(d: _Design, docstrings: set[int]) -> None:
+def _color_strings(d: _Design, docstrings: set[int]) -> None:
     for node in ast.walk(d.tree):
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             if id(node) not in docstrings and _HEX_STRING.fullmatch(node.value.strip()) is not None:
-                d.error(
-                    node, f"raw colour {node.value!r}; paints are tokens, mix() and by_regime()"
-                )
+                d.error(node, f"raw color {node.value!r}; paints are tokens, mix() and by_regime()")
         elif isinstance(node, ast.JoinedStr):
             first = node.values[0] if len(node.values) > 0 else None
             if isinstance(first, ast.Constant) and first.value == "#" and len(node.values) > 1:
-                d.error(node, "builds a hex colour; paints are tokens, mix() and by_regime()")
+                d.error(node, "builds a hex color; paints are tokens, mix() and by_regime()")
             if any(
-                isinstance(v, ast.FormattedValue) and _is_colour(d, v.value) for v in node.values
+                isinstance(v, ast.FormattedValue) and _is_color(d, v.value) for v in node.values
             ):
                 d.error(node, _NO_TEXT)
         elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
             text = node.func.id in ("str", "format", "repr")
-            if text and len(node.args) > 0 and _is_colour(d, node.args[0]):
+            if text and len(node.args) > 0 and _is_color(d, node.args[0]):
                 d.error(node, _NO_TEXT)
         elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mod):
             parts = node.right.elts if isinstance(node.right, ast.Tuple) else [node.right]
-            if isinstance(node.left, ast.Constant) and any(_is_colour(d, p) for p in parts):
+            if isinstance(node.left, ast.Constant) and any(_is_color(d, p) for p in parts):
                 d.error(node, _NO_TEXT)
 
 
@@ -605,7 +603,7 @@ def design(path: Path) -> Lints:
     _entry_point(d)
     _module_level(d)
     _mutation(d)
-    _colour_strings(d, docstrings)
+    _color_strings(d, docstrings)
     comments = [
         t
         for t in py_tokenize.generate_tokens(io.StringIO(text).readline)
@@ -625,9 +623,9 @@ def design(path: Path) -> Lints:
         if isinstance(n, ast.Constant) and id(n) in docstrings and isinstance(n.value, str)
     ]  # fmt: skip
     warnings: list[str] = []
-    if len(words := colour_words("\n".join(docs + [t.string for t in comments]))) > 0:
+    if len(words := color_words("\n".join(docs + [t.string for t in comments]))) > 0:
         warnings.append(
-            f"colour words in docstrings or comments: {', '.join(sorted(words))} (name tokens or roles, never hues)"
+            f"color words in docstrings or comments: {', '.join(sorted(words))} (name tokens or roles, never hues)"
         )
     return errors, warnings
 
@@ -664,11 +662,11 @@ def _mappings(value: object) -> list[dict[str, object]] | None:
 
 
 def license_of(meta: common.Meta) -> str | None:
-    """The folder's licence: `license:`, else FAN_WORK when `franchise:` is set, else
+    """The folder's license: `license:`, else FAN_WORK when `franchise:` is set, else
     DEFAULT_LICENSE for a piece a model made (`model:`) with no recreation source, else None
-    (no licence can be resolved)."""
-    if (licence := _text(meta, "license")) != "":
-        return licence
+    (no license can be resolved)."""
+    if (license := _text(meta, "license")) != "":
+        return license
     if "franchise" in meta:
         return FAN_WORK
     sources = _mappings(meta.get("sources"))
@@ -717,7 +715,7 @@ def meta(
 ) -> Lints:
     """(errors, warnings) for the meta.yaml `m` of `slug`, whose design declares `variants`
     ("default" first). Facets are skipped with a warning
-    when `taxonomy` is None; colour words in the copy warn."""
+    when `taxonomy` is None; color words in the copy warn."""
     errors: list[str] = []
     warnings: list[str] = []
     for key in ("title", "description"):
@@ -762,9 +760,9 @@ def meta(
             errors.append("a kind: recreation source needs an explicit license: (ask the owner)")
         elif model == "":
             errors.append("human-made pieces need an explicit license:")
-    if (licence := license_of(m)) is not None and not (LICENSES / f"{licence}.txt").is_file():
+    if (license := license_of(m)) is not None and not (LICENSES / f"{license}.txt").is_file():
         errors.append(
-            f"license {licence!r} has no LICENSES/{licence}.txt; add the licence text or fix the id"
+            f"license {license!r} has no LICENSES/{license}.txt; add the license text or fix the id"
         )
     franchise = common.as_dict(m.get("franchise"))
     if fan and (franchise is None or "" in (_text(franchise, "title"), _text(franchise, "owner"))):
@@ -836,22 +834,22 @@ def _variants(m: common.Meta, names: Sequence[str]) -> Lints:
             errors.append(f"variants: {name}: description must be text")
         if "draft" in entry and not isinstance(entry["draft"], bool):
             errors.append(f"variants: {name}: draft must be true or false")
-        if len(found := colour_words(f"{label}\n{_text(entry, 'description')}")) > 0:
+        if len(found := color_words(f"{label}\n{_text(entry, 'description')}")) > 0:
             words_ = ", ".join(sorted(found))
             warnings.append(
-                f"colour words in variants: {name}: {words_} (describe the shape, without naming colours)"
+                f"color words in variants: {name}: {words_} (describe the shape, without naming colors)"
             )
     return errors, warnings
 
 
 def copy_words(m: common.Meta) -> list[str]:
-    """A warning naming the colour words in the title, description and notes of meta.yaml
+    """A warning naming the color words in the title, description and notes of meta.yaml
     `m`, or []."""
-    words = colour_words("\n".join(_text(m, k) for k in ("title", "description", "notes")))
+    words = color_words("\n".join(_text(m, k) for k in ("title", "description", "notes")))
     if len(words) == 0:
         return []
     return [
-        f"colour words in meta.yaml copy: {', '.join(sorted(words))} (describe the shape or what it picks out, without naming colours)"
+        f"color words in meta.yaml copy: {', '.join(sorted(words))} (describe the shape or what it picks out, without naming colors)"
     ]
 
 

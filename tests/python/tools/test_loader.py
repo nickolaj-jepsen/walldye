@@ -60,7 +60,7 @@ def test_prints_go_to_stderr(wallpapers, capsys):
     assert captured.out == "" and captured.err == "imported\ndrawing\n"
 
 
-def test_render_serialises_the_regime_document(wallpapers):
+def test_render_serializes_the_regime_document(wallpapers):
     regen.install(wallpapers, "light-branch")
     dark = common.render("light-branch", "nord")
     assert f'fill="{parse_theme("nord")["accent"]}"' in dark and "A100 100" in dark
@@ -139,7 +139,7 @@ def test_legacy_palette_maps_slots_not_hex_strings(wallpapers):
         ('"#1C1B1A": bg\n"#CF6A4C": accent\n', "does not map #201A18"),
         ('"#1C1B1A": bg\n"#CF6A4C": teal\n"#201A18": bg', "#CF6A4C: entries are a token"),
         ('"#1C1B1A": bg\n"#CF6A4C": [bg, fg]\n"#201A18": bg', "#CF6A4C: entries are a token"),
-        ("- bg\n", "must map colours to tokens"),
+        ("- bg\n", "must map colors to tokens"),
     ],
 )
 def test_legacy_palette_errors(wallpapers, palette, error):

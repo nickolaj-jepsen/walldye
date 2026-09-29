@@ -92,7 +92,7 @@ def construction(s: Canvas) -> None:
     # the eye sits where the diagonals of the rectangle and its first remainder cross
     s.stroke(P().M(0, 0).L(RW, RH).M(RH, RH).L(RW, 0), UI, 1.2, dash=DASHDOT)
 
-    # compass pin holes: the construction's foot and the first six arc centres
+    # compass pin holes: the construction's foot and the first six arc centers
     pins = P().dots([foot, *(c.pivot for c in CUTS[:6])], 4)
     s.path(pins, fill=BG, stroke=UI_ALT, stroke_width=1.4)
 
@@ -118,7 +118,7 @@ def construction(s: Canvas) -> None:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     sheet(s)
-    # Landscape keeps the original's spot right of centre. Portrait stands the rectangle upright
+    # Landscape keeps the original's spot right of center. Portrait stands the rectangle upright
     # with a quarter turn anticlockwise: the first square at the bottom, dimensions left and below.
     c = s.pick(landscape=(37 / 64, 14 / 27), portrait=(0.53, 0.465))
     turn = 0 if s.landscape else -90

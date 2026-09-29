@@ -5,7 +5,7 @@ from itertools import pairwise
 
 from walldye import ACCENT, ACCENT_3, BG, BG_ALT, UI, UI_ALT, UI_HI, Canvas, P, Vec, design
 
-# Geometry in metres: x along the bridge from mid-span (east positive), z above sea level.
+# Geometry in meters: x along the bridge from mid-span (east positive), z above sea level.
 MAIN, SIDE = 1624.0, 535.0
 PYLON_X = MAIN / 2
 BENT_X = PYLON_X + SIDE  # where each cable meets its anchor block
@@ -70,7 +70,7 @@ def piers() -> list[float]:
 
 @dataclass(frozen=True)
 class Sheet:
-    """Metres to canvas units: `k` units per metre, mid-span at `cx`, the waterline at `wy`."""
+    """Meters to canvas units: `k` units per meter, mid-span at `cx`, the waterline at `wy`."""
 
     k: float
     cx: float
@@ -99,7 +99,7 @@ def draw(s: Canvas) -> None:
         k = 0.64 * s.h / (PYLON_TOP + 30)
         sh = Sheet(k, s.w * 0.44 - PYLON_X * k, round(s.h * 0.84))
     big = k > 2
-    x0, x1 = -sh.cx / k - 40, (s.w - sh.cx) / k + 40  # the visible stretch, in metres
+    x0, x1 = -sh.cx / k - 40, (s.w - sh.cx) / k + 40  # the visible stretch, in meters
     pylons = [x for x in (-PYLON_X, PYLON_X) if x0 - 60 < x < x1 + 60]
     anchors = [x for x in (-BENT_X, BENT_X) if x0 - 100 < x < x1 + 100]
     stations = [x for x in piers() if x0 - 20 < x < x1 + 20]
@@ -196,10 +196,10 @@ def draw(s: Canvas) -> None:
                 beams.poly([sh.p(px + u, z) for u, z in box], closed=True)
         s.stroke(beams, UI_ALT, 1.2, dash=(8, 6))
 
-    centres = P()
+    centers = P()
     for px in pylons:
-        centres.M(sh.p(px, PYLON_TOP + 30)).L(sh.p(px, caisson_top[px] - 28))
-    s.stroke(centres, UI, 1.2, dash=DASHDOT)
+        centers.M(sh.p(px, PYLON_TOP + 30)).L(sh.p(px, caisson_top[px] - 28))
+    s.stroke(centers, UI, 1.2, dash=DASHDOT)
 
     # dimensions
     dims, heads, ext = P(), P(), P()

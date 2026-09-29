@@ -36,7 +36,7 @@ def test_allowed_imports(tmp_path, line):
     [
         ("import random", "random"),
         ("from numpy import random", "numpy.random"),
-        ("from walldye import _colour", "walldye._colour"),
+        ("from walldye import _color", "walldye._color"),
         ("from scipy.stats import qmc", "scipy.stats.qmc"),
     ],
 )
@@ -75,15 +75,15 @@ def test_relative_and_future_imports(tmp_path):
         ),
         ("", "    s.fill(P(), UI)  # type: ignore", "line 9: `# type: ignore` silences Pyrefly"),
         (
-            "from walldye import Colour\n",
-            "    Colour((0, 1))",
-            "calls Colour(); the drawing API makes these",
+            "from walldye import Color\n",
+            "    Color((0, 1))",
+            "calls Color(); the drawing API makes these",
         ),
         ("", "    hash('x')", "calls hash(), which depends on the process"),
         ("", "    global UI", "global statements change module state"),
-        ("", "    s.fill(P().circle(s.center, 9), '#ff0000')", "raw colour '#ff0000'"),
-        ("", "    print(f'#{3:02x}{4:02x}{5:02x}')", "builds a hex colour"),
-        ("", "    print(f'{UI}')", "a colour has no text form"),
+        ("", "    s.fill(P().circle(s.center, 9), '#ff0000')", "raw color '#ff0000'"),
+        ("", "    print(f'#{3:02x}{4:02x}{5:02x}')", "builds a hex color"),
+        ("", "    print(f'{UI}')", "a color has no text form"),
     ],
 )
 def test_draw_rules(tmp_path, body, draw_line, message):
@@ -229,17 +229,17 @@ def test_errors_name_their_lines_in_order(tmp_path):
     assert [e.split(":")[0] for e in found] == ["line 4", "line 5", "line 11"]
 
 
-def test_colour_words_warn(tmp_path):
+def test_color_words_warn(tmp_path):
     path = tmp_path / "design.py"
     path.write_text('"""A terracotta sun."""\n\n# ACCENT rim, a warm orange glow\n')
     assert lint.design(path)[1] == [
-        "colour words in docstrings or comments: orange, terracotta (name tokens or roles, never hues)"
+        "color words in docstrings or comments: orange, terracotta (name tokens or roles, never hues)"
     ]
 
 
-def test_colour_words_match_plurals_but_not_tokens():
+def test_color_words_match_plurals_but_not_tokens():
     text = "Greys and whites under the ambers; GREYS, BLUES, reddish, Blueprint, crimsons"
-    assert lint.colour_words(text) == {"greys", "whites", "ambers", "crimsons"}
+    assert lint.color_words(text) == {"greys", "whites", "ambers", "crimsons"}
 
 
 def test_data_rules(wallpapers):
@@ -265,10 +265,10 @@ def test_svg_limits():
     ]
     errors_, warnings = lint.svg(head + "<g/>" * 16_000 + "</svg>")
     assert errors_ == [] and warnings == [
-        "16001 elements is heavy (over 15,000); merge shapes into one <path> per colour"
+        "16001 elements is heavy (over 15,000); merge shapes into one <path> per color"
     ]
     assert lint.svg(head + "<g/>" * 20_000 + "</svg>")[0] == [
-        "20001 elements is over the limit of 20,000; merge shapes into one <path> per colour"
+        "20001 elements is over the limit of 20,000; merge shapes into one <path> per color"
     ]
     errors_, warnings = lint.svg(head + f'<path d="{"M0 0" * 160_000}"/></svg>')
     assert errors_ == [] and warnings[0].startswith("640,")
@@ -376,7 +376,7 @@ LABELS = {"default": {"label": "Early"}, "late": {"label": "Late in the turn", "
 def test_meta_rules(slug, meta, names, error, tmp_path, monkeypatch):
     monkeypatch.setattr(lint, "LICENSES", tmp_path)
     for name in ("CC0-1.0", "LicenseRef-fan-work"):
-        (tmp_path / f"{name}.txt").write_text("licence text\n")
+        (tmp_path / f"{name}.txt").write_text("license text\n")
     found, _ = lint.meta(slug, meta, TAXONOMY, names or ("default",))
     if error is None:
         assert found == []
@@ -410,15 +410,15 @@ def test_meta_warnings():
     assert any("black, terracotta" in w for w in warnings)
     assert any("taxonomy.yaml not found" in w for w in warnings)
     assert (
-        "colour words in variants: late: blue, red (describe the shape, without naming colours)"
+        "color words in variants: late: blue, red (describe the shape, without naming colors)"
         in warnings
     )
 
 
-def test_fan_work_licence_text_is_committed():
+def test_fan_work_license_text_is_committed():
     text = (lint.LICENSES / "LicenseRef-fan-work.txt").read_text()
     for phrase in (
-        "No licence is granted",
+        "No license is granted",
         "unofficial fan tribute",
         "trademarks",
         "non-commercial",

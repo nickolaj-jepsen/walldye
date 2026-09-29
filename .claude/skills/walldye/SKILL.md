@@ -1,6 +1,6 @@
 ---
 name: walldye
-description: Design procedural SVG wallpapers for the walldye catalogue, one per subject the owner names, and take each from `walldye new` through preview, an independent critique, check, build and review; also reworks a published piece from the owner's note. Use when asked to make, design, add, draw or rework a wallpaper or desktop background in this repo, including a list of named subjects. To invent new pieces from research, use the wallpaper-batch workflow.
+description: Design procedural SVG wallpapers for the walldye catalog, one per subject the owner names, and take each from `walldye new` through preview, an independent critique, check, build and review; also reworks a published piece from the owner's note. Use when asked to make, design, add, draw or rework a wallpaper or desktop background in this repo, including a list of named subjects. To invent new pieces from research, use the wallpaper-batch workflow.
 ---
 
 # walldye
@@ -70,7 +70,7 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    ```
    `--set k=v` tries one params value in preview, render or sheet without publishing it.
 5. Light ladder. Stop at the first step that gives a good flexoki-light render: tokens only;
-   then a per-regime colour, `by_regime(dark, light)`; then a geometry branch under
+   then a per-regime color, `by_regime(dark, light)`; then a geometry branch under
    `if s.light:`, which costs a light template per aspect and version. There is no dark-only
    opt-out. references/principles.md, Light themes, says what changes on paper.
 6. Variants, only where the piece has a natural one (Variant policy). Each is a `Params`
@@ -83,7 +83,7 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    uv run ruff format wallpapers/<slug> && uv run ruff check --fix wallpapers/<slug>
    uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/<slug>/design.py
    ```
-   `check` covers every variant. Its warnings are judgement calls, except colour words and
+   `check` covers every variant. Its warnings are judgment calls, except color words and
    fractional grid origins: fix those.
 9. Independent critique (below). Go on only with a score of 8 or more.
 10. `uv run walldye build <slug>`, then `uv run walldye check --similar <slug>`: after running
@@ -192,8 +192,8 @@ docstring and comments. On top of them:
 - A title is short and plain, in sentence case, like "Radar sweep" or "One-bit moon".
 - Vary the description's shape from the last few pieces (`walldye list` shows them).
 - Run the avoid-ai-tropes skill on every draft.
-- The colour-word lint is a plain word list that also matches plurals, so "golden section",
-  "black" and "greys" trip it. It does not know temperatures ("warm", "cool"); avoid those by
+- The color-word lint is a plain word list that also matches plurals, so "golden section",
+  "black" and "grays" trip it. It does not know temperatures ("warm", "cool"); avoid those by
   hand.
 
 ## Examples
@@ -204,7 +204,7 @@ Start from the nearest of these published pieces, each at `wallpapers/<slug>/des
 |---|---|
 | `dither-moon` | blue-noise dither, an `s.light` geometry branch, a phase variant |
 | `radar-sweep` | an instrument, grains bucketed by tone, a clip, a variant at a later moment |
-| `glyph-terrain` | glyph roles, `by_regime` colours, a map turned for portrait screens |
+| `glyph-terrain` | glyph roles, `by_regime` colors, a map turned for portrait screens |
 | `pixel-invaders` | sprites stamped into one `Pixels` grid, dive trail included |
 | `patent-lamp` | a patent figure placed by one transform, ruled shading and stipple |
 | `eclipse-contours` | iso-lines in a clip, in under 50 lines |
@@ -214,7 +214,7 @@ Start from the nearest of these published pieces, each at `wallpapers/<slug>/des
 
 ## References
 
-- references/api.md: drawing with the API in practice: composing for every aspect, colours,
+- references/api.md: drawing with the API in practice: composing for every aspect, colors,
   buckets, clips and masks, random streams, fields, dither methods and their cost, glyphs,
   shapely and scipy recipes, and staying under the limits. docs/api.md has the signatures.
 - references/principles.md: the house style, light themes, subjects, the critique checklist,

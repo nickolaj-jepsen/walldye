@@ -18,7 +18,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     P,
     Path,
     Vec,
@@ -44,21 +44,21 @@ def toward(p: Vec, q: Vec, d: float) -> Vec:
     return p + (q - p).unit() * d
 
 
-# Arbors relative to the movement's centre, each one pitch radius plus the next pinion's from
+# Arbors relative to the movement's center, each one pitch radius plus the next pinion's from
 # its driver. The train winds once round the plate: barrel upper left, wheels down the right,
 # balance at the bottom.
-CENTRE = Vec(0, 0)
-BARREL = polar(CENTRE, 150 + 16, deg=225)
-THIRD = polar(CENTRE, 110 + 13, deg=-40)
+CENTER = Vec(0, 0)
+BARREL = polar(CENTER, 150 + 16, deg=225)
+THIRD = polar(CENTER, 110 + 13, deg=-40)
 FOURTH = polar(THIRD, 88 + 11, deg=30)
 ESCAPE = polar(FOURTH, 80 + 9, deg=100)
-BALANCE = polar(CENTRE, 225, deg=80)
+BALANCE = polar(CENTER, 225, deg=80)
 PALLET = toward(ESCAPE, BALANCE, 66)
 CROWN = toward(BARREL, Vec(-240, -30), 96 + 36)
-# (arbor, pitch radius, teeth, pinion radius, crossings, tooth tick colour), bottom to top
+# (arbor, pitch radius, teeth, pinion radius, crossings, tooth tick color), bottom to top
 WHEELS = (
     (BARREL, 150, 90, 0, 0, BG_ALT),
-    (CENTRE, 110, 80, 16, 4, BG_ALT),
+    (CENTER, 110, 80, 16, 4, BG_ALT),
     (THIRD, 88, 75, 13, 4, TRAIN_TICK),
     (FOURTH, 80, 70, 11, 4, TRAIN_TICK),
 )
@@ -70,9 +70,9 @@ class Layer:
 
     z: float
     geom: BaseGeometry
-    stroke: Colour
+    stroke: Color
     width: float = 1.2
-    fill: Colour | None = None
+    fill: Color | None = None
     dash: tuple[float, ...] | None = None
 
 
@@ -118,20 +118,20 @@ def draw(s: Canvas) -> None:
     def add(
         z: float,
         g: BaseGeometry,
-        stroke: Colour,
+        stroke: Color,
         width: float = 1.2,
-        fill: Colour | None = None,
+        fill: Color | None = None,
         dash: tuple[float, ...] | None = None,
     ) -> None:
         layers.append(Layer(z, g, stroke, width, fill, dash))
 
-    def screws(z: float, centres: list[Vec], r: float = 10, deg: float = 35) -> None:
-        add(z, unary_union([disc(c, r) for c in centres]), UI_ALT, fill=BRIDGE)
-        slots = [(polar(c, r, deg=deg), polar(c, r, deg=deg + 180)) for c in centres]
+    def screws(z: float, centers: list[Vec], r: float = 10, deg: float = 35) -> None:
+        add(z, unary_union([disc(c, r) for c in centers]), UI_ALT, fill=BRIDGE)
+        slots = [(polar(c, r, deg=deg), polar(c, r, deg=deg + 180)) for c in centers]
         add(z, MultiLineString(slots), UI_ALT)
 
-    # plate, centre lines and winding stem: the lowest layer
-    add(0, ring(CENTRE, PLATE), EDGE, 2)
+    # plate, center lines and winding stem: the lowest layer
+    add(0, ring(CENTER, PLATE), EDGE, 2)
     e = PLATE + 50
     add(0, MultiLineString([((-e, 0), (e, 0)), ((0, -e), (0, e))]), UI, dash=DASHDOT)
     x0, x1 = CROWN.x - 46, -PLATE - 18
@@ -173,7 +173,7 @@ def draw(s: Canvas) -> None:
     # balance cock: a plate reaching out from under the balance to two screws, clear of the train
     cock_screws = [polar(BALANCE, 150, deg=140), polar(BALANCE, 162, deg=182)]
     cock = hull(disc(BALANCE, 40), *(disc(c, 20) for c in cock_screws))
-    add(6.5, cock.intersection(disc(CENTRE, PLATE - 12)), UI, fill=BRIDGE)
+    add(6.5, cock.intersection(disc(CENTER, PLATE - 12)), UI, fill=BRIDGE)
     screws(6.6, cock_screws)
 
     # balance: rim, arms, timing screws
@@ -191,7 +191,7 @@ def draw(s: Canvas) -> None:
         unary_union([hull(disc(a, 22), disc(b, 22)) for a, b in pairwise(train)]),
     ]
     for g in bridges:
-        g = g.intersection(disc(CENTRE, PLATE - 12))
+        g = g.intersection(disc(CENTER, PLATE - 12))
         add(8, g, UI, fill=BRIDGE)
         covers.append((8, g))
     screws(9, [*barrel_screws, t_end, e_end])
@@ -207,8 +207,8 @@ def draw(s: Canvas) -> None:
     covers.append((9, disc(CROWN, 42)))
 
     # jewels at the arbors that show through the bridges
-    jewelled = (CENTRE, THIRD, FOURTH, ESCAPE, PALLET, BALANCE)
-    add(9.5, unary_union([ring(c, r) for c in jewelled for r in (6, 2.5)]), EDGE)
+    jeweled = (CENTER, THIRD, FOURTH, ESCAPE, PALLET, BALANCE)
+    add(9.5, unary_union([ring(c, r) for c in jeweled for r in (6, 2.5)]), EDGE)
 
     # hairspring: an Archimedean spiral whose outer coil lifts away to the stud
     turns, r0, r1 = 10, 14, 66
@@ -219,7 +219,7 @@ def draw(s: Canvas) -> None:
     angles = np.concatenate([end * t, end + 0.9 * u])
     spring = BALANCE + np.column_stack([radii * np.cos(angles), radii * np.sin(angles)])
 
-    # landscape: right of centre, leaving the left for windows; portrait: a little below middle
+    # landscape: right of center, leaving the left for windows; portrait: a little below middle
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.58), snap=1)
     with s.group(transform=Affine.translate(c.x, c.y)):
         for layer in sorted(layers, key=lambda k: k.z):

@@ -42,7 +42,7 @@ def lint(
     slug: str, svg: str, aspect: str, grids: Sequence[tuple[float, float, float]]
 ) -> tuple[list[str], list[str]]:
     """(errors, warnings) for one render of `slug` at `aspect`: the per-render part of
-    `walldye check` (viewBox, the template limits, the design lint, colour words in the
+    `walldye check` (viewBox, the template limits, the design lint, color words in the
     meta.yaml copy, whole-unit origins of `grids`, the document's pixel grids). Ruff and
     Pyrefly run only in check."""
     errors, warnings = lints.svg(svg)
@@ -128,7 +128,7 @@ def run(
 
     _, _, bw, bh = crop if crop is not None else (0.0, 0.0, *map(float, canvas_size(aspect)))
     px = width if bw >= bh else round(width * bw / bh)
-    img = _inkscape(svg, px, crop) if renderer == "inkscape" else common.rasterise(svg, px, crop)
+    img = _inkscape(svg, px, crop) if renderer == "inkscape" else common.rasterize(svg, px, crop)
     name = file_name(slug, variant, token, aspect, overrides)
     if crop is not None:
         name += "-crop-" + "-".join(f"{v:g}" for v in crop)

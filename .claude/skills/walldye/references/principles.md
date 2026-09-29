@@ -12,13 +12,13 @@ So it has to be calm: low contrast where windows sit, one clear thing to look at
 the desktop is empty, and nothing that looks like a bug when you see only a corner of
 it. The best pieces read in one glance and still hold up when you zoom into a crop.
 
-The house look: minimal, confident, lots of negative space, quiet greys, and one
+The house look: minimal, confident, lots of negative space, quiet grays, and one
 restrained accent "event". Pure vector: no text, no raster images, no filters, no blur.
 
 ## Subjects
 
 - Subjects that work: instruments and science plots (radar, helicorder, Smith chart, navball),
-  dev artefacts (schematics, commit graphs, minimaps), crisp technical or patent drawings of
+  dev artifacts (schematics, commit graphs, minimaps), crisp technical or patent drawings of
   one contained object, dithered and pixel/glyph art, quiet full-bleed tilings or fields with
   a small accent event, and a few bold single-gesture graphics.
 - Subjects that fail: literal illustration (trees, fireflies, icebergs, koi), maximalist
@@ -36,17 +36,17 @@ restrained accent "event". Pure vector: no text, no raster images, no filters, n
 
 ## Palette discipline
 
-Write every colour as a theme token or a `mix()`, `ladder()` or `by_regime()` of tokens. A
-hex value is never a paint, and `walldye check` fails any colour outside a mask that does not
+Write every color as a theme token or a `mix()`, `ladder()` or `by_regime()` of tokens. A
+hex value is never a paint, and `walldye check` fails any color outside a mask that does not
 move with the theme.
 
-Greys carry the structure. Use them in this order of preference:
+Grays carry the structure. Use them in this order of preference:
 
 - `BG_ALT`: default for large textures and fields. Barely there, which is the point.
 - `UI`: default for structural lines and the main object's linework.
 - `UI_ALT`: emphasis lines and small fills. Never a large mass; one step too bright for
   anything that covers a big part of the screen.
-- `UI_HI`: small marks only (ticks, a pivot dot). If it is the brightest grey on screen,
+- `UI_HI`: small marks only (ticks, a pivot dot). If it is the brightest gray on screen,
   make sure it is also tiny.
 - `MUTED`, `FG_ALT`, `FG`: rare, tiny. Almost never needed.
 - `BG_DEEP`, `BLACK`: recesses and knock-outs (wells, gaps under an accent line).
@@ -54,30 +54,30 @@ Greys carry the structure. Use them in this order of preference:
 The accent is the event, and there is one event. Full `ACCENT` should cover only a few
 percent of the canvas (as a guide, under ~3%), and the whole accent family, dark ramp
 steps included, under ~10%. The event can be a small solid shape, a single line, a
-highlighted segment of a grey structure, or a short run of cells. It should be one
+highlighted segment of a gray structure, or a short run of cells. It should be one
 connected thing. A second accent spot is allowed only if it is much smaller and clearly
 subordinate (a darker ramp step), and usually the design is better without it. `ACCENT_HI`
 is a glint on the accent, tiny areas only.
 
-One hue: greys plus the accent ramp. Use the ramp for depth and falloff, never for a second
-colour story.
+One hue: grays plus the accent ramp. Use the ramp for depth and falloff, never for a second
+color story.
 
 Tone steps must be visibly different at wallpaper distance:
 
 - Use few, wide steps. Three or four accent tones (e.g. `ACCENT`, `ACCENT_1`, `ACCENT_3`,
-  `ACCENT_6`) beat an eight-step ramp. Two grey steps beat four close ones.
+  `ACCENT_6`) beat an eight-step ramp. Two gray steps beat four close ones.
 - `ACCENT_5`..`ACCENT_8` sit close to the background. As large fills on a dark theme they
   read as brown smudges or stains. Use them for strokes, thin halos and outline-only
   fades, or skip them.
 - Do not fake overlaps with `opacity`. Alpha composites land between tokens as muddy,
-  off-ramp colours (and `walldye check` cannot see them). Compute the intersection with shapely
+  off-ramp colors (and `walldye check` cannot see them). Compute the intersection with shapely
   and fill it with a chosen token.
-- The brightest grey element and the accent should not compete. The eye should land on
-  the accent first; if something grey is louder, knock it down a step.
+- The brightest gray element and the accent should not compete. The eye should land on
+  the accent first; if something gray is louder, knock it down a step.
 
 ### Light themes
 
-Tokens are semantic, so they invert on light themes: greys walk from `BG` toward a dark `FG`,
+Tokens are semantic, so they invert on light themes: grays walk from `BG` toward a dark `FG`,
 and `ACCENT_1`..`ACCENT_8` walk toward a pale `BG`. So:
 
 - `BG_DEEP` and `BLACK` are _lighter_ than `BG` on a light theme. Treat them as "away from
@@ -99,10 +99,10 @@ the `--theme` seeds.
 
 ## Composition
 
-- One focal element or cluster, placed deliberately, usually off-centre on a thirds or
-  golden line (roughly 0.3-0.4 or 0.6-0.7 of the long side). Dead-centre, evenly
-  weighted compositions look static and disappear behind a centred window.
-- Pair a quiet field with one event: the strongest pieces are low-contrast grey textures (a
+- One focal element or cluster, placed deliberately, usually off-center on a thirds or
+  golden line (roughly 0.3-0.4 or 0.6-0.7 of the long side). Dead-center, evenly
+  weighted compositions look static and disappear behind a centered window.
+- Pair a quiet field with one event: the strongest pieces are low-contrast gray textures (a
   record, a lattice, a stipple, a dithered field) holding one meaningful anomaly, such as an
   escaped square, a spiking core, a lit window or a glider.
 - Keep at least ~40% of the screen empty or near-empty. A full-bleed texture counts as
@@ -149,12 +149,12 @@ The canvas short side is 1080 units, so 1 unit is 1 px at 1080p, 1.33 px at 1440
   lines usually 2-3 units. Very heavy strokes (8+ units) are rare and deliberate.
 - Things meant to be seen must survive 1080p: a 1-unit `BG_ALT` line or a 3-unit `UI`
   dot on a dark ground often disappears. Commit (raise a step or thicken) or cut it.
-- Merge geometry: one `<path>` per colour and stroke style. Aim for under ~600 kB and
+- Merge geometry: one `<path>` per color and stroke style. Aim for under ~600 kB and
   ~15k elements (`walldye check` warns above that and fails above 1 MB / 20k). Use `grid_runs`, `sprite` and `glyphs`,
   which already merge runs.
-- Union same-colour polygons with `shapely.unary_union` instead of stroking each piece to
+- Union same-color polygons with `shapely.unary_union` instead of stroking each piece to
   hide gaps; per-piece strokes leave seams at every shared edge.
-- A stroke is centred on its path, so half of it spills outside a filled shape. Inset
+- A stroke is centered on its path, so half of it spills outside a filled shape. Inset
   outlines by half the stroke width, or draw one line per edge instead of per-cell rects
   (per-cell rects give double lines in every gutter).
 - Parallel lines closer than about two stroke widths merge into a double line or a
@@ -173,13 +173,13 @@ Pixel, dither and glyph work:
 - Fine high-contrast periodic patterns (pitch under ~6 units, strict on/off) moiré under
   1.25x/1.5x fractional scaling. Keep fine periodic textures low contrast or coarser.
 - Commit to a resolution. Smooth curves on a coarse 3-unit grid look like an upscaled
-  bitmap: either make the pixels a deliberate feature or vectorise with `iso_lines()`.
+  bitmap: either make the pixels a deliberate feature or vectorize with `iso_lines()`.
 - Random salt-and-pepper cells read as compression grain. Prefer ordered or blue-noise
   dither, or deterministic tone bands; remove orphan cells and components smaller than a
   few cells.
 - Vary the dither method between pieces (ordered, blue noise, error diffusion, line screen,
   Hilbert path) so each has its own grain.
-- Pixel art: 4-6 colours, deliberate clusters, clean silhouettes, no pillow shading, no
+- Pixel art: 4-6 colors, deliberate clusters, clean silhouettes, no pillow shading, no
   anti-aliased edges. Glyph `px` is an integer (1-3).
 
 Draw every random number from `s.rng`, `s.np_rng` or `s.noise`. `check` fails designs whose
@@ -193,9 +193,9 @@ busiest region. Then answer each question honestly:
 - [ ] Does it read instantly? Would a stranger name the idea from the thumbnail?
 - [ ] Is there exactly one accent event, and is it where the eye lands first?
 - [ ] Is the accent area restrained, with full `ACCENT` only at the core?
-- [ ] Are the greys quiet enough that a terminal over any part of it stays readable?
-      What is the brightest grey, and how big is it?
-- [ ] Is the composition deliberate: off-centre focal point, balanced negative space,
+- [ ] Are the grays quiet enough that a terminal over any part of it stays readable?
+      What is the brightest gray, and how big is it?
+- [ ] Is the composition deliberate: off-center focal point, balanced negative space,
       margins that look chosen?
 - [ ] Is every crop intentional? Any near-tangents with the frame, half-rows at an edge?
 - [ ] Are tone steps distinct, with no muddy brown fades or alpha composites?
@@ -207,7 +207,7 @@ busiest region. Then answer each question honestly:
 - [ ] Is the geometry identical across themes in a regime (or an intentional light template)?
 - [ ] Is it a sibling of the rest of the set, not a near-duplicate? `walldye check --similar`
       only compares built pieces, so until `walldye build <slug>` has run, compare the
-      preview by eye with a sheet of its nearest neighbours from `walldye list`
+      preview by eye with a sheet of its nearest neighbors from `walldye list`
       (`walldye sheet <slugs>`).
 - [ ] Is the meta.yaml copy theme-neutral, with every source URL fetched?
 - [ ] Does any variant change what is depicted, not just a value, look different from every
@@ -224,7 +224,7 @@ busiest region. Then answer each question honestly:
 
 Scoring, on "would this sit proudly in the set as a daily wallpaper":
 
-- **8+ (keep)**: reads instantly, one confident event, quiet greys, clean in every crop,
+- **8+ (keep)**: reads instantly, one confident event, quiet grays, clean in every crop,
   distinct from its siblings. Remaining notes are optional polish.
 - **7**: good idea and composition with a few concrete polish fixes (a stray mark, a
   step too loud, an awkward margin). Fix, then re-review.
@@ -250,21 +250,21 @@ Each fix names the reviews that taught it, where there was one.
 | Reads as a logo or badge (a lone crest, a bare symmetric curve)           | Show its construction (compass arcs, a crease pattern, a drafting grid) or embed it in a system. The oscilloscope's sideways figure eight looked like the Meta logo. |
 | Busy full-sheet blueprint                                                 | Draw one contained object with generous margins; keep dimension and construction lines a step quieter. Orthographic projections, floor plans and exploded assemblies competed with the windows over them. |
 | Full-bleed texture too bright                                             | Drop to `BG_ALT` or thin `UI` lines, lower density, fade it away from the event.                       |
-| Brightest grey outshines the accent                                       | Knock that element down a grey step or thin it, so the accent is the first read.                       |
-| Two accent events (sun plus ridge, dot plus needle, scattered islands)    | Keep the single largest connected accent; turn the rest grey or a much darker ramp step.               |
+| Brightest gray outshines the accent                                       | Knock that element down a gray step or thin it, so the accent is the first read.                       |
+| Two accent events (sun plus ridge, dot plus needle, scattered islands)    | Keep the single largest connected accent; turn the rest gray or a much darker ramp step.               |
 | Muddy tone steps (long fade into the background, brown smudges)           | Cut to 3-4 wide steps; end fades as outline-only strokes, not dark fills.                              |
 | Alpha overlaps                                                            | Compute the intersection with shapely and fill it with a token.                                        |
 | Stray accidental marks (orphan dots, lone counterweights, leftover rings) | Connect them to the main form or delete them.                                                          |
 | Salt-and-pepper noise, orphan cells                                       | Use deterministic bands or ordered dither; drop small components.                                      |
-| Symmetric dead-centre composition                                         | Move the focal point to a thirds line and let one side stay empty.                                     |
+| Symmetric dead-center composition                                         | Move the focal point to a thirds line and let one side stay empty.                                     |
 | Accidental-looking crop or near-tangent with the frame                    | Pull it inside with a real margin, or push it clearly off the edge.                                    |
 | Doesn't read at thumbnail size (event is a small smudge)                  | Enlarge the event or raise its contrast; make the idea's gesture bigger.                               |
-| Too faint: key parts only visible when zoomed                             | Raise a grey step or thicken to at least 1.2-1.5 units, or cut the part.                               |
+| Too faint: key parts only visible when zoomed                             | Raise a gray step or thicken to at least 1.2-1.5 units, or cut the part.                               |
 | Idea not legible (worked out, not seen)                                   | Exaggerate the one gesture, cut ~40% of the elements.                                                  |
 | Almost-even rhythm (table look) or random jitter (sloppy look)            | Make spacing strict, or vary it clearly with one thin and one wide interval.                           |
 | Seams, double lines, kinks, boolean notches                               | Union shapes, inset strokes, smooth joins, clamp minimum tip width.                                    |
 | Moiré or shimmer                                                          | Snap to integer units, coarsen or quiet fine periodic patterns, avoid packed near-parallel lines.      |
-| Upscaled-bitmap look                                                      | Commit to crisp pixels on an integer grid, or vectorise with `iso_lines()`.                             |
+| Upscaled-bitmap look                                                      | Commit to crisp pixels on an integer grid, or vectorize with `iso_lines()`.                             |
 | Near-duplicate of a sibling                                               | Change the subject or the composition, not just the parameters.                                        |
 | A variant that nudges a value, or a seed ladder offered as versions       | Keep one version, or pick a variant that shows something else (a phase, a moment, a rule).             |
 | A version that reads less clearly than the default                        | Drop it. Review dropped a full moon whose dither lost the terminator that makes it a sphere, birdsong that no longer read as a spectrogram, pendulums caught lined up in two rows, and a black hole seen from above that lost its bent far side. A pollution cloud that reached one nest further passed `check` and was still too close to its default. |

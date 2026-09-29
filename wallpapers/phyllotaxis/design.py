@@ -1,4 +1,4 @@
-"""Vogel's sunflower spiral of dots rising from a corner, with the Fibonacci florets along one ray and their neighbours picked out."""
+"""Vogel's sunflower spiral of dots rising from a corner, with the Fibonacci florets along one ray and their neighbors picked out."""
 
 import math
 
@@ -20,7 +20,7 @@ RING, LEAD_RING, HOT = 4, 5, 6  # indices into TONES
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # centre just off the lower right corner, so the tiny central florets are cropped
+    # center just off the lower right corner, so the tiny central florets are cropped
     c = Vec(s.w + 40, s.h + 30)
     # the ray points up and to the left, into the screen
     tilt = math.radians(180 + (RAY if s.landscape else 90 - RAY))
@@ -32,8 +32,8 @@ def draw(s: Canvas) -> None:
     seen = (np.abs(pts - half) < half + size[:, None]).all(axis=1)
     tone = FADE.rung((r / r[-1] - 0.85) / 0.15)
 
-    # each Fibonacci floret with its six nearest neighbours; the outermost rosette leads the
-    # chain, larger and with brighter neighbours
+    # each Fibonacci floret with its six nearest neighbors; the outermost rosette leads the
+    # chain, larger and with brighter neighbors
     tree = cKDTree(pts)
     hot = [k - 1 for k in FIB]
     for h in hot:

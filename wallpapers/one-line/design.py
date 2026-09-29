@@ -1,4 +1,4 @@
-"""A crescent moon drawn as one unbroken line: a travelling-salesman tour through stipples weighted by sunlight."""
+"""A crescent moon drawn as one unbroken line: a traveling-salesman tour through stipples weighted by sunlight."""
 
 import math
 from collections import deque
@@ -57,7 +57,7 @@ def stipple(rng: NpRng, light: Points, iters: int = 12, res: int = 700) -> Point
     return pts
 
 
-def nearest_neighbour(pts: Points, tree: cKDTree) -> Order:
+def nearest_neighbor(pts: Points, tree: cKDTree) -> Order:
     """Visit order that always steps to the closest unvisited point, starting at point 0."""
     n = len(pts)
     seen = np.zeros(n, bool)
@@ -76,14 +76,14 @@ def nearest_neighbour(pts: Points, tree: cKDTree) -> Order:
 
 
 def tour(pts: Points, k: int = 10) -> Order:
-    """A closed tour visiting every point once: nearest-neighbour order, then 2-opt and Or-opt
-    moves over each point's `k` nearest neighbours until no move shortens it."""
+    """A closed tour visiting every point once: nearest-neighbor order, then 2-opt and Or-opt
+    moves over each point's `k` nearest neighbors until no move shortens it."""
     n = len(pts)
     tree = cKDTree(pts)
     nbrs: list[list[int]] = tree.query(pts, k + 1)[1][:, 1:].tolist()
     xs: list[float] = pts[:, 0].tolist()
     ys: list[float] = pts[:, 1].tolist()
-    t = nearest_neighbour(pts, tree)
+    t = nearest_neighbor(pts, tree)
     pos = np.empty(n, np.intp)
     pos[t] = np.arange(n)
 

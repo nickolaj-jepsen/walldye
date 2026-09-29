@@ -12,7 +12,7 @@ LIT, DIM = ("RUN",), ("MASTER", "KERNEL", "22")
 ROWS = ("ADDRESS", "DATA", "SWR")
 FONT, PX = "5x8", 2
 # Full-size panel geometry: lamp pitch, extra gap between octal groups, lamp radius, and the
-# rows' offsets from the panel centre.
+# rows' offsets from the panel center.
 PITCH, GAP, R = 60, 15, 9
 Y_STATUS, Y_ADDR, Y_DATA, Y_SW = -195, -85, 15, 155
 LABEL_GAP = 40  # row labels end this far left of the top bit

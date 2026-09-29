@@ -8,7 +8,7 @@ from walldye import ACCENT, ACCENT_3, BG_ALT, UI, Canvas, P, design, ramp
 
 Y0, GAP = 24, 11  # first line below the bottom edge, line pitch
 TOL = 0.1  # simplification tolerance: the flat left part collapses to a few points
-AMP0, AMP1 = 16, 12  # amplitude eases off at the right so steep neighbours don't close up
+AMP0, AMP1 = 16, 12  # amplitude eases off at the right so steep neighbors don't close up
 F1, POW = 1 / 60, 3  # frequency at the right edge; f(x) ~ x**POW keeps the left flat
 DRIFT = 0.3  # phase lag per line, in radians: the crests lean instead of stacking
 TAIL = 19 / 60  # lines above the picked-out one, as a share of the lines below it

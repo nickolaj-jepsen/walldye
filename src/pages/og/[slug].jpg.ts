@@ -7,7 +7,7 @@ import sharp from 'sharp';
 const W = 1200;
 const H = 630;
 
-/** Social card: a 1200x630 band of the fireproof 16:9 template, centred on its focus where the band can move. */
+/** Social card: a 1200x630 band of the fireproof 16:9 template, centered on its focus where the band can move. */
 export const getStaticPaths = (async () =>
   (await getCollection('wallpapers')).map(({ data }) => ({
     params: { slug: data.slug },

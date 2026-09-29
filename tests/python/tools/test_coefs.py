@@ -7,14 +7,14 @@ from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._theme import parse_theme
 from walldye.tools import coefs, common
-from walldye.tools.tokenize import find_colours
+from walldye.tools.tokenize import find_colors
 
 
 def test_slot_rows_are_the_formulas():
     parts = ['<svg><rect fill="', '"/><rect fill="', '"/><rect fill="', '"/></svg>']
-    colours = [UI, mix(BG, ACCENT, 0.5), by_regime(FG, MUTED)]
-    docs = {r: Document(parts, colours, w=1920, h=1080, regime=r) for r in ("dark", "light")}
-    _, entries, errors = coefs.serialise_aspect(docs, "16:9")
+    colors = [UI, mix(BG, ACCENT, 0.5), by_regime(FG, MUTED)]
+    docs = {r: Document(parts, colors, w=1920, h=1080, regime=r) for r in ("dark", "light")}
+    _, entries, errors = coefs.serialize_aspect(docs, "16:9")
     assert errors == []
     dark, light = entries["16:9/dark"], entries["16:9/light"]
     assert dark["coefs"] == [
@@ -76,7 +76,7 @@ MASKED = (
 
 
 def test_mask_bound():
-    spans = find_colours(MASKED)
+    spans = find_colors(MASKED)
     bound = coefs.mask_bound(MASKED, [s for s, _, _ in spans])
     assert bound == [
         True,  # lg1: referenced only from the mask
@@ -96,52 +96,52 @@ def test_slot_rule():
     svg = '<svg><rect fill="#123456"/>\n<mask id="m"><rect fill="#FFFFFF"/><rect fill="#1C1B1A"/></mask></svg>'
     rows = [[0, 0, 0, 18, 52, 86], [0, 0, 0, 255, 255, 255], [1, 0, 0, 0, 0, 0]]
     assert coefs.slot_rule(svg, rows, [0, 1, 2]) == [
-        "hardcoded #123456 ×1 (line 1): use a token or mix(); constant colours belong only in <mask>/<clipPath>",
+        "hardcoded #123456 ×1 (line 1): use a token or mix(); constant colors belong only in <mask>/<clipPath>",
         "theme-dependent #1C1B1A ×1 in mask content (line 2): masks take MASK_WHITE, MASK_BLACK and their mixes only",
     ]
 
 
 def test_collision_needs_per_occurrence_slots(wallpapers):
     regen.install(wallpapers, "collision")
-    template = [c for _, _, c in find_colours(common.render("collision", "fireproof"))]
+    template = [c for _, _, c in find_colors(common.render("collision", "fireproof"))]
     assert template[1] == template[2]  # two roles, one fireproof hex
     piece = common.load("collision")
     docs = {
         r: common.draw(piece, RenderSpec("default", piece.params(), "16:9", r))
         for r in ("dark", "light")
     }
-    _, entries, errors = coefs.serialise_aspect(docs, "16:9")
+    _, entries, errors = coefs.serialize_aspect(docs, "16:9")
     entry = entries["16:9/dark"]
     assert errors == [] and entry["n"] == 3 and entry["occ"][1] != entry["occ"][2]
 
     # Keyed by hex instead, the second role would take the first one's row.
     rows = np.array(entry["coefs"])[[entry["occ"][0], entry["occ"][1], entry["occ"][1]]]
     worst = max(
-        np.abs(coefs.predict(rows, t) - coefs.colours(common.render("collision", t))).max()
+        np.abs(coefs.predict(rows, t) - coefs.colors(common.render("collision", t))).max()
         for t in _check_themes.HELD_OUT["dark"]
     )
     assert worst > coefs.MAX_ERROR
 
 
-def test_serialise_aspect_checks_the_slots_it_serialises():
-    """A colour baked into the text is a slot the document does not know about."""
+def test_serialize_aspect_checks_the_slots_it_serializes():
+    """A color baked into the text is a slot the document does not know about."""
     parts = ['<svg viewBox="0 0 1920 1080"><rect fill="', '"/><rect fill="#123456"/></svg>']
     docs = {r: Document(parts, [UI], w=1920, h=1080, regime=r) for r in ("dark", "light")}
-    _, entries, errors = coefs.serialise_aspect(docs, "16:9")
+    _, entries, errors = coefs.serialize_aspect(docs, "16:9")
     assert entries == {} and len(errors) == 2
     assert errors[0].startswith(
         "16:9 dark: the slots found under fireproof are not the document's, line 1:"
     )
 
 
-def test_serialise_aspect_shares_or_splits_templates():
+def test_serialize_aspect_shares_or_splits_templates():
     dark = Document(['<svg><rect fill="', '"/></svg>'], [UI], w=1920, h=1080, regime="dark")
     same = Document(['<svg><rect fill="', '"/></svg>'], [UI], w=1920, h=1080, regime="light")
     other = Document(['<svg><path fill="', '"/></svg>'], [UI], w=1920, h=1080, regime="light")
-    templates, entries, errors = coefs.serialise_aspect({"dark": dark, "light": same}, "21:9")
+    templates, entries, errors = coefs.serialize_aspect({"dark": dark, "light": same}, "21:9")
     assert errors == [] and list(templates) == ["21x9.svg"]
     assert entries["21:9/light"]["file"] == "21x9.svg"
-    templates, entries, _ = coefs.serialise_aspect({"dark": dark, "light": other}, "21:9")
+    templates, entries, _ = coefs.serialize_aspect({"dark": dark, "light": other}, "21:9")
     assert list(templates) == ["21x9.svg", "21x9.light.svg"]
     assert templates["21x9.light.svg"] == other.to_svg(parse_theme("flexoki-light"))
     assert entries["21:9/light"]["file"] == "21x9.light.svg" and entries["21:9/light"]["n"] == 1

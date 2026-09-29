@@ -1,6 +1,6 @@
 /**
  * A grid of plates as Plate.astro renders them (the index, and "See also" on the detail page): each
- * recoloured in the current theme while it is within a viewport of the view, shown in the grid's
+ * recolored in the current theme while it is within a viewport of the view, shown in the grid's
  * shape, its link opening the piece in that shape.
  */
 import { type Aspect, aspectLabel } from '../lib/content';

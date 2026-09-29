@@ -7,7 +7,7 @@ from scipy.interpolate import Akima1DInterpolator
 from walldye import ACCENT, ACCENT_5, BG_ALT, UI, UI_ALT, Canvas, P, Path, Rng, Vec, design, polar
 
 CY = 670  # the rope's axis
-XS = [760 + k * (1640 - 760) / 7 for k in range(8)]  # core centres
+XS = [760 + k * (1640 - 760) / 7 for k in range(8)]  # core centers
 ORX, ORY, IRX, IRY = 34, 52, 17, 30  # outer and inner radii of a core seen at a slant
 N = 52
 ACCENT_WIRE, ACCENT_BITS = 17, (1, 0, 1, 1, 0, 0, 1, 0)
@@ -87,7 +87,7 @@ def draw(s: Canvas) -> None:
     for i in range(N):
         if i == ACCENT_WIRE:
             continue
-        # each wire favours one side when bypassing, so the 0-bit loops don't mirror into lens shapes
+        # each wire favors one side when bypassing, so the 0-bit loops don't mirror into lens shapes
         side = r.choice((-1, 1))
         bits = [r.random() < (0.2 if lit else 0.55) for lit in ACCENT_BITS]
         sides = [side if r.random() < 0.85 else -side for _ in XS]

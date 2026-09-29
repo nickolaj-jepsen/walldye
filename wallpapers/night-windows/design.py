@@ -26,12 +26,12 @@ from walldye.pixel import dither, grid_runs, sprite
 
 PX = 4
 COLS, WW, WH = 6, 96, 80  # window columns; window opening in units (24x20 cells)
-BAY, STOREY, SIDE = 130, 114, 26  # window pitch across and down; wall beside the outer windows
+BAY, STORY, SIDE = 130, 114, 26  # window pitch across and down; wall beside the outer windows
 TW = 2 * SIDE + BAY * (COLS - 1) + WW  # tower width
 ROOF_GAP = 44  # roof edge to the top of the first window row
 FOOT = 72  # last window's bottom to the canvas edge: the tower runs on below it
 HOT_COL = 3
-LIT, GHOSTS = 7, 2  # dim rooms and curtained dark ones in seven storeys (a taller tower: sparser)
+LIT, GHOSTS = 7, 2  # dim rooms and curtained dark ones in seven stories (a taller tower: sparser)
 
 SILL = mix(BG_ALT, UI_ALT, 0.55)
 BAND = mix(BG_ALT, UI_ALT, 0.35)
@@ -224,7 +224,7 @@ CODER = """
 """
 
 
-type Cell = tuple[int, int]  # (column, storey) of a window
+type Cell = tuple[int, int]  # (column, story) of a window
 
 
 def apart(p: Cell, q: Cell) -> int:
@@ -233,7 +233,7 @@ def apart(p: Cell, q: Cell) -> int:
 
 
 def fit(art: str, flip: bool) -> list[str]:
-    """Centre a motif's columns in the 24x20 opening with at least one '.' cell each side,
+    """Center a motif's columns in the 24x20 opening with at least one '.' cell each side,
     mirrored left to right when `flip`."""
     rows = pad(art)
     used = [i for i in range(24) if any(r[i] != "." for r in rows)]
@@ -246,21 +246,21 @@ def fit(art: str, flip: bool) -> list[str]:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     r = s.rng(5)
-    # Whole storeys stack up from the bottom edge, so the tower always runs off it the same way;
+    # Whole stories stack up from the bottom edge, so the tower always runs off it the same way;
     # a landscape screen holds seven, a portrait one about twice as many under a taller sky.
     aim = s.pick(landscape=(0.5, 0.185), portrait=(0.5, 0.29))
-    storeys = round((s.h - FOOT - WH - ROOF_GAP - aim.y) / STOREY) + 1
-    wy0 = s.h - FOOT - WH - STOREY * (storeys - 1)  # top of the first window row
+    stories = round((s.h - FOOT - WH - ROOF_GAP - aim.y) / STORY) + 1
+    wy0 = s.h - FOOT - WH - STORY * (stories - 1)  # top of the first window row
     roof = wy0 - ROOF_GAP
     tx0 = round((s.w - TW) / 2 / PX) * PX
     tx1 = tx0 + TW
     event = s.pick(landscape=(0, 0.58), portrait=(0, 0.55))
-    hot = (HOT_COL, round((event.y - WH / 2 - wy0) / STOREY))
-    cells = [(c, rw) for c in range(COLS) for rw in range(storeys)]
+    hot = (HOT_COL, round((event.y - WH / 2 - wy0) / STORY))
+    cells = [(c, rw) for c in range(COLS) for rw in range(stories)]
 
     def at(p: Cell) -> tuple[int, int]:
         """Top-left corner of window `p`'s opening."""
-        return tx0 + SIDE + BAY * p[0], wy0 + STOREY * p[1]
+        return tx0 + SIDE + BAY * p[0], wy0 + STORY * p[1]
 
     s.fill(P().rect(tx0, roof, TW, s.h - roof), BG_ALT)
 
@@ -278,8 +278,8 @@ def draw(s: Canvas) -> None:
             grime[j0:j1, i0:i1] = 0
     grid_runs(s, grime, [BG_ALT, GRIME], PX, (tx0, gy0))
     bands = P()
-    for k in range(storeys):
-        bands.rect(tx0, wy0 - 20 + STOREY * k, TW, 2)
+    for k in range(stories):
+        bands.rect(tx0, wy0 - 20 + STORY * k, TW, 2)
     s.fill(bands, BAND)
 
     # roofline: a lift housing, its cap, a mast with a crossbar, and the coping
@@ -294,9 +294,9 @@ def draw(s: Canvas) -> None:
             stars.rect(round(x / 2) * 2, round(y / 2) * 2, 2, 2)
     s.fill(stars, UI_ALT)
 
-    # the event's neighbours stay dark
+    # the event's neighbors stay dark
     far = [p for p in cells if abs(p[0] - hot[0]) > 1 or abs(p[1] - hot[1]) > 1]
-    grow = math.sqrt(storeys / 7)
+    grow = math.sqrt(stories / 7)
     n_lit, n_ghosts = round(LIT * grow), round(GHOSTS * grow)
     lit: list[Cell] = []
     ghosts: list[Cell] = []

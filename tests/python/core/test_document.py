@@ -4,7 +4,7 @@ from core_support import load, spec, themes
 from walldye import ACCENT, MASK_WHITE, UI
 from walldye._document import Document
 from walldye._theme import hex_to_rgb, parse_theme
-from walldye.tools.tokenize import find_colours, normalise, skeleton
+from walldye.tools.tokenize import find_colors, normalize, skeleton
 
 FIXTURES = ("rings", "veil", "pixels", "branchy")
 # Two aspects per design keep the fresh-draw comparison quick: 16:9 and a portrait one.
@@ -25,7 +25,7 @@ RENDERS = list(renders())
 
 
 @pytest.mark.parametrize(("slug", "variant", "aspect", "regime"), RENDERS)
-def test_one_document_serialises_like_fresh_draws(slug, variant, aspect, regime):
+def test_one_document_serializes_like_fresh_draws(slug, variant, aspect, regime):
     d = load(slug)
     doc = d.draw(spec(d, variant, aspect, regime))
     for tokens in themes(regime):
@@ -40,10 +40,10 @@ def test_slots_match_the_tokenizer(slug):
         doc = d.draw(spec(d, "default", "16:9", regime))
         for tokens in themes(regime):
             svg = doc.to_svg(tokens)
-            assert doc.hexes(tokens) == [c for _, _, c in find_colours(svg)]
+            assert doc.hexes(tokens) == [c for _, _, c in find_colors(svg)]
             assert doc.skeleton() == skeleton(svg)
-            assert normalise(svg) == svg
-        assert len(doc.colours()) == len(doc.hexes(themes(regime)[0]))
+            assert normalize(svg) == svg
+        assert len(doc.colors()) == len(doc.hexes(themes(regime)[0]))
 
 
 @pytest.mark.parametrize("slug", FIXTURES)
@@ -52,7 +52,7 @@ def test_coefs_are_the_hexes_before_rounding(slug):
     for regime in ("dark", "light"):
         doc = d.draw(spec(d, "default", "16:9", regime))
         rows = doc.coefs()
-        assert len(rows) == len(doc.colours())
+        assert len(rows) == len(doc.colors())
         # themes()[0] may be fireproof, whose pinned tokens are not derived.
         for tokens in themes(regime)[1:]:
             bg, fg, accent = (hex_to_rgb(tokens[k]) for k in ("bg", "fg", "accent"))
@@ -71,7 +71,7 @@ def test_light_documents_share_the_skeleton_unless_geometry_branches():
 def test_regime_mismatch():
     d = load("rings")
     doc = d.draw(spec(d, "default", "16:9", "dark"))
-    with pytest.raises(ValueError, match="dark document cannot be serialised under a light"):
+    with pytest.raises(ValueError, match="dark document cannot be serialized under a light"):
         doc.to_svg(parse_theme("flexoki-light"))
     with pytest.raises(ValueError):
         doc.hexes(parse_theme("solarized-light"))

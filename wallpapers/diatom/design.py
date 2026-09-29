@@ -30,15 +30,15 @@ LONG, SHORT = 180, 105  # spine lengths beyond the shell, alternating
 HALF = math.degrees(5 / R)  # half the angle a spine's base spans at the shell
 BRISTLES = 6 * SPINES
 CAPSULE = 0.55 * R  # radius of the glow seen through the pores
-DIM = 385  # drop of the dimension line below the centre
+DIM = 385  # drop of the dimension line below the center
 GLOW = ladder((BG, ACCENT_4, ACCENT), 18)  # rung 0 is the unlit shell and is never drawn
 
 type Pore = tuple[NDArray[np.float64], float]
 
 
 def pores(c: Vec) -> list[Pore]:
-    """The pores on the visible hemisphere of the shell centred on `c`, as (outline, distance of
-    the cell's centre from `c`) pairs, projected straight onto the screen."""
+    """The pores on the visible hemisphere of the shell centered on `c`, as (outline, distance of
+    the cell's center from `c`) pairs, projected straight onto the screen."""
     n = round(4 * math.pi * R * R / (PORE * PORE * 0.866))
     i = np.arange(n) + 0.5
     z = 1 - 2 * i / n  # toward the viewer
@@ -58,10 +58,10 @@ def pores(c: Vec) -> list[Pore]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen; centred across a portrait one, above the middle
+    # right of center on a landscape screen; centered across a portrait one, above the middle
     c = s.pick(landscape=(0.625, 0.486), portrait=(0.5, 0.4))
 
-    # specimen-plate construction: centre lines and one dimension across the shell
+    # specimen-plate construction: center lines and one dimension across the shell
     guide = P().M(c + (-R - 230, 0)).H(c.x + R + 230).M(c + (0, -R - 150)).V(c.y + R + 150)
     s.stroke(guide, UI, 1.2, dash=(36, 6, 4, 6))
     y = c.y + DIM

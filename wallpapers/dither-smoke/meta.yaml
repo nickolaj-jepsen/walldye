@@ -1,6 +1,6 @@
 title: Dithered smoke
 description: Incense smoke rises from a lit ember as one braided thread, then curls and frays into dithered veils.
-notes: Each strand of the plume is five braided filaments, spread wider and warped harder by noise the higher they rise. Sierra Lite then passes each cell's rounding error on to three neighbours, half to the next cell in the row and a quarter to each of the two cells beneath it.
+notes: Each strand of the plume is five braided filaments, spread wider and warped harder by noise the higher they rise. Sierra Lite then passes each cell's rounding error on to three neighbors, half to the next cell in the row and a quarter to each of the two cells beneath it.
 technique: [dither]
 subject: []
 lineage: []

@@ -94,8 +94,8 @@ def line(px: Pixels, a: Point, b: Point) -> None:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     size = Vec(PW * CELL, PH * CELL)
-    # Right of centre on a landscape screen, the left kept for windows; in the upper part of a
-    # portrait one. Half the photo is whole cells, so the snapped centre gives a snapped origin.
+    # Right of center on a landscape screen, the left kept for windows; in the upper part of a
+    # portrait one. Half the photo is whole cells, so the snapped center gives a snapped origin.
     o = s.pick(landscape=(0.7474, 0.363), portrait=(0.5, 0.33), snap=CELL) - size / 2
 
     rows, cols = np.mgrid[0:PH, 0:PW]

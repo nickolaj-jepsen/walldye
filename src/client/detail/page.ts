@@ -10,11 +10,11 @@ import { copyText, flash } from '../clipboard';
 import { must, readJson, replaceAddress } from '../dom';
 import {
   canEncodeWebp,
-  prefetchRasteriser,
+  prefetchRasterizer,
   type RasterFormat,
-  rasteriseSvg,
+  rasterizeSvg,
   save,
-} from '../export/rasterise';
+} from '../export/rasterize';
 import {
   cellWidths,
   crispPixels,
@@ -29,7 +29,7 @@ import {
   withinLimits,
 } from '../export/shape';
 import { plateGrid } from '../grid';
-import { getSlots, keepShowing, type PlateData, plateData, recoloured } from '../plates';
+import { getSlots, keepShowing, type PlateData, plateData, recolored } from '../plates';
 import { retrying } from '../retry';
 import { isPhone, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
@@ -302,7 +302,7 @@ cropWindow.addEventListener('pointerdown', (e) => {
 
 const piece = {
   title: document.querySelector('.label h1')?.textContent?.trim() ?? slug,
-  licence: panel.dataset.license ?? '',
+  license: panel.dataset.license ?? '',
   // "walldye.com/<slug>" from the canonical URL, so previews and local builds name the real site.
   address: (() => {
     const href =
@@ -326,7 +326,7 @@ async function runExport(): Promise<void> {
     const seeds = currentSeeds();
     const data = dataOf(state.variant);
     const slots = await getSlots(data.slots);
-    const r = await recoloured(data, sourceAspect(), seeds);
+    const r = await recolored(data, sourceAspect(), seeds);
     const svg = Array.isArray(slots.cells) && slots.cells.length ? crispPixels(r.svg) : r.svg;
     const token = tokenOf(seeds);
     const [w, h] = sizePx(state.size);
@@ -342,11 +342,11 @@ async function runExport(): Promise<void> {
     if (f.value === 'svg') {
       const address =
         state.variant === DEFAULT_VARIANT ? piece.address : `${piece.address}?v=${state.variant}`;
-      const about = [address, piece.licence, `theme ${token}`].filter(Boolean).join(' · ');
+      const about = [address, piece.license, `theme ${token}`].filter(Boolean).join(' · ');
       save(new Blob([svgExport(svg, shape, piece.title, about)], { type: 'image/svg+xml' }), name);
     } else {
       const raster = rasterSvg(svg, shape, w, h);
-      save(await rasteriseSvg(raster.svg, seeds.bg, f.value as RasterFormat), name);
+      save(await rasterizeSvg(raster.svg, seeds.bg, f.value as RasterFormat), name);
     }
   } catch {
     exportError.textContent = 'The file could not be made.';
@@ -362,7 +362,7 @@ downloadBtn.addEventListener('click', () => void runExport());
 const seen = new IntersectionObserver((entries) => {
   if (!entries.some((e) => e.isIntersecting)) return;
   seen.disconnect();
-  prefetchRasteriser();
+  prefetchRasterizer();
   canEncodeWebp().then((ok) => {
     const webp = formatRadios.find((r) => r.value === 'webp');
     if (!webp || ok) return;

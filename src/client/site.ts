@@ -8,7 +8,7 @@ import { seedsFromText } from '../lib/import-theme';
 import { presetLabel } from '../lib/presets';
 import {
   contrast,
-  normaliseSeed,
+  normalizeSeed,
   PRESETS,
   presetOf,
   SEEDS,
@@ -28,7 +28,7 @@ import {
   sharedTheme,
 } from './theme/store';
 
-/** How long typing must pause before a valid colour applies. */
+/** How long typing must pause before a valid color applies. */
 const DEBOUNCE_MS = 250;
 /** Raw bg/fg contrast under which the picker warns that wallpapers will be hard to see. */
 const FAINT = 3;
@@ -68,11 +68,11 @@ function choose(seeds: Seeds): void {
 
 /**
  * The fields' invalid marks, the warning when bg and fg are too close, and each swatch: the typed
- * colour while it is valid but not applied yet, else the applied seed.
+ * color while it is valid but not applied yet, else the applied seed.
  */
 function renderFields(): void {
-  const bg = normaliseSeed(fields.bg.value);
-  const fg = normaliseSeed(fields.fg.value);
+  const bg = normalizeSeed(fields.bg.value);
+  const fg = normalizeSeed(fields.fg.value);
   const faint = bg !== null && fg !== null && contrast(bg, fg) < FAINT;
   const applied = currentSeeds();
   for (const k of SEEDS) {
@@ -83,7 +83,7 @@ function renderFields(): void {
     const note = bad ? 'seed-msg' : faint && k !== 'accent' ? 'faint-msg' : null;
     if (note) input.setAttribute('aria-describedby', note);
     else input.removeAttribute('aria-describedby');
-    const v = normaliseSeed(input.value);
+    const v = normalizeSeed(input.value);
     chips[k].style.setProperty('--c', v && v !== applied[k] ? v : `var(--seed-${k})`);
   }
   seedMsg.hidden = invalid.size === 0;
@@ -102,14 +102,14 @@ function fillFields(all: boolean): void {
 }
 
 /**
- * Applies the fields when all three hold valid colours that differ from the applied theme, and marks
+ * Applies the fields when all three hold valid colors that differ from the applied theme, and marks
  * the invalid ones; `final` when the visitor left or submitted a field.
  */
 function commit(final: boolean): void {
   cancelPending();
   const values: Partial<Seeds> = {};
   for (const k of SEEDS) {
-    const v = normaliseSeed(fields[k].value);
+    const v = normalizeSeed(fields[k].value);
     if (v !== null) values[k] = v;
     if (v === null && (final || fields[k].value.trim() !== '')) invalid.add(k);
     else invalid.delete(k);
@@ -125,13 +125,13 @@ function commit(final: boolean): void {
 
 /** After the visitor typed or pasted: clears the marks the edit fixed and schedules a commit. */
 function edited(): void {
-  for (const k of SEEDS) if (normaliseSeed(fields[k].value)) invalid.delete(k);
+  for (const k of SEEDS) if (normalizeSeed(fields[k].value)) invalid.delete(k);
   renderFields();
   clearTimeout(pending);
   pending = window.setTimeout(() => commit(false), DEBOUNCE_MS);
 }
 
-/** Header, picker and detail colour list for the applied theme. */
+/** Header, picker and detail color list for the applied theme. */
 function sync(seeds: Seeds): void {
   const preset = presetOf(seeds);
   const name = preset ?? 'custom';
@@ -204,7 +204,7 @@ for (const k of SEEDS) {
   });
 }
 
-/** Puts `seeds` in the three fields, to apply like typed colours. */
+/** Puts `seeds` in the three fields, to apply like typed colors. */
 function fillFrom(seeds: Seeds): void {
   importMsg.hidden = true;
   for (const k of SEEDS) fields[k].value = seeds[k];

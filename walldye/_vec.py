@@ -247,7 +247,7 @@ class Rect(NamedTuple):
 
     @property
     def center(self) -> Vec:
-        """The centre point."""
+        """The center point."""
         return Vec(self.x + self.w / 2, self.y + self.h / 2)
 
     def frac(self, fx: Num, fy: Num) -> Vec:

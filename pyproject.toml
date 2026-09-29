@@ -1,7 +1,7 @@
 [project]
 name = "walldye"
 version = "0.2.0"
-description = "Procedural SVG wallpapers recoloured from three seed colours."
+description = "Procedural SVG wallpapers recolored from three seed colors."
 readme = "README.md"
 authors = [{ name = "Nickolaj Jepsen" }]
 # font.py carries Spleen's glyphs under BSD-2-Clause; the rest of the package is GPL.

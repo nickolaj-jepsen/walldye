@@ -19,11 +19,11 @@ PAD, LABEL = 8, 22
 
 
 def themed(slug: str, seeds: dict[str, str], variant: str = "default", aspect: str = "16:9") -> str:
-    """A variant's built template at `aspect` recoloured to `seeds` the way the site does
-    it: build.select picks the slots.json entry and build.recolour applies it; fireproof's
+    """A variant's built template at `aspect` recolored to `seeds` the way the site does
+    it: build.select picks the slots.json entry and build.recolor applies it; fireproof's
     exact seeds return the dark template untouched. KeyError if slots.json lacks the entry,
     FileNotFoundError when not built."""
-    from walldye.tools.build import entries, load_slots, recolour, select
+    from walldye.tools.build import entries, load_slots, recolor, select
 
     slots = load_slots(slug, variant)
     if slots is None:
@@ -33,7 +33,7 @@ def themed(slug: str, seeds: dict[str, str], variant: str = "default", aspect: s
     if theme_token(seeds) == "fireproof":
         return (d / table[f"{aspect}/dark"]["file"]).read_text()
     k = select(slots, aspect, seeds)
-    return recolour((d / table[k]["file"]).read_text(), table[k], seeds)
+    return recolor((d / table[k]["file"]).read_text(), table[k], seeds)
 
 
 def _grid(cells: Sequence[tuple[str, Image.Image]], cols: int, thumb: int) -> Image.Image:
@@ -85,7 +85,7 @@ def run(
         except KeyError:
             print(f"skip {slug}: no {aspect} template", file=sys.stderr)
             continue
-        thumbs.append((slug, common.rasterise(svg, thumb)))
+        thumbs.append((slug, common.rasterize(svg, thumb)))
     if len(thumbs) == 0:
         sys.exit("nothing to put on a sheet")
     name = f"sheet-{theme_token(seeds)}.png"
@@ -122,7 +122,7 @@ def run_fresh(
 ) -> int:
     """Draw `variant` of `slug` afresh (with the `--set` `overrides`) for every combination of
     the `wedges` (`k=SPEC`, varied in order, the first slowest) and the seeds of `seed_range`
-    (fastest), under `seeds` at `aspect`, and write a labelled sheet to `out`, default
+    (fastest), under `seeds` at `aspect`, and write a labeled sheet to `out`, default
     preview_dir()/sheet-<slug>[--<variant>]-<token>-<aspect>.png. `cols` defaults to the
     number of values of the fastest axis. Values outside a soft range warn on stderr.
     UsageError for an undeclared variant, a bad spec or value, or more than MAX_CELLS cells."""
@@ -160,7 +160,7 @@ def run_fresh(
             raise common.UsageError(str(e)) from None
         svg = common.draw(piece, RenderSpec(variant, params, aspect, regime)).to_svg(tokens)
         label = " ".join(f"{k}={_label(v)}" for k, v in zip(names, combo, strict=True))
-        cells.append((label if label != "" else slug, common.rasterise(svg, thumb)))
+        cells.append((label if label != "" else slug, common.rasterize(svg, thumb)))
     per_row = cols if cols is not None else len(axes[-1][1]) if len(axes) > 0 else 1
     name = slug if variant == "default" else f"{slug}--{variant}"
     default = preview_dir() / f"sheet-{name}-{theme_token(seeds)}-{aspect_label(aspect)}.png"

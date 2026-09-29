@@ -14,7 +14,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     P,
     Path,
     Vec,
@@ -34,7 +34,7 @@ HUB, HUB_CORE = 20, 14  # interchange capsule width and its hollow
 type Node = tuple[int, int]
 
 # (paint, width, grid polyline); order also sets lane order within shared corridors
-LINES: tuple[tuple[Colour, float, tuple[Node, ...]], ...] = (
+LINES: tuple[tuple[Color, float, tuple[Node, ...]], ...] = (
     (UI, LW, ((10, 5), (18, 5), (20, 7), (20, 11), (18, 13), (10, 13), (8, 11), (8, 7), (10, 5))),
     (UI_ALT, LW, ((5, 9), (17, 9), (19, 11), (26, 11))),
     (ACCENT, 10, ((5, 15), (8, 15), (14, 9), (17, 9), (23, 3), (26, 3))),
@@ -46,7 +46,7 @@ LINES: tuple[tuple[Colour, float, tuple[Node, ...]], ...] = (
 PICKED = 2  # the accent line; its interchanges get the brighter rim
 # river bends in grid units; its ends run on past the canvas edges
 RIVER = ((3, 12), (5, 10), (9.5, 10), (11.5, 12), (19.5, 12), (21.5, 14), (23.5, 14), (25, 12.5))
-MID = Vec(15.5 * G, 9 * G)  # centre of the network's grid box
+MID = Vec(15.5 * G, 9 * G)  # center of the network's grid box
 # a recess below the ground; on paper BG_DEEP is paler than the page, so shade toward the ink
 WATER = by_regime(BG_DEEP, mix(BG, BG_ALT, 0.6))
 

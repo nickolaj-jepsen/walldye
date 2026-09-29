@@ -13,7 +13,7 @@ import {
   takeSharedParam,
 } from '../../src/client/theme/store';
 import { faviconUrl } from '../../src/lib/favicon';
-import { cssVars, normaliseSeeds, PRESETS } from '../../src/lib/theme';
+import { cssVars, normalizeSeeds, PRESETS } from '../../src/lib/theme';
 import { inlineScript } from '../../src/server/inline-script';
 
 class MemoryStorage {
@@ -193,12 +193,12 @@ describe('resolution and persistence', () => {
 
   it('saving keeps the theme and ends the shared one', () => {
     env.session.setItem(STORAGE_KEY, 'nord');
-    saveTheme(normaliseSeeds({ bg: '#FFF', fg: '#000', accent: '#f80' }));
+    saveTheme(normalizeSeeds({ bg: '#FFF', fg: '#000', accent: '#f80' }));
     expect(env.local.getItem(STORAGE_KEY)).toBe('ffffff-000000-ff8800');
     expect(env.session.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('applies every colour property, the regime, the token, the icon and an event', () => {
+  it('applies every color property, the regime, the token, the icon and an event', () => {
     applyTheme(PRESETS['solarized-light']);
     expect(Object.fromEntries(env.props)).toEqual(cssVars(PRESETS['solarized-light']));
     expect(env.dataset.regime).toBe('light');

@@ -2,16 +2,16 @@
  * Theme model, ported from walldye/_theme.py: three seeds (bg, fg, accent) derive the 21 tokens,
  * and the site's CSS roles are those tokens passed through the contrast guard. Pure functions, no DOM.
  *
- * Colours are `#RRGGBB` strings; every function returns uppercase hex like the Python side.
+ * Colors are `#RRGGBB` strings; every function returns uppercase hex like the Python side.
  */
 
 declare const canonical: unique symbol;
-/** An uppercase `#RRGGBB` colour; only normaliseSeed() and rgbToHex() make one. */
+/** An uppercase `#RRGGBB` color; only normalizeSeed() and rgbToHex() make one. */
 export type Hex = string & { readonly [canonical]: true };
 export type Seed = 'bg' | 'fg' | 'accent';
-/** Seeds as normaliseSeeds() and parseToken() return them, so nothing downstream normalises again. */
+/** Seeds as normalizeSeeds() and parseToken() return them, so nothing downstream normalizes again. */
 export type Seeds = Record<Seed, Hex>;
-/** Seeds as typed or stored: any form normaliseSeed() accepts. */
+/** Seeds as typed or stored: any form normalizeSeed() accepts. */
 export type RawSeeds = Record<Seed, string>;
 export type Regime = 'dark' | 'light';
 
@@ -26,7 +26,7 @@ export type Token = (typeof TOKENS)[number];
 export type Tokens = Record<Token, string>;
 
 // biome-ignore format: one table
-const GREY_T: readonly (readonly [Token, number])[] = [
+const GRAY_T: readonly (readonly [Token, number])[] = [
   ['bg_alt', 0.063], ['ui', 0.126], ['ui_alt', 0.189], ['ui_hi', 0.31], ['muted', 0.563], ['fg_alt', 0.816],
 ];
 // biome-ignore format: one table
@@ -50,19 +50,19 @@ export const FIREPROOF: Readonly<Tokens> = {
 const SEED_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /** `c` (3 or 6 hex digits, optional `#`, any case, surrounding whitespace ignored) as uppercase #RRGGBB, or null. */
-export function normaliseSeed(c: string): Hex | null {
+export function normalizeSeed(c: string): Hex | null {
   const m = SEED_RE.exec(c.trim());
   if (!m) return null;
   const h = m[1];
   return `#${(h.length === 6 ? h : h.replace(/./g, '$&$&')).toUpperCase()}` as Hex;
 }
 
-/** `seeds` with each seed normalised; throws naming the first invalid one. */
-export function normaliseSeeds(seeds: RawSeeds): Seeds {
+/** `seeds` with each seed normalized; throws naming the first invalid one. */
+export function normalizeSeeds(seeds: RawSeeds): Seeds {
   const out = {} as Seeds;
   for (const k of SEEDS) {
-    const v = normaliseSeed(seeds[k]);
-    if (v === null) throw new Error(`bad ${k} colour ${JSON.stringify(seeds[k])}`);
+    const v = normalizeSeed(seeds[k]);
+    if (v === null) throw new Error(`bad ${k} color ${JSON.stringify(seeds[k])}`);
     out[k] = v;
   }
   return out;
@@ -70,17 +70,17 @@ export function normaliseSeeds(seeds: RawSeeds): Seeds {
 
 /** Preset seeds in walldye.PRESETS order (the picker's order; the first match names a theme). */
 export const PRESETS: Readonly<Record<string, Readonly<Seeds>>> = {
-  fireproof: normaliseSeeds(FIREPROOF),
-  'flexoki-light': normaliseSeeds({ bg: '#FFFCF0', fg: '#100F0F', accent: '#BC5215' }),
-  'gruvbox-dark': normaliseSeeds({ bg: '#282828', fg: '#EBDBB2', accent: '#FE8019' }),
-  nord: normaliseSeeds({ bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' }),
-  'catppuccin-mocha': normaliseSeeds({ bg: '#1E1E2E', fg: '#CDD6F4', accent: '#CBA6F7' }),
-  'tokyo-night': normaliseSeeds({ bg: '#1A1B26', fg: '#C0CAF5', accent: '#7AA2F7' }),
-  'rose-pine': normaliseSeeds({ bg: '#191724', fg: '#E0DEF4', accent: '#EBBCBA' }),
-  'everforest-dark': normaliseSeeds({ bg: '#2D353B', fg: '#D3C6AA', accent: '#A7C080' }),
-  'ayu-dark': normaliseSeeds({ bg: '#0B0E14', fg: '#BFBDB6', accent: '#E6B450' }),
-  dracula: normaliseSeeds({ bg: '#282A36', fg: '#F8F8F2', accent: '#FF79C6' }),
-  'solarized-light': normaliseSeeds({ bg: '#FDF6E3', fg: '#586E75', accent: '#CB4B16' }),
+  fireproof: normalizeSeeds(FIREPROOF),
+  'flexoki-light': normalizeSeeds({ bg: '#FFFCF0', fg: '#100F0F', accent: '#BC5215' }),
+  'gruvbox-dark': normalizeSeeds({ bg: '#282828', fg: '#EBDBB2', accent: '#FE8019' }),
+  nord: normalizeSeeds({ bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' }),
+  'catppuccin-mocha': normalizeSeeds({ bg: '#1E1E2E', fg: '#CDD6F4', accent: '#CBA6F7' }),
+  'tokyo-night': normalizeSeeds({ bg: '#1A1B26', fg: '#C0CAF5', accent: '#7AA2F7' }),
+  'rose-pine': normalizeSeeds({ bg: '#191724', fg: '#E0DEF4', accent: '#EBBCBA' }),
+  'everforest-dark': normalizeSeeds({ bg: '#2D353B', fg: '#D3C6AA', accent: '#A7C080' }),
+  'ayu-dark': normalizeSeeds({ bg: '#0B0E14', fg: '#BFBDB6', accent: '#E6B450' }),
+  dracula: normalizeSeeds({ bg: '#282A36', fg: '#F8F8F2', accent: '#FF79C6' }),
+  'solarized-light': normalizeSeeds({ bg: '#FDF6E3', fg: '#586E75', accent: '#CB4B16' }),
 };
 export const DEFAULT_THEME = 'fireproof';
 
@@ -93,7 +93,7 @@ export function roundHalfEven(x: number): number {
   return f % 2 === 0 ? f : f + 1;
 }
 
-/** [r, g, b] of a 3- or 6-digit hex colour, leading `#`s optional. */
+/** [r, g, b] of a 3- or 6-digit hex color, leading `#`s optional. */
 export function hexToRgb(c: string): [number, number, number] {
   let h = c.replace(/^#+/, '');
   if (h.length === 3) h = h.replace(/./g, '$&$&');
@@ -122,13 +122,13 @@ function lin(v: number): number {
   return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
 }
 
-/** WCAG relative luminance of a hex colour, 0..1. */
+/** WCAG relative luminance of a hex color, 0..1. */
 export function luminance(c: string): number {
   const [r, g, b] = hexToRgb(c);
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
-/** WCAG contrast ratio of two colours, 1..21. */
+/** WCAG contrast ratio of two colors, 1..21. */
 export function contrast(a: string, b: string): number {
   const la = luminance(a);
   const lb = luminance(b);
@@ -142,7 +142,7 @@ export function isLight(bg: string, fg: string): boolean {
 
 /**
  * All 21 tokens from `seeds` (bg, fg, accent), with any other token in `seeds` as an override,
- * uppercased but not otherwise normalised. Throws on a missing seed or an unknown token name.
+ * uppercased but not otherwise normalized. Throws on a missing seed or an unknown token name.
  */
 export function deriveTheme(seeds: RawSeeds & Partial<Tokens>): Tokens {
   const missing = SEEDS.filter((k) => !(k in seeds));
@@ -152,14 +152,14 @@ export function deriveTheme(seeds: RawSeeds & Partial<Tokens>): Tokens {
   const { bg, fg, accent } = seeds;
   const dark = !isLight(bg, fg);
   const beyond = dark ? '#000000' : '#FFFFFF';
-  // Thin grey structure reads fainter on paper than on a dark ground; widen the low steps.
+  // Thin gray structure reads fainter on paper than on a dark ground; widen the low steps.
   const boost = dark ? 1.0 : 1.6;
   const t: Partial<Record<Token, string>> = {
     bg_deep: mix(bg, beyond, 0.15),
     black: mix(bg, beyond, 0.43),
     accent_hi: mix(accent, fg, 0.28),
   };
-  for (const [k, v] of GREY_T) t[k] = mix(bg, fg, WIDENED.has(k) ? Math.min(v * boost, 0.5) : v);
+  for (const [k, v] of GRAY_T) t[k] = mix(bg, fg, WIDENED.has(k) ? Math.min(v * boost, 0.5) : v);
   for (const [k, v] of ACCENT_T) t[k] = mix(accent, bg, v);
   t.orange_dark = t.accent_1;
   Object.assign(t, seeds);
@@ -172,7 +172,7 @@ function sameSeeds(a: Seeds, b: Seeds): boolean {
   return a.bg === b.bg && a.fg === b.fg && a.accent === b.accent;
 }
 
-/** Whether `seeds` are fireproof's, the colours every template is drawn in. */
+/** Whether `seeds` are fireproof's, the colors every template is drawn in. */
 export function isFireproof(seeds: Seeds): boolean {
   return sameSeeds(seeds, PRESETS.fireproof);
 }
@@ -190,7 +190,7 @@ export function parseToken(spec: string | null | undefined): Seeds | null {
   if (Object.hasOwn(PRESETS, s)) return { ...PRESETS[s] };
   const parts = s.split('-');
   if (parts.length !== 3) return null;
-  const [bg, fg, accent] = parts.map(normaliseSeed);
+  const [bg, fg, accent] = parts.map(normalizeSeed);
   return bg && fg && accent ? { bg, fg, accent } : null;
 }
 
@@ -261,13 +261,13 @@ export const GUARDED: readonly GuardedRole[] = [
   ['--listing-gutter', 'fg_alt', 'bg_alt', 4.5],
 ];
 
-/** How far a disabled control's label fades from `--text-2` towards bg before the guard, the colour 0.75 opacity would give. */
+/** How far a disabled control's label fades from `--text-2` towards bg before the guard, the color 0.75 opacity would give. */
 export const DIM = 0.25;
 
 /**
- * Every colour custom property site.css reads, for `seeds`:
+ * Every color custom property site.css reads, for `seeds`:
  * the raw seeds, the tokens the stylesheet names, the unguarded roles (leader, rules, plate edge,
- * listing ground; rules step up one grey in the light regime), the GUARDED roles, and `--text-dim`,
+ * listing ground; rules step up one gray in the light regime), the GUARDED roles, and `--text-dim`,
  * the label of a disabled control: `--text-2` faded DIM towards bg, guarded back to 4.5:1 on bg.
  */
 export function cssVars(seeds: Seeds): Record<string, string> {

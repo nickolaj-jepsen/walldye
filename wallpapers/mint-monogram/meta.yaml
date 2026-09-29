@@ -1,7 +1,7 @@
 title: Mint monogram
 description: Linux Mint's lm as a construction drawing, its strokes laid on a half-stroke grid and their edges run on as guide lines, with the l filled in.
 notes: |
-  The mark is one stroke width throughout, and its straight runs and arc centres all fall on a grid at half that width, as in the project's own source file, which draws the logo as a stroked line. A dash-dot line follows that stroke down the middle. Arcs are shaded a step apart from straight runs, and two arrows point at the radius of an arch and of a corner. The dash-dot circle is where the ring of the round badge runs; guide lines stop at the mark, so the spaces inside the letters stay clear.
+  The mark is one stroke width throughout, and its straight runs and arc centers all fall on a grid at half that width, as in the project's own source file, which draws the logo as a stroked line. A dash-dot line follows that stroke down the middle. Arcs are shaded a step apart from straight runs, and two arrows point at the radius of an arch and of a corner. The dash-dot circle is where the ring of the round badge runs; guide lines stop at the mark, so the spaces inside the letters stay clear.
 technique: [drafting]
 subject: [computing]
 lineage: []

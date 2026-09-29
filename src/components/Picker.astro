@@ -1,5 +1,5 @@
 ---
-/** The theme popover opened by the header's theme button; behaviour lives in the client. */
+/** The theme popover opened by the header's theme button; behavior lives in the client. */
 import Chips from './Chips.astro';
 import { DEFAULT_PRESET, PRESETS } from '../lib/presets';
 
@@ -18,14 +18,14 @@ const fields = [
       {
         PRESETS.map((p) => (
           <li>
-            <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'}><span class="name">{p.name}</span><span class="leader" /><Chips colours={[p.bg, p.fg, p.accent]} /></button>
+            <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'}><span class="name">{p.name}</span><span class="leader" /><Chips colors={[p.bg, p.fg, p.accent]} /></button>
           </li>
         ))
       }
     </ul>
   </div>
   <div class="group hair-t">
-    <h3 class="sc">Colours</h3>
+    <h3 class="sc">Colors</h3>
     {
       fields.map((f) => (
         <label class="hexfield"><span class="k">{f.label}</span><span class="chip" style={`--c:var(--seed-${f.seed})`} /><input id={`seed-${f.seed}`} data-seed={f.seed} value={f.value} spellcheck="false" autocomplete="off" autocapitalize="characters" /></label>
@@ -33,9 +33,9 @@ const fields = [
     }
     <label class="importfield"><span class="k">Import</span><input id="theme-import" placeholder="paste a terminal theme" spellcheck="false" autocomplete="off" aria-describedby="import-msg" /></label>
     <div class="msgs" aria-live="polite">
-      <p id="seed-msg" class="msg err" hidden>Use a hex colour, like <span class="mono">#CF6A4C</span>.</p>
+      <p id="seed-msg" class="msg err" hidden>Use a hex color, like <span class="mono">#CF6A4C</span>.</p>
       <p id="faint-msg" class="msg warn" hidden>The background and foreground are too close, so wallpapers will be hard to see.</p>
-      <p id="import-msg" class="msg err" hidden>No colours found in that text.</p>
+      <p id="import-msg" class="msg err" hidden>No colors found in that text.</p>
     </div>
   </div>
   <p class="actions"><button type="button" class="textbtn" data-action="copy-link">Copy link</button></p>

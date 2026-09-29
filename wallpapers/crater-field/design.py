@@ -122,7 +122,7 @@ def draw(s: Canvas) -> None:
     tiers = [[cr] for cr in craters if cr[1] >= 60] + [
         [cr for cr in craters if lo <= cr[1] < hi] for lo, hi in ((18, 60), (0, 18))
     ]
-    older = np.empty((0, 3))  # centre and painted reach (rim shadow included) of earlier tiers
+    older = np.empty((0, 3))  # center and painted reach (rim shadow included) of earlier tiers
     for tier in filter(None, tiers):
         glint = LIT_BIG if tier[0][1] >= 60 else LIT
         with s.buckets((RIM_SHADOW, BG, SHADE, glint), "fill") as b:

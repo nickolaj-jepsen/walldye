@@ -53,7 +53,7 @@ def draw(s: Canvas[Pendulums]) -> None:
     fp, fq = (int(v) for v in s.params.ratio.split(":"))
     # the faster swing always turns at 3 radians per unit time, so every figure has as many loops
     w1, w2 = 3 * fp / fq, 3
-    # left third on a landscape screen; centred above the middle on a portrait one
+    # left third on a landscape screen; centered above the middle on a portrait one
     c = s.pick(landscape=(590 / 1920, 0.5), portrait=(0.5, 0.42))
     t = np.linspace(0, T, N)
     e = np.exp(-D * t)
@@ -64,7 +64,7 @@ def draw(s: Canvas[Pendulums]) -> None:
     cuts = argrelmin(np.hypot(x, y))[0]
     end = cuts[-1]
     pts = np.column_stack([x, y])
-    pts -= (pts.min(axis=0) + pts.max(axis=0)) / 2  # the figure's bounding box centred on c
+    pts -= (pts.min(axis=0) + pts.max(axis=0)) / 2  # the figure's bounding box centered on c
     with s.buckets(TONES, "stroke", stroke_width=1.2) as b:
         for a, z in pairwise([0, *cuts]):
             line = LineString(pts[a : z + 1] + c).simplify(0.35)

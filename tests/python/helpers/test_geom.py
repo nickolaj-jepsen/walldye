@@ -276,7 +276,7 @@ def kintsugi_ribbon(pts, widths):
 
 
 def test_ribbon_matches_kintsugi_on_evenly_spaced_points():
-    # np.gradient's central difference is the bisector direction when neighbours are equidistant
+    # np.gradient's central difference is the bisector direction when neighbors are equidistant
     a = np.linspace(0.2, 2.5, 30)
     pts = np.column_stack([500 + 300 * np.cos(a), 400 + 300 * np.sin(a)])
     widths = 2 + 6 * np.sin(np.linspace(0, math.pi, 30))
@@ -319,7 +319,7 @@ def engine_section_hatch(geom, ang, gap):
 
 
 def petra_sancta_hatch(region, angle, pitch):
-    """Lines through the centre, k * pitch apart."""
+    """Lines through the center, k * pitch apart."""
     x0, y0, x1, y1 = region.bounds
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     r = math.hypot(x1 - x0, y1 - y0) / 2 + pitch
@@ -391,7 +391,7 @@ def test_hatch_orders_by_line_then_along_it():
     for y in set(ys):
         xs = [p[0, 0] for p in pieces if p[0, 1] == y]
         assert xs == sorted(xs)
-    assert {round(y - 300, 6) % 10 for y in ys} == {0}  # through the centre of the bounds
+    assert {round(y - 300, 6) % 10 for y in ys} == {0}  # through the center of the bounds
     assert hatch(Polygon(), 5, deg=0) == []
     with pytest.raises(ValueError):
         hatch(REGION, 0, deg=0)

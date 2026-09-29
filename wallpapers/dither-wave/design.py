@@ -50,12 +50,12 @@ PALETTE = (None, BG_ALT, UI, UI_ALT, ACCENT_3, ACCENT)
 
 
 def to_cells(pts: ArrayLike, o: Vec) -> Field:
-    """Wave-local points as fractional (col, row) cell indices, cell centres at whole numbers."""
+    """Wave-local points as fractional (col, row) cell indices, cell centers at whole numbers."""
     return (np.asarray(pts, float) + o) / CELL - 0.5
 
 
 def edge_dist(curve: Field, shape: tuple[int, int]) -> Field:
-    """Canvas-unit distance from every cell centre to the polyline `curve`, in cell indices."""
+    """Canvas-unit distance from every cell center to the polyline `curve`, in cell indices."""
     rows, cols = shape
     free = np.ones((rows + 2 * PAD, cols + 2 * PAD), bool)
     q = np.rint(curve).astype(int) + PAD
@@ -69,12 +69,12 @@ def edge_dist(curve: Field, shape: tuple[int, int]) -> Field:
 
 @design(aspects=("16:9", "32:9", "9:19.5", "10:16"))
 def draw(s: Canvas) -> None:
-    # the lip on the left third of a landscape screen; a little right of centre and low on a
+    # the lip on the left third of a landscape screen; a little right of center and low on a
     # portrait one, with open sky above; whole cells, so the wave draws the same everywhere
     o = s.pick(landscape=(0.35, 0.561), portrait=(0.6, 0.66), snap=CELL) - LIP
     xs, ys = cells(Rect(0, 0, s.w, s.h), CELL)
     rows, cols = xs.shape
-    xx, yy = xs - o.x, ys - o.y  # wave-local cell centres
+    xx, yy = xs - o.x, ys - o.y  # wave-local cell centers
 
     top = to_cells(spline_points(TOP, 40), o)
     under = to_cells(spline_points(UNDER, 40), o)

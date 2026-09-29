@@ -5,7 +5,7 @@ import numpy as np
 from walldye import ACCENT, UI_HI, Canvas, P, Stop, design
 from walldye.field import gauss
 
-# (seed, offset from the band's centre, swell amplitude, paint, calm and peak opacity, passes,
+# (seed, offset from the band's center, swell amplitude, paint, calm and peak opacity, passes,
 # fray); only the picked-out strand frays visibly and brightens over the belly
 STRANDS = (
     (1, -160, 34, UI_HI, 0.18, 0.18, 60, 0.7),
@@ -33,7 +33,7 @@ PROFILE = (
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # belly right of centre; the band sits a little below the middle
+    # belly right of center; the band sits a little below the middle
     belly = s.pick(landscape=(0.6, 5 / 9), portrait=(0.6, 0.56))
     xs = np.linspace(-REACH, s.w + REACH, NODES)
     # the step peaks over the belly, so the ends stay near-pinned and one belly frays

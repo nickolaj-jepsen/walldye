@@ -30,7 +30,7 @@ VIEW = np.array(
 
 
 def project(p: NDArray[np.float64]) -> Vec:
-    """Parallel projection of a cube-space point (y up) to the figure's screen space, cube centre
+    """Parallel projection of a cube-space point (y up) to the figure's screen space, cube center
     at the origin."""
     v = VIEW @ p
     return Vec(S * v[0], -S * v[1])
@@ -39,7 +39,7 @@ def project(p: NDArray[np.float64]) -> Vec:
 def face_quad(
     c: tuple[int, int, int], axis: int, sign: int, inset: float
 ) -> list[NDArray[np.float64]]:
-    """Corners of cubie `c`'s face on `axis` at `sign`, shrunk about its centre to `inset`."""
+    """Corners of cubie `c`'s face on `axis` at `sign`, shrunk about its center to `inset`."""
     u, v = [k for k in range(3) if k != axis]
     out = []
     for du, dv in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
@@ -75,7 +75,7 @@ def shade_lines(d: Path, quad: list[Vec], n: int = 4) -> None:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: where the 16:9 figure sat, right of centre; portrait: larger and low, under
+    # landscape: where the 16:9 figure sat, right of center; portrait: larger and low, under
     # the clock, nudged left because the arrow widens the right side
     at = s.pick(landscape=(1240 / 1920, 520 / 1080), portrait=(0.48, 0.54))
     k = 1.0 if s.landscape else 1.3

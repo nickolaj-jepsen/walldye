@@ -17,7 +17,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     by_regime,
     design,
 )
@@ -28,7 +28,7 @@ FW, FH = 8, 16  # glyph cell
 # Thin glyph strokes read fainter on a light ground, so light themes lift every role one step.
 STEPS = (BG_ALT, UI, UI_ALT, UI_HI, MUTED)
 SEA, LAND, HILL, PEAK = (by_regime(STEPS[k], STEPS[k + 1]) for k in range(4))
-TONE: dict[str, Colour] = {
+TONE: dict[str, Color] = {
     ".": LAND,
     '"': LAND,
     "^": HILL,
@@ -62,7 +62,7 @@ def draw(s: Canvas) -> None:
     x = (np.arange(cols) + 0.5) * FW
     y = (np.arange(rows)[:, None] + 0.5) * FH + oy
     # Map frame: `a` runs along the screen's long axis, `b` across it. Landscape puts the island
-    # right of centre (windows open left); portrait turns the map 90° so the road climbs.
+    # right of center (windows open left); portrait turns the map 90° so the road climbs.
     mid = s.pick(landscape=(0.677, 0.5), portrait=(0.5, 0.58))
     if s.landscape:
         a, b, length = x - mid.x, y - mid.y, 510
@@ -130,10 +130,10 @@ def draw(s: Canvas) -> None:
             # a diagonal step inside a straight run
             ch = "/" if (c[0] - prev[0]) * (c[1] - prev[1]) < 0 else "\\"
         grid[c] = ch
-    harbour, town = cells[0], cells[-1]
-    grid[harbour], grid[town] = "o", "■"
+    harbor, town = cells[0], cells[-1]
+    grid[harbor], grid[town] = "o", "■"
 
-    def tone(i: int, j: int, ch: str) -> Colour:
+    def tone(i: int, j: int, ch: str) -> Color:
         if (j, i) == town:
             return TONE["town"]
         if (j, i) in road:

@@ -21,7 +21,7 @@ def jitter(rng: Rng, k: float, i: int) -> float:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen, the upper part of a portrait one; whole units keep
+    # right of center on a landscape screen, the upper part of a portrait one; whole units keep
     # the corner ticks on the pixel grid
     corner = s.pick(landscape=(0.71875, 0.5), portrait=(0.5, 0.38), snap=1) - (S / 2, S / 2)
     cs = S / 4

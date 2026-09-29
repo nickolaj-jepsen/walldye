@@ -1,8 +1,8 @@
 /**
- * The index filter as pure functions: search over the normalised `search` text, OR within a facet,
+ * The index filter as pure functions: search over the normalized `search` text, OR within a facet,
  * AND across facets, and the orders of comparePieces().
  *
- * The query string is the facets form's own GET serialisation: `q=<text>`, `sort=<order>`,
+ * The query string is the facets form's own GET serialization: `q=<text>`, `sort=<order>`,
  * `shape=<w>x<h>` and one `<facet>=<value>` per checked box, in form order.
  */
 import {
@@ -11,7 +11,7 @@ import {
   aspectOfLabel,
   comparePieces,
   isSortOrder,
-  normaliseSearch,
+  normalizeSearch,
   type SortKey,
   type SortOrder,
 } from '../../lib/content';
@@ -39,7 +39,7 @@ export interface FilterDefaults {
 export interface Filterable extends SortKey {
   /** `facet:value` pairs. */
   facets: ReadonlySet<string>;
-  /** normaliseSearch() of the searchable text. */
+  /** normalizeSearch() of the searchable text. */
   search: string;
 }
 
@@ -72,7 +72,7 @@ export function filterQuery(params: URLSearchParams, defaults: FilterDefaults): 
 
 /** Whether `item` passes the search and every facet group except `skip`. */
 export function matches(item: Filterable, state: FilterState, skip?: string): boolean {
-  const needle = normaliseSearch(state.q);
+  const needle = normalizeSearch(state.q);
   if (needle && !item.search.includes(needle)) return false;
   for (const [facet, values] of state.facets) {
     if (facet === skip || values.size === 0) continue;

@@ -63,13 +63,13 @@ def shell(xs: Field, ys: Field) -> tuple[Field, Field]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen, the upper middle on a portrait one
+    # right of center on a landscape screen, the upper middle on a portrait one
     c = s.pick(landscape=(1240 / 1920, 520 / 1080), portrait=(0.5, 0.44))
     xs, ys = cells(Rect(-HALF, -HALF, 2 * HALF, 2 * HALF), CELL)
     tone, ts = shell(xs, ys)
     tone = gaussian_filter(tone, 0.8)
     tone[ts < 0] = 0
-    # Centre the shell's bounding box, not its coil, on the focal point.
+    # Center the shell's bounding box, not its coil, on the focal point.
     rows, cols = np.nonzero(tone > 0.02)
     left, right = xs[0, cols.min()], xs[0, cols.max()]
     top, bottom = ys[rows.min(), 0], ys[rows.max(), 0]

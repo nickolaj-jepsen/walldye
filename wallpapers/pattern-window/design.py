@@ -73,7 +73,7 @@ def fill_pattern(s: Canvas, level: int, paint: Paint) -> Ref:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # (window's left edge, floor line): left of centre with the floor low on a landscape screen;
+    # (window's left edge, floor line): left of center with the floor low on a landscape screen;
     # on a portrait one the floor sits just below the middle, deep enough for a longer patch
     x0, floor_y = s.pick(landscape=(0.2234, 0.7139), portrait=(0.136, 0.6), snap=CELL)
     # light patch: the window's bottom edge lands at a..a+u on the floor, its top edge along v

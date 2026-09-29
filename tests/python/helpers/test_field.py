@@ -56,7 +56,7 @@ def test_noise_grid_errors():
         noise_grid(4, 4, 2, np.random.default_rng(1), octaves=0)
 
 
-def test_cells_replace_mgrid_centres():
+def test_cells_replace_mgrid_centers():
     w, h, ox, oy = 64, 44, 32, 40
     ys, xs = np.mgrid[0:h, 0:w]
     u, v = cells(Rect(-ox, -oy, w, h), 1)
@@ -205,7 +205,7 @@ def test_sample_field_matches_v1_on_eclipse_contours():
         d = math.hypot(dx, dy) / 330
         return n.fbm(2.95 + dx / 420, 1.29 + dy / 420, 4) - 0.9 * max(0.0, d - 0.85)
 
-    def fv(i, j):  # the same field, vectorised
+    def fv(i, j):  # the same field, vectorized
         dx, dy = ox + i * cell - cx, oy + j * cell - cy
         d = np.hypot(dx, dy) / 330
         return n.fbm(2.95 + dx / 420, 1.29 + dy / 420, 4) - 0.9 * np.maximum(0.0, d - 0.85)

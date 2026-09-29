@@ -1,4 +1,4 @@
-"""A ZX Spectrum night road in ordered dither, where two tail lights recolour the ink of every 8x8 attribute cell they touch."""
+"""A ZX Spectrum night road in ordered dither, where two tail lights recolor the ink of every 8x8 attribute cell they touch."""
 
 import numpy as np
 
@@ -58,7 +58,7 @@ def draw(s: Canvas) -> None:
         scr.grid[r.randrange(4, HZ - 34), r.randrange(4, SW - 4)] = INK
 
     for side in (-1, 1):
-        # aimed past the bottom edge so the kerb keeps its slope to the last row
+        # aimed past the bottom edge so the curb keeps its slope to the last row
         end = round(VX + side * SLOPE * (SH + 20 - HZ))
         scr.line(VX, HZ, end, SH + 20, INK)
         for k in range(1, 9):  # verge posts, evenly spaced in depth
@@ -67,7 +67,7 @@ def draw(s: Canvas) -> None:
             x = round(VX + side * (SLOPE * 100 / z * 1.11 + 2))
             scr.grid[y - max(1, round(10 / z)) + 1 : y + 1, x] = INK
     dash = np.zeros(SH, bool)
-    for z in np.arange(0.9, 12, 0.7).tolist():  # centre dashes
+    for z in np.arange(0.9, 12, 0.7).tolist():  # center dashes
         dash[round(HZ + 100 / (z + 0.25)) : round(HZ + 100 / z)] = True
     dash[CAR_Y - 4 : CAR_Y + 10] = False  # a gap, so the dash doesn't read as an aerial
     scr.grid[dash, VX] = INK

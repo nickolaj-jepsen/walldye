@@ -8,7 +8,7 @@ import {
   matches,
   ordered,
 } from '../../src/client/index/filter';
-import { normaliseSearch } from '../../src/lib/content';
+import { normalizeSearch } from '../../src/lib/content';
 
 const item = (
   slug: string,
@@ -46,7 +46,7 @@ const ITEMS = [
 ];
 
 describe('filterState / filterQuery', () => {
-  it('reads the form serialisation, every key but q, sort and shape as a facet', () => {
+  it('reads the form serialization, every key but q, sort and shape as a facet', () => {
     const s = filterState(
       new URLSearchParams(
         'q=moon&sort=title&shape=21x9&technique=dither&subject=maps&technique=drafting',
@@ -105,13 +105,13 @@ describe('matches / countFor', () => {
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['b', 'c']);
   });
 
-  it('searches the normalised text', () => {
+  it('searches the normalized text', () => {
     const s = filterState(new URLSearchParams('q=  GEORG   Nées '), DEFAULTS);
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['d']);
   });
 
   it("matches typewriter and typographer's apostrophes alike", () => {
-    const baldur = item('e', 'Baldur’s Gate', '2026-02-01', [], normaliseSearch('Baldur’s Gate'));
+    const baldur = item('e', 'Baldur’s Gate', '2026-02-01', [], normalizeSearch('Baldur’s Gate'));
     for (const q of ["baldur's", 'Baldur’s gate']) {
       expect(matches(baldur, filterState(new URLSearchParams({ q }), DEFAULTS))).toBe(true);
     }

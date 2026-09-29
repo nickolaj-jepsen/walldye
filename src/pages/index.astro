@@ -17,7 +17,7 @@ const viewed = sort === 'popular';
 const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
 ---
 
-<Base description="Wallpapers drawn with code, in colours you choose." nav="index" mainClass="index">
+<Base description="Wallpapers drawn with code, in colors you choose." nav="index" mainClass="index">
   <h1 class="vh">Index</h1>
   <details class="filter" open>
     <summary><span class="sc">Filter</span><span class="state"></span></summary>
@@ -59,8 +59,8 @@ const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
     {/* SHAPE BOOT (src/client/index/shape-boot.ts): sets this section's data-shape before first paint. */}
     <script is:inline set:html={shapeBoot} />
     <div class="themes" role="group" aria-labelledby="themes-h">
-      <h2 id="themes-h" class="sc">Colours</h2>
-      {PRESETS.map((p) => <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'} aria-label={p.name} title={p.name}><Chips colours={[p.bg, p.fg, p.accent]} /></button>)}
+      <h2 id="themes-h" class="sc">Colors</h2>
+      {PRESETS.map((p) => <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'} aria-label={p.name} title={p.name}><Chips colors={[p.bg, p.fg, p.accent]} /></button>)}
       <button type="button" class="textbtn" popovertarget="picker">Your own</button>
     </div>
     <p class="results-line"><span id="result-count" class="lnum">{total} {total === 1 ? 'wallpaper' : 'wallpapers'}</span><button type="reset" form="facets" class="textbtn clear" hidden>clear</button></p>

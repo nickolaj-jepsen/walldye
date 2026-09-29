@@ -36,7 +36,7 @@ def region(z: NDArray[np.complex128]) -> BaseGeometry:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the pinwheel is symmetric about its shared origin, so that point is its centre
+    # the pinwheel is symmetric about its shared origin, so that point is its center
     c = s.pick(landscape=(1250 / 1920, 500 / 1080), portrait=(0.5, 0.55), snap=1)
     to_canvas = Affine.frame(c, deg=0, scale=UNIT)
     # diagonal steps make the cells axis-aligned squares half a lattice step wide

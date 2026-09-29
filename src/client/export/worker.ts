@@ -1,16 +1,16 @@
 /**
- * Export worker: rasterises one prepared SVG with resvg-wasm and encodes it, then waits to be
+ * Export worker: rasterizes one prepared SVG with resvg-wasm and encodes it, then waits to be
  * terminated. PNG is encoded here as RGB; JPEG and WebP go through OffscreenCanvas.
  */
 import { initWasm } from '@resvg/resvg-wasm';
-import { encodePngRgb, rasterise } from './resvg';
+import { encodePngRgb, rasterize } from './resvg';
 
 export interface ExportRequest {
   /** resvg's compiled index_bg.wasm. */
   wasm: WebAssembly.Module;
   /** SVG sized to the output pixels (shape.ts rasterSvg). */
   svg: string;
-  /** CSS colour drawn under the SVG. */
+  /** CSS color drawn under the SVG. */
   background: string;
   format: 'png' | 'webp' | 'jpeg';
   /** Encoder quality for JPEG and WebP, 0..1. */
@@ -27,7 +27,7 @@ const scope = self as unknown as {
 
 async function run(req: ExportRequest): Promise<ExportResponse> {
   await initWasm(req.wasm);
-  const raster = rasterise(req.svg, req.background);
+  const raster = rasterize(req.svg, req.background);
   if (req.format === 'png')
     return { ok: true, blob: new Blob([encodePngRgb(raster) as BlobPart], { type: 'image/png' }) };
   const type = `image/${req.format}`;

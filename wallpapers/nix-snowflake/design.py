@@ -14,9 +14,9 @@ U = 52  # bar width, the lattice unit
 FADE = 620  # construction lines dissolve into the background by this radius
 DASHDOT = (24, 6, 3, 6)
 ARROW, ARROW_W = 13, 4.2
-# One lambda on a 1/6 triangular lattice (a, b): a along +x, b along 60° down-right; centre at
+# One lambda on a 1/6 triangular lattice (a, b): a along +x, b along 60° down-right; center at
 # the origin. Snapped from the official nix-snowflake.svg, which leaves a ~0.14 U gap between
-# neighbours.
+# neighbors.
 LATTICE = (
     (-11, 1),
     (-11, 27),
@@ -36,7 +36,7 @@ R = U * max(abs(v) for v in LAMBDA)  # the circumscribed circle
 @dataclass
 class Guide:
     """A line some emblem edges lie on: direction `ang` (radians, mod pi), signed normal
-    offset `off` from the centre, and the edges on it."""
+    offset `off` from the center, and the edges on it."""
 
     ang: float
     off: float
@@ -97,7 +97,7 @@ def draw(s: Canvas) -> None:
     fade = s.radial_gradient([(0, BG_ALT), (R * 1.2 / FADE, BG_ALT), (1, BG)], c, FADE)
     s.stroke(lines, fade, 1.2)
 
-    # centre lines and the circumscribed circle
+    # center lines and the circumscribed circle
     cl = P()
     for k in range(3):
         cl.M(polar(c, R + 60, deg=60 * k)).L(polar(c, R + 60, deg=60 * k + 180))

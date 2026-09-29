@@ -33,7 +33,7 @@ PALETTE = (None, BG_ALT, UI, ACCENT_6, ACCENT_7, ACCENT_4, ACCENT_2, ACCENT_1, A
 def walk(cols: int, rows: int, x: int, y: int) -> tuple[Grid, Grid, Grid]:
     """Run the ant from cell (x, y) of an empty cols x rows grid until it reaches the border.
 
-    Returns, per cell, its final colour (1 or 0), the step on which the ant first entered it
+    Returns, per cell, its final color (1 or 0), the step on which the ant first entered it
     (0 if never) and how many times it was flipped.
     """
     on = np.zeros((rows, cols), np.int64)
@@ -53,7 +53,7 @@ def walk(cols: int, rows: int, x: int, y: int) -> tuple[Grid, Grid, Grid]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the ant's start: the blob sits a little left of centre and low, so the highway has room to
+    # the ant's start: the blob sits a little left of center and low, so the highway has room to
     # run down and off to the right; wider screens move it further left, out of the middle, and
     # a portrait one up and left, since the highway leaves through the right edge there
     wide = s.w / s.h - 16 / 9

@@ -27,7 +27,7 @@ EDGE = 760  # sun to right edge: the outer orbit runs off it, the next stays cle
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: right of centre, the outer orbit running off the right edge; portrait: turned
+    # landscape: right of center, the outer orbit running off the right edge; portrait: turned
     # a quarter so the orbits run down the screen, the filled planet near the top
     c = Vec(s.w - EDGE, s.h * 0.52) if s.landscape else Vec(s.w / 2, s.h * 0.56)
     turn = Affine.rotate(deg=-14 if s.landscape else -104, about=c)

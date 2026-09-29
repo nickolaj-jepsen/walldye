@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { initWasm } from '@resvg/resvg-wasm';
 import { decode } from 'fast-png';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { encodePngRgb, rasterise, toRgb } from '../../src/client/export/resvg';
+import { encodePngRgb, rasterize, toRgb } from '../../src/client/export/resvg';
 import { rasterSvg } from '../../src/client/export/shape';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -18,7 +18,7 @@ beforeAll(async () => {
   await initWasm(readFileSync(wasm));
 });
 
-describe('rasterise', () => {
+describe('rasterize', () => {
   it('matches the resvg-py reference render', () => {
     const ref = MANIFEST.resvg;
     const expected = decode(read(ref.png));
@@ -29,7 +29,7 @@ describe('rasterise', () => {
       ref.width,
       ref.height,
     );
-    const got = rasterise(svg, ref.background);
+    const got = rasterize(svg, ref.background);
     expect([got.width, got.height]).toEqual([expected.width, expected.height]);
     const rgb = toRgb(got.pixels);
     const want = expected.data;
@@ -48,7 +48,7 @@ describe('rasterise', () => {
   it('encodes an RGB PNG of the exact size', () => {
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 2" width="40" height="20"><rect width="2" height="2" fill="#FF0000"/></svg>';
-    const png = decode(encodePngRgb(rasterise(svg, '#0000FF')));
+    const png = decode(encodePngRgb(rasterize(svg, '#0000FF')));
     expect([png.width, png.height, png.channels, png.depth]).toEqual([40, 20, 3, 8]);
     expect([...png.data.slice(0, 3)]).toEqual([255, 0, 0]);
     expect([...png.data.slice(-3)]).toEqual([0, 0, 255]);

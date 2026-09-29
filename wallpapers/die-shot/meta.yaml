@@ -3,7 +3,7 @@ description: Mask artwork of a 1970s microprocessor, in outline except for the f
 notes: |
   The Intel 4004's masks were cut by hand in sheets of Rubylith film at 500 times their final size, then photo-reduced. Here each block is divided into rectangles by recursive straight cuts.
 
-  The ALU repeats one bit slice four times, mirroring every other copy so that neighbours share their rails, and a carry chain runs along its foot.
+  The ALU repeats one bit slice four times, mirroring every other copy so that neighbors share their rails, and a carry chain runs along its foot.
 technique: [drafting]
 subject: [computing]
 lineage: []

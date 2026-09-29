@@ -17,7 +17,7 @@ PATTERN = (
     "..........x...x.",  # perc
     "x.......x.......",  # chord (muted)
 )
-# The grid's centre along the steps, and the centre of ruler plus grid across the tracks.
+# The grid's center along the steps, and the center of ruler plus grid across the tracks.
 MID = Vec((16 * PITCH - GAP + 3 * BAR) / 2, (len(PATTERN) * PITCH - GAP - RULER) / 2)
 
 
@@ -28,7 +28,7 @@ def step_at(i: int) -> float:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: steps run left to right, right of centre; portrait: they run down, as in a tracker
+    # landscape: steps run left to right, right of center; portrait: they run down, as in a tracker
     c = s.pick(landscape=(0.6708, 0.5), portrait=(0.5, 0.52), snap=1)
 
     def at(u: float, v: float) -> Vec:
@@ -57,11 +57,11 @@ def draw(s: Canvas) -> None:
     # Per-track mute LEDs: the muted track's LED is lit and its steps are hollow.
     leds, lit = P(), P()
     for j in range(len(PATTERN)):
-        centre = at(-LED, j * PITCH + PAD / 2)
+        center = at(-LED, j * PITCH + PAD / 2)
         if j in MUTED:
-            lit.circle(centre, 6)
+            lit.circle(center, 6)
         else:
-            leds.circle(centre, 5)
+            leds.circle(center, 5)
     s.stroke(leds, UI_ALT, 1.5)
     s.fill(lit, UI)
 

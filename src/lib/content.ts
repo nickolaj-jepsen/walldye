@@ -208,7 +208,7 @@ export function relatedPieces<T extends Piece>(p: Piece, pieces: readonly T[], n
 }
 
 /** Lowercase, accents stripped, curly quotes straightened and whitespace collapsed; applied to both the search text and the query. */
-export function normaliseSearch(text: string): string {
+export function normalizeSearch(text: string): string {
   return text
     .normalize('NFD')
     .replace(/\p{M}+/gu, '')
@@ -221,7 +221,7 @@ export function normaliseSearch(text: string): string {
 
 /** What the index search matches for a piece: title, description and source authors, titles and topics. */
 export function searchText(p: Piece): string {
-  return normaliseSearch(
+  return normalizeSearch(
     [
       p.title,
       p.description,

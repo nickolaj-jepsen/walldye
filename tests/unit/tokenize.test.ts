@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  findColours,
+  findColors,
   joinSlots,
   NAMED,
-  normalise,
+  normalize,
   SKELETON_MARK,
   skeleton,
   splitSlots,
@@ -24,23 +24,23 @@ const SPEC = JSON.parse(
     name: string;
     input: string;
     occurrences: [number, number, string][];
-    normalised: string;
+    normalized: string;
     skeleton: string;
   }[];
 };
 
 describe('tokenizer spec shared with pytest (e)', () => {
-  it.each(SPEC.cases)('$name', ({ input, occurrences, normalised, skeleton: skel }) => {
+  it.each(SPEC.cases)('$name', ({ input, occurrences, normalized, skeleton: skel }) => {
     // biome-ignore lint/suspicious/noControlCharactersInRegex: the spec's inputs are plain ASCII, controls included.
     expect(/^[\x00-\x7f]*$/.test(input)).toBe(true);
-    expect(findColours(input)).toEqual(occurrences);
-    expect(normalise(input)).toBe(normalised);
+    expect(findColors(input)).toEqual(occurrences);
+    expect(normalize(input)).toBe(normalized);
     expect(skeleton(input)).toBe(skel);
-    expect(normalise(normalised)).toBe(normalised);
-    expect(skeleton(normalised)).toBe(skel);
+    expect(normalize(normalized)).toBe(normalized);
+    expect(skeleton(normalized)).toBe(skel);
   });
 
-  it('shares the named colour table and skeleton mark', () => {
+  it('shares the named color table and skeleton mark', () => {
     expect(Object.fromEntries(NAMED)).toEqual(SPEC.named);
     expect(NAMED.size).toBe(148);
     expect(SKELETON_MARK).toBe(SPEC.skeleton_mark);
@@ -67,11 +67,11 @@ describe('substitution', () => {
   });
 
   it('matches Python on attribute values with whitespace Python counts and JS does not', () => {
-    // \x1c-\x1f are whitespace to Python's re; the value is still exactly one colour.
-    expect(findColours('<rect fill="\x1f#abc\x1c"/>')).toEqual([[13, 17, '#AABBCC']]);
+    // \x1c-\x1f are whitespace to Python's re; the value is still exactly one color.
+    expect(findColors('<rect fill="\x1f#abc\x1c"/>')).toEqual([[13, 17, '#AABBCC']]);
     // U+FEFF is \s in JS but not in Python.
-    expect(findColours('<rect fill="﻿#abc"/>')).toEqual([]);
+    expect(findColors('<rect fill="﻿#abc"/>')).toEqual([]);
     // Python's \w covers non-ASCII letters in element names.
-    expect(findColours('<réct fill="#abc"/>')).toEqual([[12, 16, '#AABBCC']]);
+    expect(findColors('<réct fill="#abc"/>')).toEqual([[12, 16, '#AABBCC']]);
   });
 });

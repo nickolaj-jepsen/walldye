@@ -589,7 +589,7 @@ function aboutSection(s) {
     "section",
     { class: "about" },
     el("h2", { text: "Credits" }),
-    el("p", { text: `Licence: ${p.license}` }),
+    el("p", { text: `License: ${p.license}` }),
   );
   for (const src of p.sources) {
     const who = [src.author, src.title || src.topic, src.year].filter(Boolean).join(", ");

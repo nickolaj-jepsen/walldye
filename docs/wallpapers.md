@@ -1,6 +1,6 @@
 # Wallpapers
 
-What goes in a wallpaper's folder, and the rules for its metadata, words and licence. [api.md](api.md) covers design.py, and [architecture.md](architecture.md) how a piece is built and shown.
+What goes in a wallpaper's folder, and the rules for its metadata, words and license. [api.md](api.md) covers design.py, and [architecture.md](architecture.md) how a piece is built and shown.
 
 ## A wallpaper folder
 
@@ -55,35 +55,35 @@ variants:                    # only when design.py declares named variants
 
 These rules cover everything a visitor reads that a wallpaper supplies: meta.yaml's titles, descriptions, notes and version labels, and design.py's docstring and comments, since the page shows the source. The site's own text follows the same rules and the voice in site.md §7. Claude drafts the words; the owner approves them.
 
-- Use plain words a visitor would use. Never: internal terms (regime, seed, token, native, hand-tuned, light-ready, preset, variant, param, slot, template, derived, guard, "has script", "AI-generated", "generator lost", "Appendix"), licence names and identifiers (CC0, GPL, SPDX, OFL, LicenseRef-*), or machinery numbers (contrast ratios, colour tolerances, pixel sizes). Visitors see variants as "versions".
-- Stay theme-neutral: no colour names ("terracotta") and no theme roles as nouns ("the accent"). Say what is picked out, filled in or lit. Comments in design.py name tokens or roles, never hues.
+- Use plain words a visitor would use. Never: internal terms (regime, seed, token, native, hand-tuned, light-ready, preset, variant, param, slot, template, derived, guard, "has script", "AI-generated", "generator lost", "Appendix"), license names and identifiers (CC0, GPL, SPDX, OFL, LicenseRef-*), or machinery numbers (contrast ratios, color tolerances, pixel sizes). Visitors see variants as "versions".
+- Stay theme-neutral: no color names ("terracotta") and no theme roles as nouns ("the accent"). Say what is picked out, filled in or lit. Comments in design.py name tokens or roles, never hues.
 - A description is one or two short sentences, at most 30 words, concrete about what is drawn and how, and varied in shape from piece to piece. It is also the alt text and the meta description.
 - design.py's docstring is one theme-neutral line giving the concept and the technique.
-- No evaluative adjectives (stunning, mesmerising, elegant, timeless), and nothing the avoid-ai-tropes check flags.
+- No evaluative adjectives (stunning, mesmerizing, elegant, timeless), and nothing the avoid-ai-tropes check flags.
 - Italics only for titles of works.
 
-`walldye check` warns on colour words in design.py and meta.yaml and rejects internal terms in version labels. The vitest copy lint (`lintCopy` in `src/lib/meta.ts`) checks meta.yaml's text for colour words, banned adjectives and stock phrases, internal terms, licence identifiers, machinery numbers, theme roles as nouns and descriptions over two sentences or 30 words.
+`walldye check` warns on color words in design.py and meta.yaml and rejects internal terms in version labels. The vitest copy lint (`lintCopy` in `src/lib/meta.ts`) checks meta.yaml's text for color words, banned adjectives and stock phrases, internal terms, license identifiers, machinery numbers, theme roles as nouns and descriptions over two sentences or 30 words.
 
 ## Licensing
 
-The library, the site and the tooling are GPL-3.0-or-later. Each wallpaper folder, build output included, has its own licence:
+The library, the site and the tooling are GPL-3.0-or-later. Each wallpaper folder, build output included, has its own license:
 
 - A piece a model made is CC0-1.0 and may leave out `license:`.
-- A human-made piece, and any piece with a `recreation` source, sets `license:` to an SPDX id. A recreation of a work under an attribution licence takes that licence: nix-snowflake, after the CC BY 4.0 NixOS logo, is CC-BY-4.0.
-- A fan piece sets `franchise: {title, owner}` instead of `license:`, which makes it `LicenseRef-fan-work`. No licence is granted, use is non-commercial, and the page carries a disclaimer naming the owner and takedown@walldye.com. Fan pieces need the owner's approval.
-- Third-party files in `data/` keep their upstream licence, with the notice in `REUSE.toml`, and are credited as `data` sources.
+- A human-made piece, and any piece with a `recreation` source, sets `license:` to an SPDX id. A recreation of a work under an attribution license takes that license: nix-snowflake, after the CC BY 4.0 NixOS logo, is CC-BY-4.0.
+- A fan piece sets `franchise: {title, owner}` instead of `license:`, which makes it `LicenseRef-fan-work`. No license is granted, use is non-commercial, and the page carries a disclaimer naming the owner and takedown@walldye.com. Fan pieces need the owner's approval.
+- Third-party files in `data/` keep their upstream license, with the notice in `REUSE.toml`, and are credited as `data` sources.
 
-Every licence in use has its text in `LICENSES/`, named by SPDX id, and every licence other than CC0 and fan work needs a plain-words line in `LICENCE_LINES` (`src/lib/labels.ts`), which the piece's page shows. The README has the table of what is licensed how.
+Every license in use has its text in `LICENSES/`, named by SPDX id, and every license other than CC0 and fan work needs a plain-words line in `LICENSE_LINES` (`src/lib/labels.ts`), which the piece's page shows. The README has the table of what is licensed how.
 
 ## What a piece may draw
 
 A piece is released as CC0 only when everything in it is ours to give away. The owner lives in the EU, where there is no fair use and copyright runs until 70 years after the author's death. A CC0 label on someone else's work would tell visitors they can sell prints of it. These rules keep the realistic worst case at a takedown request. They are the owner's policy, not legal advice.
 
 - Styles, techniques, algorithms, genres and ideas are free to use. Credit the work that suggested one as an `inspiration`, and the piece stays CC0.
-- A `recreation`, which redraws one specific work, is only for works that are public domain in both the EU and the US (US federal works such as NASA's count) or under an open licence.
+- A `recreation`, which redraws one specific work, is only for works that are public domain in both the EU and the US (US federal works such as NASA's count) or under an open license.
 - Works still in copyright are never redrawn. A piece may keep a work's visual idea and feel, but it makes two or three deliberate departures of its own: orientation, proportion, count, where the change happens, a focal point, or an added element. schotter is the model: a grid of squares coming loose, turned sideways, with strays leading to one filled square. Someone who knows the original should think "in the spirit of it", not "that is it". The title is not the work's title, the notes may say what is taken and what is done differently, and the work is credited as an inspiration.
 - Some looks stay off limits even as inspiration: game looks that courts have protected (the Tetris well, in *Tetris Holding v. Xio*, 2012) and single famous images such as album covers.
-- Game and franchise pieces are fan work (Licensing above). Prefer drawing a subject over copying its assets: traced official renders, textures and logos come closer to redistribution than a depiction does. A rights holder's request is honoured with `walldye drop`.
+- Game and franchise pieces are fan work (Licensing above). Prefer drawing a subject over copying its assets: traced official renders, textures and logos come closer to redistribution than a depiction does. A rights holder's request is honored with `walldye drop`.
 
 ## Drafts and review
 

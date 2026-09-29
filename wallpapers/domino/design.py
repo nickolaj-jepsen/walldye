@@ -147,7 +147,7 @@ class Camera:
 
 @dataclass(frozen=True)
 class Piece:
-    """A domino whose back bottom edge is centred on floor point `base`, facing along the unit
+    """A domino whose back bottom edge is centered on floor point `base`, facing along the unit
     floor direction `tan` and toppled forward by `tilt` radians about its front bottom edge."""
 
     base: Arr
@@ -172,13 +172,13 @@ class Piece:
     def faces(self) -> list[tuple[str, Arr, Arr]]:
         """(name, corners (4, 3), outward unit normal) of each face but the bottom."""
         v = self.corners()
-        centre = v.mean(axis=0)
+        center = v.mean(axis=0)
         out = []
         for name, idx in FACES:
             quad = v[list(idx)]
             n = np.cross(quad[1] - quad[0], quad[3] - quad[0])
             n /= np.linalg.norm(n)
-            if n @ (quad.mean(axis=0) - centre) < 0:
+            if n @ (quad.mean(axis=0) - center) < 0:
                 n = -n
             out.append((name, quad, n))
         return out

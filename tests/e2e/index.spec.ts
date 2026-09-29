@@ -18,7 +18,7 @@ const countOf = (page: Page, facet: string, value: string) =>
   page.locator(`#facets label.entry:has(input[name=${facet}][value="${value}"]) .count`);
 
 /** Every index plate as the filter reads it from the server-rendered list; the expectations below come from these and filter.ts, which the unit tests cover. */
-async function catalogue(page: Page): Promise<Filterable[]> {
+async function catalog(page: Page): Promise<Filterable[]> {
   const rows = await page.locator('.grid > li').evaluateAll((lis) =>
     lis.map((li) => {
       const d = (li as HTMLElement).dataset;
@@ -64,7 +64,7 @@ test.describe('index filters', () => {
     page,
   }) => {
     await page.goto('/');
-    const items = await catalogue(page);
+    const items = await catalog(page);
     const total = items.length;
     await expect(page.locator('#result-count')).toHaveText(results(total, total));
     await expect(page.locator('.results-line .clear')).toBeHidden();
@@ -125,7 +125,7 @@ test.describe('index filters', () => {
 
   test('search, sort and the empty state', async ({ page }) => {
     await page.goto('/');
-    const items = await catalogue(page);
+    const items = await catalog(page);
     const total = items.length;
     await page.fill('#q', 'NEES');
     const nees = shown(items, state({}, 'NEES'));
@@ -153,7 +153,7 @@ test.describe('index filters', () => {
     await page.goto('/?sort=popular');
     const popular = page.locator('#facets input[name=sort][value=popular]');
     test.skip((await popular.count()) === 0, 'no stats/views/ in this build');
-    const items = await catalogue(page);
+    const items = await catalog(page);
     const order = () =>
       page
         .locator('.grid > li')
@@ -185,7 +185,7 @@ test.describe('index filters', () => {
       });
     });
     await page.goto('/?technique=drafting');
-    const items = await catalogue(page);
+    const items = await catalog(page);
     await expect(page.locator('#result-count')).toHaveAttribute('role', 'status');
     await expect(page.locator('#result-count')).toHaveText(
       results(shown(items, state({ technique: ['drafting'] })).length, items.length),
@@ -200,7 +200,7 @@ test.describe('index filters', () => {
 
   test('the query string restores the filter and ignores unknown values', async ({ page }) => {
     await page.goto('/?technique=instrument&technique=nonsense&sort=title&q=radar');
-    const items = await catalogue(page);
+    const items = await catalog(page);
     await expect(box(page, 'technique', 'instrument')).toBeChecked();
     await expect(page.locator('#q')).toHaveValue('radar');
     await expect(page.locator('#facets input[name=sort][value=title]')).toBeChecked();
@@ -220,7 +220,7 @@ test.describe('index filters', () => {
 });
 
 test.describe('index plates', () => {
-  test('a plate whose recolour fails to load shows the template, then recolours on a retry', async ({
+  test('a plate whose recolor fails to load shows the template, then recolors on a retry', async ({
     page,
   }) => {
     await page.addInitScript(() => localStorage.setItem('walldye.theme', 'nord'));

@@ -43,7 +43,7 @@ def split(r: Rng, box: Rect, depth: int) -> list[Rect]:
 
 
 def pads() -> tuple[tuple[Vec, Vec], ...]:
-    """Centre and outward normal of each of the 16 bond pads spread along the die edges."""
+    """Center and outward normal of each of the 16 bond pads spread along the die edges."""
     out: list[tuple[Vec, Vec]] = []
     for i in range(5):
         x = 110 + i * (DIE.w - 220) / 4
@@ -68,13 +68,13 @@ def to_edge(p: Vec, d: Vec, frame: Rect) -> Vec:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen (1150, 520 at 16:9); centred, a little low, in portrait
+    # right of center on a landscape screen (1150, 520 at 16:9); centered, a little low, in portrait
     o = s.pick(landscape=(1150 / 1920, 520 / 1080), portrait=(0.5, 0.56), snap=2) - DIE.center
     frame = Rect(-o.x, -o.y, s.w, s.h)  # the canvas in die coordinates
     r = s.rng(4004)
 
     with s.group(transform=Affine.translate(o.x, o.y)):
-        # Bond wires fan from each pad away from the die centre.
+        # Bond wires fan from each pad away from the die center.
         wires = P()
         for p, n in PADS:
             wires.M(p).L(to_edge(p, n + (p - DIE.center).unit() * 0.9, frame))
@@ -159,7 +159,7 @@ def draw(s: Canvas) -> None:
         slices, chain = P(), P()
         for i in range(4):
             for lx, ly, lw, lh in tmpl:
-                # odd slices mirror to share rails with their neighbour
+                # odd slices mirror to share rails with their neighbor
                 x = ALU.x + i * sw + (tw - lx - lw if i % 2 else lx)
                 slices.rect(x + 1.5, ALU.y + ly + 1.5, lw - 3, lh - 3)
         chain.M(ALU.x - 6, ALU.y1 - 6).H(ALU.x1 + 4)

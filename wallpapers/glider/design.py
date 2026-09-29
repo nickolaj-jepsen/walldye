@@ -24,7 +24,7 @@ INSET = (CELL - SQ) / 2
 # The soup runs on a fixed field, so every screen shape gets the same ash.
 COLS, ROWS = 137, 77
 PAD = 120  # dead margin so escaping gliders die far from the soup
-SOUP = (42, 46, 40, 26)  # ellipse centre and radii, in cells
+SOUP = (42, 46, 40, 26)  # ellipse center and radii, in cells
 GENS = 1500
 LINK = 2  # cells; debris further than 2 * LINK from the main island is dropped
 # (col, row) cells of the glider in the phase that travels up and to the right
@@ -48,7 +48,7 @@ def life(g: NDArray[np.bool_]) -> NDArray[np.bool_]:
 
 
 def ash(rng: NpRng) -> NDArray[np.intp]:
-    """The settled soup's largest island as (col, row) cells about its bounding-box centre."""
+    """The settled soup's largest island as (col, row) cells about its bounding-box center."""
     g = np.zeros((ROWS + 2 * PAD, COLS + 2 * PAD), bool)
     yy, xx = np.mgrid[:ROWS, :COLS]
     r = ((xx - SOUP[0]) / SOUP[2]) ** 2 + ((yy - SOUP[1]) / SOUP[3]) ** 2
@@ -68,7 +68,7 @@ def ash(rng: NpRng) -> NDArray[np.intp]:
 
 
 def squares(cells: NDArray[np.intp], at: Vec) -> Path:
-    """A rounded square centred in each (col, row) cell of the grid whose cell (0, 0) starts at `at`."""
+    """A rounded square centered in each (col, row) cell of the grid whose cell (0, 0) starts at `at`."""
     d = P()
     for col, row in cells:
         d.rrect(at.x + col * CELL + INSET, at.y + row * CELL + INSET, SQ, SQ, RAD)

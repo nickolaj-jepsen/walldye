@@ -1,4 +1,4 @@
-"""A theta maze carved by a recursive backtracker in concentric rings, its one solution traced as a thread from the rim gate to the centre."""
+"""A theta maze carved by a recursive backtracker in concentric rings, its one solution traced as a thread from the rim gate to the center."""
 
 import math
 from collections import deque
@@ -6,10 +6,10 @@ from itertools import pairwise
 
 from walldye import ACCENT, BG_ALT, UI, UI_HI, Canvas, P, Rng, design, ladder, mix, polar
 
-type Cell = tuple[int, int]  # (ring, index); ring 0 is innermost, -1 the open centre
+type Cell = tuple[int, int]  # (ring, index); ring 0 is innermost, -1 the open center
 type Link = frozenset[Cell]
 
-R, R0, RINGS, SEED = 390, 30, 14, 1415  # outer radius, centre radius, rings, maze stream
+R, R0, RINGS, SEED = 390, 30, 14, 1415  # outer radius, center radius, rings, maze stream
 H = (R - R0) / RINGS  # ring width
 GATE = 200  # deg: the entrance on the rim
 LEAD = 44  # how far the thread trails outside the rim
@@ -21,7 +21,7 @@ TONES = ladder((UI, mix(UI, BG_ALT, 0.5)), RINGS - FADE_FROM)
 
 
 def ring_r(i: int) -> float:
-    """The mid radius of ring `i`, or 0 for the open centre (-1)."""
+    """The mid radius of ring `i`, or 0 for the open center (-1)."""
     return R0 + (i + 0.5) * H if i >= 0 else 0.0
 
 
@@ -54,8 +54,8 @@ def link(a: Cell, b: Cell) -> Link:
     return frozenset((a, b))
 
 
-def neighbours(c: Cell) -> list[Cell]:
-    """The cells sharing a wall with `c`: both ring neighbours, the one cell inward, then the one
+def neighbors(c: Cell) -> list[Cell]:
+    """The cells sharing a wall with `c`: both ring neighbors, the one cell inward, then the one
     or two outward. The order is part of the maze's random draw."""
     i, j = c
     n = COUNTS[i]
@@ -76,7 +76,7 @@ def maze(rng: Rng) -> tuple[set[Link], list[Cell]]:
     seen, stack = {start}, [start]
     while stack:
         here = stack[-1]
-        opts = [d for d in neighbours(here) if d not in seen]
+        opts = [d for d in neighbors(here) if d not in seen]
         if not opts:
             stack.pop()
             continue
@@ -90,7 +90,7 @@ def maze(rng: Rng) -> tuple[set[Link], list[Cell]]:
         goal = queue.popleft()
         if goal[0] == 0:
             break
-        for d in neighbours(goal):
+        for d in neighbors(goal):
             if d not in prev and link(goal, d) in links:
                 prev[d] = goal
                 queue.append(d)
@@ -103,7 +103,7 @@ def maze(rng: Rng) -> tuple[set[Link], list[Cell]]:
 
 
 def thread(route: list[Cell]) -> list[tuple[float, float]]:
-    """Waypoints (radius, deg) of a thread along `route` and on into the centre. Neighbouring
+    """Waypoints (radius, deg) of a thread along `route` and on into the center. Neighboring
     waypoints share a radius (an arc along a ring) or an angle (a straight run across rings);
     a run across several rings keeps one angle while the wall gaps it passes through overlap."""
     steps = list(pairwise([*route, (-1, 0)]))
@@ -113,11 +113,11 @@ def thread(route: list[Cell]) -> list[tuple[float, float]]:
         the gap, unwrapped to the nearest turn of `ref`."""
         p, c = steps[k]
         outer = max(p, c)
-        # the last run into the open centre only has to clear ring 0's short radial walls
+        # the last run into the open center only has to clear ring 0's short radial walls
         margin = 8 / ring_r(0) if c[0] < 0 else 0.55 * H / ring_r(min(p[0], c[0]))
-        centre = ref + wrap(mid(outer) - ref)
+        center = ref + wrap(mid(outer) - ref)
         w = max(0.0, SPAN[outer[0]] / 2 - math.degrees(margin))
-        return centre - w, centre + w
+        return center - w, center + w
 
     pos = mid(route[0])
     pts, a = [(ring_r(route[0][0]), pos)], pos
@@ -147,7 +147,7 @@ def thread(route: list[Cell]) -> list[tuple[float, float]]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen; on a portrait one a little high and nudged right,
+    # right of center on a landscape screen; on a portrait one a little high and nudged right,
     # to balance the thread trailing out to the left
     c = s.pick(landscape=(17 / 24, 0.5), portrait=(0.53, 0.42))
     links, route = maze(s.rng(SEED))
@@ -159,7 +159,7 @@ def draw(s: Canvas) -> None:
             for j in range(n):
                 a0, a1 = j * SPAN[i], (j + 1) * SPAN[i]
                 if i == 0:
-                    opening = (i, j) == route[-1]  # the way into the centre
+                    opening = (i, j) == route[-1]  # the way into the center
                 else:
                     opening = link((i, j), (i - 1, j // (n // COUNTS[i - 1]))) in links
                 if not opening:

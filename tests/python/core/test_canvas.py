@@ -150,10 +150,10 @@ def test_style_validation(style, error):
 
 def test_paint_validation():
     s, _ = canvas()
-    with pytest.raises(TypeError, match="raw colour strings are not paints"):
+    with pytest.raises(TypeError, match="raw color strings are not paints"):
         s.fill(SQUARE, "#FF0000")
     for array in (np.array(["none"]), np.array([]), np.array([1, 2])):
-        with pytest.raises(TypeError, match="takes a colour, 'none' or a reference"):
+        with pytest.raises(TypeError, match="takes a color, 'none' or a reference"):
             s.fill(SQUARE, array)
     with pytest.raises(TypeError):
         s.fill(SQUARE, MASK_BLACK)
@@ -233,7 +233,7 @@ def test_stroke_buckets():
         s.buckets([UI], "stroke", stroke=UI, stroke_width=1).__enter__()
     with pytest.raises(ValueError):
         s.buckets([UI], "outline").__enter__()
-    with pytest.raises(TypeError, match="raw colour"):
+    with pytest.raises(TypeError, match="raw color"):
         s.buckets(["#000"], "fill").__enter__()
     with s.buckets([UI], "fill") as b:
         for bad, error in ((1, IndexError), (-1, IndexError), (True, TypeError), (0.5, TypeError)):
@@ -281,8 +281,8 @@ def test_mask_surface():
     s, doc = canvas()
     canvas_paint = s.linear_gradient([(0, UI)], (0, 0), (1, 0))
     with s.mask() as m:
-        grey = mix(MASK_BLACK, MASK_WHITE, 0.4)
-        fade = m.radial_gradient([(0, MASK_WHITE), (1, grey, 0.5)], (5, 5), 5, units="bbox")
+        gray = mix(MASK_BLACK, MASK_WHITE, 0.4)
+        fade = m.radial_gradient([(0, MASK_WHITE), (1, gray, 0.5)], (5, 5), 5, units="bbox")
         with m.group(opacity=0.5, transform=Affine.translate(1, 1)):
             m.fill(SQUARE, fade)
         m.stroke(P().M(0, 0).L(1, 1), MASK_BLACK, 2, cap="round")

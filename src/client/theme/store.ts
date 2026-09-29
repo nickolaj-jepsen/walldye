@@ -1,6 +1,6 @@
 /**
  * Where the visitor's theme comes from and where it is kept:
- * a shared `?t=` token for the session, then the saved theme, then the system colour scheme.
+ * a shared `?t=` token for the session, then the saved theme, then the system color scheme.
  * Both storages hold a canonical theme token; every storage access is guarded. When a storage cannot
  * be written, the token is kept on `<html>` (PAGE_ATTR) instead, so it holds for the rest of the page
  * and is visible to every bundle that imports this module.
@@ -123,7 +123,7 @@ export function clearShared(): void {
 }
 
 /**
- * Sets every site colour property (cssVars) inline on <html>, plus `data-regime` and `data-theme`
+ * Sets every site color property (cssVars) inline on <html>, plus `data-regime` and `data-theme`
  * (the canonical token, which currentSeeds() reads back), points `#favicon` at the icon in `seeds`,
  * then dispatches THEME_EVENT.
  */
@@ -138,7 +138,7 @@ export function applyTheme(seeds: Seeds): void {
 }
 
 /**
- * Re-resolves and applies the theme when the system colour scheme changes and when the page comes back
+ * Re-resolves and applies the theme when the system color scheme changes and when the page comes back
  * from the back/forward cache, where storage may have changed meanwhile. It applies even when the theme
  * is unchanged, so THEME_EVENT listeners re-check what depends on the system theme (the shared-theme line).
  */

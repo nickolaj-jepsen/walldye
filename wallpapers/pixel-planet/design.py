@@ -56,7 +56,7 @@ PALETTE = (
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre and a little high on a landscape screen; below the clock on a portrait one
+    # right of center and a little high on a landscape screen; below the clock on a portrait one
     c = s.pick(landscape=(0.62, 0.4), portrait=(0.54, 0.36), snap=CELL)
     xs, ys = cells(Rect(0, 0, s.w, s.h), CELL)
     rows, cols = xs.shape

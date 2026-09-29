@@ -1,7 +1,7 @@
 title: Stippled nautilus
-description: Eight thousand dots stipple a halved nautilus, crowding its walls. The smallest chambers at the centre are lit.
+description: Eight thousand dots stipple a halved nautilus, crowding its walls. The smallest chambers at the center are lit.
 notes: |
-  Each dot starts at a random point, placed more often where the drawing should be darker. Forty rounds of relaxation then move every dot to the weighted centre of the area nearest to it, which spaces the dots evenly and keeps the shading.
+  Each dot starts at a random point, placed more often where the drawing should be darker. Forty rounds of relaxation then move every dot to the weighted center of the area nearest to it, which spaces the dots evenly and keeps the shading.
 
   The shell is a logarithmic spiral that widens 2.4 times per turn, with ten chambers to a turn. The last third of a turn, where the animal lives, has no partitions. A figure number and a 5 cm scale bar set it out like a plate in a natural history book.
 technique: [stipple]

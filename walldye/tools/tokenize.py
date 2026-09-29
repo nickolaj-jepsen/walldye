@@ -1,11 +1,11 @@
-"""Paint-context colour tokenizer: the one definition of a colour occurrence ("slot").
+"""Paint-context color tokenizer: the one definition of a color occurrence ("slot").
 
-A slot is a colour value in a paint context: the attributes fill, stroke, stop-color,
+A slot is a color value in a paint context: the attributes fill, stroke, stop-color,
 flood-color, lighting-color and color, and the same properties inside `style="..."` and
 `<style>` elements. The value (surrounding whitespace and a CSS `!important` aside) must be
-exactly hex3, hex6 or a CSS named colour; anything else (none, currentColor, url(#id),
+exactly hex3, hex6 or a CSS named color; anything else (none, currentColor, url(#id),
 rgb(), hex with alpha) is not a slot. Attribute and property names are case-sensitive,
-hex digits and colour names are not. Comments are skipped. Offsets are str indices, so the
+hex digits and color names are not. Comments are skipped. Offsets are str indices, so the
 shared fixture keeps its inputs ASCII (JS indices are UTF-16 units).
 
 src/lib/__fixtures__/tokenize.json is the spec; the TS port runs the same fixture.
@@ -18,7 +18,7 @@ type Span = tuple[int, int, str]
 
 PAINT = ("fill", "stroke", "stop-color", "flood-color", "lighting-color", "color")
 
-# CSS Color 4 named colours.
+# CSS Color 4 named colors.
 NAMED = {
     "aliceblue": "#F0F8FF", "antiquewhite": "#FAEBD7", "aqua": "#00FFFF", "aquamarine": "#7FFFD4",
     "azure": "#F0FFFF", "beige": "#F5F5DC", "bisque": "#FFE4C4", "black": "#000000",
@@ -75,8 +75,8 @@ _HEX = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
 _STYLE_END = re.compile(r"</style\s*>")
 
 
-def _colour(value: str) -> str | None:
-    """Uppercase #RRGGBB for a hex3/hex6/named colour, else None."""
+def _color(value: str) -> str | None:
+    """Uppercase #RRGGBB for a hex3/hex6/named color, else None."""
     if _HEX.fullmatch(value) is not None:
         h = value[1:]
         return "#" + (h if len(h) == 6 else "".join(c * 2 for c in h)).upper()
@@ -85,7 +85,7 @@ def _colour(value: str) -> str | None:
 
 def _match(out: list[Span], text: str, offset: int, value_re: re.Pattern[str]) -> None:
     m = value_re.fullmatch(text)
-    if m is not None and (c := _colour(m.group(1))) is not None:
+    if m is not None and (c := _color(m.group(1))) is not None:
         out.append((offset + m.start(1), offset + m.end(1), c))
 
 
@@ -94,9 +94,9 @@ def _css(out: list[Span], text: str, offset: int) -> None:
         _match(out, d.group(2), offset + d.start(2), _CSS_VALUE)
 
 
-def find_colours(svg: str) -> list[Span]:
-    """Every slot in `svg` as (start, end, colour): svg[start:end] is the value as written,
-    colour its uppercase #RRGGBB. Sorted by start."""
+def find_colors(svg: str) -> list[Span]:
+    """Every slot in `svg` as (start, end, color): svg[start:end] is the value as written,
+    color its uppercase #RRGGBB. Sorted by start."""
     out: list[Span] = []
     pos = 0
     while (m := TAG.search(svg, pos)) is not None:
@@ -134,17 +134,17 @@ def _replace(svg: str, spans: Sequence[Span], values: Sequence[str]) -> str:
 
 def substitute(svg: str, values: list[str]) -> str:
     """`svg` with slot i replaced by values[i]; ValueError unless there is one value per slot."""
-    return _replace(svg, find_colours(svg), values)
+    return _replace(svg, find_colors(svg), values)
 
 
-def normalise(svg: str) -> str:
+def normalize(svg: str) -> str:
     """`svg` with every slot rewritten to uppercase #RRGGBB; idempotent, pixels unchanged."""
-    spans = find_colours(svg)
+    spans = find_colors(svg)
     return _replace(svg, spans, [c for _, _, c in spans])
 
 
 def skeleton(svg: str) -> str:
     """`svg` with every slot replaced by SKELETON_MARK: equal skeletons mean equal geometry
-    and slot positions, whatever the colours."""
-    spans = find_colours(svg)
+    and slot positions, whatever the colors."""
+    spans = find_colors(svg)
     return _replace(svg, spans, [SKELETON_MARK] * len(spans))

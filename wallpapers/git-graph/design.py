@@ -11,7 +11,7 @@ FADE = 0.34 * 1080  # lane strokes fade in over this distance from the top and b
 # One row per commit, top to bottom: o commit, | lane passing through, then an optional fork/merge
 # "a>b" down to the next row. Every lane gets a commit, fork or merge at least every six rows.
 # Rows 14-38 are the 16:9 sheet and fill every landscape screen; portrait screens show more of
-# the history above and below, always centred on row CENTRE, the middle of the feature branch.
+# the history above and below, always centered on row CENTER, the middle of the feature branch.
 HISTORY = """
 o.|.|.
 |.|.o. 4>5
@@ -67,7 +67,7 @@ o.|.||
 |.|.o|
 |.o.||
 """
-CENTRE = 26
+CENTER = 26
 
 
 class Row(NamedTuple):
@@ -95,10 +95,10 @@ ROWS = parse(HISTORY)
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the lane group's centre: right of centre on landscape screens, centred on portrait ones
+    # the lane group's center: right of center on landscape screens, centered on portrait ones
     x0 = s.pick(landscape=(81 / 128, 0.5), portrait=(0.5, 0.5), snap=1).x - 2.5 * LANE
     # enough rows to run past both edges, where the fade hides where the history starts and stops
-    half = min(CENTRE, len(ROWS) - 1 - CENTRE, math.ceil(s.h / PITCH / 2 + 0.75))
+    half = min(CENTER, len(ROWS) - 1 - CENTER, math.ceil(s.h / PITCH / 2 + 0.75))
 
     # one vertical fade shared by every lane stroke and ring: BG at the edges, UI_ALT mid-sheet
     # stops every 108 px across each edge ramp (the 16:9 sheet's ten stops); flat in between
@@ -113,9 +113,9 @@ def draw(s: Canvas) -> None:
         return x0 + lane * LANE
 
     lines, dots, feature, feature_dots = P(), P(), P(), P()
-    for i in range(CENTRE - half, CENTRE + half + 1):
+    for i in range(CENTER - half, CENTER + half + 1):
         row = ROWS[i]
-        y = s.h / 2 + (i - CENTRE) * PITCH
+        y = s.h / 2 + (i - CENTER) * PITCH
         below = ROWS[i + 1].lanes if i + 1 < len(ROWS) else row.lanes
         move = row.move
         # a lane merging into one that is already here stops at this row

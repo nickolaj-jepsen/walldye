@@ -95,8 +95,8 @@ def log(px: Pixels, x0: int, y0: int, dx: int) -> None:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     cols, rows = -(-s.w // PX), -(-s.h // PX)
-    # The fire base in cells (flame centre column, bottom row): a little left of centre and low
-    # on a landscape screen, centred in the lower third on a portrait one.
+    # The fire base in cells (flame center column, bottom row): a little left of center and low
+    # on a landscape screen, centered in the lower third on a portrait one.
     base = s.pick(landscape=(0.4375, 0.765), portrait=(0.5, 0.7), snap=PX)
     fx, fy = round(base.x / PX), round(base.y / PX)
     px = Pixels(cols, rows, PALETTE)

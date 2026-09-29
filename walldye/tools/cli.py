@@ -149,7 +149,7 @@ def _cmd_render(a: argparse.Namespace) -> int:
         cw, ch = canvas_size(drawn)
         box = crop if crop is not None else (0.0, 0.0, float(cw), float(ch))
         px = width if width is not None else round(box[2])
-        common.rasterise(drawn_svg, px, box).save(out)
+        common.rasterize(drawn_svg, px, box).save(out)
     else:
         out.write_text(svg)
     print(out)
@@ -308,7 +308,7 @@ def _parser() -> argparse.ArgumentParser:
     s = sub.add_parser(
         "check",
         parents=[targets, every],
-        help="design lint, determinism, recolour fit and variant checks (errors exit 1)",
+        help="design lint, determinism, recolor fit and variant checks (errors exit 1)",
     )
     s.add_argument(
         "--paranoid", action="store_true", help="also redraw from a fresh import per theme"

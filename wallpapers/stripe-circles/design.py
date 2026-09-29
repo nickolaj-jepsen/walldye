@@ -6,7 +6,7 @@ from walldye import ACCENT_1, BG, BG_ALT, UI, Canvas, P, design
 from walldye.geom import hatch
 
 PITCH, STRIPE = 10, 5  # stripe spacing across the lines, and stripe width
-# Back to front: centre offset from the largest disc, radius, stripe angle (deg), paint, and the
+# Back to front: center offset from the largest disc, radius, stripe angle (deg), paint, and the
 # width of the bare ring knocked out around the disc (0 for none).
 DISCS = (
     ((0, 0), 270, 0, UI, 0),
@@ -17,7 +17,7 @@ DISCS = (
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the largest disc's centre: right of centre on a desktop, under the clock on a phone
+    # the largest disc's center: right of center on a desktop, under the clock on a phone
     anchor = s.pick(landscape=(0.65, 0.435), portrait=(0.45, 0.55))
     for offset, r, deg, paint, gap in DISCS:
         c = anchor + offset

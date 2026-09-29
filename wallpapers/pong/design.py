@@ -11,7 +11,7 @@ from walldye import (
     UI,
     UI_ALT,
     Canvas,
-    Colour,
+    Color,
     P,
     Path,
     Point,
@@ -22,16 +22,16 @@ from walldye import (
 
 TOP, BOT, X0, X1 = 110, 970, 120, 1800  # court walls and where they end
 NET = 960
-PADDLES = (Vec(160, 650), Vec(1760, 440))  # centres
+PADDLES = (Vec(160, 650), Vec(1760, 440))  # centers
 PW, PH = 16, 136
-BALL, B = Vec(1400, 350), 20  # centre and side
+BALL, B = Vec(1400, 350), 20  # center and side
 PITCH = 14  # dot spacing along the flight
 LEG, ARC = 50, 36  # the solid angle legs at the bounce, and the angle arcs' radius
 GHOSTS = ((16, ACCENT_2), (13, ACCENT_3), (10, ACCENT_4))  # afterimage side and tone, newest first
 
 
 def square(c: Point, side: float) -> Path:
-    """An axis-aligned square of `side` centred on `c`."""
+    """An axis-aligned square of `side` centered on `c`."""
     return P().rect(c[0] - side / 2, c[1] - side / 2, side, side)
 
 
@@ -44,8 +44,8 @@ def draw(s: Canvas) -> None:
         paddles.rect(c.x - PW / 2, c.y - PH / 2, PW, PH)
     s.fill(paddles, UI_ALT)
 
-    # Mirror the ball in the line its centre follows along the wall to find the bounce, k.
-    a = PADDLES[0] + (PW / 2 + B / 2, 22)  # struck just below the paddle's centre
+    # Mirror the ball in the line its center follows along the wall to find the bounce, k.
+    a = PADDLES[0] + (PW / 2 + B / 2, 22)  # struck just below the paddle's center
     wy = TOP + B / 2
     m = Vec(BALL.x, 2 * wy - BALL.y)
     k = Vec(a.x + (m.x - a.x) * (a.y - wy) / (a.y - m.y), wy)
@@ -56,7 +56,7 @@ def draw(s: Canvas) -> None:
         return side / 2 * (abs(u.x) + abs(u.y))
 
     # afterimages nest back along the flight, shrinking with 3-unit gaps
-    ghosts: list[tuple[Vec, float, Colour]] = []
+    ghosts: list[tuple[Vec, float, Color]] = []
     t, prev = 0.0, B
     for side, tone in GHOSTS:
         t += span(prev) + span(side) + 3

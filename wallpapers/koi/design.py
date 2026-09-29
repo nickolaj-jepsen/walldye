@@ -17,7 +17,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     P,
     Vec,
     design,
@@ -37,10 +37,10 @@ class Koi(NamedTuple):
     turn: float  # radians the spine bends from nose to tail root
     phase: float  # of the swimming undulation
     half: float  # half-width at the fullest point
-    body: Colour
-    fins: Colour
-    tail: Colour
-    patch: Colour
+    body: Color
+    fins: Color
+    tail: Color
+    patch: Color
     fade: float  # how strongly fins and tail tips show over the water, 0..1
     patches: tuple[Patch, ...]  # (spine from, spine to, radius and sideways drift in half-widths)
 
@@ -133,7 +133,7 @@ def markings(nz: Noise, key: int, pts: list[Vec], k: Koi) -> BaseGeometry:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # landscape: the pair right of centre, its outer ripple kept ~120 from the right edge;
+    # landscape: the pair right of center, its outer ripple kept ~120 from the right edge;
     # portrait: the pair low and to the right, under a clock
     if s.landscape:
         lit, stray = Vec(min(0.615 * s.w, s.w - 740), 430), Vec(150, 700)

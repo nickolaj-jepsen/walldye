@@ -1,9 +1,9 @@
 /**
- * Recoloured plate images for the index and the detail page. Templates and slots.json are cached,
- * templates in an LRU of about TEMPLATE_BUDGET bytes. At most MAX_PLATES plates load and recolour at
+ * Recolored plate images for the index and the detail page. Templates and slots.json are cached,
+ * templates in an LRU of about TEMPLATE_BUDGET bytes. At most MAX_PLATES plates load and recolor at
  * once, the waiting plate nearest the viewport first, and a plate no longer wanted leaves the queue;
  * their fetches, and decodes of template URLs, share MAX_FETCHES slots in turn. A plate shows its
- * template recoloured for the given seeds as a blob: URL (the template's own URL when that changes
+ * template recolored for the given seeds as a blob: URL (the template's own URL when that changes
  * nothing), swapped in only once decoded.
  */
 import { type Aspect, CANVAS } from '../lib/content';
@@ -11,16 +11,16 @@ import {
   type PreparedTemplate,
   pickTemplate,
   prepareTemplate,
-  recolour,
+  recolor,
   type Slots,
   templateUrl,
-} from '../lib/recolour';
+} from '../lib/recolor';
 import { isFireproof, type Regime, regimeOf, type Seeds } from '../lib/theme';
 import { readJson } from './dom';
 import { retrying } from './retry';
 
 export const MAX_FETCHES = 6;
-/** Plates recolouring at once: each holds its template text, and SVG images decoded together make long tasks. */
+/** Plates recoloring at once: each holds its template text, and SVG images decoded together make long tasks. */
 export const MAX_PLATES = 6;
 export const TEMPLATE_BUDGET = 8 * 1024 * 1024;
 
@@ -140,7 +140,7 @@ function remember(url: string, t: PreparedTemplate): void {
   }
 }
 
-/** The template at `url`, split for recolouring; cached, least recently used evicted first. */
+/** The template at `url`, split for recoloring; cached, least recently used evicted first. */
 function getTemplate(url: string): Promise<PreparedTemplate> {
   const hit = templates.get(url);
   if (hit) {
@@ -175,18 +175,18 @@ export function getSlots(url: string): Promise<Slots> {
   return p;
 }
 
-/** Gives the main thread a turn between recolours. */
+/** Gives the main thread a turn between recolors. */
 function yieldToMain(): Promise<void> {
   const s = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
   return s?.yield ? s.yield() : new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 /**
- * `data`'s `aspect` template recoloured for `seeds`: the SVG text, the template URL and whether the
+ * `data`'s `aspect` template recolored for `seeds`: the SVG text, the template URL and whether the
  * text is the template unchanged. Rejects when the slots or template cannot be loaded or the piece has
  * no template for `aspect`.
  */
-export async function recoloured(
+export async function recolored(
   data: PlateData,
   aspect: Aspect,
   seeds: Seeds,
@@ -200,7 +200,7 @@ export async function recoloured(
     return { svg: tpl.svg, url, untouched: true };
   }
   await yieldToMain();
-  const svg = recolour(tpl, picked.entry, seeds);
+  const svg = recolor(tpl, picked.entry, seeds);
   return { svg, url, untouched: svg === tpl.svg };
 }
 
@@ -221,7 +221,7 @@ async function sourceFor(data: PlateData, aspect: Aspect, seeds: Seeds): Promise
     const url = data.templates[`${aspect}/dark`];
     if (url) return { url, blob: false };
   }
-  const r = await recoloured(data, aspect, seeds);
+  const r = await recolored(data, aspect, seeds);
   if (r.untouched) return { url: r.url, blob: false };
   return { url: URL.createObjectURL(new Blob([r.svg], { type: 'image/svg+xml' })), blob: true };
 }
@@ -290,14 +290,14 @@ async function show(
   await run;
 }
 
-/** Shows the untouched `aspect` template for `regime`, without slots.json: the stand-in while a recolour cannot be loaded. */
+/** Shows the untouched `aspect` template for `regime`, without slots.json: the stand-in while a recolor cannot be loaded. */
 function showTemplate(plate: HTMLElement, data: PlateData, aspect: Aspect, regime: Regime): void {
   const url = data.templates[`${aspect}/${regime}`];
   if (url) show(plate, aspect, data.alt, async () => ({ url, blob: false })).catch(() => {});
 }
 
 /**
- * Shows `data`'s `aspect` template recoloured for `seeds` on `plate`, retrying failed loads
+ * Shows `data`'s `aspect` template recolored for `seeds` on `plate`, retrying failed loads
  * (retrying()); meanwhile an empty plate gets the untouched template, so its alt text stands in.
  * `shown` runs once the image is in; `wanted` false drops it from the queue while it waits. Returns a
  * function that stops it, after which it swaps nothing in.

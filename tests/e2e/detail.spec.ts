@@ -1,10 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { type Download, expect, type Page, test } from '@playwright/test';
 
-/** Width, height and colour type from a PNG's IHDR chunk. */
-function pngHeader(buf: Buffer): { width: number; height: number; colourType: number } {
+/** Width, height and color type from a PNG's IHDR chunk. */
+function pngHeader(buf: Buffer): { width: number; height: number; colorType: number } {
   expect(buf.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
-  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20), colourType: buf[25] };
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20), colorType: buf[25] };
 }
 
 async function download(page: Page): Promise<{ dl: Download; buf: Buffer }> {
@@ -41,7 +41,7 @@ test.describe('detail', () => {
     await expect(page.locator('.spread .crop')).toBeVisible();
     await expect(page.locator('#shape-hint')).toBeVisible();
     await expect(page.locator('#crop-row')).toBeVisible();
-    // Centred on the piece's focus from slots.json (x 0.4633 → 0.133 of the travel).
+    // Centered on the piece's focus from slots.json (x 0.4633 → 0.133 of the travel).
     await expect(page.locator('#crop')).toHaveValue('0.133');
     // An unplaced crop follows the focus, so the address carries no position.
     expect(new URL(page.url()).search).toBe('?shape=16x10');
@@ -76,7 +76,7 @@ test.describe('detail', () => {
     await expect(page.locator('#download-name')).toHaveText('schotter-fireproof-3440x1440.png');
     const { dl, buf } = await download(page);
     expect(dl.suggestedFilename()).toBe('schotter-fireproof-3440x1440.png');
-    expect(pngHeader(buf)).toEqual({ width: 3440, height: 1440, colourType: 2 });
+    expect(pngHeader(buf)).toEqual({ width: 3440, height: 1440, colorType: 2 });
   });
 
   test('JPEG export has the right size', async ({ page }) => {
@@ -88,7 +88,7 @@ test.describe('detail', () => {
     expect(buf.subarray(0, 3).toString('hex')).toBe('ffd8ff');
   });
 
-  test('SVG export is recoloured, cut to the crop and titled', async ({ page }) => {
+  test('SVG export is recolored, cut to the crop and titled', async ({ page }) => {
     await page.goto('/schotter?t=nord');
     await pick(page, 'fmt', 'svg');
     await pick(page, 'asp', '9:19.5');
@@ -131,7 +131,7 @@ test.describe('detail', () => {
     expect(svg).toMatch(/<path shape-rendering="crispEdges" [^>]*class="px"/);
   });
 
-  test('there are no neighbour links and the arrow keys do nothing', async ({ page }) => {
+  test('there are no neighbor links and the arrow keys do nothing', async ({ page }) => {
     await page.goto('/radar-sweep');
     await expect(page.locator('.label')).toBeVisible();
     await expect(page.locator('nav.crumbs, a[rel=prev], a[rel=next]')).toHaveCount(0);

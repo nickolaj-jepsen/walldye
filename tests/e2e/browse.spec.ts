@@ -2,7 +2,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { publishedPieces, templateUrl } from './helpers';
 
 /**
- * Browsing aids: the index's shape and colour row, the picker's theme import, and on detail pages
+ * Browsing aids: the index's shape and color row, the picker's theme import, and on detail pages
  * the version pictures, "See also" and the closed source listing. A PORTRAIT piece has a 9:19.5
  * template of its own and a CROPPED one does not.
  */
@@ -83,7 +83,7 @@ test.describe('index shape on a phone', () => {
   });
 });
 
-test.describe('colours', () => {
+test.describe('colors', () => {
   test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
 
   test('the row over the grid applies and saves a preset', async ({ page }) => {
@@ -103,7 +103,7 @@ test.describe('colours', () => {
     expect(await page.evaluate(() => localStorage.getItem('walldye.theme'))).toBe('nord');
   });
 
-  test('a pasted terminal theme fills the colours', async ({ page, browserName }) => {
+  test('a pasted terminal theme fills the colors', async ({ page, browserName }) => {
     test.skip(browserName === 'firefox', 'Firefox empties clipboardData on synthetic paste events');
     await page.goto('/about');
     await page.click('#theme-button');

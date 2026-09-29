@@ -38,7 +38,7 @@ SUN = np.array([-0.7, -0.6, 0.3]) / math.hypot(-0.7, -0.6, 0.3)
 VIEW = np.array([0, math.cos(OPEN), math.sin(OPEN)])
 HATCH = 11  # latitude line spacing
 N = 720  # samples round each circle
-# The planet's centre, measured in from the bottom-right corner: in landscape the globe's east limb
+# The planet's center, measured in from the bottom-right corner: in landscape the globe's east limb
 # meets the right edge; in portrait it is cut by the right edge so the rings reach the left one.
 CORNER = Vec(420, 320)
 CORNER_TALL = Vec(140, 320)
@@ -83,7 +83,7 @@ def ellipse(
     """Append the arc of the (u, w)-plane ellipse (a cos l, w0 - b sin l) from l0 to l1, starting
     a subpath (`move`) or joining the current one with a line.
 
-    Pieces span at most a quarter turn: SVG recentres an arc on its rounded end points, and near
+    Pieces span at most a quarter turn: SVG recenters an arc on its rounded end points, and near
     a half turn that moves the arc by pixels."""
     n = max(1, math.ceil(abs(l1 - l0) / (math.pi / 2) - 1e-9))
     for k in range(n + 1):

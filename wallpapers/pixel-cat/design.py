@@ -44,8 +44,8 @@ SHADOW, HALO_OUT, HALO_IN, FRAME, SILL, SILL_TOP, FUR, RIM, MOON = range(1, 10)
 COLS, ROWS = 72, 76
 FX0, FX1 = 4, 68  # window outer frame; its top is row 0 and its foot stands on the sill
 SILL_Y = 71
-MID, TRANSOM = 35.5, 33.5  # centre lines of the 2-cell mullion and transom, in cell indices
-MX, MY, MR = 51.5, 17.5, 8.5  # moon, in cell-centre units, centred in the upper-right pane
+MID, TRANSOM = 35.5, 33.5  # center lines of the 2-cell mullion and transom, in cell indices
+MX, MY, MR = 51.5, 17.5, 8.5  # moon, in cell-center units, centered in the upper-right pane
 CAT_X = 14  # cat's left edge; it sits on the sill
 STARS = ((10, 6), (24, 19), (16, 27), (28, 13), (61, 41), (30, 39), (14, 45), (56, 53))
 
@@ -80,7 +80,7 @@ CAT = """
 ....#################.......
 """
 
-# Maria as cell offsets from the moon's centre cell: two blobs inside, one breaking the limb.
+# Maria as cell offsets from the moon's center cell: two blobs inside, one breaking the limb.
 MARIA = (
     (-5, -4),
     (-4, -4),
@@ -141,7 +141,7 @@ def cat() -> NDArray[np.int64]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen, in the upper half of a portrait one; snapped so
+    # right of center on a landscape screen, in the upper half of a portrait one; snapped so
     # the grid origin is a whole cell
     c = s.pick(landscape=(0.62, 0.52), portrait=(0.55, 0.4), snap=PX)
     px = Pixels(COLS, ROWS, PALETTE)

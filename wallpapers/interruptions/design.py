@@ -58,10 +58,10 @@ def draw(s: Canvas) -> None:
     labels, _ = ndimage.label(void)
     hc = voids[0][0]
     hero = labels == labels.flat[np.argmin(np.hypot(X - hc.x, Y - hc.y))]
-    # optical centre: the middle of the clearing's deepest core, not its centre of mass
+    # optical center: the middle of the clearing's deepest core, not its center of mass
     depth = ndimage.distance_transform_edt(np.pad(hero, 1))[1:-1, 1:-1]
     core = depth > 0.75 * depth.max()
-    centre = Vec(X[core].mean(), Y[core].mean())
+    center = Vec(X[core].mean(), Y[core].mean())
 
     strokes = P()
     ang = rng.uniform(0, math.pi, X.shape)
@@ -76,14 +76,14 @@ def draw(s: Canvas) -> None:
         strokes.M(c - half).L(c + half)
     s.stroke(strokes, UI, 1.4, cap="round")
 
-    # 14 ordered strokes: a 4x4 sub-grid on the optical centre minus the corners off the stroke axis
+    # 14 ordered strokes: a 4x4 sub-grid on the optical center minus the corners off the stroke axis
     half = polar((0, 0), SEG / 2, deg=ORDER_DEG)
     with s.buckets(TONES, "stroke", stroke_width=2, stroke_linecap="round") as tone:
         for u in range(-1, 3):
             for v in range(-1, 3):
                 if (u, v) in ((-1, -1), (2, 2)):
                     continue
-                p = centre + (
+                p = center + (
                     (u - 0.5) * SUB + rng.normal(0, 1.5),
                     (v - 0.5) * SUB + rng.normal(0, 1.5),
                 )

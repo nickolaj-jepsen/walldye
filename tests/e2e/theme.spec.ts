@@ -39,7 +39,7 @@ test.describe('without JavaScript', () => {
 test.describe('theme', () => {
   test.use({ colorScheme: 'dark' });
 
-  test('a preset recolours the index and is saved', async ({ page }) => {
+  test('a preset recolors the index and is saved', async ({ page }) => {
     await page.goto('/');
     // Plates near the view load; fireproof shows the untouched templates.
     await expect(page.locator('.grid .plate > img').first()).toHaveAttribute(
@@ -93,7 +93,7 @@ test.describe('theme', () => {
     await expect(page.locator('[data-theme-name]')).toHaveText('flexoki-light');
   });
 
-  test('the colour fields validate, apply after a pause and revert on Escape', async ({ page }) => {
+  test('the color fields validate, apply after a pause and revert on Escape', async ({ page }) => {
     await page.goto('/');
     await page.click('#theme-button');
     const accent = page.locator('#seed-accent');
@@ -102,7 +102,7 @@ test.describe('theme', () => {
     await expect(accent).toHaveAttribute('aria-invalid', 'true');
     await expect(accent).toHaveAttribute('aria-describedby', 'seed-msg');
     await expect(page.locator('#seed-msg')).toBeVisible();
-    await expect(page.locator('#seed-msg')).toHaveText('Use a hex colour, like #CF6A4C.');
+    await expect(page.locator('#seed-msg')).toHaveText('Use a hex color, like #CF6A4C.');
     expect(await saved(page)).toBeNull();
 
     await accent.fill('0af');
@@ -122,7 +122,7 @@ test.describe('theme', () => {
     await expect(accent).toHaveValue('#00AAFF');
   });
 
-  test('close background and foreground colours get a warning', async ({ page }) => {
+  test('close background and foreground colors get a warning', async ({ page }) => {
     await page.goto('/');
     await page.click('#theme-button');
     await page.locator('#seed-fg').fill('#3A3836');

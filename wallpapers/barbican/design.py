@@ -33,7 +33,7 @@ EDGE = mix(BG_ALT, UI, 0.6)
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     bays = 6 if s.landscape else 4
-    # the tower's centre line and roof: left of centre on landscape, a tall tower on portrait
+    # the tower's center line and roof: left of center on landscape, a tall tower on portrait
     top = s.pick(landscape=(0.3125, 0.198), portrait=(0.42, 0.3), snap=1)
     # the lit window: in the bay right of the middle pier on landscape, the second bay on portrait
     lit_bay, lit_y = (3, s.h * 0.55) if s.landscape else (1, s.h * 0.56)

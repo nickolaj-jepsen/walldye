@@ -6,19 +6,19 @@ from itertools import pairwise
 from walldye import ACCENT, ACCENT_1, ACCENT_3, UI, UI_ALT, Canvas, P, Vec, design, polar
 from walldye.geom import Affine
 
-SC = 10  # px per metre
+SC = 10  # px per meter
 A = 84.39 / 2 * SC  # half the straight
-R0, LANE, N = 36.5, 1.22, 8  # kerb radius and lane width (m), lanes
+R0, LANE, N = 36.5, 1.22, 8  # curb radius and lane width (m), lanes
 LEG = 4  # the lane picked out
 FINISH_INSET = 158  # finish line to the far edge; the bend beyond it runs off the canvas
-# Local frame: origin at the track's centre, +x along the home straight towards the finish,
+# Local frame: origin at the track's center, +x along the home straight towards the finish,
 # +y towards the home straight; angles in degrees about the start bend, clockwise on screen.
 BEND = Vec(-A, 0)
 BEND_START, BEND_END = -90, -270  # the bend is run anticlockwise, infield on the left
 
 
 def run_r(n: int) -> float:
-    """Measured running-line radius (m) of lane n: 0.30 m off the kerb in lane 1, 0.20 m off the line otherwise."""
+    """Measured running-line radius (m) of lane n: 0.30 m off the curb in lane 1, 0.20 m off the line otherwise."""
     return R0 + (n - 1) * LANE + (0.30 if n == 1 else 0.20)
 
 

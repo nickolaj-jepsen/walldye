@@ -1,7 +1,7 @@
 title: Debian swirl
 description: The Debian swirl split into ten compass arcs, each continued as a full circle. The tail is filled in, its radius and angle dimensioned.
 notes: |
-  The outline is the official artwork's, untouched apart from the cuts between arcs. Ten arcs that meet without a kink follow its centre line. After the first, each turns through 60 degrees, and every radius is a whole number of units in the original file, so the centres form a small spiral whose sides turn 60 degrees too. Each circle touches the next where the swirl is cut, and the cuts on the outer turn run on as guide lines.
+  The outline is the official artwork's, untouched apart from the cuts between arcs. Ten arcs that meet without a kink follow its center line. After the first, each turns through 60 degrees, and every radius is a whole number of units in the original file, so the centers form a small spiral whose sides turn 60 degrees too. Each circle touches the next where the swirl is cut, and the cuts on the outer turn run on as guide lines.
 technique: [drafting]
 subject: [computing]
 lineage: []

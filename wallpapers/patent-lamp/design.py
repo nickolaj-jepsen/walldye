@@ -117,7 +117,7 @@ def rule(d: Path, xs: list[float], y0: float, y1: float, region: BaseGeometry) -
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # 0.615 of a landscape canvas's width; centred and larger in portrait, which is width-bound
+    # 0.615 of a landscape canvas's width; centered and larger in portrait, which is width-bound
     at = s.pick(landscape=(0.615, 0.5), portrait=(0.5, 0.54))
     k = 1.0 if s.landscape else 1.35
     place = Affine.translate(at.x, at.y - 540 * k) @ Affine.scale(k)

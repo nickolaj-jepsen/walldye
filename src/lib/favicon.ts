@@ -24,8 +24,8 @@ function faviconWeights(): [number, number, number][] {
   return out;
 }
 
-/** The cells' colours for `seeds`, row by row from the top left. */
-export function faviconColours(seeds: Seeds): string[] {
+/** The cells' colors for `seeds`, row by row from the top left. */
+export function faviconColors(seeds: Seeds): string[] {
   const [b, f, a] = [seeds.bg, seeds.fg, seeds.accent].map(hexToRgb);
   return faviconWeights().map(([wb, wf, wa]) => {
     const channel = (i: number) => wb * b[i] + wf * f[i] + wa * a[i];
@@ -39,7 +39,7 @@ export function faviconColours(seeds: Seeds): string[] {
  */
 export function faviconSvg(seeds: Seeds, light?: Seeds): string {
   const size = N * CELL;
-  const dark = faviconColours(seeds);
+  const dark = faviconColors(seeds);
   const cells = dark.map((fill, i) => {
     const x = (i % N) * CELL;
     const y = Math.floor(i / N) * CELL;
@@ -48,7 +48,7 @@ export function faviconSvg(seeds: Seeds, light?: Seeds): string {
   });
   const rules = (fills: string[]) => fills.map((f, i) => `.c${i}{fill:${f}}`).join('');
   const style = light
-    ? `<style>${rules(dark)}@media (prefers-color-scheme: light){${rules(faviconColours(light))}}</style>`
+    ? `<style>${rules(dark)}@media (prefers-color-scheme: light){${rules(faviconColors(light))}}</style>`
     : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">${style}${cells.join('')}</svg>`;
 }

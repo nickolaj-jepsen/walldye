@@ -15,7 +15,7 @@ type Anchor = Literal["start", "middle", "end"]
 # Lane baselines; a high level sits HW above its baseline, hi-Z halfway.
 LANES = (260, 370, 480, 590, 700, 810)
 NAMES = ("CS#", "SCLK", "MOSI", "MISO", "ADDR[7:0]", "DATA[7:0]")
-# The figure's box, label column included, is centred on the canvas: the labels weight the left.
+# The figure's box, label column included, is centered on the canvas: the labels weight the left.
 X0, X1, LABEL_X, HW, SLANT = 372, 1692, 332, 44, 4
 CLK0, PER, NCLK = 572, 64, 16
 CS_LO, CS_HI = 492, 1636
@@ -50,13 +50,13 @@ def wave(y: float, events: list[tuple[int, float]], level: float) -> Pts:
 
 
 def text(s: Canvas, x: float, y: float, msg: str, paint: Paint, anchor: Anchor = "start") -> None:
-    """One line of 5x8 bitmap text centred vertically on `y` and placed at `x` by `anchor`."""
+    """One line of 5x8 bitmap text centered vertically on `y` and placed at `x` by `anchor`."""
     glyphs(s, msg, paint, at=(round(x), round(y - 8)), font="5x8", px=2, gap=1, anchor=anchor)
 
 
 def bus(s: Canvas, outline: Path, rules: Path, y: float, segs: list[Seg]) -> None:
     """A bus lane on baseline `y`, appended to `outline`: each (x0, x1, label) is a window drawn
-    as a long hexagon, labelled, or for a None label ruled into `rules` as don't-care."""
+    as a long hexagon, labeled, or for a None label ruled into `rules` as don't-care."""
     top, bot, mid = y - HW, y, y - HW / 2
     pos = X0
     for x0, x1, label in segs:
@@ -81,9 +81,9 @@ def bus(s: Canvas, outline: Path, rules: Path, y: float, segs: list[Seg]) -> Non
 
 
 def dim(s: Canvas, xa: float, xb: float, y: float, label: str, paint: Paint, left: bool) -> None:
-    """Datasheet dimension: a double arrow between two extension lines, labelled on the left
+    """Datasheet dimension: a double arrow between two extension lines, labeled on the left
     when `left`, else on the right."""
-    xa, xb = xa + 1.5, xb - 1.5  # tips stop short of the extension lines so neighbours never touch
+    xa, xb = xa + 1.5, xb - 1.5  # tips stop short of the extension lines so neighbors never touch
     s.stroke(P().M(xa, y).H(xb), paint, 1.4)
     s.fill(P().arrowhead((xa, y), 9, deg=180, width=4).arrowhead((xb, y), 9, deg=0, width=4), paint)
     if left:

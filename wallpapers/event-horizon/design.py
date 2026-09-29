@@ -70,7 +70,7 @@ def tone(phi: float, r: float) -> int:
 
 def far(r: float, phi: Pts, tilt: float, lens: float) -> Pts:
     """Far half of ring r through a point lens (primary image), kept off the shadow by a soft
-    floor, in hole-centred units."""
+    floor, in hole-centered units."""
     floor = RS + 5 + (r - R0) * 0.15
     x, y = -r * np.cos(phi), -r * tilt * np.sin(phi)
     b = np.hypot(x, y)
@@ -85,7 +85,7 @@ def far(r: float, phi: Pts, tilt: float, lens: float) -> Pts:
 
 
 def near(r: float, phi: Pts, tilt: float) -> Pts:
-    """Near half of ring r, unlensed, in hole-centred units."""
+    """Near half of ring r, unlensed, in hole-centered units."""
     return np.column_stack([-r * np.cos(phi), r * tilt * np.sin(phi)])
 
 
@@ -116,7 +116,7 @@ def draw(s: Canvas[Horizon]) -> None:
     radii: list[float] = (R0 + (R1 - R0) * np.linspace(0, 1, RINGS) ** 1.3).tolist()
     top = min(float(far(r, np.array([math.pi / 2]), tilt, lens)[0, 1]) for r in radii)
     bottom = max(R1 * tilt, RS + 25)
-    # landscape: right of centre, the left free for windows; portrait: the upper middle
+    # landscape: right of center, the left free for windows; portrait: the upper middle
     c = s.pick(landscape=(1240 / 1920, 556 / 1080), portrait=(0.5, 0.42))
     k = min(1.0, (s.w - 2 * MARGIN) / (2 * R1), (s.h - 2 * MARGIN) / (bottom - top))
     c = Vec(
@@ -129,7 +129,7 @@ def draw(s: Canvas[Horizon]) -> None:
 
     s.fill(P().circle(c, k * RS), SHADOW)
     # the near half of the disk passes in front: hide what lies behind its band, grown over
-    # stroke edges but never above the hole's centre line, where the far half shows
+    # stroke edges but never above the hole's center line, where the far half shows
     half = np.linspace(0, math.pi, 181)
     band = Polygon(np.vstack([place(near(R1, half, tilt)), place(near(R0, half[::-1], tilt))]))
     band = band.buffer(1.5, join_style="mitre").intersection(box(0, c.y, s.w, s.h))

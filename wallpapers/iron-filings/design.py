@@ -34,12 +34,12 @@ TILT = -12  # deg; the magnet's axis on a landscape screen, turned a quarter on 
 LEN, THICK = 190, 44  # bar magnet
 POLE = 0.42 * LEN  # monopoles sit a little inside the bar's ends
 GAP = 100  # between the like poles of the repelling pair
-G, W, ARM = 58, 36, 120  # horseshoe: arm centres at +-G, arm width, straight length before the bend
+G, W, ARM = 58, 36, 120  # horseshoe: arm centers at +-G, arm width, straight length before the bend
 RA, RB = 640, 430  # halo semi-axes along / across the magnet
 LINES = 4.5  # field-line chains per unit of the stream function
 TONES = (BG_ALT, UI, UI_ALT, UI_HI)
 STEPS = (0.25, 0.5, 0.9)  # field strength where the filings step up a tone
-# bars as (centre, +1 when north is at +x); the horseshoe has none
+# bars as (center, +1 when north is at +x); the horseshoe has none
 BARS = {
     "bar": ((0.0, 1),),
     "repelling": ((-(LEN + GAP) / 2, 1), ((LEN + GAP) / 2, -1)),

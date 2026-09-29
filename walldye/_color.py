@@ -1,8 +1,8 @@
-"""Symbolic colours: formulas over theme tokens, resolved to hex only under a theme.
+"""Symbolic colors: formulas over theme tokens, resolved to hex only under a theme.
 
 A formula is a tuple, fixed because hashes depend on it: a token is (0, i) with i its index in
 TOKENS, a mask constant (1, level) with level 0 or 255, a mix (2, a, b, t) and a regime
-choice (3, dark, light). It holds only ints, floats and nested colours, so hashes do not change
+choice (3, dark, light). It holds only ints, floats and nested colors, so hashes do not change
 with PYTHONHASHSEED.
 """
 
@@ -20,14 +20,14 @@ from ._vec import Num, real
 type _Formula = (
     tuple[Literal[0], int]
     | tuple[Literal[1], int]
-    | tuple[Literal[2], "Colour", "Colour", float]
-    | tuple[Literal[2], "MaskColour", "MaskColour", float]
-    | tuple[Literal[3], "Colour", "Colour"]
+    | tuple[Literal[2], "Color", "Color", float]
+    | tuple[Literal[2], "MaskColor", "MaskColor", float]
+    | tuple[Literal[3], "Color", "Color"]
 )
 
 
 class _Symbolic:
-    """The shared behaviour of Colour and MaskColour: immutable, equal and hashed by formula,
+    """The shared behavior of Color and MaskColor: immutable, equal and hashed by formula,
     unordered and without a text form."""
 
     __slots__ = ("_formula", "_hash")
@@ -35,7 +35,7 @@ class _Symbolic:
     _hash: int
 
     def __init__(self, formula: _Formula) -> None:
-        """Internal: colours come from the tokens, mix, ramp, ladder and by_regime."""
+        """Internal: colors come from the tokens, mix, ramp, ladder and by_regime."""
         object.__setattr__(self, "_formula", formula)
         object.__setattr__(self, "_hash", hash(formula))
 
@@ -62,16 +62,16 @@ class _Symbolic:
         return self._hash
 
     def __lt__(self, other: object) -> NoReturn:
-        raise TypeError("colours have no order; key by index or role")
+        raise TypeError("colors have no order; key by index or role")
 
     def __le__(self, other: object) -> NoReturn:
-        raise TypeError("colours have no order; key by index or role")
+        raise TypeError("colors have no order; key by index or role")
 
     def __gt__(self, other: object) -> NoReturn:
-        raise TypeError("colours have no order; key by index or role")
+        raise TypeError("colors have no order; key by index or role")
 
     def __ge__(self, other: object) -> NoReturn:
-        raise TypeError("colours have no order; key by index or role")
+        raise TypeError("colors have no order; key by index or role")
 
     @override
     def __str__(self) -> NoReturn:
@@ -98,8 +98,8 @@ class _Symbolic:
 
 
 @final
-class Colour(_Symbolic):
-    """A theme colour: a token, a mix of theme colours, or a per-regime choice.
+class Color(_Symbolic):
+    """A theme color: a token, a mix of theme colors, or a per-regime choice.
 
     Compares and hashes by formula, so mix(a, b, 0.5) == mix(a, b, 0.5) but not
     mix(b, a, 0.5); has no order and no text form (TypeError).
@@ -109,16 +109,16 @@ class Colour(_Symbolic):
 
 
 @final
-class MaskColour(_Symbolic):
-    """A mask colour: MASK_WHITE (shows), MASK_BLACK (hides) or a mix of the two.
+class MaskColor(_Symbolic):
+    """A mask color: MASK_WHITE (shows), MASK_BLACK (hides) or a mix of the two.
 
-    The same semantics as Colour; the two never mix.
+    The same semantics as Color; the two never mix.
     """
 
     __slots__ = ()
 
 
-_TOKEN: Final[dict[str, Colour]] = {name: Colour((0, i)) for i, name in enumerate(TOKENS)}
+_TOKEN: Final[dict[str, Color]] = {name: Color((0, i)) for i, name in enumerate(TOKENS)}
 
 BLACK: Final = _TOKEN["black"]
 BG_DEEP: Final = _TOKEN["bg_deep"]
@@ -141,12 +141,12 @@ ACCENT_6: Final = _TOKEN["accent_6"]
 ACCENT_7: Final = _TOKEN["accent_7"]
 ACCENT_8: Final = _TOKEN["accent_8"]
 
-MASK_WHITE: Final = MaskColour((1, 255))
-MASK_BLACK: Final = MaskColour((1, 0))
+MASK_WHITE: Final = MaskColor((1, 255))
+MASK_BLACK: Final = MaskColor((1, 0))
 
 
-def token(name: str) -> Colour:
-    """The token colour for any of the 21 names in TOKENS, orange_dark included.
+def token(name: str) -> Color:
+    """The token color for any of the 21 names in TOKENS, orange_dark included.
 
     Raises ValueError for any other name.
     """
@@ -163,69 +163,69 @@ def _amount(t: object, what: str) -> float:
     return f
 
 
-def _kind(c: object, what: str) -> type[Colour] | type[MaskColour]:
-    if isinstance(c, Colour):
-        return Colour
-    if isinstance(c, MaskColour):
-        return MaskColour
+def _kind(c: object, what: str) -> type[Color] | type[MaskColor]:
+    if isinstance(c, Color):
+        return Color
+    if isinstance(c, MaskColor):
+        return MaskColor
     if isinstance(c, str):
-        raise TypeError(f"raw colour strings are not colours; use a token or mix() (got {c!r})")
-    raise TypeError(f"{what} takes colours, got {c!r}")
+        raise TypeError(f"raw color strings are not colors; use a token or mix() (got {c!r})")
+    raise TypeError(f"{what} takes colors, got {c!r}")
 
 
 @overload
-def mix(a: Colour, b: Colour, t: Num) -> Colour: ...
+def mix(a: Color, b: Color, t: Num) -> Color: ...
 @overload
-def mix(a: MaskColour, b: MaskColour, t: Num) -> MaskColour: ...
-def mix(a: Colour | MaskColour, b: Colour | MaskColour, t: Num) -> Colour | MaskColour:
+def mix(a: MaskColor, b: MaskColor, t: Num) -> MaskColor: ...
+def mix(a: Color | MaskColor, b: Color | MaskColor, t: Num) -> Color | MaskColor:
     """The linear blend from `a` (t = 0) to `b` (t = 1), rounded per channel when resolved.
 
     Canonical forms, in this order: t == 0 gives `a`, t == 1 gives `b`, and a == b gives `a`.
-    Raises TypeError for a bool or non-numeric `t`, for non-colours and for a Colour mixed
-    with a MaskColour; ValueError when `t` is outside [0, 1] or NaN.
+    Raises TypeError for a bool or non-numeric `t`, for non-colors and for a Color mixed
+    with a MaskColor; ValueError when `t` is outside [0, 1] or NaN.
     """
     f = _amount(t, "mix")
     ka, kb = _kind(a, "mix"), _kind(b, "mix")
     if ka is not kb:
-        raise TypeError(f"mix cannot blend a Colour with a MaskColour (got {a!r}, {b!r})")
+        raise TypeError(f"mix cannot blend a Color with a MaskColor (got {a!r}, {b!r})")
     if f == 0:
         return a
     if f == 1:
         return b
     if a == b:
         return a
-    if isinstance(a, Colour) and isinstance(b, Colour):
-        return Colour((2, a, b, f))
-    if isinstance(a, MaskColour) and isinstance(b, MaskColour):
-        return MaskColour((2, a, b, f))
+    if isinstance(a, Color) and isinstance(b, Color):
+        return Color((2, a, b, f))
+    if isinstance(a, MaskColor) and isinstance(b, MaskColor):
+        return MaskColor((2, a, b, f))
     raise AssertionError("unreachable")
 
 
 @overload
-def ramp(a: Colour, b: Colour, n: int) -> list[Colour]: ...
+def ramp(a: Color, b: Color, n: int) -> list[Color]: ...
 @overload
-def ramp(a: MaskColour, b: MaskColour, n: int) -> list[MaskColour]: ...
-def ramp(a: Colour | MaskColour, b: Colour | MaskColour, n: int) -> list[Colour] | list[MaskColour]:
-    """`n` colours evenly spaced from `a` to `b`, both included; [a] when n == 1.
+def ramp(a: MaskColor, b: MaskColor, n: int) -> list[MaskColor]: ...
+def ramp(a: Color | MaskColor, b: Color | MaskColor, n: int) -> list[Color] | list[MaskColor]:
+    """`n` colors evenly spaced from `a` to `b`, both included; [a] when n == 1.
 
-    Raises ValueError when n < 1, and what mix raises for the colours.
+    Raises ValueError when n < 1, and what mix raises for the colors.
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"ramp n takes an int, got {n!r}")
     if n < 1:
         raise ValueError(f"ramp takes n >= 1, got {n}")
     if _kind(a, "ramp") is not _kind(b, "ramp"):
-        raise TypeError(f"ramp cannot blend a Colour with a MaskColour (got {a!r}, {b!r})")
-    if isinstance(a, Colour) and isinstance(b, Colour):
+        raise TypeError(f"ramp cannot blend a Color with a MaskColor (got {a!r}, {b!r})")
+    if isinstance(a, Color) and isinstance(b, Color):
         return [a] if n == 1 else [mix(a, b, i / (n - 1)) for i in range(n)]
-    if isinstance(a, MaskColour) and isinstance(b, MaskColour):
+    if isinstance(a, MaskColor) and isinstance(b, MaskColor):
         return [a] if n == 1 else [mix(a, b, i / (n - 1)) for i in range(n)]
     raise AssertionError("unreachable")
 
 
 @final
-class Ladder(tuple[Colour, ...]):
-    """The n rungs ladder() returns: a tuple of colours plus a quantiser over them."""
+class Ladder(tuple[Color, ...]):
+    """The n rungs ladder() returns: a tuple of colors plus a quantizer over them."""
 
     __slots__ = ()
 
@@ -249,30 +249,30 @@ class Ladder(tuple[Colour, ...]):
             raise ValueError("rung takes a number, got NaN")
         return min(n - 1, int(min(max(f, 0.0), 1.0) * n))
 
-    def at(self, v: Num) -> Colour:
+    def at(self, v: Num) -> Color:
         """self[self.rung(v)]."""
         return self[self.rung(v)]
 
 
-def ladder(stops: Sequence[Colour], n: int) -> Ladder:
+def ladder(stops: Sequence[Color], n: int) -> Ladder:
     """`n` rungs spaced evenly along the piecewise-linear path through `stops`.
 
     With k = len(stops), rung i sits at u = i / (n - 1) * (k - 1) and is
     mix(stops[j], stops[j + 1], u - j) with j = min(k - 2, floor(u)); rung 0 is stops[0] and
     rung n - 1 is stops[-1]. Raises ValueError unless k >= 2 and n >= 2, and TypeError for
-    anything but theme colours.
+    anything but theme colors.
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"ladder n takes an int, got {n!r}")
     cs = tuple(stops)
     for c in cs:
-        if not isinstance(c, Colour):
+        if not isinstance(c, Color):
             _kind(c, "ladder")
-            raise TypeError(f"ladder takes theme colours, got {c!r}")
+            raise TypeError(f"ladder takes theme colors, got {c!r}")
     k = len(cs)
     if k < 2 or n < 2:
         raise ValueError(f"ladder needs at least 2 stops and n >= 2, got {k} stops and n = {n}")
-    rungs: list[Colour] = []
+    rungs: list[Color] = []
     for i in range(n):
         u = i / (n - 1) * (k - 1)
         j = min(k - 2, math.floor(u))
@@ -280,19 +280,19 @@ def ladder(stops: Sequence[Colour], n: int) -> Ladder:
     return Ladder(rungs)
 
 
-def by_regime(dark: Colour, light: Colour) -> Colour:
-    """A colour resolving to `dark` in the dark regime and `light` in the light one.
+def by_regime(dark: Color, light: Color) -> Color:
+    """A color resolving to `dark` in the dark regime and `light` in the light one.
 
-    by_regime(a, a) is `a`. Raises TypeError for anything but theme colours.
+    by_regime(a, a) is `a`. Raises TypeError for anything but theme colors.
     """
     for c in (dark, light):
-        if not isinstance(c, Colour):
+        if not isinstance(c, Color):
             _kind(c, "by_regime")
-            raise TypeError(f"by_regime takes theme colours, got {c!r}")
-    return dark if dark == light else Colour((3, dark, light))
+            raise TypeError(f"by_regime takes theme colors, got {c!r}")
+    return dark if dark == light else Color((3, dark, light))
 
 
-def resolve(c: Colour | MaskColour, tokens: Mapping[str, str]) -> str:
+def resolve(c: Color | MaskColor, tokens: Mapping[str, str]) -> str:
     """`c` as uppercase #RRGGBB under the 21-token dict `tokens` (from _theme.theme_tokens).
 
     A mix resolves through _theme.mix, which rounds each channel half to even once per mix;
@@ -309,7 +309,7 @@ def resolve(c: Colour | MaskColour, tokens: Mapping[str, str]) -> str:
     return resolve(f[2] if light else f[1], tokens)
 
 
-def coefs(c: Colour | MaskColour, light: bool) -> Coefs:
+def coefs(c: Color | MaskColor, light: bool) -> Coefs:
     """`c` in the light (or dark) regime as Coefs (see _theme.Coefs): what resolve() gives
     under any theme of that regime, except for the rounding it applies per token and per mix."""
     f = c._formula

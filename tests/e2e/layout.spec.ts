@@ -21,7 +21,7 @@ const STATES: { name: string; path: string; act?: (page: Page) => Promise<void> 
     path: '/schotter?shape=32x9&crop=1&t=catppuccin-mocha',
   },
   { name: 'dither-moon at 9:19.5', path: '/dither-moon?shape=9x19.5' },
-  { name: 'radar-sweep under light colours', path: '/radar-sweep?t=flexoki-light' },
+  { name: 'radar-sweep under light colors', path: '/radar-sweep?t=flexoki-light' },
   {
     name: 'radar-sweep with the picker open',
     path: '/radar-sweep',

@@ -1,10 +1,10 @@
 # How walldye works
 
-How walldye works and why it is built this way. [api.md](api.md) is the reference for the design API, the build files and the CLI, [wallpapers.md](wallpapers.md) has the rules for a wallpaper's metadata, words and licence, [site.md](site.md) covers how the site looks and reads, and [deploy.md](deploy.md) covers CI and hosting.
+How walldye works and why it is built this way. [api.md](api.md) is the reference for the design API, the build files and the CLI, [wallpapers.md](wallpapers.md) has the rules for a wallpaper's metadata, words and license, [site.md](site.md) covers how the site looks and reads, and [deploy.md](deploy.md) covers CI and hosting.
 
 ## Themes
 
-A theme is three seed colours: background, foreground and accent. `derive_theme` (`walldye/_theme.py`) turns them into 21 tokens, each a linear mix of the seeds (the table is in api.md, Colours). A theme is light when its background is brighter than its foreground, ties counting as dark. `is_light` is the one test, and the Python and TypeScript code both use it. A few tokens mix differently in the light regime, so derivation is linear within a regime but not across the two.
+A theme is three seed colors: background, foreground and accent. `derive_theme` (`walldye/_theme.py`) turns them into 21 tokens, each a linear mix of the seeds (the table is in api.md, Colors). A theme is light when its background is brighter than its foreground, ties counting as dark. `is_light` is the one test, and the Python and TypeScript code both use it. A few tokens mix differently in the light regime, so derivation is linear within a regime but not across the two.
 
 The presets are in `walldye/_theme.py`. The default, fireproof, is the exception to derivation: its tokens are pinned by hand, well off the derived values. Exactly fireproof's seeds resolve to the pinned table everywhere (the site serves the template untouched and the CLI names the preset). Any other seeds, however close, use the derived model.
 
@@ -12,24 +12,24 @@ A theme is written as a preset name or as `bg-fg-accent` in hex, such as `1c1b1a
 
 ## Designs draw in formulas
 
-A design never sees a colour value. Tokens and `mix()` are symbolic `Colour` formulas that compare and hash by formula and become hex only when a finished drawing is serialised under a theme. Colours cannot be sorted or printed, so geometry cannot depend on them, and one drawing per regime serves every theme.
+A design never sees a color value. Tokens and `mix()` are symbolic `Color` formulas that compare and hash by formula and become hex only when a finished drawing is serialized under a theme. Colors cannot be sorted or printed, so geometry cannot depend on them, and one drawing per regime serves every theme.
 
 The only theme fact a design can read is `s.light`. To look right on light themes a design works down this ladder, stopping as early as it can:
 
 1. Tokens only. This usually works.
-2. `by_regime(dark, light)` for a colour that must differ by regime. Both regimes still share one template.
+2. `by_regime(dark, light)` for a color that must differ by regime. Both regimes still share one template.
 3. Geometry that branches on `s.light`. This costs a light template per shape and version.
 
 Every piece is built for both regimes.
 
-## Recolouring
+## Recoloring
 
-`walldye build` draws each design once per version, screen shape and regime, and serialises the drawing as a template: under fireproof for the dark regime, and under flexoki-light for a light regime whose drawing differs. Every colour occurrence in a template is a slot, and within a regime every slot's colour is `a*bg + b*fg + c*accent + d`, with three scalars and a constant RGB vector. Build reads the coefficients off the slot's formula (a token's from the recipe `derive_theme` uses, a mix's by blending its two sides) and writes them to slots.json. The browser recolours a template by rewriting each slot from its coefficients and never runs Python.
+`walldye build` draws each design once per version, screen shape and regime, and serializes the drawing as a template: under fireproof for the dark regime, and under flexoki-light for a light regime whose drawing differs. Every color occurrence in a template is a slot, and within a regime every slot's color is `a*bg + b*fg + c*accent + d`, with three scalars and a constant RGB vector. Build reads the coefficients off the slot's formula (a token's from the recipe `derive_theme` uses, a mix's by blending its two sides) and writes them to slots.json. The browser recolors a template by rewriting each slot from its coefficients and never runs Python.
 
-- The coefficients are exact before rounding, but every token and every `mix` rounds to 8 bits, so a long chain of mixes drifts. The held-out check serialises each drawing under the other presets, corner themes and seeded random themes (`walldye/_check_themes.py`), and the build fails if any slot is predicted more than 2 RGB units off.
+- The coefficients are exact before rounding, but every token and every `mix` rounds to 8 bits, so a long chain of mixes drifts. The held-out check serializes each drawing under the other presets, corner themes and seeded random themes (`walldye/_check_themes.py`), and the build fails if any slot is predicted more than 2 RGB units off.
 - Slots are per occurrence, not per hex value, because the same fireproof hex can come from different formulas.
-- A constant slot (a = b = c = 0) recolours to itself. Only mask content may be constant, and mask content may only be constant. The API enforces both: `MASK_WHITE`, `MASK_BLACK` and their mixes are accepted only on a mask surface, which accepts nothing else. Check is the backstop, and it is what catches legacy SVGs.
-- The slot tokenizer reads colours only where they paint (`fill`, `stroke`, `stop-color` and the like, as attributes, in `style=` and in `<style>`), so `url(#ad1)` is never read as a hex. Python and TypeScript share its spec.
+- A constant slot (a = b = c = 0) recolors to itself. Only mask content may be constant, and mask content may only be constant. The API enforces both: `MASK_WHITE`, `MASK_BLACK` and their mixes are accepted only on a mask surface, which accepts nothing else. Check is the backstop, and it is what catches legacy SVGs.
+- The slot tokenizer reads colors only where they paint (`fill`, `stroke`, `stop-color` and the like, as attributes, in `style=` and in `<style>`), so `url(#ad1)` is never read as a hex. Python and TypeScript share its spec.
 - slots.json keeps each template's slot count, and the site shows the untouched template when the count does not match.
 - Plates are `<img src=blob:>`, not inline SVG, because ids like `lg1` repeat across templates.
 
@@ -37,7 +37,7 @@ Every piece is built for both regimes.
 
 The site offers six shapes, `SITE_ASPECTS`: 16:9, 16:10, 21:9, 32:9, 9:19.5 and 10:16. The short side is always 1080 canvas units, so a stroke width looks the same on every shape. A design declares the shapes it composes for with `@design(aspects=...)`, or `"any"` for all of them, and lays itself out from `s.w` and `s.h`. 16:9 is always among them, because the index plates and the social cards use it.
 
-Any other shape is a crop of the 16:9 template. The crop spans the template's full height or width and slides along the other axis. It starts centred on `focus`, the ink-weighted centroid that build stores in slots.json, and the visitor can move it (`?crop=`).
+Any other shape is a crop of the 16:9 template. The crop spans the template's full height or width and slides along the other axis. It starts centered on `focus`, the ink-weighted centroid that build stores in slots.json, and the visitor can move it (`?crop=`).
 
 ## Versions
 
@@ -50,7 +50,7 @@ A version is a named variant that a visitor can switch to on the piece's page: a
 
 ## Legacy pieces
 
-Pieces whose scripts were lost are a `source.svg` plus a `palette.yaml` that maps each hex to a token or a two-token mix. Build cuts the SVG at its colours, gives each slot its mapped formula and treats the result like any other drawing. Legacy pieces exist only at 16:9 and have no versions.
+Pieces whose scripts were lost are a `source.svg` plus a `palette.yaml` that maps each hex to a token or a two-token mix. Build cuts the SVG at its colors, gives each slot its mapped formula and treats the result like any other drawing. Legacy pieces exist only at 16:9 and have no versions.
 
 ## Build and check
 
@@ -58,8 +58,8 @@ Pieces whose scripts were lost are a `source.svg` plus a `palette.yaml` that map
 
 - imports design.py once, and runs the design lint and the meta.yaml and `data/` rules;
 - draws every shape and regime twice in-process and once in a subprocess under another `PYTHONHASHSEED`, and requires identical output;
-- lets the light regime share the dark template when their skeletons (the SVG without its colours) match, and otherwise makes a light template;
-- runs the held-out check, and serialises under two probe themes built to break assumptions: all three seeds nearly equal, and hex values that sort opposite to fireproof's;
+- lets the light regime share the dark template when their skeletons (the SVG without its colors) match, and otherwise makes a light template;
+- runs the held-out check, and serializes under two probe themes built to break assumptions: all three seeds nearly equal, and hex values that sort opposite to fireproof's;
 - enforces the constant-slot rule and the limits: no text, filters or images, and at most 1 MB and 20,000 elements;
 - compares the versions' ink maps.
 
@@ -75,10 +75,10 @@ Build output is never committed. CI restores main's last build from the Actions 
 
 walldye.com is a static Astro site on Cloudflare Pages.
 
-- The `wallpapers()` loader in `src/content.config.ts` reads each meta.yaml and validates it against taxonomy.yaml and the licence rules. It attaches the built templates, slots.json and design.py, leaves out drafts in production, and curls the quotes in visible text.
+- The `wallpapers()` loader in `src/content.config.ts` reads each meta.yaml and validates it against taxonomy.yaml and the license rules. It attaches the built templates, slots.json and design.py, leaves out drafts in production, and curls the quotes in visible text.
 - Each design has one page, `/<slug>`. Filters, sort, the index's shape, version, export shape and crop live in the query string. Templates and slots are served at `/t/<sha256[:12]>.svg` and `.slots.json` and cached as immutable (`public/_headers`). The index lists only each piece's 16:9 template URLs; a plate in another shape reads its template's hash from slots.json, which keeps the page small. Renames go in `public/_redirects`. Each piece gets a prerendered 1200x630 social card cut from its fireproof template around its focus.
 - An inline script in `<head>` (`src/client/theme/boot.ts`) sets the CSS variables before first paint. The theme comes from `?t=` first, which applies for the session, is stripped from the URL and comes with an offer to keep it; then sessionStorage, then localStorage, then `prefers-color-scheme` (fireproof or flexoki-light). Internal links carry no `?t=`, and "Copy link" adds it.
 - The site's CSS uses the derived tokens, with a contrast guard: text needs 4.5:1 on its ground, and controls and the focus ring 3:1. A role that falls short is mixed towards black or white by the smallest amount that passes. The wallpapers always use the raw seeds.
-- `src/lib/` holds the code the build and the browser share, and ports the theme, recolour and tokenizer code to TypeScript. `src/client/` runs only in the browser, `src/server/` only at build time. Its `mix()` rounds half to even like Python's `round()`. vitest checks the port against fixtures and Python renders that `tests/python/fixtures/regen.py` writes after a build.
+- `src/lib/` holds the code the build and the browser share, and ports the theme, recolor and tokenizer code to TypeScript. `src/client/` runs only in the browser, `src/server/` only at build time. Its `mix()` rounds half to even like Python's `round()`. vitest checks the port against fixtures and Python renders that `tests/python/fixtures/regen.py` writes after a build.
 - The index can sort by page views. Cloudflare Web Analytics keeps a rolling window and samples a day once it is a few days old, so each finished day is recorded while it is exact, as a file on the `stats` branch rather than a commit on main ([deploy.md](deploy.md), Page views). The loader totals the days, counting a renamed slug's views for its new slug through `public/_redirects`, and gives each piece `views` and `recent`, in which a day counts half as much for every 7 days it is older than the newest day. "popular" sorts by `recent` and "most viewed" by `views`, and a build with views starts the index on popular. The order is fixed at build time, so each recorded day redeploys main.
-- The client supports browsers with OffscreenCanvas in workers (Safari 16.4 and later). Export happens in the browser. The recoloured SVG is cropped by rewriting its viewBox, and resvg-wasm rasterises it in a worker for PNG, WebP and JPEG. Pixel pieces tag their paths with `class="px"`, and the exporter sets `crispEdges` on those paths only, since on the root it would make curves jagged.
+- The client supports browsers with OffscreenCanvas in workers (Safari 16.4 and later). Export happens in the browser. The recolored SVG is cropped by rewriting its viewBox, and resvg-wasm rasterizes it in a worker for PNG, WebP and JPEG. Pixel pieces tag their paths with `class="px"`, and the exporter sets `crispEdges` on those paths only, since on the root it would make curves jagged.

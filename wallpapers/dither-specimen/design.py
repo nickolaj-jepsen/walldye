@@ -82,7 +82,7 @@ def plate(s: Canvas) -> None:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # Landscape: right of centre, but never nearer the right edge than on 16:9, which centres
+    # Landscape: right of center, but never nearer the right edge than on 16:9, which centers
     # it on 16:10. Portrait: the plate turned a quarter anticlockwise, like a wide figure
     # printed sideways, so the ramp rises up the screen.
     mid = s.pick(landscape=(0.573, 0.515), portrait=(0.5, 0.5), snap=CELL)

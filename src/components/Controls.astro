@@ -22,7 +22,7 @@ const format = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!;
 const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, size, '16:9', false);
 ---
 
-<section class="controls" aria-label={p.versions.length ? 'Versions, colours and export' : 'Colours and export'}>
+<section class="controls" aria-label={p.versions.length ? 'Versions, colors and export' : 'Colors and export'}>
   {
     p.versions.length > 0 && (
       <section aria-labelledby="versions-h">
@@ -34,14 +34,14 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     )
   }
   <section aria-labelledby="theme-h">
-    <h2 id="theme-h" class="sc">Colours</h2>
+    <h2 id="theme-h" class="sc">Colors</h2>
     <ul class="seedlist">
       {seeds.map((s) => <li><span class="chip" style={`--c:var(--seed-${s.seed})`} /><span class="mono" data-seed={s.seed}>{s.value}</span><span class="role">{s.role}</span></li>)}
     </ul>
     <p class="actions"><button type="button" class="textbtn" popovertarget="picker">Change</button><button type="button" class="textbtn" data-action="copy-link">Copy link</button></p>
   </section>
 
-  <section id="export" aria-labelledby="export-h" data-license={p.licence}>
+  <section id="export" aria-labelledby="export-h" data-license={p.resolvedLicense}>
     <h2 id="export-h" class="sc">Export</h2>
     <div class="row"><span class="k">Format</span><div class="seg" role="radiogroup" aria-label="Format">{FORMATS.map((f) => <label><input type="radio" name="fmt" value={f.value} data-ext={f.ext} checked={f === format} /><span>{f.label}</span></label>)}</div><span class="sub hint" id="format-hint" hidden>This browser can’t make WebP files.</span></div>
     <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint" hidden>cropped from <span class="mono">16:9</span></span></div>

@@ -437,7 +437,7 @@ class Path:
 
     def spline(self, pts: ArrayLike, *, closed: bool = False, tension: Num = 1.0) -> Self:
         """A Catmull-Rom curve through the (N, 2) `pts` as cubic Béziers, control points offset
-        by tension / 6 of the neighbour chord.
+        by tension / 6 of the neighbor chord.
 
         An open curve's end segments repeat their end point; fewer than 3 points give poly().
         """

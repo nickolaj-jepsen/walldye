@@ -1,7 +1,7 @@
 title: One-line moon
 description: One closed line through 3,500 stipple points draws a crescent moon beside a thin circle for the unlit disc.
 notes: |
-  The method is Kaplan and Bosch's TSP art. The points come from weighted Voronoi stippling: scattered in proportion to how brightly each part of the moon is lit, then moved twelve times to the centre of mass of their Voronoi cells.
+  The method is Kaplan and Bosch's TSP art. The points come from weighted Voronoi stippling: scattered in proportion to how brightly each part of the moon is lit, then moved twelve times to the center of mass of their Voronoi cells.
 
   A path that always steps to the nearest unvisited point links them into a loop. 2-opt and Or-opt moves then shorten it, swapping pairs of links or moving short runs of points, until no change among nearby points helps.
 technique: [line, stipple]

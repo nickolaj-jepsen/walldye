@@ -30,8 +30,8 @@ function module(): Promise<WebAssembly.Module> {
   return wasm;
 }
 
-/** Starts downloading and compiling the rasteriser; failures surface on the next export instead. */
-export function prefetchRasteriser(): void {
+/** Starts downloading and compiling the rasterizer; failures surface on the next export instead. */
+export function prefetchRasterizer(): void {
   module().catch(() => {});
 }
 
@@ -52,10 +52,10 @@ export function canEncodeWebp(): Promise<boolean> {
 }
 
 /**
- * `svg` (already sized to the output pixels) rasterised over `background` and encoded as `format`.
+ * `svg` (already sized to the output pixels) rasterized over `background` and encoded as `format`.
  * Rejects when rendering or encoding fails.
  */
-export async function rasteriseSvg(
+export async function rasterizeSvg(
   svg: string,
   background: string,
   format: RasterFormat,

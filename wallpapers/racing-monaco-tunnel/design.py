@@ -29,11 +29,11 @@ from walldye.field import iso_lines
 from walldye.geom import Polyline, parts
 
 type F64 = NDArray[np.float64]
-type Rings = list[list[list[int]]]  # polygons, each a list of rings of flat x, y metres
+type Rings = list[list[list[int]]]  # polygons, each a list of rings of flat x, y meters
 
-# Map metres are east and north of 43.7384 N, 7.4246 E. The data covers only the ground every
+# Map meters are east and north of 43.7384 N, 7.4246 E. The data covers only the ground every
 # screen shape shows at this scale and turn.
-K = 1.1  # canvas units per metre
+K = 1.1  # canvas units per meter
 BEARING = 60  # compass bearing that points right on a landscape screen; portrait turns 90 more
 TUNNEL_MID = (365.0, 75.0)  # placed at the focus
 # Below the streets on a dark ground, as far under them as the blocks stand above; paper has no
@@ -76,7 +76,7 @@ def middle(g: Polygon, line: LineString) -> list[Polygon]:
 
 
 def frame(bearing: float) -> F64:
-    """Rows map (east, north) metres onto canvas (x, y), with `bearing` pointing right."""
+    """Rows map (east, north) meters onto canvas (x, y), with `bearing` pointing right."""
     b = math.radians(bearing)
     return np.array([[math.sin(b), math.cos(b)], [math.cos(b), -math.sin(b)]]) * K
 
@@ -84,7 +84,7 @@ def frame(bearing: float) -> F64:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     # OpenStreetMap: buildings unioned into blocks, the sea cut from the coastline, and the
-    # circuit's centreline from the start line in racing order, with the tunnel's vertex range.
+    # circuit's centerline from the start line in racing order, with the tunnel's vertex range.
     data = s.data("monaco.json")
     blocks: Rings = data["blocks"]
     sea: Rings = data["sea"]

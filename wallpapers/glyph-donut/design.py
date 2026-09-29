@@ -15,7 +15,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     Params,
     by_regime,
     design,
@@ -42,7 +42,7 @@ RAMP = ".`-:;+=*o%#@"  # darkest to brightest
 # the first accent step, which ACCENT_4 would leave paler than the UI_HI step below it.
 LOW, MID = by_regime(UI, UI_ALT), by_regime(UI_ALT, mix(UI_ALT, UI_HI, 0.5))
 WARM = by_regime(ACCENT_4, ACCENT_2)
-TONES: tuple[Colour, ...] = (LOW,) * 4 + (MID,) * 4 + (UI_HI, WARM, ACCENT_1, ACCENT)
+TONES: tuple[Color, ...] = (LOW,) * 4 + (MID,) * 4 + (UI_HI, WARM, ACCENT_1, ACCENT)
 CW, CH = 8, 16  # 8x16 font at px=1
 COLS, ROWS = 120, 60  # scratch grid, trimmed to the torus before it is placed
 R1, R2 = 1, 2  # tube and ring radius
@@ -101,7 +101,7 @@ def draw(s: Canvas[Donut]) -> None:
     out = out[rows.min() : rows.max() + 1, cols.min() : cols.max() + 1]
     lines = ["".join(RAMP[v] if v >= 0 else " " for v in row) for row in out.tolist()]
 
-    # right of centre on a landscape screen, the upper half of a portrait one
+    # right of center on a landscape screen, the upper half of a portrait one
     c = s.pick(landscape=(0.646, 0.5), portrait=(0.5, 0.42), snap=1)
     at = (c.x - out.shape[1] * CW // 2, c.y - out.shape[0] * CH // 2)
     glyphs(s, lines, lambda col, row, ch: TONES[RAMP.index(ch)], at=at, font="8x16", px=1)

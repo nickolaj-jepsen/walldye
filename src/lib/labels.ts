@@ -1,5 +1,5 @@
 /**
- * The words visitors see for taxonomy slugs, computed facets, model ids and licences. The content
+ * The words visitors see for taxonomy slugs, computed facets, model ids and licenses. The content
  * schema fails the build when a published piece uses a value with no label here. Facet entries are
  * lowercase: they are index entries, not headings.
  */
@@ -88,11 +88,11 @@ export const MODEL_NAMES: Record<string, string> = {
 export const TAKEDOWN_CONTACT = 'takedown@walldye.com';
 
 /**
- * The plain-words line under the credit for licences other than the default (CC0-1.0, which
- * shows nothing); no licence names or identifiers. A licence missing here fails the build. The
+ * The plain-words line under the credit for licenses other than the default (CC0-1.0, which
+ * shows nothing); no license names or identifiers. A license missing here fails the build. The
  * fan-work line is built by the detail page from `franchise` and TAKEDOWN_CONTACT.
  */
-export const LICENCE_LINES: Record<string, string> = {
+export const LICENSE_LINES: Record<string, string> = {
   // "Above" is the caption's "after …" line and the credit, which reuse under CC BY has to keep.
   'CC-BY-4.0': 'Free to use, with credit as given above.',
   'CC-BY-SA-3.0':

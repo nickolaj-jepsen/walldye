@@ -58,7 +58,7 @@ describe('writeAddress', () => {
 });
 
 describe('shapeOf', () => {
-  it('centres an unplaced crop on the focus and keeps a placed one', () => {
+  it('centers an unplaced crop on the focus and keeps a placed one', () => {
     const focus = [0.2, 0.5] as const;
     expect(shapeOf(state({ aspect: '16:10' }), NATIVE, focus)).toEqual({
       aspect: '16:10',

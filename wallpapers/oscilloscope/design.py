@@ -40,13 +40,13 @@ SW, SH = 10 * DIV, 8 * DIV  # screen
 AMP = 3 * DIV  # beam deflection in both axes
 PH = math.pi / 2 - 0.12  # horizontal phase lead, just short of quadrature
 STRIP, RIM = 150, 26  # control strip width; bezel around the screen
-BODY_DX = (STRIP - RIM) / 2  # body centre right of the screen centre
+BODY_DX = (STRIP - RIM) / 2  # body center right of the screen center
 TONES = (ACCENT_3, ACCENT_2, ACCENT_1, ACCENT)  # trace, fast to slow
 CUTS = (0.4, 0.7, 0.88)  # slowness thresholds between the tones
 
 
 def trace(c: Vec, p: Scope, ph: float) -> np.ndarray:
-    """One cycle of the beam around screen centre `c` with horizontal phase lead `ph`, as (N, 2)
+    """One cycle of the beam around screen center `c` with horizontal phase lead `ph`, as (N, 2)
     points; uniform time steps already crowd them into the slow, tight turns."""
     t = np.linspace(0, 2 * math.pi, 240 * (p.fx + p.fy) + 1)
     return np.column_stack((c.x + AMP * np.sin(p.fx * t + ph), c.y - AMP * np.sin(p.fy * t)))
@@ -54,7 +54,7 @@ def trace(c: Vec, p: Scope, ph: float) -> np.ndarray:
 
 @design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Scope]) -> None:
-    # landscape: right of centre, leaving the left for windows; portrait: centred, a little low
+    # landscape: right of center, leaving the left for windows; portrait: centered, a little low
     c = s.pick(landscape=(0.63, 0.5), portrait=(0.5, 0.56), snap=1) - (BODY_DX, 0)
     x0, y0 = c.x - SW / 2, c.y - SH / 2
     s.path(

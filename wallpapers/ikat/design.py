@@ -42,7 +42,7 @@ ECHO_FRINGE, ECHO_CORE, FAR, NEAR, CORE_ALT, CORE = range(len(TONES))
 
 
 def stepped(hw: float, hh: float, n: int) -> BaseGeometry:
-    """Staircase lozenge centred on the origin: n stacked boxes, widest in the middle."""
+    """Staircase lozenge centered on the origin: n stacked boxes, widest in the middle."""
     return unary_union(
         [
             box(-hw * (k + 1) / n, -hh * (n - k) / n, hw * (k + 1) / n, hh * (n - k) / n)
@@ -52,7 +52,7 @@ def stepped(hw: float, hh: float, n: int) -> BaseGeometry:
 
 
 def motif(c: Vec, k: float) -> BaseGeometry:
-    """Two nested stepped rings, scaled by k and centred on c."""
+    """Two nested stepped rings, scaled by k and centered on c."""
 
     def ring(a: float, b: float, n: int) -> BaseGeometry:
         return stepped(HW * a, HH * a, n).difference(stepped(HW * b, HH * b, n))
@@ -69,7 +69,7 @@ def intervals(shape: BaseGeometry, x: float, h: float) -> list[tuple[float, floa
 
 
 def smooth(rng: NpRng, n: int, half: int, lo: float, hi: float) -> np.ndarray:
-    """Neighbour-correlated values in [lo, hi]: Gaussian noise under a Hanning window of 2*half+1 threads."""
+    """Neighbor-correlated values in [lo, hi]: Gaussian noise under a Hanning window of 2*half+1 threads."""
     v = np.convolve(rng.normal(0, 1, n + 2 * half), np.hanning(2 * half + 1), mode="same")
     v = v[half:-half]
     v = (v - v.min()) / (v.max() - v.min())
@@ -101,7 +101,7 @@ def dye(
         ]
         for j, (y1, y2) in enumerate(segs):
             b[cores[i % 2]].M(x, y1).V(y2)
-            # each fringe tone steps outward, never past halfway to the neighbouring span
+            # each fringe tone steps outward, never past halfway to the neighboring span
             room_up = (y1 - segs[j - 1][1]) / 2 if j else 99
             room_dn = (segs[j + 1][0] - y2) / 2 if j + 1 < len(segs) else 99
             for start, sgn, space in ((y1, -1, room_up), (y2, 1, room_dn)):

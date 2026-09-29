@@ -60,7 +60,7 @@ def blob(r: Rng, big: float) -> Radius:
 
 
 def rim(c: Vec, rad: Radius, a: Arr, inset: float | Arr = 0.0, sx: float = 1.0) -> Arr:
-    """The (N, 2) points of a hole's outline at angles `a`, pulled `inset` towards its centre
+    """The (N, 2) points of a hole's outline at angles `a`, pulled `inset` towards its center
     and stretched `sx` times across."""
     r = rad(a) - inset
     return np.column_stack((c.x + sx * r * np.cos(a), c.y + r * np.sin(a)))
@@ -76,13 +76,13 @@ def even_gaps(holes: list[Arr]) -> bool:
     return True
 
 
-def cut(r: Rng, radii: list[float], centres: list[Vec], behind: list[Arr]) -> list[Radius]:
-    """Radius functions for holes of `radii` around `centres` (front sheet first), in front of
+def cut(r: Rng, radii: list[float], centers: list[Vec], behind: list[Arr]) -> list[Radius]:
+    """Radius functions for holes of `radii` around `centers` (front sheet first), in front of
     the `behind` outlines, redrawn up to 200 times until every gap is even; the last try stands
     otherwise."""
     for _ in range(199):
         rads = [blob(r, big) for big in radii]
-        holes = [rim(c, rad, AROUND) for c, rad in zip(centres, rads, strict=True)]
+        holes = [rim(c, rad, AROUND) for c, rad in zip(centers, rads, strict=True)]
         if even_gaps(holes + behind):
             return rads
     return [blob(r, big) for big in radii]
@@ -126,8 +126,8 @@ def framed(holes: list[Arr], w: float, h: float) -> bool:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # Hole shapes and their centres relative to the focus, back sheet first, the same on every
-    # screen. Centres step out from the focus in proportion to each ring's width, so the drift
+    # Hole shapes and their centers relative to the focus, back sheet first, the same on every
+    # screen. Centers step out from the focus in proportion to each ring's width, so the drift
     # never pinches one side.
     radii = (*CORE[::-1], *EXTRA)
     offsets = [Vec(0, 0)]
@@ -179,7 +179,7 @@ def draw(s: Canvas) -> None:
         c, shape, tone = focus + offsets[i], shapes[i], tones[i]
         sheet = P().rect(*s.inset(-40)).spline(holes[i], closed=True)
         # The shadow falls on the sheet behind, or on the backing behind the last one. Shadows
-        # and lit edges pick their colour per regime, so they keep their sense on light themes.
+        # and lit edges pick their color per regime, so they keep their sense on light themes.
         if i == 0:
             shade = by_regime(ACCENT_2, ACCENT_HI)
         else:

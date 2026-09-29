@@ -1,4 +1,4 @@
-"""A moon in 1-bit void-and-cluster dither: a shaded tone field of maria and ray craters quantised to square cells."""
+"""A moon in 1-bit void-and-cluster dither: a shaded tone field of maria and ray craters quantized to square cells."""
 
 import math
 
@@ -41,7 +41,7 @@ def blobs(u: Field, v: Field, spots: list[tuple[float, float, float, float]]) ->
 
 @design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Moon]) -> None:
-    # right of centre on a landscape screen (the left stays free for windows), the upper third
+    # right of center on a landscape screen (the left stays free for windows), the upper third
     # on a portrait one (below the clock, above the dock); snapped to whole cells, since a
     # fractional grid origin blurs every cell edge
     c = s.pick(landscape=(0.68, 0.46), portrait=(0.56, 0.34), snap=CELL)

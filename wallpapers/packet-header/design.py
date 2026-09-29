@@ -11,7 +11,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     Params,
     design,
     knob,
@@ -188,7 +188,7 @@ def draw(s: Canvas[Header]) -> None:
     left = 0 if f.right else len(f.note) + 1  # note columns left of the figure
     beside = (width + len(f.note) + 1) * CW  # the figure with the note in its margin
     # The note sits in the margin beside the lit row. The 32-bit rows leave only 40 px on a
-    # portrait screen, so there the figure is centred and the lit field is repeated under it
+    # portrait screen, so there the figure is centered and the lit field is repeated under it
     # (from row `detail`), with the note beside that.
     zoom = not s.landscape and beside > s.w - 160
     at = s.pick(landscape=(f.fx, 0.5), portrait=(0.5, 0.46), snap=PX)
@@ -207,7 +207,7 @@ def draw(s: Canvas[Header]) -> None:
         nx = x0 + (width + 1) * CW if f.right else x0 - left * CW
         note = (nx, y0 + (f.rows.start + mid) * CH)
 
-    def colour(c: int, r: int, ch: str) -> Colour:
+    def color(c: int, r: int, ch: str) -> Color:
         lit = c in f.cols and r in f.rows
         if r < f.ruler:
             return RULE
@@ -215,14 +215,14 @@ def draw(s: Canvas[Header]) -> None:
             return ACCENT_3 if lit else RULE
         return ACCENT if lit else TEXT
 
-    glyphs(s, f.lines, colour, at=(x0, y0), px=PX)
+    glyphs(s, f.lines, color, at=(x0, y0), px=PX)
     if zoom:
         field = [row[f.cols.start : f.cols.stop] for row in f.lines[f.rows.start : f.rows.stop]]
         at_field = (x0 + f.cols.start * CW, y0 + detail * CH)
         glyphs(
             s,
             field,
-            lambda c, r, ch: colour(c + f.cols.start, r + f.rows.start, ch),
+            lambda c, r, ch: color(c + f.cols.start, r + f.rows.start, ch),
             at=at_field,
             px=PX,
         )

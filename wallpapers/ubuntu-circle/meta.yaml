@@ -1,7 +1,7 @@
 title: Ubuntu circle
 description: Ubuntu's Circle of Friends as a compass construction. The ring's width steps outward in fading circles, and one of the three heads is filled in.
 notes: |
-  Every radius in the mark is a whole number of one small unit, measured off the official 2022 artwork: the ring runs from 27 to 36, the head centres sit on a circle of 30, the heads have a radius of 11, and a cut of 16 round each head breaks the ring. In the official file the heads sit slightly off an even spacing; here they are exactly 120 degrees apart. Inside the ring only the centre lines cross, so the middle stays clear.
+  Every radius in the mark is a whole number of one small unit, measured off the official 2022 artwork: the ring runs from 27 to 36, the head centers sit on a circle of 30, the heads have a radius of 11, and a cut of 16 round each head breaks the ring. In the official file the heads sit slightly off an even spacing; here they are exactly 120 degrees apart. Inside the ring only the center lines cross, so the middle stays clear.
 technique: [drafting]
 subject: [computing]
 lineage: []

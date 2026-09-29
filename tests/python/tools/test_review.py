@@ -242,7 +242,7 @@ def test_apply_leaves_the_versions_of_a_dropped_piece(wallpapers, review_files):
     state = {"versions": {"versions": {"default": {"status": "drop"}, "late": {"status": "keep"}}}}
     result = review.apply(review.queue([]), state)
     assert result["published_variants"] == [] and meta("versions")["variants"] == VERSION_LABELS
-    assert review.summarise(review.queue([]), state) == {
+    assert review.summarize(review.queue([]), state) == {
         "approved": [],
         "rejected": [{"slug": "versions", "note": ""}],
         "undecided": [],
@@ -260,7 +260,7 @@ def test_apply_sends_edits_back_and_asks_again(wallpapers, review_files):
         "a": {"versions": {"default": {"status": "edit", "note": "less dense"}}, "edits": {"title": "Ring"}},
     }  # fmt: skip
     steps = review.queue(["v", "a"])
-    assert review.summarise(steps, state) == {
+    assert review.summarize(steps, state) == {
         "approved": [],
         "rejected": [],
         "undecided": [],
@@ -301,13 +301,13 @@ def test_apply_refuses_edits_that_break_the_lint(wallpapers, review_files):
     assert review.check_entry("a", state["a"], {})["fresh"] == ["meta.yaml needs a title"]
 
 
-def test_summarise_lists_notes_and_versions():
+def test_summarize_lists_notes_and_versions():
     steps = [Step("a", "default", False), Step("b", "default", True), Step("b", "x", False)]
     state = {
         "a": {"versions": {"default": {"note": "look again"}}},
         "b": {"versions": {"default": {"status": "keep", "note": "fine"}, "x": {"status": "drop", "note": "a nudge"}}},
     }  # fmt: skip
-    assert review.summarise(steps, state) == {
+    assert review.summarize(steps, state) == {
         "approved": [],
         "rejected": [],
         "undecided": ["a"],

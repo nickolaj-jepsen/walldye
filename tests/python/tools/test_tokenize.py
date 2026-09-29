@@ -12,11 +12,11 @@ SPEC = json.loads((regen.SHARED / "tokenize.json").read_text())
 def test_spec(case):
     text = case["input"]
     assert text.isascii()  # offsets must mean the same in JS
-    assert [list(o) for o in tokenize.find_colours(text)] == case["occurrences"]
-    assert tokenize.normalise(text) == case["normalised"]
+    assert [list(o) for o in tokenize.find_colors(text)] == case["occurrences"]
+    assert tokenize.normalize(text) == case["normalized"]
     assert tokenize.skeleton(text) == case["skeleton"]
-    assert tokenize.normalise(case["normalised"]) == case["normalised"]
-    assert tokenize.skeleton(case["normalised"]) == case["skeleton"]
+    assert tokenize.normalize(case["normalized"]) == case["normalized"]
+    assert tokenize.skeleton(case["normalized"]) == case["skeleton"]
 
 
 def test_spec_tables():

@@ -37,7 +37,7 @@ def trajectory() -> Pts:
 
 
 def project(t: Pts, c: Vec, scale: float) -> Pts:
-    """The x-z side view of `t`, tilted by TILT, scaled, with its bounding box centred on `c`."""
+    """The x-z side view of `t`, tilted by TILT, scaled, with its bounding box centered on `c`."""
     xy = Affine.rotate(deg=TILT).apply(np.c_[t[:, 0], -t[:, 2]])
     return (xy - (xy.min(0) + xy.max(0)) / 2) * scale + c
 
@@ -49,7 +49,7 @@ def poly(xy: Pts, tol: float = 0.3) -> Path:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # left of centre on a landscape screen, leaving the right for windows; centred and a little
+    # left of center on a landscape screen, leaving the right for windows; centered and a little
     # larger below the clock on a portrait one
     c = s.pick(landscape=(0.34375, 0.5), portrait=(0.5, 0.55))
     t = trajectory()

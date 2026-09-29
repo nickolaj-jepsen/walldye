@@ -1,4 +1,4 @@
-/** The catalogue's committed files as the tests read them. Not a test: neither runner matches this name. */
+/** The catalog's committed files as the tests read them. Not a test: neither runner matches this name. */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';

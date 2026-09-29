@@ -28,7 +28,7 @@ from walldye.geom import Polyline, parts, spline_points
 
 type Pts = NDArray[np.float64]
 
-# The storm in units from the low's centre: the triple point where the fronts meet, then each
+# The storm in units from the low's center: the triple point where the fronts meet, then each
 # front's control points, running outward from the low or the triple point.
 TRIPLE = (80, 220)
 OCCLUDED = ((0, 0), (68, 50), (95, 140), TRIPLE)
@@ -130,12 +130,12 @@ def draw(s: Canvas) -> None:
                         f = math.hypot((mx - focus.x) / 1.4, my - focus.y) / 700
                         iso[TONES.rung(f)].poly(run)
 
-    # the two pressure centres
+    # the two pressure centers
     s.fill(P().dots([low, high], 3), UI_HI)
     s.stroke(P().circle(low, 9).circle(high, 9), UI_HI, 1.4)
 
     into_low = shapely.LineString(occluded)
-    # stop short of the centre ring
+    # stop short of the center ring
     occ = np.asarray(substring(into_low, 15, into_low.length).coords)
     s.stroke(P().poly(occ).poly(cold).poly(warm), ACCENT, 2.2, join="round", cap="round")
     marks = P()

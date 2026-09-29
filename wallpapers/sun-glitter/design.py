@@ -25,7 +25,7 @@ SEA, CREST, PATH_6, PATH_3, PATH_1, CORE = range(len(TONES))
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the sun's centre, on the horizon
+    # the sun's center, on the horizon
     foot = s.pick(landscape=(17 / 24, 5 / 9), portrait=(0.6, 0.55))
     hy = foot.y
     sea = s.h - hy

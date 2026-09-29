@@ -37,7 +37,7 @@ INHIBIT = mix(BG, BG_ALT, 0.35)
 
 
 def core(d: Path, c: Vec, rot: float) -> None:
-    """Append a core's outline to `d`: an ellipse centred on `c`, its long axis turned `rot`
+    """Append a core's outline to `d`: an ellipse centered on `c`, its long axis turned `rot`
     degrees, as two half arcs."""
     a, b = polar(c, RX, deg=rot + 180), polar(c, RX, deg=rot)
     d.M(a).A(RX, RY, rot, 0, 1, b).A(RX, RY, rot, 0, 1, a).Z()
@@ -54,12 +54,12 @@ def tier(p: Vec, focus: Vec, n: Noise, reach: float) -> int | None:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     cols, rows = s.w // PITCH, s.h // PITCH
-    o = Vec(s.w % PITCH + PITCH, s.h % PITCH + PITCH) / 2  # first core; the lattice sits centred
+    o = Vec(s.w % PITCH + PITCH, s.h % PITCH + PITCH) / 2  # first core; the lattice sits centered
 
     def at(i: float, j: float) -> Vec:
         return o + Vec(i, j) * PITCH
 
-    # the byte sits right of centre on a landscape screen, a little below centre on a portrait one
+    # the byte sits right of center on a landscape screen, a little below center on a portrait one
     c = s.pick(landscape=(0.645, 0.57), portrait=(0.5, 0.56))
     row = round((c.y - o.y) / PITCH)
     # the byte's first core, on an even i + j so its set bits lean the same way on every screen

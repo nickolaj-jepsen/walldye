@@ -1,7 +1,7 @@
 title: Coral loop
 description: One closed line keeps splitting and pushing itself apart until it folds into a coral, ringed by two offset lines.
 notes: |
-  The line starts as a circle of 30 points. At every step, springs keep neighbouring points evenly spaced, stretches of the line that come close push each other apart, and new points go in where the line is least crowded, until it has about a thousand. A lobed oval boundary stops the growth from rounding into a disc. The two outer lines are offsets of the finished shape, with the mouths of the channels rounded off.
+  The line starts as a circle of 30 points. At every step, springs keep neighboring points evenly spaced, stretches of the line that come close push each other apart, and new points go in where the line is least crowded, until it has about a thousand. A lobed oval boundary stops the growth from rounding into a disc. The two outer lines are offsets of the finished shape, with the mouths of the channels rounded off.
 technique: [simulation, line]
 subject: [flora-fauna]
 lineage: [creative-coding]

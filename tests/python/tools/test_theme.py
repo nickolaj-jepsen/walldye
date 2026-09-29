@@ -91,10 +91,10 @@ def test_fireproof_seed_dict_resolves_to_pinned_table():
     assert tokens == PRESETS["fireproof"] and tokens["accent_3"] == "#71311E"
 
 
-def test_fireproof_neighbour_is_derived():
-    neighbour = parse_theme("1c1b1b-dad8ce-cf6a4c")
-    assert neighbour == derive_theme({**FIREPROOF_SEEDS, "bg": "#1C1B1B"})
-    assert neighbour["accent_3"] != PRESETS["fireproof"]["accent_3"]
+def test_fireproof_neighbor_is_derived():
+    neighbor = parse_theme("1c1b1b-dad8ce-cf6a4c")
+    assert neighbor == derive_theme({**FIREPROOF_SEEDS, "bg": "#1C1B1B"})
+    assert neighbor["accent_3"] != PRESETS["fireproof"]["accent_3"]
 
 
 def test_nord_regression():
@@ -230,20 +230,20 @@ def test_check_theme_sets(regime):
     assert len(_check_themes.HELD_OUT[regime]) == len(presets) + 4 + 4
 
 
-# --- rasterising -------------------------------------------------------------------
+# --- rasterizing -------------------------------------------------------------------
 
 
-def test_rasterise_ink_and_focus():
+def test_rasterize_ink_and_focus():
     svg = (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100">'
         '<rect x="0" y="0" width="200" height="100" fill="#000000"/>'
         '<rect x="150" y="0" width="50" height="50" fill="#FFFFFF"/></svg>'
     )
-    img = common.rasterise(svg, 100)
+    img = common.rasterize(svg, 100)
     assert img.mode == "RGB" and img.size == (100, 50)
     assert common.focus(img, "#000000") == (0.875, 0.25)
     assert common.focus(Image.new("RGB", (10, 10)), "#000000") == (0.5, 0.5)
-    assert common.rasterise(svg, 40, crop=(100, 0, 100, 100)).size == (40, 40)
+    assert common.rasterize(svg, 40, crop=(100, 0, 100, 100)).size == (40, 40)
     m = common.ink_map(img, "#000000")
     assert m.shape == (64 * 36,) and abs((m @ m) - 1) < 1e-9
     assert common.viewbox(svg) == "0 0 200 100" and common.viewbox("<svg/>") is None

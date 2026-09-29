@@ -25,7 +25,7 @@ L = np.array([-0.8, 0.5, -0.45]) / np.linalg.norm([-0.8, 0.5, -0.45])  # towards
 INF = np.inf
 
 # Surface ids: 0 wall below the table top, 1 wall, 2 table, 3 cube, 4 sphere, 5 cylinder, 6 cone.
-CUBE = (1110, 330, 135, math.radians(30))  # centre x, z, half size, yaw
+CUBE = (1110, 330, 135, math.radians(30))  # center x, z, half size, yaw
 SPHERE = (1600, 125, 260, 125)  # x, y, z, r
 CYL = (1900, 720, 82, 330)  # x, z, r, h
 CONE = (1390, 120, 100, 380)  # x, z, base r, h
@@ -53,7 +53,7 @@ def hit_box(o: F, d: F, cx: float, cz: float, hs: float, yaw: float) -> Hit:
 
 
 def hit_sphere(o: F, d: F, cx: float, cy: float, cz: float, r: float) -> Hit:
-    """Rays against a sphere of radius `r` centred on (cx, cy, cz)."""
+    """Rays against a sphere of radius `r` centered on (cx, cy, cz)."""
     oc = o - np.array([cx, cy, cz])
     b = (oc * d).sum(-1)
     c = (oc * oc).sum(-1) - r * r
@@ -131,9 +131,9 @@ def solids(o: F, d: F) -> list[tuple[int, F, F]]:
 
 @design(aspects=("16:9", "32:9", "9:19.5", "10:16"))
 def draw(s: Canvas) -> None:
-    # landscape: the group right of centre, leaving the left free for windows, and never more
+    # landscape: the group right of center, leaving the left free for windows, and never more
     # than RIGHT from the right edge, so the table still runs off it on ultrawide screens;
-    # portrait: the group across the middle, a little above centre and drawn smaller so it has
+    # portrait: the group across the middle, a little above center and drawn smaller so it has
     # side margins. Whole cells, so the solids dither alike on every screen.
     a = s.pick(landscape=(0.7, 0.5), portrait=(0.53, 0.46), snap=CELL)
     zoom = 1.0 if s.landscape else 0.85

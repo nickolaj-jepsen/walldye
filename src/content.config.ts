@@ -8,7 +8,7 @@ import YAML from 'yaml';
 import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
 import {
   FACET_LABELS,
-  LICENCE_LINES,
+  LICENSE_LINES,
   MODEL_NAMES,
   TAXONOMY_FACETS,
   type TaxonomyFacet,
@@ -129,7 +129,7 @@ const version = z
 
 /**
  * One wallpaper: meta.yaml validated against taxonomy.yaml, the
- * licence rules and the reserved slugs, plus what the loader attaches from the folder.
+ * license rules and the reserved slugs, plus what the loader attaches from the folder.
  */
 const wallpaper = z
   .object({
@@ -156,8 +156,8 @@ const wallpaper = z
 
     // Attached by the loader, not read from meta.yaml.
     slug: z.string(),
-    /** The folder's licence: `license`, FAN_WORK with a `franchise`, or DEFAULT_LICENSE for a piece a model made without a recreation source. */
-    licence: z.string(),
+    /** The folder's license: `license`, FAN_WORK with a `franchise`, or DEFAULT_LICENSE for a piece a model made without a recreation source. */
+    resolvedLicense: z.string(),
     /** Whether design.py exists; legacy pieces (source.svg + palette.yaml) have no script. */
     hasScript: z.boolean(),
     hasData: z.boolean(),
@@ -199,15 +199,15 @@ const wallpaper = z
       issue('a kind: recreation source needs an explicit license: (ask the owner)', ['license']);
     else if (!m.license && !m.franchise && !m.model)
       issue('human-made pieces need an explicit license:', ['license']);
-    if (m.licence && !existsSync(join(ROOT, 'LICENSES', `${m.licence}.txt`)))
-      issue(`license ${m.licence} has no LICENSES/${m.licence}.txt`, ['license']);
+    if (m.license && !existsSync(join(ROOT, 'LICENSES', `${m.license}.txt`)))
+      issue(`license ${m.license} has no LICENSES/${m.license}.txt`, ['license']);
     if (
-      m.licence &&
-      m.licence !== DEFAULT_LICENSE &&
-      m.licence !== FAN_WORK &&
-      !LICENCE_LINES[m.licence]
+      m.license &&
+      m.license !== DEFAULT_LICENSE &&
+      m.license !== FAN_WORK &&
+      !LICENSE_LINES[m.license]
     ) {
-      issue(`license ${m.licence} needs a plain-words line in LICENCE_LINES (src/lib/labels.ts)`, [
+      issue(`license ${m.license} needs a plain-words line in LICENSE_LINES (src/lib/labels.ts)`, [
         'license',
       ]);
     }
@@ -324,10 +324,10 @@ function attach(
 
   const scriptPath = join(dir, 'design.py');
   const hasScript = existsSync(scriptPath);
-  const licence = licenseOf(meta);
+  const license = licenseOf(meta);
   return {
     slug,
-    licence: typeof licence === 'string' ? licence : '',
+    resolvedLicense: typeof license === 'string' ? license : '',
     hasScript,
     hasData: existsSync(join(dir, 'data')),
     script: hasScript ? readFileSync(scriptPath, 'utf8') : null,
@@ -385,7 +385,7 @@ function typesetNotes(html: string): string {
 /**
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
  * templates and their content-hashed URLs, the same for each named variant, design.py, the
- * resolved licence and the page views in stats/views/. Draft pieces and draft variants load only in
+ * resolved license and the page views in stats/views/. Draft pieces and draft variants load only in
  * `astro dev`; notes Markdown is rendered into the entry (`render(entry)`), and the other visible
  * text gets typographer's quotes.
  */

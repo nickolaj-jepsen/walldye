@@ -106,7 +106,7 @@ def shifted(pts: Pts, dx: Pts | float) -> Pts:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre on a landscape screen, leaving the left for windows; centred and a little
+    # right of center on a landscape screen, leaving the left for windows; centered and a little
     # low on a portrait one, under the clock
     c = s.pick(landscape=(1180 / 1920, 730 / 1080), portrait=(0.5, 0.62))
     spikes = lattice(s.rng(4))

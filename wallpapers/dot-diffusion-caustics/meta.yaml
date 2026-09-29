@@ -1,7 +1,7 @@
 title: Pool caustics
 description: Sunlight through small waves nets a pool floor in dot-diffusion halftone. The knot where three lines meet is lit.
 notes: |
-  Each unit of the floor sends up one photon, shifted by the slope of the wave surface above it, and the lines form where those shifts fold over. Donald Knuth's dot diffusion then settles the cells of every 8 by 8 tile in a fixed order, each passing its rounding error only to neighbours not yet settled.
+  Each unit of the floor sends up one photon, shifted by the slope of the wave surface above it, and the lines form where those shifts fold over. Donald Knuth's dot diffusion then settles the cells of every 8 by 8 tile in a fixed order, each passing its rounding error only to neighbors not yet settled.
 technique: [dither]
 subject: [physics]
 lineage: []

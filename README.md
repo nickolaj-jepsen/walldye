@@ -1,10 +1,10 @@
 # walldye
 
-walldye is a catalogue of desktop and phone wallpapers, each drawn by a small Python script. Pick three colours and every wallpaper is redrawn in them, along with the site itself. The catalogue is at [walldye.com](https://walldye.com), where any piece downloads as SVG, PNG, WebP or JPEG.
+walldye is a catalog of desktop and phone wallpapers, each drawn by a small Python script. Pick three colors and every wallpaper is redrawn in them, along with the site itself. The catalog is at [walldye.com](https://walldye.com), where any piece downloads as SVG, PNG, WebP or JPEG.
 
-## How the colours work
+## How the colors work
 
-A design never sees a colour value. It draws in symbolic theme colours (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then records every colour in the resulting SVG as a linear mix of the three chosen colours, read off the formula it was drawn with. CI builds those templates and their coefficients for every published piece, and the site recolours a wallpaper for any theme by rewriting its colours in the browser, without running the script. [docs/architecture.md](docs/architecture.md) has the details.
+A design never sees a color value. It draws in symbolic theme colors (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then records every color in the resulting SVG as a linear mix of the three chosen colors, read off the formula it was drawn with. CI builds those templates and their coefficients for every published piece, and the site recolors a wallpaper for any theme by rewriting its colors in the browser, without running the script. [docs/architecture.md](docs/architecture.md) has the details.
 
 ## Running it locally
 
@@ -42,7 +42,7 @@ With Nix, `nix develop` gives a shell with the Python environment from `uv.lock`
 
 ## On NixOS
 
-The flake packages the CLI, with the whole catalogue, drafts included, and renders any piece as a PNG for your screen:
+The flake packages the CLI, with the whole catalog, drafts included, and renders any piece as a PNG for your screen:
 
 ```nix
 # flake inputs: walldye.url = "github:nickolaj-jepsen/walldye";
@@ -64,7 +64,7 @@ A shape the piece wasn't drawn for is cut from its 16:9 version around the busie
 
 ## Adding a wallpaper
 
-Each wallpaper is a folder `wallpapers/<slug>/`: `design.py`, one `@design` function that draws on a canvas; `meta.yaml`, with the title, description, facets, sources and licence; and `build/`, which only `walldye build` writes and git ignores.
+Each wallpaper is a folder `wallpapers/<slug>/`: `design.py`, one `@design` function that draws on a canvas; `meta.yaml`, with the title, description, facets, sources and license; and `build/`, which only `walldye build` writes and git ignores.
 
 With [Claude Code](https://claude.com/claude-code) in this repository, ask for a wallpaper: the walldye skill in `.claude/skills/walldye/` takes each subject you name from idea to review, and the wallpaper-batch workflow researches and builds a batch of new ones. By hand:
 
@@ -86,18 +86,18 @@ With [Claude Code](https://claude.com/claude-code) in this repository, ask for a
 | `docs/` | [architecture.md](docs/architecture.md) (how it works and why), [wallpapers.md](docs/wallpapers.md) (metadata, copy and licensing rules), [api.md](docs/api.md) (the design API and CLI), [site.md](docs/site.md) (the site's visual system and voice), [deploy.md](docs/deploy.md) (hosting and CI) |
 | `.claude/` | the Claude Code skill and batch workflow |
 | `infra/` | the Worker that redirects www.walldye.com |
-| `LICENSES/` | licence texts, named by SPDX id |
+| `LICENSES/` | license texts, named by SPDX id |
 
-## Licences
+## Licenses
 
-| Path | Licence |
+| Path | License |
 |---|---|
 | Everything outside `wallpapers/` unless listed below | GPL-3.0-or-later ([LICENSE](LICENSE)) |
 | `walldye/font.py` (Spleen glyphs) | BSD-2-Clause, 2018-2024 Frederic Cambus |
 | `src/assets/fonts/` | SIL OFL 1.1 ([OFL.txt](src/assets/fonts/OFL.txt)) |
 | `wallpapers/<slug>/` | Per folder: the `license:` in its `meta.yaml`, `LicenseRef-fan-work` when it has a `franchise:`, or CC0-1.0 for an AI-generated piece that sets neither. |
-| Third-party data in `wallpapers/<slug>/data/` | Its upstream licence, with the notice in [REUSE.toml](REUSE.toml) |
+| Third-party data in `wallpapers/<slug>/data/` | Its upstream license, with the notice in [REUSE.toml](REUSE.toml) |
 
-Pieces with a `franchise:`, licensed `LicenseRef-fan-work`, are unofficial fan tributes to games and other franchises, not affiliated with or endorsed by their owners. No licence is granted for those folders; [LICENSES/LicenseRef-fan-work.txt](LICENSES/LicenseRef-fan-work.txt) has the terms. Rights holders who want one taken down can write to takedown@walldye.com.
+Pieces with a `franchise:`, licensed `LicenseRef-fan-work`, are unofficial fan tributes to games and other franchises, not affiliated with or endorsed by their owners. No license is granted for those folders; [LICENSES/LicenseRef-fan-work.txt](LICENSES/LicenseRef-fan-work.txt) has the terms. Rights holders who want one taken down can write to takedown@walldye.com.
 
 Before basing a piece on someone else's work, read "What a piece may draw" in [docs/wallpapers.md](docs/wallpapers.md#what-a-piece-may-draw). In short: techniques and ideas are free, only public-domain or openly licensed works are redrawn, and a work still in copyright can inspire a piece but is never copied.

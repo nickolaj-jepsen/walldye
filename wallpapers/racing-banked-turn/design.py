@@ -1,4 +1,4 @@
-"""A drafted cross-section of a Daytona turn to scale, keyed to a plan of the oval, with one car's force triangle lit at its centre of mass."""
+"""A drafted cross-section of a Daytona turn to scale, keyed to a plan of the oval, with one car's force triangle lit at its center of mass."""
 
 import math
 
@@ -28,21 +28,21 @@ SHOULDER = 5.0  # top of the embankment shown behind the wall
 X_IN = -APRON - INFIELD
 X_WALL = RUN + SAFER_D
 X_OUT = X_WALL + WALL_T + SHOULDER
-LANE = 17.0  # the car's centre, up the slope from the toe
+LANE = 17.0  # the car's center, up the slope from the toe
 CG_H = 1.5
 # car in rear view, in feet across and up from the road: the right half of the body from the
-# valance's middle round to the roof's, the rear window, the spoiler blade and a tyre
+# valance's middle round to the roof's, the rear window, the spoiler blade and a tire
 BODY = ((0.0, 0.85), (3.2, 0.85), (3.25, 2.25), (3.1, 2.5), (2.55, 2.55), (2.05, 3.75))
 BODY += ((1.7, 3.95), (0.0, 4.02))
 GLASS = ((0.0, 2.85), (1.9, 2.85), (1.55, 3.45), (0.0, 3.5))
 SPOILER = (2.75, 2.55, 3.0)  # half-width, bottom, top
-TYRE = (2.05, 3.0, 1.2, 0.15)  # inner and outer face, height, corner radius
+TIRE = (2.05, 3.0, 1.2, 0.15)  # inner and outer face, height, corner radius
 W_LEN = 12.0  # the weight arrow, in feet of the sheet
 OFF = 19.0  # the width dimension's offset from the surface
 ARC_R = 13.0  # the angle dimension's radius
 DASHDOT = (22, 6, 3, 6)
-# key plan: data/tri-oval.json is the oval's centreline in feet, in travel order, from the
-# centre of the first and second turns; the section cuts it along +x at CUT_X
+# key plan: data/tri-oval.json is the oval's centerline in feet, in travel order, from the
+# center of the first and second turns; the section cuts it along +x at CUT_X
 CUT_X = 991.0
 PLAN_X, PLAN_Y = (-4333.0, CUT_X), (-1615.0, 1010.0)  # the plan's extent
 KP = 0.075  # key plan scale, px per foot, beside a 15 px per foot section
@@ -74,7 +74,7 @@ def draw(s: Canvas) -> None:
         f = min(1.0, (s.w - 240 - REACH - GAP) / scaled)
         k, kp, x_in = 15 * f, KP * f, X_IN
         left = (s.w - scaled * f - REACH - GAP) / 2
-        left += min(200.0, max(0.0, left - 140))  # wide screens: the pair sits right of centre
+        left += min(200.0, max(0.0, left - 140))  # wide screens: the pair sits right of center
         toe = Vec(
             round(left + (PLAN_X[1] - PLAN_X[0]) * kp + REACH + GAP - X_IN * k), round(s.h * 0.8)
         )
@@ -163,21 +163,21 @@ def draw(s: Canvas) -> None:
     def mirrored(half: tuple[tuple[float, float], ...]) -> list[tuple[float, float]]:
         return [(-u, v) for u, v in reversed(half)] + list(half[1:-1])
 
-    u0, u1, th, cr = TYRE
-    tyres = P()
+    u0, u1, th, cr = TIRE
+    tires = P()
     for x0, x1 in ((u0, u1), (-u1, -u0)):
-        tyre = Polygon(box(x0, 0.0, x1, th)).buffer(-cr).buffer(cr, quad_segs=4)
-        tyres.poly(car(np.asarray(tyre.exterior.coords)), closed=True)
+        tire = Polygon(box(x0, 0.0, x1, th)).buffer(-cr).buffer(cr, quad_segs=4)
+        tires.poly(car(np.asarray(tire.exterior.coords)), closed=True)
     body = P().poly(car(mirrored(BODY)), closed=True)
     sw, sb, st = SPOILER
     blade = P().poly(car(box(-sw, sb, sw, st)), closed=True)
     # each hides what is behind it; the window goes between the body and the blade
-    for d in (tyres, body):
+    for d in (tires, body):
         s.path(d, fill=BG, stroke=UI_HI, stroke_width=1.3, stroke_linejoin="round")
     s.fill(P().poly(car(mirrored(GLASS)), closed=True), UI)
     s.path(blade, fill=BG, stroke=UI_HI, stroke_width=1.3, stroke_linejoin="round")
 
-    # force triangle at the centre of mass: the normal force, the weight, and their resultant
+    # force triangle at the center of mass: the normal force, the weight, and their resultant
     cg = T * LANE + N * CG_H
     top = cg + N * (W_LEN / math.cos(BANK))
     tip = top + (0.0, -W_LEN)
@@ -194,23 +194,23 @@ def draw(s: Canvas) -> None:
     s.fill(heads, ACCENT)
     s.stroke(P().circle(g, 6), ACCENT, 1.4)
 
-    # the line of action runs on to the turn's centre in the key plan beside the section, or
+    # the line of action runs on to the turn's center in the key plan beside the section, or
     # off the edge when the plan stands above it
     if s.landscape:
-        centre = Vec(at((x_in, 0)).x - GAP - REACH - CUT_X * kp, b.y)
-        run = b.x - 12 - (centre.x + CUT_X * kp + REACH + 6)
+        center = Vec(at((x_in, 0)).x - GAP - REACH - CUT_X * kp, b.y)
+        run = b.x - 12 - (center.x + CUT_X * kp + REACH + 6)
         stretch = run / whole(run)  # a few percent, so the line ends on a dash at the cut
         action = P().M(b.x - 12, b.y).H(b.x - 12 - run)
         s.stroke(action, UI_ALT, 1.2, dash=[d * stretch for d in DASHDOT])
     else:
         mid = Vec(s.w * 0.45, at((fx, f1)).y - 130)
-        centre = mid + Vec(-sum(PLAN_X) / 2, sum(PLAN_Y) / 2) * kp
+        center = mid + Vec(-sum(PLAN_X) / 2, sum(PLAN_Y) / 2) * kp
         s.stroke(P().M(b.x - 12, b.y).H(0), UI_ALT, 1.2, dash=DASHDOT)
-    inner = centre.x + CUT_X * kp - REACH - 6
-    if inner - centre.x - 12 >= DASHDOT[0]:
-        stub = P().M(inner, centre.y).H(inner - whole(inner - centre.x - 12))
+    inner = center.x + CUT_X * kp - REACH - 6
+    if inner - center.x - 12 >= DASHDOT[0]:
+        stub = P().M(inner, center.y).H(inner - whole(inner - center.x - 12))
         s.stroke(stub, UI_ALT, 1.2, dash=DASHDOT)
-    key_plan(s, s.data("tri-oval.json"), centre, kp)
+    key_plan(s, s.data("tri-oval.json"), center, kp)
 
     # dimensions: the banking angle at the top, the width up the slope, the fence height
     ext, dims, arrows = P(), P(), P()
@@ -239,11 +239,11 @@ def draw(s: Canvas) -> None:
     s.fill(arrows, UI_ALT)
 
 
-def key_plan(s: Canvas, loop: list[list[float]], centre: Vec, kp: float) -> None:
-    """The oval in plan at `kp` px per foot, with the centre of the cut turn at `centre`: the
+def key_plan(s: Canvas, loop: list[list[float]], center: Vec, kp: float) -> None:
+    """The oval in plan at `kp` px per foot, with the center of the cut turn at `center`: the
     track as a fixed-width band, the cutting plane across the turn with arrows looking along the direction of
-    travel, and a centre mark."""
-    mp = Affine.translate(*centre) @ Affine.scale(kp, -kp)
+    travel, and a center mark."""
+    mp = Affine.translate(*center) @ Affine.scale(kp, -kp)
     line = np.asarray(loop, dtype=float)
     for _ in range(2):  # Chaikin corner cutting evens out the tracing
         nxt = np.roll(line, -1, axis=0)
@@ -259,11 +259,11 @@ def key_plan(s: Canvas, loop: list[list[float]], centre: Vec, kp: float) -> None
     plane.M(ends[0]).L(ends[1])
     s.stroke(plane, UI_HI, 2.2, dash=(14, 4, 4, 4))
     s.fill(heads, UI_HI)
-    mark = P().M(centre.x - 9, centre.y).H(centre.x + 9).M(centre.x, centre.y - 9).V(centre.y + 9)
+    mark = P().M(center.x - 9, center.y).H(center.x + 9).M(center.x, center.y - 9).V(center.y + 9)
     s.stroke(mark, UI_ALT, 1.4)
 
 
 def cg_mark(d: Path, c: Vec, r: float) -> None:
-    """The centre-of-mass symbol's two filled quadrants, upper left and lower right."""
+    """The center-of-mass symbol's two filled quadrants, upper left and lower right."""
     d.M(c).L(c.x - r, c.y).A(r, r, 0, 0, 1, c.x, c.y - r).Z()
     d.M(c).L(c.x + r, c.y).A(r, r, 0, 0, 1, c.x, c.y + r).Z()

@@ -26,12 +26,12 @@ R = 300  # radius of the circle the polygon is inscribed in
 @dataclass(frozen=True)
 class Sheet:
     """One construction, sorted by pen: `ruled` lines run to the canvas edges (BG_ALT),
-    `drawn` holds the arcs and segments (UI_ALT), `centres` get a cross and `found` a dot
+    `drawn` holds the arcs and segments (UI_ALT), `centers` get a cross and `found` a dot
     (UI_HI), and the polygon through `verts` is inked with a dot on the vertex `first` found."""
 
     ruled: Path
     drawn: Path
-    centres: list[Vec]
+    centers: list[Vec]
     found: list[Vec]
     verts: list[Vec]
     first: Vec
@@ -92,7 +92,7 @@ def draw(s: Canvas) -> None:
     s.stroke(sheet.ruled, BG_ALT, 1)
     s.stroke(sheet.drawn, UI_ALT, 1.5)
     marks = P()
-    for c in sheet.centres:
+    for c in sheet.centers:
         marks.M(c.x - 9, c.y).H(c.x + 9).M(c.x, c.y - 9).V(c.y + 9)
     s.stroke(marks, UI_HI, 1.4)
     s.fill(P().dots(sheet.found, 2.5), UI_HI)

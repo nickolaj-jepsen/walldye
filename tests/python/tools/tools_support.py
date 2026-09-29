@@ -1,4 +1,4 @@
-"""Helpers for the tools tests: building fixture pieces and comparing recolours."""
+"""Helpers for the tools tests: building fixture pieces and comparing recolors."""
 
 import numpy as np
 
@@ -37,8 +37,8 @@ def seeds(theme) -> dict[str, str]:
     return parse_seeds(theme) if isinstance(theme, str) else dict(zip(SEEDS, theme, strict=True))
 
 
-def assert_recolours(slug: str, theme, aspect: str = "16:9", variant: str = "default") -> None:
-    """build.recolour of the built template matches a fresh render: same skeleton, slots
+def assert_recolors(slug: str, theme, aspect: str = "16:9", variant: str = "default") -> None:
+    """build.recolor of the built template matches a fresh render: same skeleton, slots
     within coefs.MAX_ERROR."""
     slots = build.load_slots(slug, variant)
     assert slots is not None
@@ -46,10 +46,10 @@ def assert_recolours(slug: str, theme, aspect: str = "16:9", variant: str = "def
     s = seeds(theme)
     k = build.select(slots, aspect, s)
     template = (common.build_dir(slug, variant) / table[k]["file"]).read_text()
-    got = build.recolour(template, table[k], s)
+    got = build.recolor(template, table[k], s)
     want = common.render(slug, s, aspect, variant)
     assert skeleton(got) == skeleton(want)
-    assert np.abs(coefs.colours(got) - coefs.colours(want)).max(initial=0) <= coefs.MAX_ERROR
+    assert np.abs(coefs.colors(got) - coefs.colors(want)).max(initial=0) <= coefs.MAX_ERROR
 
 
 VERSION_LABELS = {

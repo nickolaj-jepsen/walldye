@@ -71,7 +71,7 @@ def draw(s: Canvas) -> None:
     f0, amp = melody(NOW + (x - head.x) / SPAN)
     on = amp > 0
     track = (np.where(on, f0, np.inf).min(axis=0), np.where(on, f0, -np.inf).max(axis=0))
-    level = amp[SUB // 2]  # loudness at the column centre
+    level = amp[SUB // 2]  # loudness at the column center
     f = np.arange(ROWS)[::-1][:, None] + 0.5  # row 0 is the top (high frequency)
 
     thr = np.tile(blue_noise(64, s.np_rng(5)), (ROWS // 64 + 1, cols // 64 + 1))[:ROWS, :cols]

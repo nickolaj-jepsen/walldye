@@ -1,4 +1,4 @@
-"""Seeded 2D and 3D Perlin noise, scalar or vectorised with identical arithmetic."""
+"""Seeded 2D and 3D Perlin noise, scalar or vectorized with identical arithmetic."""
 
 import math
 import random
@@ -206,7 +206,7 @@ class Noise:
         self, x: ArrayLike, y: ArrayLike, octaves: int = 4, lacunarity: Num = 2.0, gain: Num = 0.5
     ) -> float | _F:
         """Fractal sum of `octaves` layers of 2D noise, each `lacunarity` times finer and `gain`
-        times weaker, normalised by the total weight."""
+        times weaker, normalized by the total weight."""
         lac, g = real(lacunarity, "noise"), real(gain, "noise")
         amp, freq, norm = 1.0, 1.0, 0.0
         if _scalar(x, y):

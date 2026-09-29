@@ -49,14 +49,14 @@ def draw(s: Canvas) -> None:
     for k, (y, xs) in enumerate(rows):
         below = set(rows[k - 1][1]) if k else set()
         for x in xs:
-            u = x - s.w / 2  # centred, so every screen shape shows the middle of one surf line
+            u = x - s.w / 2  # centered, so every screen shape shows the middle of one surf line
             surf = base - slope * u + 150 * n.fbm((u + 960) / 520, 0.5, 2) + rnd.uniform(-20, 20)
             if y >= surf and all(
                 xb not in below or (xb, y + R / 2) in kept for xb in (x - R, x + R)
             ):
                 kept[(x, y)] = y - surf
 
-    # The lit apex sits two scales below the crest of a column right of centre.
+    # The lit apex sits two scales below the crest of a column right of center.
     px = R * round((0.75 if s.landscape else 0.7) * s.w / R)
     py = min(y for x, y in kept if x == px) + 2 * R
     lit = {(px, py): LIT, (px - R, py + R / 2): DIM, (px + R, py + R / 2): DIM}

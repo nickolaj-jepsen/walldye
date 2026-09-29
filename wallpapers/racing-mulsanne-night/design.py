@@ -41,7 +41,7 @@ CELL, TC = 4, 2  # scene cell; finer cell for the light trail
 PAD = 60  # how far past the frame edge vector strips and posts are kept
 VX, VY = 820, 150  # vanishing point, low and left so the frame holds the corner
 F, CAM_H = 1390, 40.0  # focal length; TV camera on a tower 210 m before the apex
-# (east, north) metres from the D338/raceway junction, in driving order.
+# (east, north) meters from the D338/raceway junction, in driving order.
 APPROACH = [(-52.3, 912.6), (-22.2, 410.7), (0, 0)]  # D338 Route de Tours, way 1505387926
 # Virage de Mulsanne raceway, way 256130500.
 CIRCUIT = [
@@ -87,7 +87,7 @@ CAM_LAT = -1.0
 BEARING = math.radians(176.8)
 FWD = np.array([math.sin(BEARING), math.cos(BEARING)])
 RGT = np.array([math.cos(BEARING), -math.sin(BEARING)])
-BOARDS = (300, 200, 100)  # braking boards, metres before the apex
+BOARDS = (300, 200, 100)  # braking boards, meters before the apex
 # Scene tones by dither level: tree gaps, shaded crowns, lit crowns and sky (the canvas), tarmac,
 # lamplight. Light themes keep the night by sinking the whole ladder toward the foreground, so
 # the woods stay the darkest mass and the lit road and lamp pool the palest.
@@ -99,9 +99,9 @@ SCENE = (
     BG_ALT,
     by_regime(UI, BG),
 )
-# Lit metal reads paler than the dimmed canvas on light themes; the tyre wall stays a solid block.
+# Lit metal reads paler than the dimmed canvas on light themes; the tire wall stays a solid block.
 RAIL, RAIL_HI = by_regime(UI, BG_ALT), by_regime(UI_ALT, BG)
-TYRES = by_regime(UI, UI_ALT)
+TIRES = by_regime(UI, UI_ALT)
 LAMP = by_regime(MUTED, BLACK)
 TRAIL = ladder((BG, ACCENT_4, ACCENT), 5)
 
@@ -110,7 +110,7 @@ def road(
     raw: list[tuple[float, float]], extend: float = 0.0, sigma: float = 16
 ) -> tuple[F64, F64, F64, F64]:
     """The polyline `raw` in the approach frame (x right, y ahead), extended straight on by
-    `extend` metres, resampled every 0.5 m and smoothed: arc lengths, points, unit tangents
+    `extend` meters, resampled every 0.5 m and smoothed: arc lengths, points, unit tangents
     and right normals."""
     p = np.array(raw, float)
     loc = np.c_[p @ RGT, p @ FWD]
@@ -245,7 +245,7 @@ def draw(s: Canvas) -> None:
     je = int(np.searchsorted(es, ss[ic]))
     wall(EC[je:] - EN[je:] * TREES)
     wall(EC[je:] + EN[je:] * TREES)
-    # Woods closing the escape road beyond the tyre wall.
+    # Woods closing the escape road beyond the tire wall.
     e0 = EC[-1] + ET[-1] * 10
     wall(np.array([e0 + EN[-1] * u for u in np.arange(-TREES, TREES, 0.5)]))
 
@@ -274,7 +274,7 @@ def draw(s: Canvas) -> None:
     pool = np.zeros((rows, cols))
     pool[gi] = np.exp(-np.sum((wp - lit) ** 2, axis=1) / (2 * 24**2))
 
-    # Moonlit crowns: jittered-grid tree centres, each a dome lit from the far side of the frame.
+    # Moonlit crowns: jittered-grid tree centers, each a dome lit from the far side of the frame.
     g = np.mgrid[-300:400:6.5, -100:1000:6.5].reshape(2, -1).T
     tc_ = g + r.uniform(-2.2, 2.2, g.shape)
     tr_ = r.uniform(3.4, 4.8, len(tc_))
@@ -301,7 +301,7 @@ def draw(s: Canvas) -> None:
     fpool = np.exp(-np.sum((fw - lit) ** 2, axis=1) / (2 * 40**2))
     val[face] = 0.08 + (0.1 + 0.35 * fpool) * np.exp(-np.maximum(fh, 0) / 5)
     lv = dither(np.minimum(val, 0.999), len(SCENE), method="bluenoise", rng=s.np_rng(3))
-    # Woods posterised rather than dithered: crown clumps near by, a flat shaded mass far off.
+    # Woods posterized rather than dithered: crown clumps near by, a flat shaded mass far off.
     lv[ctop] = np.where(near, shade, 1)
     under = np.roll(kind, -1, axis=0)  # the kind of the cell beneath
     lv[ctop & (under != 2) & (under != 3)] = 2  # crown edge catching the track lights
@@ -399,20 +399,20 @@ def draw(s: Canvas) -> None:
             band(p, p, a + 0.05, a + 0.13, RAIL_HI, keep=k)
         posts(p, k, 4, 0, 0.25, 0.12, RAIL_HI, 160)
 
-    # Tyre wall across the end of the escape road.
+    # Tire wall across the end of the escape road.
     tw = np.array([EC[-1] + EN[-1] * u for u in np.linspace(-HALF - 1, HALF + 1, 24)])
-    band(tw, tw, 0, 1.1, TYRES, step=1)
+    band(tw, tw, 0, 1.1, TIRES, step=1)
     band(tw, tw, 0.5, 0.6, BG_ALT, step=1)
 
-    # Road markings: circuit edge lines (left one picks up after the fork), D338 dashed centre line.
+    # Road markings: circuit edge lines (left one picks up after the fork), D338 dashed center line.
     for side in (-1, 1):
         p0, p1 = Cc + Nc * side * EDGE[0], Cc + Nc * side * EDGE[1]
         k = on_escape(p0) > HALF + 0.3 if side < 0 else None
         band(p0, p1, 0, 0, UI_HI, keep=k, step=2)
     le0, le1 = Ec - Enc * EDGE[0], Ec - Enc * EDGE[1]
     band(le0, le1, 0, 0, UI_HI, keep=on_circuit(le0) > HALF + 0.3, step=2)
-    # Kerb blocks on the inside of the corner.
-    kerb = P()
+    # Curb blocks on the inside of the corner.
+    curb = P()
     for i in range(apex - 70, apex + 50, 6):
         q = [
             proj(C[i] + N[i] * 4.4),
@@ -421,8 +421,8 @@ def draw(s: Canvas) -> None:
             proj(C[i] + N[i] * 5.4),
         ]
         if min(v[2] for v in q) > 3:
-            kerb.poly([v[:2] for v in q], closed=True)
-    s.fill(kerb, MUTED)
+            curb.poly([v[:2] for v in q], closed=True)
+    s.fill(curb, MUTED)
     dashes = P()
     fork = int(np.argmax(on_circuit(EC) > 1.0))
     for i in range(je + 4, fork, 26):

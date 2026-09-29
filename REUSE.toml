@@ -1,4 +1,4 @@
-# Third-party data inside a wallpaper folder keeps its upstream licence and notice, whatever the
+# Third-party data inside a wallpaper folder keeps its upstream license and notice, whatever the
 # folder's meta.yaml `license:` says. The texts are in LICENSES/.
 version = 1
 

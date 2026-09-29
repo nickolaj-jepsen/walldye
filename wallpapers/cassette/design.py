@@ -26,10 +26,10 @@ from walldye import (
 )
 from walldye.geom import Affine
 
-# The cassette is measured in mm about the centre of its front face; S scales it onto the sheet.
+# The cassette is measured in mm about the center of its front face; S scales it onto the sheet.
 S = 7.5  # px per mm
-CX, CY = 1180, 486  # front view centre
-BY = 852  # bottom view centre line
+CX, CY = 1180, 486  # front view center
+BY = 852  # bottom view center line
 WD, HT, THK = 100.4, 63.8, 8.7  # shell width, height and thickness
 HUB_X, HUB_Y, HUB_R = 21.3, -3.0, 8.5
 PACK_L, PACK_R = 20.5, 12.0  # outer radii of the supply and take-up packs

@@ -43,21 +43,21 @@ type Mask = NDArray[np.bool_]
 
 
 class Chart(Params):
-    coast: Literal["headland", "estuary", "harbour", "skerries"] = knob(
+    coast: Literal["headland", "estuary", "harbor", "skerries"] = knob(
         default="headland", doc="the coast charted, which sets the marks that lead in"
     )
 
 
 VARIANTS = {
     "estuary": Chart(coast="estuary"),
-    "harbour": Chart(coast="harbour"),
+    "harbor": Chart(coast="harbor"),
     "skerries": Chart(coast="skerries"),
 }
 
 CELL = 4
 CHART = (1920 // CELL + 1, 1080 // CELL + 1)  # the 16:9 chart the coast was tuned on, in cells
 ISLETS = ((640, 580, 24, 0.5), (694, 546, 12, 0.5), (606, 610, 8, 0.4))  # x, y, radius, height
-LIGHT, HARBOUR = Vec(960, 150), Vec(786, 250)  # chart positions
+LIGHT, HARBOR = Vec(960, 150), Vec(786, 250)  # chart positions
 LIGHT_R, SPREAD = 260, 40  # the light's sector: arc radius, width in degrees
 ROSE_R = 150
 FADE = 480  # units over which the westward coast takes over from the 16:9 chart's noise
@@ -87,7 +87,7 @@ CHANNEL = (
 )
 BUOYED = (330, 1450)  # the channel's buoyed reach, as chart x
 GATE, BEAM = 190, 56  # buoy pairs: spacing along the channel, offset either side of it
-# the harbour: breakwaters from their roots ashore to their heads, the basin, the transit
+# the harbor: breakwaters from their roots ashore to their heads, the basin, the transit
 MOLES = (((1560, 316), (1390, 395), (1318, 515)), ((1560, 810), (1430, 725), (1384, 652)))
 BASIN = ((1400, 470), (1600, 470), (1600, 660), (1400, 660))
 TRANSIT = 70  # the leading line's bearing on the 16:9 sheet
@@ -218,8 +218,8 @@ def compass_rose(s: Canvas[Chart], rose: Vec) -> None:
 def draw(s: Canvas[Chart]) -> None:
     if s.params.coast == "estuary":
         estuary(s)
-    elif s.params.coast == "harbour":
-        harbour(s)
+    elif s.params.coast == "harbor":
+        harbor(s)
     elif s.params.coast == "skerries":
         skerries(s)
     else:
@@ -237,7 +237,7 @@ def headland(s: Canvas[Chart]) -> None:
         dx = 120
         # low on the screen, but on a tall phone no further from the chart than it needs
         rose = Vec(s.w - 280, min(s.h * 0.78, 1560))
-    light, harbour = LIGHT - (dx, 0), HARBOUR - (dx, 0)
+    light, harbor = LIGHT - (dx, 0), HARBOR - (dx, 0)
     cols, rows = s.w // CELL + 1, s.h // CELL + 1
     x0 = dx // CELL
     west = max(0, -x0)  # chart cells west of the 16:9 chart
@@ -256,7 +256,7 @@ def headland(s: Canvas[Chart]) -> None:
     base = 1 - ((np.abs(x) / reach) ** 1.6 + (y / 620) ** 1.6) ** (1 / 1.6)
     big = noise(4, 240, 2)
     fine = noise(5, 60, 4, 0.55)
-    # the harbour: a bay pushed north-west into the land
+    # the harbor: a bay pushed north-west into the land
     u, v = (x - 640) * 0.8 + (y - 250) * 0.6, -(x - 640) * 0.6 + (y - 250) * 0.8
     bay = 0.4 * np.exp(-(u**2 / (2 * 70**2) + v**2 / (2 * 90**2)))
     rough = noise(6, 16, 2)
@@ -285,7 +285,7 @@ def headland(s: Canvas[Chart]) -> None:
     # The light's sector bisects the approach, which the track follows in to the anchorage. The
     # track starts level with the rose, so the two read as a pair and the open water stays open.
     if s.landscape:
-        sector = 152.5  # compass bearing of the sector's centre line, seaward from the light
+        sector = 152.5  # compass bearing of the sector's center line, seaward from the light
         ahead = polar((0, 0), 1, bearing=sector)
         entry = light + ahead * ((rose.y - light.y) / ahead.y)
     else:
@@ -294,7 +294,7 @@ def headland(s: Canvas[Chart]) -> None:
         ahead = (entry - light).unit()
         sector = math.degrees(math.atan2(ahead.x, -ahead.y))
     turn = light + ahead * 200
-    path = [entry, turn, harbour + (26, 4)]
+    path = [entry, turn, harbor + (26, 4)]
     track = LineString(path)
 
     soundings: list[Vec] = []
@@ -326,7 +326,7 @@ def headland(s: Canvas[Chart]) -> None:
     s.stroke(P().M(entry + across).L(entry - across), UI_HI, 1.6)
     s.path(P().circle(turn, 7), fill=BG, stroke=UI_HI, stroke_width=1.6)
     s.fill(P().circle(turn, 3), ACCENT_1)
-    anchor(s, harbour)
+    anchor(s, harbor)
     s.stroke(P().circle(light, 8), UI_HI, 1.6)
     s.fill(P().circle(light, 3.5), ACCENT)
     compass_rose(s, rose)
@@ -334,7 +334,7 @@ def headland(s: Canvas[Chart]) -> None:
 
 def view(s: Canvas[Chart], focus: Vec) -> Affine:
     """Chart units to canvas: a landscape canvas keeps the sheet's east edge on its right edge,
-    as the headland does; a portrait one turns the sheet a quarter clockwise, `focus` centred."""
+    as the headland does; a portrait one turns the sheet a quarter clockwise, `focus` centered."""
     if s.landscape:
         return Affine.translate(s.w - 1920, 0)
     return (
@@ -495,14 +495,14 @@ def estuary(s: Canvas[Chart]) -> None:
     frame = view(s, Vec(1080, 560))
     u, v = sheet(s, frame)
     big, fine = fbm(s, "big", u, v, 900, 2), fbm(s, "fine", u, v, 220, 4, 2)
-    centre = spline_points(CHANNEL, 24)
+    center = spline_points(CHANNEL, 24)
     # the river winds with its channel; at the mouth the north shore swings up and away and the
     # south shore down and away
-    river = 545 + (np.interp(u, centre[:, 0], centre[:, 1]) - 545) * smoothstep(400, 0, u)
+    river = 545 + (np.interp(u, center[:, 0], center[:, 1]) - 545) * smoothstep(400, 0, u)
     north = river - 145 - 560 * smoothstep(250, 1200, u)
     south = river + 145 + 560 * smoothstep(100, 850, u)
     land = np.maximum(north - v, v - south) / 140 + 0.5 * big + 0.12 * fine
-    reach, _ = cKDTree(centre).query(np.stack([u.ravel(), v.ravel()], axis=1))
+    reach, _ = cKDTree(center).query(np.stack([u.ravel(), v.ravel()], axis=1))
     reach = reach.reshape(u.shape)
     # banks lie along the ebb, so their noise is stretched along the river
     banks = (
@@ -512,8 +512,8 @@ def estuary(s: Canvas[Chart]) -> None:
     dry = np.maximum(land + 0.3, banks)
     depth, drying = chart(s, u, v, land, dry)
 
-    # the buoyed reach, travelled inward: cans to port, cones to starboard
-    inward = centre[(centre[:, 0] > BUOYED[0]) & (centre[:, 0] < BUOYED[1])][::-1]
+    # the buoyed reach, traveled inward: cans to port, cones to starboard
+    inward = center[(center[:, 0] > BUOYED[0]) & (center[:, 0] < BUOYED[1])][::-1]
     way = Polyline(frame.apply(inward))
     stations = np.arange(40, way.length - 20, GATE)
     gates = [way.at(d) for d in stations]
@@ -544,8 +544,8 @@ def estuary(s: Canvas[Chart]) -> None:
     compass_rose(s, rose)
 
 
-def harbour(s: Canvas[Chart]) -> None:
-    """A walled harbour under a headland, led into on a pair of leading lights."""
+def harbor(s: Canvas[Chart]) -> None:
+    """A walled harbor under a headland, led into on a pair of leading lights."""
     # on a portrait screen the coast runs along the bottom, the entrance 620 units above it
     frame = view(s, Vec(1970 - s.h / 2, 600))
     u, v = sheet(s, frame)

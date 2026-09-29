@@ -21,8 +21,8 @@ CELL = 3
 R, RS = 17, 8  # lamp radius in cells: countdown, go and foul lamps; staging bulbs
 LED, DX, DY = 2, 4, 3  # an LED is LED x LED cells, DX apart along a row and rows DY apart
 SPINE = 44  # the width in cells of the column the lane lamps hang either side of
-REACH = SPINE // 2  # lamp centres sit on the column's edges
-STEP = 40  # between lamp centres down a lane
+REACH = SPINE // 2  # lamp centers sit on the column's edges
+STEP = 40  # between lamp centers down a lane
 W = 2 * (REACH + R + 4)
 BAR, PAD = 9, 2  # the height of a label's band; the clearance round each staging bulb
 POLE = 6
@@ -32,7 +32,7 @@ PALETTE = (None, BG_ALT, UI, UI, ACCENT_6, ACCENT_3, ACCENT, ACCENT_4)
 
 
 def disc(ys: NDArray[np.float64], xs: NDArray[np.float64], cx: int, cy: int, r: float) -> Mask:
-    """Cells whose centres lie within r of the grid vertex (cx, cy)."""
+    """Cells whose centers lie within r of the grid vertex (cx, cy)."""
     return np.hypot(xs + 0.5 - cx, ys + 0.5 - cy) < r
 
 

@@ -1,4 +1,4 @@
-"""A motorcycle's rear racing tyre in drafted section rolling over onto its shoulder, with its earlier positions ghosted and the tread's contact path lit."""
+"""A motorcycle's rear racing tire in drafted section rolling over onto its shoulder, with its earlier positions ghosted and the tread's contact path lit."""
 
 import math
 
@@ -13,15 +13,15 @@ from walldye.geom import Affine, bezier_points, hatch, parts, spline_points
 
 type F = NDArray[np.float64]
 
-# Section frame: millimetres, x across the tyre, y up from the crown's ground contact. The
+# Section frame: millimeters, x across the tire, y up from the crown's ground contact. The
 # tread is an arc of radius RHO about (0, RHO), so a lean of phi puts the ground under the tread
-# point phi round from the crown, and rolling there moves that centre RHO * phi sideways.
+# point phi round from the crown, and rolling there moves that center RHO * phi sideways.
 RHO = 108.0
 LEAN = 66.0  # degrees, the last position
 STEPS = 4  # the earlier positions sit every LEAN / STEPS degrees
 SEAT, RIM_HALF = 130.0, 76.2  # 200/65 R17: section height 130 over the bead seat; 6.00 in rim
-AXLE = SEAT + 17 * 25.4 / 2  # the wheel centre, a 17 in rim's radius above the bead seat
-LIP = (78.7, 116.5, 2.5)  # rim flange lip: centre and radius
+AXLE = SEAT + 17 * 25.4 / 2  # the wheel center, a 17 in rim's radius above the bead seat
+LIP = (78.7, 116.5, 2.5)  # rim flange lip: center and radius
 # right half, from the tread edge at 70 degrees round to the top of the flange lip
 SIDE = ((102.4, 81.5), (100.4, 92.5), (95.6, 102.0), (89.4, 108.6), (83.4, 112.6), (78.7, 114.0))
 # wall thickness against the outer contour's height: thick under the tread, thin in the sidewall
@@ -45,14 +45,14 @@ TURN = (
     (83.0, 109.2),
 )
 CORE = (69.4, 123.3)  # bead core: 4 by 3 wires, 1.6 apart
-# rim, tyre side, from just past the middle of the well (so the halves overlap) out to the flange,
+# rim, tire side, from just past the middle of the well (so the halves overlap) out to the flange,
 # with the fillet radius at each bend
 RIM = ((-2, 150), (28, 150), (40, 133), (56, SEAT), (RIM_HALF, SEAT), (RIM_HALF, 116.5))
 FILLETS = (8, 8, 6, 1.5)
 
 
 def arc(r: float, a0: float, a1: float, n: int) -> F:
-    """Points on the circle of radius `r` about the tread centre, from `a0` to `a1` degrees round
+    """Points on the circle of radius `r` about the tread center, from `a0` to `a1` degrees round
     from the crown, positive to the right."""
     a = np.radians(np.linspace(a0, a1, n))
     return np.column_stack([r * np.sin(a), RHO - r * np.cos(a)])
@@ -65,14 +65,14 @@ def both(half: F) -> F:
 
 
 def inward(line: F, depth: F) -> F:
-    """`line` moved `depth` to its left, into the tyre for a contour running crown outward."""
+    """`line` moved `depth` to its left, into the tire for a contour running crown outward."""
     d = np.gradient(line, axis=0)
     n = np.column_stack([-d[:, 1], d[:, 0]]) / np.hypot(d[:, 0], d[:, 1])[:, None]
     return line + n * depth[:, None]
 
 
 def section() -> tuple[F, F, F, F, F, F]:
-    """The tyre's outer contour, inner liner and carcass ply, each bead to bead, the belt cords
+    """The tire's outer contour, inner liner and carcass ply, each bead to bead, the belt cords
     and the bead wires as points, and the outline of the tread rubber, surface to belt, that
     has met the ground by the last position, all in the section frame."""
     side = spline_points(np.vstack([arc(RHO, 0, 70, 15), SIDE]), 8)
@@ -128,14 +128,14 @@ def moved(g: BaseGeometry, m: Affine) -> BaseGeometry:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     outer, liner, ply, belt, wires, band = section()
-    tyre = Polygon(np.vstack([outer, liner[::-1]])).buffer(0)
+    tire = Polygon(np.vstack([outer, liner[::-1]])).buffer(0)
     half = LineString(filleted(RIM, FILLETS)).buffer(5, single_sided=True, join_style="round")
     half = half.union(Point(LIP[:2]).buffer(LIP[2], quad_segs=12))
     rim = half.union(shapely.transform(half, lambda xy: xy * (-1, 1)))
     rim = rim.buffer(2.5).buffer(-2.5)
-    solid = shapely.unary_union([Polygon(outer).buffer(0), tyre, rim.convex_hull])
+    solid = shapely.unary_union([Polygon(outer).buffer(0), tire, rim.convex_hull])
 
-    # the figure's box in the world: the upright section's left shoulder to the last wheel centre
+    # the figure's box in the world: the upright section's left shoulder to the last wheel center
     span = RHO * math.radians(LEAN)
     x0, x1, y1 = -RHO, placed(LEAN)((0, AXLE)).x + 10, AXLE + 10
     k = 1.95 if s.landscape else 1.85
@@ -166,7 +166,7 @@ def draw(s: Canvas) -> None:
         [carcass.buffer(1.2), LineString(liner).buffer(3.9), *(Point(c).buffer(1.3) for c in cords)]
     )
     wedge = Polygon(np.vstack([[(0, RHO)], arc(200, -71, 71, 30)]))
-    rubber = moved(tyre.difference(keep) & wedge, final)
+    rubber = moved(tire.difference(keep) & wedge, final)
     lit = moved(Polygon(band).buffer(0), final)
     lines, glow = P(), P()
     for path, region, pitch in ((lines, rubber.difference(lit), 5.5), (glow, rubber & lit, 3)):
@@ -174,7 +174,7 @@ def draw(s: Canvas) -> None:
             if math.hypot(*(seg[1] - seg[0])) >= 6:  # no specks in the corners
                 path.poly(seg)
 
-    # the ground with its contact points, and the wheel centre's path ticked at thirds of a step
+    # the ground with its contact points, and the wheel center's path ticked at thirds of a step
     def hub(a: float) -> Vec:
         return world(placed(a)((0, AXLE)))
 
@@ -200,7 +200,7 @@ def draw(s: Canvas) -> None:
     s.stroke(P().shape(moved(carcass, final)), UI_ALT, 1.1)
     s.fill(P().dots(final.apply(cords), 0.65 * k), UI_ALT)
     s.stroke(P().shape(moved(rim, final)), UI, 1.1, join="round", dash=(14, 4, 3, 4, 3, 4))
-    s.stroke(P().shape(moved(tyre, final)), UI_ALT, 1.6, join="round")
+    s.stroke(P().shape(moved(tire, final)), UI_ALT, 1.6, join="round")
     s.stroke(scale, UI, 1.2)
     s.stroke(hubs, UI, 1.3)
     s.stroke(P().M(final((0, -14))).L(final((0, AXLE + 6))), UI_ALT, 1.2, dash=(22, 5, 3, 5))

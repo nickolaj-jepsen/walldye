@@ -17,7 +17,7 @@ SIZE = Vec(14, 13)
 RING = 11.8
 UPRIGHT = (0, 0, 2, 9)  # the l, down to where its corner begins
 RUNS = ((4, 11, 10, 13), (12, 4, 14, 9), (8, 4, 10, 9), (4, 4, 6, 9))
-# arcs as (centre, inner radius, outer radius, from, to) in degrees, clockwise from east
+# arcs as (center, inner radius, outer radius, from, to) in degrees, clockwise from east
 ARCS = (
     (Vec(4, 9), 2, 4, 90, 180),
     (Vec(10, 9), 2, 4, 0, 90),
@@ -85,7 +85,7 @@ def draw(s: Canvas) -> None:
     fade = s.radial_gradient([(0, BG_ALT), (ring * 1.2 / FADE, BG_ALT), (1, BG)], c, FADE)
     s.stroke(lines, fade, 1.2)
 
-    # centre lines through the middle of the mark, and the ring's circle
+    # center lines through the middle of the mark, and the ring's circle
     cl = P()
     for q in outside(LineString([(c.x - ring - 60, c.y), (c.x + ring + 60, c.y)])):
         cl.poly(q.coords)
@@ -110,7 +110,7 @@ def draw(s: Canvas) -> None:
     heads.arrowhead((xa, yc), ARROW, deg=0, width=ARROW_W)
     heads.arrowhead((xb, yc), ARROW, deg=180, width=ARROW_W)
     # radii: a leader from the ring onto the outer edge of one arch and one corner, on the line
-    # through the arc's centre
+    # through the arc's center
     for (ctr, _, r1, _, _), deg in ((ARCS[2], -45.0), (ARCS[1], 45.0)):
         a = at(*ctr)
         d = polar(Vec(0, 0), 1, deg=deg)
@@ -131,7 +131,7 @@ def draw(s: Canvas) -> None:
     s.fill(runs, UI_ALT)
     s.fill(P().rect(*at(0, 0), 2 * H, 9 * H), ACCENT)
 
-    # the stroke's centreline, as the source artwork draws it; ACCENT_3 over the l
+    # the stroke's centerline, as the source artwork draws it; ACCENT_3 over the l
     cen = P()
     cen.M(at(1, 9)).A(3 * H, 3 * H, 0, 0, 0, *at(4, 12)).L(at(10, 12))
     cen.A(3 * H, 3 * H, 0, 0, 0, *at(13, 9)).L(at(13, 4))

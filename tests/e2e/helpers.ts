@@ -10,9 +10,9 @@ import {
   namedVariants,
   smartQuotes,
 } from '../../src/lib/meta';
-import type { Slots, SlotsEntry } from '../../src/lib/recolour';
-import { findColours, skeleton } from '../../src/lib/tokenize';
-import { loadMeta, slugs } from '../catalogue';
+import type { Slots, SlotsEntry } from '../../src/lib/recolor';
+import { findColors, skeleton } from '../../src/lib/tokenize';
+import { loadMeta, slugs } from '../catalog';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -29,7 +29,7 @@ export const slotsOf = (slug: string, variant = 'default'): Slots =>
 export const templateUrl = (slots: Slots, aspect: string): string =>
   `/t/${(slots[`${aspect}/dark`] as SlotsEntry).sha256.slice(0, 12)}.svg`;
 
-export interface CatalogueVersion {
+export interface CatalogVersion {
   name: string;
   /** As the page sets it, quotes curled. */
   label: string;
@@ -40,17 +40,17 @@ export interface CatalogueVersion {
   aspects: string[];
 }
 
-export interface CataloguePiece {
+export interface CatalogPiece {
   slug: string;
   description: string;
   license: string;
   franchise?: { title: string; owner: string };
   /** The published versions, default first. */
-  versions: CatalogueVersion[];
+  versions: CatalogVersion[];
 }
 
 /** Every published piece with its published versions, from meta.yaml and the built slots.json. */
-export function publishedPieces(): CataloguePiece[] {
+export function publishedPieces(): CatalogPiece[] {
   return slugs(ROOT).flatMap((slug) => {
     const meta = loadMeta(ROOT, slug);
     if (isDraft(meta)) return [];
@@ -72,7 +72,7 @@ export function publishedPieces(): CataloguePiece[] {
           .map((k) => k.split('/')[0]),
       };
     });
-    const f = meta.franchise as CataloguePiece['franchise'];
+    const f = meta.franchise as CatalogPiece['franchise'];
     const franchise = f && { title: smartQuotes(f.title), owner: smartQuotes(f.owner) };
     return [
       {
@@ -166,8 +166,8 @@ export function pixelHex(img: Rgb, x: number, y: number): string {
   return `#${[...img.data.subarray(i, i + 3)].map((v) => v.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
 }
 
-/** Largest per-channel difference between two colours. */
-export function colourDistance(a: string, b: string): number {
+/** Largest per-channel difference between two colors. */
+export function colorDistance(a: string, b: string): number {
   let worst = 0;
   for (let k = 1; k < 7; k += 2)
     worst = Math.max(
@@ -177,13 +177,13 @@ export function colourDistance(a: string, b: string): number {
   return worst;
 }
 
-/** Largest per-channel difference between the colour slots of two SVGs, which must share a skeleton. */
+/** Largest per-channel difference between the color slots of two SVGs, which must share a skeleton. */
 export function maxSlotError(a: string, b: string): number {
   expect(skeleton(a)).toBe(skeleton(b));
-  const ca = findColours(a).map((s) => s[2]);
-  const cb = findColours(b).map((s) => s[2]);
+  const ca = findColors(a).map((s) => s[2]);
+  const cb = findColors(b).map((s) => s[2]);
   expect(ca.length).toBe(cb.length);
-  return ca.reduce((worst, c, i) => Math.max(worst, colourDistance(c, cb[i])), 0);
+  return ca.reduce((worst, c, i) => Math.max(worst, colorDistance(c, cb[i])), 0);
 }
 
 /** Text of the SVG the index plate of `slug` shows, or null while it has no single loaded image. */
@@ -199,14 +199,14 @@ export async function plateSvg(page: Page, slug: string): Promise<string | null>
 
 /**
  * Brings each plate of `svgs` near the view, where the index loads it, and waits until it shows
- * exactly that SVG text (a blob: recolour, or the template itself when that is unchanged).
+ * exactly that SVG text (a blob: recolor, or the template itself when that is unchanged).
  */
 export async function platesSettled(page: Page, svgs: Record<string, string>): Promise<void> {
   for (const [slug, svg] of Object.entries(svgs)) {
     await page.locator(`.grid > li[data-slug="${slug}"]`).scrollIntoViewIfNeeded();
     await expect
       .poll(async () => (await plateSvg(page, slug)) === svg, {
-        message: `the ${slug} plate shows its recolour`,
+        message: `the ${slug} plate shows its recolor`,
         timeout: 10_000,
       })
       .toBe(true);

@@ -1,4 +1,4 @@
-"""Helpers for the core tests: loading the fixture designs and the themes to serialise under."""
+"""Helpers for the core tests: loading the fixture designs and the themes to serialize under."""
 
 import importlib.util
 import itertools
@@ -43,7 +43,7 @@ def tokens(theme: tuple[str, str, str]) -> dict[str, str]:
 
 
 def themes(regime: str) -> list[dict[str, str]]:
-    """Every theme the tools serialise a document of `regime` under: its template preset, the
+    """Every theme the tools serialize a document of `regime` under: its template preset, the
     held-out set and the probes (the sample theme is one of the held-out set)."""
     template = _theme.parse_theme("fireproof" if regime == "dark" else "flexoki-light")
     rest = _check_themes.HELD_OUT[regime] + _check_themes.PROBES[regime]

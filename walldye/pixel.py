@@ -113,7 +113,7 @@ _DIFFUSION: Final[dict[str, tuple[tuple[tuple[int, int, int], ...], int]]] = {
     "sierra-lite": (((1, 0, 2), (-1, 1, 1), (0, 1, 1)), 4),
 }
 
-# 8x8 clustered-dot threshold order: dots grow from the centre, like a print halftone screen.
+# 8x8 clustered-dot threshold order: dots grow from the center, like a print halftone screen.
 _CLUSTERED8: Final = (
     (24, 10, 12, 26, 35, 47, 49, 37),
     (8, 0, 2, 14, 45, 59, 61, 51),
@@ -313,7 +313,7 @@ class Pixels:
         rng: np.random.Generator | None = None,
         where: ArrayLike | None = None,
     ) -> None:
-        """Quantise the (rows, cols) `field`, clamped to [0, 1], into len(levels) levels with
+        """Quantize the (rows, cols) `field`, clamped to [0, 1], into len(levels) levels with
         dither() and write levels[q] into the grid, only where the boolean `where` is true
         when given.
 
@@ -510,7 +510,7 @@ def dither(
     rng: np.random.Generator | None = None,
     serpentine: bool = False,
 ) -> _I:
-    """Quantise the (rows, cols) `field`, clamped to [0, 1], to indices 0 .. levels - 1 of the
+    """Quantize the (rows, cols) `field`, clamped to [0, 1], to indices 0 .. levels - 1 of the
     same shape.
 
     Ordered methods threshold against threshold_matrix(method, matrix, rng): "bayer" (a
@@ -659,7 +659,7 @@ def glyphs(
 
     `lines` is one str split on newlines, or a sequence of lines. `paint` is one paint, or
     paint(col, row, ch) per character, None skipping it. Each line is placed on its own:
-    anchor "start" puts its left edge at at[0], "middle" centres it there and "end" puts its
+    anchor "start" puts its left edge at at[0], "middle" centers it there and "end" puts its
     right edge there; line r starts at at[1] + r * (height + gap) * px. `flip` mirrors each
     character's bitmap left to right.
 

@@ -1,5 +1,5 @@
 /**
- * Rules over a parsed meta.yaml shared by CI and the content schema: the licence default and draft
+ * Rules over a parsed meta.yaml shared by CI and the content schema: the license default and draft
  * flag (ports of walldye/tools/lint.py license_of and common.is_draft), the `variants:` mapping
  * and the copy lint.
  */
@@ -100,7 +100,7 @@ export function namedVariants(meta: Meta): NamedVariant[] {
 }
 
 /**
- * The folder's licence: `license:`, else FAN_WORK when `franchise:` is set, else DEFAULT_LICENSE for a
+ * The folder's license: `license:`, else FAN_WORK when `franchise:` is set, else DEFAULT_LICENSE for a
  * piece a model made (`model:`) with no recreation source, else null.
  */
 export function licenseOf(meta: Meta): unknown {
@@ -113,8 +113,8 @@ export function licenseOf(meta: Meta): unknown {
   return meta.model && !recreation ? DEFAULT_LICENSE : null;
 }
 
-/** walldye/tools/lint.py COLOUR_WORDS: hues and named shades that copy never names. */
-export const COLOUR_WORDS: ReadonlySet<string> = new Set([
+/** walldye/tools/lint.py COLOR_WORDS: hues and named shades that copy never names. */
+export const COLOR_WORDS: ReadonlySet<string> = new Set([
   'red',
   'orange',
   'yellow',
@@ -163,15 +163,15 @@ export const COLOUR_WORDS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Colour words in `text` as written, lowercased and sorted, plurals included ("greys" matches via "grey");
+ * Color words in `text` as written, lowercased and sorted, plurals included ("greys" matches via "grey");
  * ALL-CAPS words (token names like ORANGE_DARK) are not prose.
  */
-export function colourWords(text: string): string[] {
+export function colorWords(text: string): string[] {
   const found = new Set<string>();
   for (const [w] of text.matchAll(/(?<![\p{L}\p{N}_])[A-Za-z]+(?![\p{L}\p{N}_])/gu)) {
     const lower = w.toLowerCase();
     const stems = [lower, lower.replace(/s$/, ''), lower.replace(/es$/, '')];
-    if (w !== w.toUpperCase() && stems.some((t) => COLOUR_WORDS.has(t))) found.add(lower);
+    if (w !== w.toUpperCase() && stems.some((t) => COLOR_WORDS.has(t))) found.add(lower);
   }
   return [...found].sort();
 }
@@ -190,7 +190,7 @@ export const BANNED: readonly (readonly [RegExp, string])[] = [
     /\b(regimes?|seeds?|tokens?|native|hand-tuned|light-ready|presets?|variants?|params?|slots?|templates?|derived|guards?|has script|AI-generated|generator lost|appendix)\b/i,
     'internal term',
   ],
-  [/\b(CC0(-1\.0)?|GPL(-[\w.-]+)?|SPDX|OFL|LicenseRef-[\w.-]*)(?![\w-])/i, 'licence identifier'],
+  [/\b(CC0(-1\.0)?|GPL(-[\w.-]+)?|SPDX|OFL|LicenseRef-[\w.-]*)(?![\w-])/i, 'license identifier'],
   [/\bRGB units?\b|\b\d+(\.\d+)?:1\b|\b\d+\s?px\b/i, 'machinery number'],
   [/\bthe accent\b|\baccent colou?r\b|\b(bg|fg)(_alt)?\b/i, 'theme role as a noun'],
 ];
@@ -209,7 +209,7 @@ export function sentences(text: string): number {
 
 /**
  * Copy problems in the title, description and notes of `meta` and in each variant's label and
- * description, each as "<field>: <problem>" (a variant field as `variants.<name>.label`): colour words
+ * description, each as "<field>: <problem>" (a variant field as `variants.<name>.label`): color words
  * and BANNED phrases in any of them; a description over MAX_DESCRIPTION_WORDS words or
  * MAX_DESCRIPTION_SENTENCES sentences. [] when the copy follows the rules.
  */
@@ -233,8 +233,8 @@ export function lintCopy(meta: Meta): string[] {
   for (const [field, value, isDescription] of fields) {
     const text = value ? String(value) : '';
     if (!text) continue;
-    const colours = colourWords(text);
-    if (colours.length) out.push(`${field}: colour words ${colours.join(', ')}`);
+    const colors = colorWords(text);
+    if (colors.length) out.push(`${field}: color words ${colors.join(', ')}`);
     for (const [re, why] of BANNED) {
       const m = re.exec(text);
       if (m) out.push(`${field}: ${why} "${m[0]}"`);

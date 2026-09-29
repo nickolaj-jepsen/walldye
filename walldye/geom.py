@@ -268,7 +268,7 @@ def hatch(
     offset: Num = 0.0,
 ) -> list[_F]:
     """Parallel lines in the given direction, `pitch` apart measured across them, clipped to
-    `region`: the line through the centre of region.bounds shifted across by offset + k * pitch
+    `region`: the line through the center of region.bounds shifted across by offset + k * pitch
     for every k that reaches the region.
 
     Each piece is a (2, 2) segment running in the line's direction; pieces come ordered by k,

@@ -2,7 +2,7 @@ import { createCssVariablesTheme, createHighlighter } from 'shiki';
 
 const theme = createCssVariablesTheme({ name: 'walldye', variablePrefix: '--shiki-' });
 theme.tokenColors?.push(
-  // css-variables colours every operator as a keyword, which puts accent on nearly every line.
+  // css-variables colors every operator as a keyword, which puts accent on nearly every line.
   { scope: ['keyword.operator'], settings: { foreground: 'var(--shiki-token-punctuation)' } },
   { scope: ['keyword.operator.logical'], settings: { foreground: 'var(--shiki-token-keyword)' } },
   // ...and every identifier inside call parentheses as punctuation.

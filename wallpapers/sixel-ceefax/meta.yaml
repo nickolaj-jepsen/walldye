@@ -3,7 +3,7 @@ description: A teletext sunset in gapped blocks, two ridges to its left and thre
 notes: |
   A teletext page is 40 characters wide and 24 rows tall, and each graphics character is a 2 by 3 grid of blocks. In separated mode every block keeps a gap around it.
 
-  A character cell can show only one colour of block, so wherever the two ridges share a cell, the nearer ridge takes all of it. The BBC's Ceefax service drew its pages under these rules from 1974 to 2012.
+  A character cell can show only one color of block, so wherever the two ridges share a cell, the nearer ridge takes all of it. The BBC's Ceefax service drew its pages under these rules from 1974 to 2012.
 technique: [glyph, pixel]
 subject: [landscape]
 lineage: [vintage-computers]

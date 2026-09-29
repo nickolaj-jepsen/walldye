@@ -22,7 +22,7 @@ from walldye import (
 CW, PITCH, BAR, R = 6, 14, 7, 1.5  # char width, line pitch, bar height, bar corner radius
 COLS = 100  # minimap width in characters; longer lines are cut at its right edge
 RIGHT = 760  # the column's left edge stays at least this far from the canvas's right edge
-HALF = 9  # the viewport shows 2 * HALF lines, centred on the caret line
+HALF = 9  # the viewport shows 2 * HALF lines, centered on the caret line
 COMMENT, IDENT, KEYWORD, STRING, CALL = range(5)  # token kinds, indices into the tone tables
 KINDS = (COMMENT, IDENT, KEYWORD, STRING, CALL)
 TONES = (mix(BG_ALT, UI, 0.45), UI, UI_ALT, mix(UI, UI_ALT, 0.5), UI_ALT)
@@ -149,7 +149,7 @@ def fits(toks: list[Tok]) -> bool:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # right of centre, but never nearer than RIGHT to the right edge (1160 at 16:9); low on portrait
+    # right of center, but never nearer than RIGHT to the right edge (1160 at 16:9); low on portrait
     at = s.pick(landscape=(0.605, 7 / 15), portrait=(0.3, 0.58))
     x0, cursor = min(round(at.x), s.w - RIGHT), round(at.y / PITCH)
     view0, view1 = (cursor - HALF) * PITCH, (cursor + HALF) * PITCH

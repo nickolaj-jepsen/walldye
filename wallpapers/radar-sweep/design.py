@@ -39,7 +39,7 @@ TONES = (*ladder((ACCENT_4, UI), 5), *ladder((UI, BG_ALT), 4)[1:])
 @design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Radar]) -> None:
     p = s.params
-    # landscape: right of centre, leaving the left for windows; portrait: low, under the clock
+    # landscape: right of center, leaving the left for windows; portrait: low, under the clock
     c = s.pick(landscape=(0.71875, 5 / 9), portrait=(0.5, 0.6))
 
     def at(r: float, b: float) -> Vec:

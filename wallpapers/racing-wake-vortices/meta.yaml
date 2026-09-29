@@ -1,9 +1,9 @@
 title: Wake vortices
-description: Arrows on a square grid plot the air swirling five metres behind an open-wheel racing car. The two vortices off its rear-wing tips are lit, one more brightly.
+description: Arrows on a square grid plot the air swirling five meters behind an open-wheel racing car. The two vortices off its rear-wing tips are lit, one more brightly.
 notes: |
-  A wing that presses a car onto the road sheds tip vortices that turn the other way from an aircraft's, so the air sinks outside each pair and rises between them. The 2022 Formula 1 rules shaped the rear wing and diffuser around this. Their vortices gather the wake of the rear wheels and throw it upwards in a mushroom shape. By Formula 1's figures, a car ten metres behind another loses 18% of its downforce, against 47% with the 2021 cars.
+  A wing that presses a car onto the road sheds tip vortices that turn the other way from an aircraft's, so the air sinks outside each pair and rises between them. The 2022 Formula 1 rules shaped the rear wing and diffuser around this. Their vortices gather the wake of the rear wheels and throw it upwards in a mushroom shape. By Formula 1's figures, a car ten meters behind another loses 18% of its downforce, against 47% with the 2021 cars.
 
-  The field is modelled. There are two pairs of vortices, one from the rear-wing tips and one from the diffuser, each with the profile of a Lamb-Oseen vortex and a mirror image under the road that keeps the flow running along it. The car is doing 250 km/h, and in the air behind it each vortex is moved by the others' flow, so that five metres back the pair from the diffuser has already risen above the pair from the wing, where the rising column narrows before it spreads. As in a particle image velocimetry plot, each arrow is as long as the local speed up to a cap, slower points are left as dots, and a cross marks each core from the wing. The car is drawn from behind to the 2022 rules' overall width, diffuser exit and rear wing span.
+  The field is modeled. There are two pairs of vortices, one from the rear-wing tips and one from the diffuser, each with the profile of a Lamb-Oseen vortex and a mirror image under the road that keeps the flow running along it. The car is doing 250 km/h, and in the air behind it each vortex is moved by the others' flow, so that five meters back the pair from the diffuser has already risen above the pair from the wing, where the rising column narrows before it spreads. As in a particle image velocimetry plot, each arrow is as long as the local speed up to a cap, slower points are left as dots, and a cross marks each core from the wing. The car is drawn from behind to the 2022 rules' overall width, diffuser exit and rear wing span.
 technique: [field, instrument]
 subject: [sport, physics]
 lineage: []
@@ -38,7 +38,7 @@ added: 2026-09-28
 model: claude-opus-5-5
 variants:
   default:
-    label: Five metres back
+    label: Five meters back
   ten:
-    label: Ten metres back
-    description: Arrows on a square grid plot the air ten metres behind an open-wheel racing car. The vortices from its diffuser have climbed well above those from its rear wing.
+    label: Ten meters back
+    description: Arrows on a square grid plot the air ten meters behind an open-wheel racing car. The vortices from its diffuser have climbed well above those from its rear wing.

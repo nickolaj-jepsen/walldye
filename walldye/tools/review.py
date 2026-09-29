@@ -102,15 +102,15 @@ def queue(slugs: Sequence[str], everything: bool = False) -> list[Step]:
     return hidden + [s for s in steps if s.published] if everything else hidden
 
 
-def _licence(meta: common.Meta) -> str:
+def _license(meta: common.Meta) -> str:
     from walldye.tools.lint import license_of
 
-    licence = license_of(meta)
-    if licence is None:
+    license = license_of(meta)
+    if license is None:
         return "missing (walldye check says why)"
     if isinstance(meta.get("license"), str):
-        return licence
-    return f"{licence} (from franchise)" if "franchise" in meta else f"{licence} (default)"
+        return license
+    return f"{license} (from franchise)" if "franchise" in meta else f"{license} (default)"
 
 
 def _text(entry: Mapping[str, object], key: str) -> str:
@@ -205,7 +205,7 @@ def _put(d: dict[str, object], key: str, value: object, after: str) -> dict[str,
 
 def _drafted(m: common.Meta, draft: bool) -> common.Meta:
     """`m` published, with no draft key, or when `draft` with `draft: true` placed after the
-    credit and licence keys, where `walldye new` writes it."""
+    credit and license keys, where `walldye new` writes it."""
     rest = {k: v for k, v in m.items() if k != "draft"}
     if not draft:
         return rest
@@ -349,7 +349,7 @@ def _dropped(group: Sequence[Step], status: Mapping[str, str]) -> bool:
     )
 
 
-def summarise(steps: Sequence[Step], state: State) -> dict[str, object]:
+def summarize(steps: Sequence[Step], state: State) -> dict[str, object]:
     """The decisions in `state` for `steps`: approved, rejected ([{slug, note}]) and undecided
     over the unpublished default versions; notes ([{slug, variant, note}]) over every step;
     edit ([{slug, variant, published, note}]) over every step sent back for changes;
@@ -569,7 +569,7 @@ def _piece(slug: str, meta: common.Meta) -> dict[str, object]:
         **{f: _strs(meta.get(f)) for f in FACETS},
         "proposed": {f: _strs(vs) for f, vs in _dict(meta.get("proposed_facets")).items()},
         "sources": _list(meta.get("sources")),
-        "license": _licence(meta),
+        "license": _license(meta),
         "versions": shown,
     }
 
@@ -604,7 +604,7 @@ def run(
     slugs: Sequence[str], timeout: float, port: int, open_browser: bool, everything: bool = False
 ) -> int:
     """Serve the review page for queue(`slugs`, `everything`) on 127.0.0.1:`port` (0 picks
-    one) and block until Apply or `timeout` seconds; then print summarise() plus apply()'s
+    one) and block until Apply or `timeout` seconds; then print summarize() plus apply()'s
     result and `finished` as JSON. Decisions and edits persist in STATE_FILE as they are made;
     only Apply writes them. When apply() raises, the JSON says `error` (also sent to the page)
     and the run returns 1, else 0. Exits without serving when the queue is empty or a version
@@ -699,7 +699,7 @@ def run(
                 with lock:
                     if not done.is_set():
                         state = load_state()
-                        result.update(summarise(steps, state))
+                        result.update(summarize(steps, state))
                         try:
                             result.update(apply(steps, state), finished=True)
                         except (OSError, ValueError, yaml.YAMLError) as e:
@@ -722,7 +722,7 @@ def run(
     with lock:  # an Apply racing the timeout either applies fully or not at all
         if not done.is_set():
             done.set()
-            result.update(summarise(steps, load_state()))
+            result.update(summarize(steps, load_state()))
             result.update(nothing, finished=False)
     server.shutdown()
     server.server_close()

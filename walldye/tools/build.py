@@ -1,5 +1,5 @@
 """walldye build: check pieces, then write each variant's build/ templates and slots.json;
-also wallpapers/index.json and the Python reference of the browser recolour."""
+also wallpapers/index.json and the Python reference of the browser recolor."""
 
 import importlib.metadata
 import json
@@ -10,9 +10,9 @@ from dataclasses import dataclass, field
 from typing import TypedDict
 
 from walldye._aspect import SITE_ASPECTS, TEMPLATE_NAME
-from walldye._theme import PRESETS, SEEDS, hex_to_rgb, is_light, normalise_seed, rgb_to_hex
+from walldye._theme import PRESETS, SEEDS, hex_to_rgb, is_light, normalize_seed, rgb_to_hex
 from walldye.tools import check, common, hashing, lint
-from walldye.tools.tokenize import find_colours, substitute
+from walldye.tools.tokenize import find_colors, substitute
 
 _FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
 
@@ -276,7 +276,7 @@ def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -
 
 def write_index() -> None:
     """Regenerate wallpapers/index.json without importing designs; license
-    is null when meta.yaml breaks the licence rules. A piece whose meta.yaml or slots.json cannot
+    is null when meta.yaml breaks the license rules. A piece whose meta.yaml or slots.json cannot
     be read is left out, with a note on stderr."""
     index: dict[str, object] = {}
     for slug in common.slugs():
@@ -310,24 +310,24 @@ def write_index() -> None:
 
 
 def select(slots: Mapping[str, object], aspect: str, seeds: Mapping[str, str]) -> str:
-    """The slots.json entry "<aspect>/<regime>" for recolouring a piece at `aspect` under
+    """The slots.json entry "<aspect>/<regime>" for recoloring a piece at `aspect` under
     `seeds` ({bg, fg, accent}), in the seeds' regime. KeyError if the piece has no such
     entry."""
-    light = is_light(normalise_seed(seeds["bg"]), normalise_seed(seeds["fg"]))
+    light = is_light(normalize_seed(seeds["bg"]), normalize_seed(seeds["fg"]))
     k = f"{aspect}/{'light' if light else 'dark'}"
     if k not in slots:
         raise KeyError(f"no {k} entry in slots.json")
     return k
 
 
-def recolour(template_svg: str, entry: SlotsEntry, seeds: Mapping[str, str]) -> str:
-    """The browser's recolour: `template_svg` (the file `entry` names, `entry` the one
+def recolor(template_svg: str, entry: SlotsEntry, seeds: Mapping[str, str]) -> str:
+    """The browser's recolor: `template_svg` (the file `entry` names, `entry` the one
     select() picks for `seeds`) with slot i set to coefs[occ[i]] = [a, b, c, dr, dg, db]
     evaluated per channel as ((a*bg + b*fg) + c*accent) + d, rounded half to even and
     clamped. Exact fireproof seeds return the template unchanged, and so does a template
     whose slot count is not entry["n"] (the browser's fallback)."""
-    s = {k: normalise_seed(seeds[k]) for k in SEEDS}
-    spans = find_colours(template_svg)
+    s = {k: normalize_seed(seeds[k]) for k in SEEDS}
+    spans = find_colors(template_svg)
     if s == _FIREPROOF or len(spans) != entry["n"]:
         return template_svg
     bg, fg, accent = (hex_to_rgb(s[k]) for k in SEEDS)

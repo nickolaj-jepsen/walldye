@@ -6,13 +6,13 @@ import {
   entries,
   pickTemplate,
   prepareTemplate,
-  recolour,
+  recolor,
   type Slots,
   type SlotsEntry,
   select,
-} from '../../src/lib/recolour';
-import { normaliseSeeds, PRESETS, parseToken, type Seeds } from '../../src/lib/theme';
-import { findColours, skeleton } from '../../src/lib/tokenize';
+} from '../../src/lib/recolor';
+import { normalizeSeeds, PRESETS, parseToken, type Seeds } from '../../src/lib/theme';
+import { findColors, skeleton } from '../../src/lib/tokenize';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (rel: string) => readFileSync(`${ROOT}${rel}`, 'utf8');
@@ -37,10 +37,10 @@ interface Manifest {
 const MANIFEST = JSON.parse(read('tests/fixtures/manifest.json')) as Manifest;
 const REFERENCE_PIECES = Object.keys(MANIFEST.pieces);
 
-/** Largest per-channel difference between the slot colours of two SVGs with the same skeleton. */
+/** Largest per-channel difference between the slot colors of two SVGs with the same skeleton. */
 function maxSlotError(a: string, b: string): number {
-  const ca = findColours(a).map((s) => s[2]);
-  const cb = findColours(b).map((s) => s[2]);
+  const ca = findColors(a).map((s) => s[2]);
+  const cb = findColors(b).map((s) => s[2]);
   expect(ca.length).toBe(cb.length);
   let worst = 0;
   ca.forEach((x, i) => {
@@ -60,18 +60,18 @@ describe('fireproof passthrough (a)', () => {
 
   it.each(templates)('$slug $key is returned byte for byte', ({ slug, entry }) => {
     const template = read(`wallpapers/${slug}/build/${entry.file}`);
-    expect(recolour(template, entry, PRESETS.fireproof)).toBe(template);
+    expect(recolor(template, entry, PRESETS.fireproof)).toBe(template);
     expect(
-      recolour(
+      recolor(
         prepareTemplate(template),
         entry,
-        normaliseSeeds({ bg: '#1c1b1a', fg: 'DAD8CE', accent: 'cf6a4c' }),
+        normalizeSeeds({ bg: '#1c1b1a', fg: 'DAD8CE', accent: 'cf6a4c' }),
       ),
     ).toBe(template);
   });
 });
 
-describe('recolour matches the Python renders (b)', () => {
+describe('recolor matches the Python renders (b)', () => {
   it('uses fixtures made from the current builds', () => {
     for (const slug of REFERENCE_PIECES)
       expect(slotsOf(slug).design_sha, `${slug}: rerun tests/python/fixtures/regen.py`).toBe(
@@ -87,17 +87,17 @@ describe('recolour matches the Python renders (b)', () => {
       expect(sha256(template), `${path} changed since the fixture was made`).toBe(sha);
       const picked = select(slotsOf(slug), aspect, seeds(theme));
       expect(picked.key).toBe(key);
-      const out = recolour(template, picked.entry, seeds(theme));
+      const out = recolor(template, picked.entry, seeds(theme));
       const want = read(render);
       expect(skeleton(out)).toBe(skeleton(want));
       expect(maxSlotError(out, want)).toBeLessThanOrEqual(2);
     },
   );
 
-  it('is byte-equal to the Python reference recolour', () => {
+  it('is byte-equal to the Python reference recolor', () => {
     const [slug, aspect, theme] = ['schotter', '16:9', 'nord'];
     const picked = select(slotsOf(slug), aspect, seeds(theme));
-    const out = recolour(
+    const out = recolor(
       read(`wallpapers/${slug}/build/${picked.entry.file}`),
       picked.entry,
       seeds(theme),
@@ -114,14 +114,14 @@ describe('per-occurrence slots (f)', () => {
   const perHex = JSON.parse(read(`${dir}per-hex.json`)) as Omit<SlotsEntry, 'file' | 'sha256'>;
 
   it('has two roles on one fireproof hex', () => {
-    const colours = findColours(template).map((s) => s[2]);
-    expect(colours[1]).toBe(colours[2]);
+    const colors = findColors(template).map((s) => s[2]);
+    expect(colors[1]).toBe(colors[2]);
   });
 
-  it('recolours within 2 units with per-occurrence slots', () => {
+  it('recolors within 2 units with per-occurrence slots', () => {
     for (const [theme, want] of Object.entries(renders)) {
       const picked = select(slots, '16:9', seeds(theme));
-      const out = recolour(template, picked.entry, seeds(theme));
+      const out = recolor(template, picked.entry, seeds(theme));
       expect(skeleton(out)).toBe(skeleton(want));
       expect(maxSlotError(out, want), theme).toBeLessThanOrEqual(2);
     }
@@ -133,7 +133,7 @@ describe('per-occurrence slots (f)', () => {
       (t) => select(slots, '16:9', seeds(t)).key === '16:9/dark',
     );
     const worst = Math.max(
-      ...dark.map((t) => maxSlotError(recolour(template, entry, seeds(t)), renders[t])),
+      ...dark.map((t) => maxSlotError(recolor(template, entry, seeds(t)), renders[t])),
     );
     expect(worst).toBeGreaterThan(2);
   });
@@ -165,9 +165,9 @@ describe('template choice', () => {
 
   it('falls back to the template when the slot count does not match', () => {
     const template = '<svg><rect fill="#1C1B1A"/></svg>';
-    expect(recolour(template, entry('16x9.svg', 2), PRESETS.nord)).toBe(template);
-    expect(recolour(template, { ...entry('16x9.svg'), occ: [3] }, PRESETS.nord)).toBe(template);
-    expect(recolour(template, entry('16x9.svg'), PRESETS.nord)).toBe(
+    expect(recolor(template, entry('16x9.svg', 2), PRESETS.nord)).toBe(template);
+    expect(recolor(template, { ...entry('16x9.svg'), occ: [3] }, PRESETS.nord)).toBe(template);
+    expect(recolor(template, entry('16x9.svg'), PRESETS.nord)).toBe(
       '<svg><rect fill="#2E3440"/></svg>',
     );
   });
@@ -185,7 +185,7 @@ describe('template choice', () => {
       occ: [0, 1],
     };
     expect(
-      recolour(template, e, normaliseSeeds({ bg: '#808080', fg: '#000000', accent: '#000000' })),
+      recolor(template, e, normalizeSeeds({ bg: '#808080', fg: '#000000', accent: '#000000' })),
     ).toBe('<svg><rect fill="#424400"/><rect fill="#FFFFFF"/></svg>');
   });
 });
@@ -195,7 +195,7 @@ describe("the reference pieces' templates", () => {
     for (const slug of REFERENCE_PIECES) {
       for (const [key, e] of entries(slotsOf(slug))) {
         expect(
-          findColours(read(`wallpapers/${slug}/build/${e.file}`)).length,
+          findColors(read(`wallpapers/${slug}/build/${e.file}`)).length,
           `${slug} ${key}`,
         ).toBe(e.n);
       }

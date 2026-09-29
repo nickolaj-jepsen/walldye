@@ -1,6 +1,6 @@
 # The owner's taste
 
-The family look is a quiet ground, a few grey steps between bg and fg, and one restrained
+The family look is a quiet ground, a few gray steps between bg and fg, and one restrained
 accent event drawn from the accent ramp. Minimal, with plenty of empty space. The pieces named
 below are in `wallpapers/<slug>/`.
 
@@ -29,7 +29,7 @@ Rejected:
 - versions that read less clearly as their subject than the default, stay too close to it,
   look like a logo, or show what could pass for a live readout.
 
-In practice: colour only with tokens, keep accent areas small, and lean toward dither, pixel,
+In practice: color only with tokens, keep accent areas small, and lean toward dither, pixel,
 technical and instrument subjects. Breadth comes first: a new subject beats another version of
 an old one, and a version earns its place only when it changes what is depicted.
 

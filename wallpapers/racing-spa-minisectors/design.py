@@ -11,12 +11,12 @@ from walldye.geom import Polyline
 from walldye.pixel import glyphs, grid_runs
 
 PITCH, DOT = 8, 4  # dot lattice pitch (the braille pitch of 8x16 glyphs at px=2) and dot size
-# Sector ends in centreline metres (S1 to the entry of Les Combes, S2 just past Stavelot), and
+# Sector ends in centerline meters (S1 to the entry of Les Combes, S2 just past Stavelot), and
 # the mini-sectors in each.
 SECTORS = ((2370, 8), (5050, 9), (7000, 7))
 FAST = (3, 4, 5, 6, 7)  # Eau Rouge and Raidillon, then the Kemmel straight up to the S1 split
-BOX = (1240, 540, 1150, 720)  # where the track is fitted: centre x, centre y, width, height
-# (text, centreline metres, dx, dy): a label at that track point plus an offset in px
+BOX = (1240, 540, 1150, 720)  # where the track is fitted: center x, center y, width, height
+# (text, centerline meters, dx, dy): a label at that track point plus an offset in px
 LABELS = (("LA SOURCE", 385, -104, -6), ("EAU ROUGE", 1080, -112, -20), ("POUHON", 3950, -90, 30))
 # A completed lap; S1 is the best sector, marked with ACCENT as a timing screen marks a best.
 TIMING = (
@@ -36,7 +36,7 @@ TRACK, BEST, SPLIT = 1, 2, 3  # dot roles, indices into the dot palette
 
 
 def starts() -> list[tuple[float, int]]:
-    """(centreline metres, sector index) at the start of every mini-sector, in lap order."""
+    """(centerline meters, sector index) at the start of every mini-sector, in lap order."""
     out, lo = [], 0
     for si, (hi, n) in enumerate(SECTORS):
         out += [(lo + (hi - lo) * j / n, si) for j in range(n)]
@@ -48,7 +48,7 @@ STARTS = starts()
 
 
 def fit(spa: list[list[float]]) -> NDArray[np.float64]:
-    """The centreline in broadcast orientation (north to the left: La Source bottom-left,
+    """The centerline in broadcast orientation (north to the left: La Source bottom-left,
     Kemmel climbing to the right), fitted into BOX, in dot units."""
     pts = -np.asarray(spa, dtype=np.float64)[:, ::-1]  # (east, north) to screen (-north, -east)
     lo, hi = pts.min(axis=0), pts.max(axis=0)
@@ -68,7 +68,7 @@ def raster(line: Polyline) -> list[tuple[tuple[int, int], float]]:
         if not seq or seq[-1][0] != c:
             seq.append((c, d))
     changed = True
-    while changed:  # drop corner cells whose neighbours already touch diagonally
+    while changed:  # drop corner cells whose neighbors already touch diagonally
         changed = False
         out: list[tuple[tuple[int, int], float]] = []
         for k, cell in enumerate(seq):
@@ -83,7 +83,7 @@ def raster(line: Polyline) -> list[tuple[tuple[int, int], float]]:
 
 
 def tint(col: int, row: int, ch: str) -> Paint:
-    """Timing column colours: labels quiet, times bright, the best sector lit."""
+    """Timing column colors: labels quiet, times bright, the best sector lit."""
     if row == 1:
         return UI
     if row in (3, 4, 5, 9) and col < 5:
@@ -93,12 +93,12 @@ def tint(col: int, row: int, ch: str) -> Paint:
 
 @design()
 def draw(s: Canvas) -> None:
-    # TUMFTM racetrack-database Spa.csv centreline, x east / y north in metres, simplified at
+    # TUMFTM racetrack-database Spa.csv centerline, x east / y north in meters, simplified at
     # 1.5 m; it starts on the start/finish line.
     spa: list[list[float]] = s.data("spa.json")
-    # Unsmoothed: smoothing would shift the start/finish vertex and the metre scale.
+    # Unsmoothed: smoothing would shift the start/finish vertex and the meter scale.
     line = Polyline(fit(spa), closed=True)
-    per_m = line.length / SECTORS[-1][0]  # dot units per centreline metre
+    per_m = line.length / SECTORS[-1][0]  # dot units per centerline meter
     bounds = [m for m, _ in STARTS]
 
     cells = raster(line)
@@ -106,8 +106,8 @@ def draw(s: Canvas) -> None:
     for (x, y), d in cells:
         mini = bisect.bisect_right(bounds, d / per_m) - 1
         dots[y, x] = BEST if mini in FAST else TRACK
-    for m, (metres, si) in enumerate(STARTS):
-        bd = metres * per_m
+    for m, (meters, si) in enumerate(STARTS):
+        bd = meters * per_m
         for (x, y), d in cells:
             if min(abs(d - bd), line.length - abs(d - bd)) < 1.6:
                 dots[y, x] = 0  # a gap in the dots at every mini-sector boundary
@@ -124,8 +124,8 @@ def draw(s: Canvas) -> None:
     grid[::2, ::2] = dots
     grid_runs(s, grid, (None, UI_ALT, ACCENT, UI_HI), DOT, (DOT / 2, DOT / 2))
 
-    for text, metres, dx, dy in LABELS:
-        p = line.at(metres * per_m) * PITCH
+    for text, meters, dx, dy in LABELS:
+        p = line.at(meters * per_m) * PITCH
         glyphs(s, text, UI, at=(round(p.x + dx), round(p.y + dy)), font="8x16", px=1)
 
     glyphs(s, TIMING, tint, at=(X0, Y0), font="8x16", px=2)

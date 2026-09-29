@@ -4,7 +4,7 @@ import math
 from collections import Counter
 from itertools import pairwise
 
-from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, Colour, P, Rng, design
+from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, Color, P, Rng, design
 from walldye.pixel import glyphs
 
 type Cell = tuple[int, int]
@@ -19,7 +19,7 @@ REGION = (20, 8)  # cells per density-scoring region
 QUIET = (46 / 120, 13 / 34)  # the top-left corner no pipe enters, as fractions of the grid
 # Oldest first, so later pipes overdraw earlier ones: (entry edge, position along it as a
 # fraction of the 120x34-cell 16:9 grid, tone, most cells before it must have left).
-PIPES: list[tuple[str, float, Colour, int]] = [
+PIPES: list[tuple[str, float, Color, int]] = [
     ("D", 16 / 120, UI, 150),
     ("R", 29 / 34, UI, 140),
     ("U", 64 / 120, UI_ALT, 90),
@@ -43,10 +43,10 @@ def walk(
     size: Cell,
     edge: str,
     pos: int,
-    grid: dict[Cell, tuple[str, Colour]],
+    grid: dict[Cell, tuple[str, Color]],
     block: set[Cell],
     quiet: Cell,
-    tone: Colour,
+    tone: Color,
     n: int,
 ) -> bool:
     """Add one pipe entering at `edge` to `grid`; True if it leaves the screen again within `n`
@@ -110,7 +110,7 @@ def walk(
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     cols, rows = math.ceil(s.w / CW), math.ceil((s.h + BLEED) / CH)
-    # centre the grid on the canvas, its origin on the font-pixel grid
+    # center the grid on the canvas, its origin on the font-pixel grid
     x0, y0 = -((cols * CW - s.w) // (2 * PX)) * PX, -((rows * CH - s.h) // (2 * PX)) * PX
     quiet = (round(QUIET[0] * cols), round(QUIET[1] * rows))
 
@@ -145,7 +145,7 @@ def draw(s: Canvas) -> None:
         m = 6 if abs(c0 - hc) + abs(r0 - hr) < 6 else 2
         block |= {(c0 + i, r0 + j) for i in range(-m, m + 1) for j in range(-m // 2, m // 2 + 1)}
 
-    grid: dict[Cell, tuple[str, Colour]] = {}
+    grid: dict[Cell, tuple[str, Color]] = {}
     grow = max(1.0, (cols + rows) / 154)  # a bigger grid needs longer walks to cross it
     # A bigger grid gets more pipes for the same density: the first few again, entering half
     # an edge further along, each right after its original.
@@ -158,7 +158,7 @@ def draw(s: Canvas) -> None:
     for edge, f, tone, n in pipes:
         pos = round(f * (cols if edge in "DU" else rows))
         # of the seeded walks that cross the screen, keep the longest that fills the emptiest regions
-        best: tuple[float, dict[Cell, tuple[str, Colour]]] | None = None
+        best: tuple[float, dict[Cell, tuple[str, Color]]] | None = None
         for seed in range(40):
             g = dict(grid)
             if not walk(

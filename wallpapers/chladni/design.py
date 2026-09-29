@@ -1,4 +1,4 @@
-"""A Chladni figure: sand grains stippled along the nodal lines of a vibrating square plate, the loop around its centre picked out."""
+"""A Chladni figure: sand grains stippled along the nodal lines of a vibrating square plate, the loop around its center picked out."""
 
 import numpy as np
 import shapely
@@ -56,7 +56,7 @@ def edge_fade(u: Field, v: Field) -> Field:
 
 
 def central_loop(p: Mode) -> Polygon:
-    """The smallest curved nodal loop around the plate centre, in plate coordinates.
+    """The smallest curved nodal loop around the plate center, in plate coordinates.
 
     Raises ValueError when the mode has none."""
     # offsets that keep every lattice node off the straight lines, where curved() is 0 / 0
@@ -64,16 +64,16 @@ def central_loop(p: Mode) -> Polygon:
     field = sample_field(
         lambda i, j: curved(i / LATTICE + du, j / LATTICE + dv, p), LATTICE, LATTICE
     )
-    centre = Point(0.5, 0.5)
+    center = Point(0.5, 0.5)
     loops = [
         Polygon(line)
         for line in iso_lines(field, 0, cell=1 / LATTICE, origin=(du, dv))
         if len(line) > 3 and np.allclose(line[0], line[-1])
     ]
-    # the division is ill-conditioned right at the centre; loops that close there are noise
-    around = [q for q in loops if q.contains(centre) and q.exterior.distance(centre) > 0.05]
+    # the division is ill-conditioned right at the center; loops that close there are noise
+    around = [q for q in loops if q.contains(center) and q.exterior.distance(center) > 0.05]
     if not around:
-        raise ValueError(f"mode ({p.n}, {p.m}) has no nodal loop around the plate centre")
+        raise ValueError(f"mode ({p.n}, {p.m}) has no nodal loop around the plate center")
     return min(around, key=lambda q: q.area)
 
 
@@ -88,7 +88,7 @@ def grains(x: Field, y: Field) -> Path:
 @design(aspects=("16:9", "32:9", "9:19.5", "10:16"), variants=VARIANTS)
 def draw(s: Canvas[Mode]) -> None:
     p = s.params
-    # right of centre on a landscape screen, leaving the left for windows; high on a portrait one
+    # right of center on a landscape screen, leaving the left for windows; high on a portrait one
     corner = s.pick(landscape=(0.7, 0.5), portrait=(0.5, 0.42)) - (S / 2, S / 2)
     band = central_loop(p).exterior.buffer(6 / S)
     shapely.prepare(band)

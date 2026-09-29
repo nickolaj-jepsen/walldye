@@ -17,18 +17,18 @@ DASHDOT = (24, 6, 3, 6)
 ARROW, ARROW_W = 13, 4.2
 RADIUS_DEG = 45  # the scored radius runs down-right, clear of the counters
 
-# Grid coordinates from the bubble's centre, snapped from the official artwork.
+# Grid coordinates from the bubble's center, snapped from the official artwork.
 HALF = 4  # half the stroke width
 CORNER = 11  # radius of the squared-off quadrant's corner
 STEM_X = -1
 HOOK, HOOK_R = (10, -13), 11
 LOOP, LOOP_R = (-15, 17), 14
-BAR_Y, BAR_END = 3, 10  # the crossbar, and its end cap's centre
+BAR_Y, BAR_END = 3, 10  # the crossbar, and its end cap's center
 LEG_END = -11  # the hook's leg runs down to here
 TAIL_END = -9  # the loop's top stops half a stroke short of the stem
 # Straight edges and the tangents at the extremes of each arc, run on as guide lines.
 VERTICALS = (-48, -33, -9, -5, 3, 17, 25, 48)
-HORIZONTALS = (-48, -28, 7, 35, 48)  # the crossbar's top would crowd the centre line
+HORIZONTALS = (-48, -28, 7, 35, 48)  # the crossbar's top would crowd the center line
 
 
 def arc(c: tuple[float, float], r: float, a0: float, a1: float) -> list[tuple[float, float]]:
@@ -46,7 +46,7 @@ def band(c: tuple[float, float], r: float, a0: float, a1: float) -> Polygon:
 
 
 def bar(x0: float, y0: float, x1: float, y1: float) -> Polygon:
-    """A straight stroke one stroke wide along a horizontal or vertical centreline."""
+    """A straight stroke one stroke wide along a horizontal or vertical centerline."""
     return box(
         min(x0, x1) - HALF * (y0 != y1),
         min(y0, y1) - HALF * (x0 != x1),
@@ -56,7 +56,7 @@ def bar(x0: float, y0: float, x1: float, y1: float) -> Polygon:
 
 
 def cap(x: float, y: float) -> BaseGeometry:
-    """A round end cap centred on a stroke's end."""
+    """A round end cap centered on a stroke's end."""
     return Point(x, y).buffer(HALF, quad_segs=32)
 
 
@@ -117,7 +117,7 @@ def draw(s: Canvas) -> None:
     fade = s.radial_gradient([(0, BG_ALT), (R * 1.2 / FADE, BG_ALT), (1, BG)], c, FADE)
     s.stroke(lines, fade, 1.2)
 
-    # centre lines of the bubble: drawn outside the mark, scored across it
+    # center lines of the bubble: drawn outside the mark, scored across it
     axes = unary_union(
         [
             LineString([(c.x, c.y - R - 60), (c.x, c.y + R + 60)]),
@@ -148,8 +148,8 @@ def draw(s: Canvas) -> None:
     s.stroke(dl, UI_ALT, 1.2)
     s.fill(heads, UI_ALT)
 
-    # the mark, scored with the circle it squares off, its centre lines, one radius and the
-    # centres of the hook and the loop
+    # the mark, scored with the circle it squares off, its center lines, one radius and the
+    # centers of the hook and the loop
     s.fill(P().shape(bubble.difference(f)), UI)
     clear = f.union(loop).buffer(3)
     circle = LineString(arc((c.x, c.y), R, 90, 180))

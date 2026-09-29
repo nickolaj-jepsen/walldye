@@ -1,18 +1,18 @@
 /**
- * Paint-context colour tokenizer, a port of walldye/tools/tokenize.py: the one definition of a
- * colour occurrence ("slot"). src/lib/__fixtures__/tokenize.json is the shared spec.
+ * Paint-context color tokenizer, a port of walldye/tools/tokenize.py: the one definition of a
+ * color occurrence ("slot"). src/lib/__fixtures__/tokenize.json is the shared spec.
  *
- * A slot is a colour value in a paint context: the attributes fill, stroke, stop-color, flood-color,
+ * A slot is a color value in a paint context: the attributes fill, stroke, stop-color, flood-color,
  * lighting-color and color, and the same properties inside `style="..."` and `<style>` elements. The
  * value (surrounding whitespace and a CSS `!important` aside) must be exactly hex3, hex6 or a CSS named
- * colour; none, currentColor, url(#id), rgb() and hex with alpha are not slots. Attribute and property
- * names are case-sensitive, hex digits and colour names are not; comments are skipped.
+ * color; none, currentColor, url(#id), rgb() and hex with alpha are not slots. Attribute and property
+ * names are case-sensitive, hex digits and color names are not; comments are skipped.
  *
  * Offsets are UTF-16 indices; they equal the Python ones for ASCII input, which templates are.
  */
 
-/** A slot: `svg.slice(start, end)` is the value as written, `colour` its uppercase #RRGGBB. */
-export type Slot = [start: number, end: number, colour: string];
+/** A slot: `svg.slice(start, end)` is the value as written, `color` its uppercase #RRGGBB. */
+export type Slot = [start: number, end: number, color: string];
 
 export const PAINT = [
   'fill',
@@ -24,7 +24,7 @@ export const PAINT = [
 ] as const;
 export const SKELETON_MARK = '#';
 
-/** CSS Color 4 named colours, lowercase name -> #RRGGBB. */
+/** CSS Color 4 named colors, lowercase name -> #RRGGBB. */
 export const NAMED: ReadonlyMap<string, string> = new Map(
   (
     'aliceblue:F0F8FF,antiquewhite:FAEBD7,aqua:00FFFF,aquamarine:7FFFD4,azure:F0FFFF,beige:F5F5DC,' +
@@ -83,8 +83,8 @@ const CSS_VALUE = new RegExp(`^${S}*(${NS}+?)${S}*(?:!${S}*important${S}*)?$`, '
 const HEX = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const STYLE_END = new RegExp(`</style${S}*>`, 'gu');
 
-/** Uppercase #RRGGBB for a hex3/hex6/named colour, else null. */
-function colour(value: string): string | null {
+/** Uppercase #RRGGBB for a hex3/hex6/named color, else null. */
+function color(value: string): string | null {
   if (HEX.test(value)) {
     const h = value.slice(1);
     return `#${(h.length === 6 ? h : h.replace(/./g, '$&$&')).toUpperCase()}`;
@@ -94,7 +94,7 @@ function colour(value: string): string | null {
 
 function match(out: Slot[], text: string, offset: number, valueRe: RegExp): void {
   const m = valueRe.exec(text);
-  const c = m && colour(m[1]);
+  const c = m && color(m[1]);
   if (c) {
     // The leading \s* is greedy and group 1 cannot start with whitespace, so the group starts after it.
     const start = offset + (LEAD.exec(text) as RegExpExecArray)[0].length;
@@ -109,7 +109,7 @@ function css(out: Slot[], text: string, offset: number): void {
 }
 
 /** Every slot in `svg`, sorted by start. */
-export function findColours(svg: string): Slot[] {
+export function findColors(svg: string): Slot[] {
   const out: Slot[] = [];
   let pos = 0;
   for (;;) {
@@ -139,7 +139,7 @@ export function findColours(svg: string): Slot[] {
 }
 
 /** The text around the slots of `svg`: slots.length + 1 pieces, so joining them with one value per slot rebuilds it. */
-export function splitSlots(svg: string, slots: Slot[] = findColours(svg)): string[] {
+export function splitSlots(svg: string, slots: Slot[] = findColors(svg)): string[] {
   const parts: string[] = [];
   let last = 0;
   for (const [start, end] of slots) {
@@ -153,7 +153,7 @@ export function splitSlots(svg: string, slots: Slot[] = findColours(svg)): strin
 /** `parts` (from splitSlots) joined with values[i] in slot i; throws unless there is one value per slot. */
 export function joinSlots(parts: readonly string[], values: readonly string[]): string {
   if (values.length !== parts.length - 1)
-    throw new Error(`${values.length} values for ${parts.length - 1} colour slots`);
+    throw new Error(`${values.length} values for ${parts.length - 1} color slots`);
   let out = parts[0];
   for (let i = 0; i < values.length; i++) out += values[i] + parts[i + 1];
   return out;
@@ -165,8 +165,8 @@ export function substitute(svg: string, values: readonly string[]): string {
 }
 
 /** `svg` with every slot rewritten to uppercase #RRGGBB; idempotent, pixels unchanged. */
-export function normalise(svg: string): string {
-  const slots = findColours(svg);
+export function normalize(svg: string): string {
+  const slots = findColors(svg);
   return joinSlots(
     splitSlots(svg, slots),
     slots.map((s) => s[2]),

@@ -14,7 +14,7 @@ from typing import Any, Final, Literal, SupportsIndex, TypedDict, Unpack, final,
 import numpy as np
 
 from ._affine import Affine
-from ._colour import Colour, MaskColour
+from ._color import Color, MaskColor
 from ._document import Builder, Fragment, Line, Pending
 from ._noise import Noise
 from ._params import Params
@@ -45,10 +45,10 @@ class Ref:
         return f"url(#{self.id})"
 
 
-type Paint = Colour | Literal["none"] | Ref
-type MaskPaint = MaskColour | Literal["none"] | Ref
-type Stop = tuple[Num, Colour] | tuple[Num, Colour, Num]
-type MaskStop = tuple[Num, MaskColour] | tuple[Num, MaskColour, Num]
+type Paint = Color | Literal["none"] | Ref
+type MaskPaint = MaskColor | Literal["none"] | Ref
+type Stop = tuple[Num, Color] | tuple[Num, Color, Num]
+type MaskStop = tuple[Num, MaskColor] | tuple[Num, MaskColor, Num]
 
 
 class Style(TypedDict, total=False):
@@ -109,14 +109,14 @@ def _number(v: object, what: str) -> str:
 
 def _paint(v: object, what: str, mode: _Mode) -> list[Fragment]:
     """The fragments of one paint value, checked for `mode` ("theme" or "mask")."""
-    if isinstance(v, Colour):
+    if isinstance(v, Color):
         if mode == "theme":
             return [v]
-        raise TypeError(f"{what}: a mask takes mask colours (MASK_WHITE, MASK_BLACK), got {v!r}")
-    if isinstance(v, MaskColour):
+        raise TypeError(f"{what}: a mask takes mask colors (MASK_WHITE, MASK_BLACK), got {v!r}")
+    if isinstance(v, MaskColor):
         if mode == "mask":
             return [v]
-        raise TypeError(f"{what}: mask colours only paint inside a mask block, got {v!r}")
+        raise TypeError(f"{what}: mask colors only paint inside a mask block, got {v!r}")
     if isinstance(v, Ref):
         want = "paint" if mode == "theme" else "mask_paint"
         if v.kind != want:
@@ -125,8 +125,8 @@ def _paint(v: object, what: str, mode: _Mode) -> list[Fragment]:
     if isinstance(v, str):
         if v == "none":
             return ["none"]
-        raise TypeError("raw colour strings are not paints; use a token or mix()")
-    raise TypeError(f"{what} takes a colour, 'none' or a reference, got {v!r}")
+        raise TypeError("raw color strings are not paints; use a token or mix()")
+    raise TypeError(f"{what} takes a color, 'none' or a reference, got {v!r}")
 
 
 def _matrix(t: object, what: str) -> str:
@@ -318,7 +318,7 @@ class ClipSurface(_Sub):
 
 @final
 class MaskSurface(_Sub, _Drawing):
-    """The inside of a `with s.mask() as m:` block: mask colours only (MASK_WHITE shows,
+    """The inside of a `with s.mask() as m:` block: mask colors only (MASK_WHITE shows,
     MASK_BLACK hides); use m.ref as mask=."""
 
     _name = "mask"
@@ -375,7 +375,7 @@ class MaskSurface(_Sub, _Drawing):
         *,
         units: Literal["user", "bbox"] = "user",
     ) -> Ref:
-        """A linear gradient of mask colours for this mask's content; see Canvas."""
+        """A linear gradient of mask colors for this mask's content; see Canvas."""
         self._live()
         return _linear(self._doc, "mask", stops, p0, p1, units)
 
@@ -388,7 +388,7 @@ class MaskSurface(_Sub, _Drawing):
         focus: Point | None = None,
         units: Literal["user", "bbox"] = "user",
     ) -> Ref:
-        """A radial gradient of mask colours for this mask's content; see Canvas."""
+        """A radial gradient of mask colors for this mask's content; see Canvas."""
         self._live()
         return _radial(self._doc, "mask", stops, center, r, focus, units)
 
@@ -447,25 +447,25 @@ def _stops(stops: object, mode: _Mode, what: str) -> list[Fragment]:
     """The <stop/> fragments of a gradient.
 
     Raises ValueError for no stops, offsets outside [0, 1] or decreasing, or an opacity outside
-    [0, 1], and TypeError for a malformed stop or a stop without a colour.
+    [0, 1], and TypeError for a malformed stop or a stop without a color.
     """
     if isinstance(stops, str) or not isinstance(stops, Sequence) or len(stops) == 0:
-        raise ValueError(f"{what} takes at least one stop (offset, colour[, opacity])")
+        raise ValueError(f"{what} takes at least one stop (offset, color[, opacity])")
     seq: Sequence[object] = stops
     out: list[Fragment] = []
     last = 0.0
     for stop in seq:
         if not isinstance(stop, tuple) or len(stop) not in (2, 3):
-            raise TypeError(f"{what} stops are (offset, colour[, opacity]), got {stop!r}")
+            raise TypeError(f"{what} stops are (offset, color[, opacity]), got {stop!r}")
         parts: tuple[object, ...] = stop
         off = num(parts[0], f"{what} offset")
         if not last <= off <= 1:
             raise ValueError(f"{what} offsets are within [0, 1] and non-decreasing, got {off}")
         last = off
-        colour = parts[1]
-        if not isinstance(colour, (Colour, MaskColour)):
-            raise TypeError(f"{what} stops take colours, got {colour!r}")
-        frags = [f'<stop offset="{fmt(off, 3)}" stop-color="', *_paint(colour, what, mode), '"']
+        color = parts[1]
+        if not isinstance(color, (Color, MaskColor)):
+            raise TypeError(f"{what} stops take colors, got {color!r}")
+        frags = [f'<stop offset="{fmt(off, 3)}" stop-color="', *_paint(color, what, mode), '"']
         if len(parts) == 3:
             a = num(parts[2], f"{what} stop opacity")
             if not 0 <= a <= 1:
@@ -718,7 +718,7 @@ class Canvas[Pm: Params = Params](_Drawing):
 
         Values are checked at runtime: unknown keys and wrong types raise TypeError; NaN,
         infinity, '', negative widths, opacities outside [0, 1], bad dash lists and unknown
-        literals raise ValueError; raw colour strings raise TypeError. Attributes are written
+        literals raise ValueError; raw color strings raise TypeError. Attributes are written
         in one fixed order. An empty path draws nothing.
         """
         self._target()
@@ -804,7 +804,7 @@ class Canvas[Pm: Params = Params](_Drawing):
 
     @contextmanager
     def mask(self) -> Generator[MaskSurface]:
-        """A mask over the whole canvas: draw mask colours inside the block, then pass .ref as
+        """A mask over the whole canvas: draw mask colors inside the block, then pass .ref as
         mask=."""
         self._target()
         surf = MaskSurface(Ref(self._doc.new_id("m"), "mask"), self._doc)

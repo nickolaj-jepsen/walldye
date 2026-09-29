@@ -13,7 +13,7 @@ from walldye import (
     UI,
     UI_ALT,
     Canvas,
-    Colour,
+    Color,
     Rng,
     Vec,
     design,
@@ -40,7 +40,7 @@ type Cell = tuple[int, int]
 
 def bsp(r: Rng, x: int, y: int, w: int, h: int, out: list[Room]) -> Tree:
     """Split the box x, y, w, h until it is small, append one room per leaf to `out` with at
-    least one blank cell between neighbours, and return the split tree."""
+    least one blank cell between neighbors, and return the split tree."""
     if w >= 28 and (w > 2.2 * h or r.random() < 0.6):
         k = r.randint(w * 2 // 5, w * 3 // 5)
         return bsp(r, x, y, k, h, out), bsp(r, x + k, y, w - k, h, out)
@@ -58,7 +58,7 @@ def leaves(t: Tree) -> list[int]:
     return [t] if isinstance(t, int) else leaves(t[0]) + leaves(t[1])
 
 
-def centre(room: Room) -> Cell:
+def center(room: Room) -> Cell:
     """The cell at the middle of a room's floor."""
     x, y, w, h = room
     return x + w // 2, y + h // 2
@@ -102,7 +102,7 @@ def draw(s: Canvas) -> None:
         join(t[0])
         join(t[1])
         a, b = r.choice(leaves(t[0])), r.choice(leaves(t[1]))
-        src, dst = centre(rooms[a]), centre(rooms[b])
+        src, dst = center(rooms[a]), center(rooms[b])
         dist: dict[Cell, float] = {src: 0}
         prev: dict[Cell, Cell] = {}
         heap: list[tuple[float, Cell]] = [(0, src)]
@@ -131,7 +131,7 @@ def draw(s: Canvas) -> None:
     join(tree)
 
     edge = COLS * (KNOWN_X if s.landscape else KNOWN_X_TALL)
-    seen = {k for k in range(len(rooms)) if centre(rooms[k])[0] >= edge}
+    seen = {k for k in range(len(rooms)) if center(rooms[k])[0] >= edge}
     here = max(seen, key=lambda k: rooms[k][2] * rooms[k][3])
     for k, (x, y, w, h) in enumerate(rooms):
         if k == here:
@@ -169,7 +169,7 @@ def draw(s: Canvas) -> None:
                 lit[(i, j)] = f
     m[py][px] = "@"
 
-    def colour(i: int, j: int, ch: str) -> Colour | None:
+    def color(i: int, j: int, ch: str) -> Color | None:
         """The @ at ACCENT, lit cells down the torch ladder, remembered cells in UI or UI_ALT,
         and nothing for the unknown."""
         if ch == "@":
@@ -184,10 +184,10 @@ def draw(s: Canvas) -> None:
             return UI if ch in ".#~-" else UI_ALT
         return None
 
-    # Centre what is drawn, not the whole map: the unexplored west is blank.
+    # Center what is drawn, not the whole map: the unexplored west is blank.
     drawn = known | lit.keys()
     i0, i1 = min(i for i, _ in drawn), max(i for i, _ in drawn) + 1
     j0, j1 = min(j for _, j in drawn), max(j for _, j in drawn) + 1
     c = s.pick(landscape=(0.619, 0.515), portrait=(0.5, 0.42), snap=PX)
     at = c - Vec((i0 + i1) * CW // 2, (j0 + j1) * CH // 2)
-    glyphs(s, ["".join(row) for row in m], colour, at=at, font="8x16", px=PX)
+    glyphs(s, ["".join(row) for row in m], color, at=at, font="8x16", px=PX)

@@ -14,7 +14,7 @@ CELL_X, CELL_Y = CW * PX, CH * PX
 R = 256  # disc radius
 TILT = 0.32  # equator tilt on a landscape screen, radians
 PORTRAIT_TILT = TILT + math.pi / 2  # a portrait screen turns the equator along its long side
-REACH = 732  # room the longest streamer needs beyond the centre
+REACH = 732  # room the longest streamer needs beyond the center
 
 # . - = + * # @, sparse to dense; '@' is kept for the limb ring
 GLYPHS = [
@@ -43,7 +43,7 @@ STREAMERS = [
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     cols, rows = s.w // CELL_X, s.h // CELL_Y
-    # right of centre on a landscape screen, pulled in where the long streamer would reach the
+    # right of center on a landscape screen, pulled in where the long streamer would reach the
     # edge; mid-height on a portrait one, where both streamers run along the long side
     c = s.pick(landscape=(0.62, 0.5), portrait=(0.5, 0.47))
     cx = min(c.x, s.w - REACH) if s.landscape else c.x

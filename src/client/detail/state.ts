@@ -51,7 +51,7 @@ export function writeAddress(url: URL, s: DetailState, native: Native): URL {
   return out;
 }
 
-/** The export geometry of `s`, an unplaced crop centred on `focus` (fractions of the canvas). */
+/** The export geometry of `s`, an unplaced crop centered on `focus` (fractions of the canvas). */
 export function shapeOf(
   s: DetailState,
   native: Native,

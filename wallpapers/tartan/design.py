@@ -25,14 +25,14 @@ def threads(n: int, at: int, dark: int) -> NDArray[np.int64]:
 
 
 def reach(n: int, at: int) -> int:
-    """The fewest dark pivot threads that keep the neighbouring repeats' bands off an
+    """The fewest dark pivot threads that keep the neighboring repeats' bands off an
     `n`-thread axis whose accent pivot starts at thread `at`."""
     return max(at - BAND, n - at - PIVOT - BAND)
 
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the accent pivots cross high and right of centre, on a whole thread
+    # the accent pivots cross high and right of center, on a whole thread
     cross = s.pick(landscape=(0.6042, 0.2148), portrait=(0.6, 0.3), snap=T)
     ax, ay = round(cross.x / T), round(cross.y / T)
     nx, ny = s.w // T, s.h // T

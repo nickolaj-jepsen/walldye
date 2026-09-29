@@ -104,7 +104,7 @@ def noise_grid(
 
 
 def cells(rect: Rect, cell: Num) -> tuple[_F, _F]:
-    """The centres of the whole `cell`-sized cells covering `rect` from its top-left: xs and
+    """The centers of the whole `cell`-sized cells covering `rect` from its top-left: xs and
     ys, both (rows, cols) with rows = int(h // cell) and cols = int(w // cell), where
     xs[j, i] = x + (i + 0.5) * cell and ys[j, i] = y + (j + 0.5) * cell.
 

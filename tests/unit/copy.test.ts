@@ -2,14 +2,14 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { captionParts, type Source } from '../../src/lib/content';
 import {
-  colourWords,
+  colorWords,
   licenseOf,
   lintCopy,
   sentences,
   smartQuotes,
   typesetMeta,
 } from '../../src/lib/meta';
-import { loadMeta, slugs } from '../catalogue';
+import { loadMeta, slugs } from '../catalog';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -21,18 +21,18 @@ describe('copy lint (h)', () => {
     expect(lintCopy(loadMeta(ROOT, slug))).toEqual(KNOWN[slug] ?? []);
   });
 
-  it('flags colour words but not token names', () => {
-    expect(colourWords('A terracotta disc on Grey ground, lit in ORANGE_DARK and BLUE.')).toEqual([
+  it('flags color words but not token names', () => {
+    expect(colorWords('A terracotta disc on Grey ground, lit in ORANGE_DARK and BLUE.')).toEqual([
       'grey',
       'terracotta',
     ]);
-    expect(lintCopy({ title: 'Red moon' })).toEqual(['title: colour words red']);
-    expect(lintCopy({ notes: 'Drawn in amber.' })).toEqual(['notes: colour words amber']);
-    expect(colourWords('reddish Blueprint')).toEqual([]);
+    expect(lintCopy({ title: 'Red moon' })).toEqual(['title: color words red']);
+    expect(lintCopy({ notes: 'Drawn in amber.' })).toEqual(['notes: color words amber']);
+    expect(colorWords('reddish Blueprint')).toEqual([]);
   });
 
-  it('flags plural colour words', () => {
-    expect(colourWords('Greys and whites under the ambers; GREYS, BLUES, crimsons')).toEqual([
+  it('flags plural color words', () => {
+    expect(colorWords('Greys and whites under the ambers; GREYS, BLUES, crimsons')).toEqual([
       'ambers',
       'crimsons',
       'greys',
@@ -57,7 +57,7 @@ describe('copy lint (h)', () => {
     ]).toEqual([2, 1, 1, 2]);
   });
 
-  it('flags evaluative adjectives, internal terms, licence names, machinery numbers and theme roles', () => {
+  it('flags evaluative adjectives, internal terms, license names, machinery numbers and theme roles', () => {
     expect(lintCopy({ description: 'A stunning, timeless grid.' })).toEqual([
       'description: evaluative adjective "stunning"',
     ]);
@@ -67,7 +67,7 @@ describe('copy lint (h)', () => {
     expect(lintCopy({ notes: 'Each seed picks a preset.' })).toEqual([
       'notes: internal term "seed"',
     ]);
-    expect(lintCopy({ notes: 'Released under CC0.' })).toEqual(['notes: licence identifier "CC0"']);
+    expect(lintCopy({ notes: 'Released under CC0.' })).toEqual(['notes: license identifier "CC0"']);
     expect(lintCopy({ notes: 'Within 2 RGB units.' })).toEqual([
       'notes: machinery number "RGB units"',
     ]);
@@ -95,28 +95,28 @@ describe("typographer's quotes outside the notes", () => {
 
   it('applies to titles, descriptions, variant copy, sources and the franchise, not notes', () => {
     const meta = {
-      title: "Baldur's Gate from the harbour",
+      title: "Baldur's Gate from the harbor",
       description: "Wyrm's Rock at dusk.",
       notes: "Markdown's own.",
       sources: [{ kind: 'inspiration', title: "Mirror's Edge", author: 'DICE', year: 2008 }],
       franchise: { title: "Baldur's Gate 3", owner: 'Larian Studios' },
       variants: {
-        default: { label: 'Harbour' },
+        default: { label: 'Harbor' },
         night: { label: "Night's end", description: "The keep's lamps.", draft: true },
       },
     };
     expect(typesetMeta(meta)).toEqual({
       ...meta,
-      title: 'Baldur’s Gate from the harbour',
+      title: 'Baldur’s Gate from the harbor',
       description: 'Wyrm’s Rock at dusk.',
       sources: [{ kind: 'inspiration', title: 'Mirror’s Edge', author: 'DICE', year: 2008 }],
       franchise: { title: 'Baldur’s Gate 3', owner: 'Larian Studios' },
       variants: {
-        default: { label: 'Harbour' },
+        default: { label: 'Harbor' },
         night: { label: 'Night’s end', description: 'The keep’s lamps.', draft: true },
       },
     });
-    expect(meta.title).toBe("Baldur's Gate from the harbour");
+    expect(meta.title).toBe("Baldur's Gate from the harbor");
   });
 });
 

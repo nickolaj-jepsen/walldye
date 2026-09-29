@@ -12,7 +12,7 @@ from walldye import (
     UI,
     UI_ALT,
     Canvas,
-    Colour,
+    Color,
     P,
     Vec,
     design,
@@ -33,7 +33,7 @@ ROWS = (
 )
 BOARD = (18.25, 6.5)  # key area in units
 # Keycap layers in a 110-wide drawing of one unit cell: (left, top, width cut, height cut, radius).
-# The top face sits back from the cell centre so its front wall shows, and the dish is shadowed
+# The top face sits back from the cell center so its front wall shows, and the dish is shadowed
 # at its back wall.
 LAYERS = (
     (5, 5, 10, 10, 12),  # skirt
@@ -43,7 +43,7 @@ LAYERS = (
 )
 
 
-def shading(skirt: Colour, top: Colour, lift: Colour) -> tuple[Colour, ...]:
+def shading(skirt: Color, top: Color, lift: Color) -> tuple[Color, ...]:
     """One plastic's paints for LAYERS, bottom to top."""
     return (skirt, top, mix(top, skirt, 0.4), mix(top, lift, 0.15))
 

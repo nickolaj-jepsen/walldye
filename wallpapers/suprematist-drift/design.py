@@ -6,12 +6,12 @@ from walldye import ACCENT, ACCENT_1, UI, UI_ALT, UI_HI, Canvas, Vec, clamp, des
 from walldye.geom import Affine, Polyline, bezier_points
 
 CURVE = ((400, 750), (790, 580), (1160, 320))  # quadratic Bézier the shoal follows, 16:9 units
-HUB = Vec(713, 614)  # centre of the shoal's bounds: the point each screen shape places
+HUB = Vec(713, 614)  # center of the shoal's bounds: the point each screen shape places
 TURN = -24  # extra turn on portrait screens, so the drift climbs the long side
 BASE = -28  # shared tilt of the blocks, deg; each gets up to 2deg of jitter
-GAP, PAD = 1.0, 16  # centre spacing along the curve: GAP x the neighbours' mean width + PAD
+GAP, PAD = 1.0, 16  # center spacing along the curve: GAP x the neighbors' mean width + PAD
 LANE = 40  # half-width of the corridor between the two rows at hero scale; shrinks with depth
-BAR = (360, 320)  # hairline counter-stroke: centre arc position, length
+BAR = (360, 320)  # hairline counter-stroke: center arc position, length
 BAR_W = 2.4
 
 TONES = (ACCENT, ACCENT_1, UI, UI_ALT, UI_HI)
@@ -33,7 +33,7 @@ CORNERS = (Vec(-0.5, -0.5), Vec(0.5, -0.5), Vec(0.5, 0.5), Vec(-0.5, 0.5))
 
 
 def box(c: Vec, w: float, h: float, deg: float) -> list[Vec]:
-    """The corners of a `w` by `h` rectangle centred on `c`, turned `deg` clockwise."""
+    """The corners of a `w` by `h` rectangle centered on `c`, turned `deg` clockwise."""
     return [c + Vec(k.x * w, k.y * h).rotate(deg=deg) for k in CORNERS]
 
 

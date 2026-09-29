@@ -16,7 +16,7 @@ from walldye.pixel import Pixels
 
 CELL = 3
 RIM, TILT = 300, math.radians(35)  # mouth radius; boresight tilt from the zenith towards the west
-LIFT = 394  # mouth centre above the ground
+LIFT = 394  # mouth center above the ground
 PHASE = 10  # rim index of the first feed leg (180 rim points)
 HAZE = 124  # height of the grain band above the horizon
 STARS, AREA = 22, 1920 * 1080  # stars on a 16:9 canvas, scaled by area elsewhere
@@ -34,7 +34,7 @@ type Pts = NDArray[np.float64]
 
 
 def dish(c: Vec) -> tuple[BaseGeometry, Polygon, Pts, Vec, Vec]:
-    """Screen projection of a paraboloid with f/D = 0.4 whose mouth is centred on `c`, aimed
+    """Screen projection of a paraboloid with f/D = 0.4 whose mouth is centered on `c`, aimed
     up-left and slightly towards the viewer: (outline, mouth, 180 rim points, focus, vertex)."""
     a = np.array([-math.sin(TILT), -math.cos(TILT), 0.32])
     a /= np.linalg.norm(a)
@@ -61,7 +61,7 @@ def dish(c: Vec) -> tuple[BaseGeometry, Polygon, Pts, Vec, Vec]:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # where the mount meets the ground: right of centre over a thin strip of land on a landscape
+    # where the mount meets the ground: right of center over a thin strip of land on a landscape
     # screen; just right of the middle on a portrait one, over a deeper foreground
     g = s.pick(landscape=(0.698, 0.93), portrait=(0.55, 0.8))
     ground, c = g.y, g - (0, LIFT)

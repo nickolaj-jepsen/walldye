@@ -37,8 +37,8 @@ def draw(s: Canvas[Veil]) -> None:
         for _ in range(p.holes):
             hole = P().circle(s.frac(rng.random(), rng.random()), 40 + 60 * rng.random())
             veil.fill(hole, MASK_BLACK)
-        grey = mix(MASK_BLACK, MASK_WHITE, 0.4)
-        top = veil.linear_gradient([(0, grey), (1, MASK_WHITE)], (0, 0), (0, 80))
+        gray = mix(MASK_BLACK, MASK_WHITE, 0.4)
+        top = veil.linear_gradient([(0, gray), (1, MASK_WHITE)], (0, 0), (0, 80))
         veil.fill(P().rect(0, 0, s.w, 80), top)
     with s.pattern(24, 24) as hatch:
         hatch.stroke(P().M(0, 0).L(24, 24), UI_ALT, 2, cap="square")

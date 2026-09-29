@@ -9,7 +9,7 @@ from walldye import (
     BG_ALT,
     UI,
     Canvas,
-    Colour,
+    Color,
     design,
     ladder,
     mix,
@@ -35,7 +35,7 @@ HERO_TONES = (
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     cols, rows = s.w // CW, s.h // CH + 1
-    # the lit stream: right of centre, its head a little below the middle
+    # the lit stream: right of center, its head a little below the middle
     focus = s.pick(landscape=(0.6875, 0.625), portrait=(0.62, 0.6))
     hero_col, hero_head = int(focus.x // CW), int(focus.y // CH)
 
@@ -59,8 +59,8 @@ def draw(s: Canvas) -> None:
 
     # Drops in one column never overlap, so each cell lands in exactly one of the paint maps.
     chars: dict[tuple[int, int], str] = {}
-    upright: dict[tuple[int, int], Colour] = {}
-    mirrored: dict[tuple[int, int], Colour] = {}
+    upright: dict[tuple[int, int], Color] = {}
+    mirrored: dict[tuple[int, int], Color] = {}
     for c, head, length, lum in streams:
         for k in range(length):
             if 0 <= head - k < rows:

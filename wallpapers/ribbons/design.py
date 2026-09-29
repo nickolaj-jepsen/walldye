@@ -25,7 +25,7 @@ from walldye.geom import poisson_disk
 CELL = 4  # occupancy grid resolution
 STEP = 6  # streamline step length
 PAD = 80  # ribbons may run this far past the frame so they leave it cleanly
-MARGIN = 10  # gap between neighbouring ribbons
+MARGIN = 10  # gap between neighboring ribbons
 HALO = 26  # wider gap kept clear around the picked-out school
 FIELD = 8  # flow field sample spacing
 TONES = (BG_ALT, UI, ACCENT_3, ACCENT_1, ACCENT)  # paint order; ribbons refer to these by index
@@ -73,7 +73,7 @@ def draw(s: Canvas) -> None:
 
     def grow(x: float, y: float, w: float, back: float, fwd: float) -> Line | None:
         """The streamline through (x, y), up to `back` and `fwd` units each way, stopping at
-        any neighbour; None when (x, y) itself is taken."""
+        any neighbor; None when (x, y) itself is taken."""
         if not free(x, y, w / 2):
             return None
         halves: list[Line] = []
@@ -111,7 +111,7 @@ def draw(s: Canvas) -> None:
         stamp(line, w, HALO)
     halo = unary_union([LineString(line).buffer(w / 2) for line, w, _ in ribbons])
 
-    # Seeds near the vertical centre line go first and run long, so most ribbons cross the
+    # Seeds near the vertical center line go first and run long, so most ribbons cross the
     # frame edge to edge.
     seeds = poisson_disk(Rect(-PAD, -PAD, width + 2 * PAD, height + 2 * PAD), 52, rng).tolist()
     for x, y in sorted(seeds, key=lambda p: abs(p[0] - width / 2) + rng.uniform(0, 0.36 * width)):

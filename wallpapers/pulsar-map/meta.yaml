@@ -1,9 +1,9 @@
 title: Pulsar map
-description: Fourteen binary-ticked rays leave the Sun as on the Pioneer plaque. The long one to the galactic centre is lit.
+description: Fourteen binary-ticked rays leave the Sun as on the Pioneer plaque. The long one to the galactic center is lit.
 notes: |
   On the plaques carried by Pioneer 10 and 11, each line points from the Sun towards a pulsar and gives that pulsar's period as a binary number, counted in units of the hydrogen hyperfine transition, about 0.7 nanoseconds. The two linked circles by the end of the long line are the plaque's hydrogen symbol, which defines that unit.
 
-  Here a tick across a ray is a 1 and a short dash along it is a 0. The ray lengths are set for the composition, where the plaque's give relative distances, and the rays to the Crab pulsar and its near neighbour are spread five degrees apart so both can be seen.
+  Here a tick across a ray is a 1 and a short dash along it is a 0. The ray lengths are set for the composition, where the plaque's give relative distances, and the rays to the Crab pulsar and its near neighbor are spread five degrees apart so both can be seen.
 technique: [drafting]
 subject: [space]
 lineage: [scientific-illustration]

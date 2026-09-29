@@ -74,7 +74,7 @@ def graded(b: Buckets, pts: NDArray[np.floating], tones: Sequence[int | None]) -
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     # Local frame: u runs from the barrier toward the screen, v along the screen; landscape
-    # screens send the light rightward, portrait ones downward. `o` is the screen's centre.
+    # screens send the light rightward, portrait ones downward. `o` is the screen's center.
     o = s.pick(landscape=(0.66, 0.5), portrait=(0.5, 0.62))
     if s.landscape:
         m = Affine(1, 0, 0, 1, o.x - DROP, o.y)

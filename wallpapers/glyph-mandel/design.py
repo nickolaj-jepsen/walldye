@@ -53,8 +53,8 @@ ROLES: tuple[tuple[str, Paint | None], ...] = (
 )
 
 
-def centres(start: float, size: float, n: int) -> Grid:
-    """Centres of `n` abutting intervals of length `size`, the first starting at `start`."""
+def centers(start: float, size: float, n: int) -> Grid:
+    """Centers of `n` abutting intervals of length `size`, the first starting at `start`."""
     return start + (np.arange(n, dtype=np.float64) + 0.5) * size
 
 
@@ -89,7 +89,7 @@ def draw(s: Canvas[View]) -> None:
     p = s.params
     cols, rows = s.w // FW, s.h // FH
     ox, oy = (s.w - cols * FW) // 2, (s.h - rows * FH) // 2
-    # right of centre on a landscape screen; centred and in the upper half on a portrait one
+    # right of center on a landscape screen; centered and in the upper half on a portrait one
     at = s.pick(landscape=(1180 / 1920, 0.5), portrait=(0.55, 0.42))
     # the real axis runs through the middle of row j0, so the set's mirror halves match
     j0 = int((at.y - p.im * p.scale - oy) // FH)
@@ -98,14 +98,14 @@ def draw(s: Canvas[View]) -> None:
     def re(px: Grid) -> Grid:
         return (px - at.x) / p.scale + p.re
 
-    sx, sy = centres(ox, FW / SS, cols * SS), centres(oy, FH / SS, rows * SS)
+    sx, sy = centers(ox, FW / SS, cols * SS), centers(oy, FH / SS, rows * SS)
     c = re(sx)[None, :] + 1j * ((sy - y0) / p.scale)[:, None]
     d = (estimate(c, p.depth) * p.scale).reshape(rows, SS, cols, SS)  # in px
     near = d.min(axis=(1, 3))  # closest subsample: the rim stays continuous
     solid = (d == 0).mean(axis=(1, 3)) >= 0.35
-    rim = ~solid & ndimage.binary_dilation(solid)  # 4-neighbours of the set: one glyph thick
+    rim = ~solid & ndimage.binary_dilation(solid)  # 4-neighbors of the set: one glyph thick
     hair = ~solid & ~rim & (near < 0.6)
-    x = re(centres(ox, FW, cols))  # c's real part at each column's centre
+    x = re(centers(ox, FW, cols))  # c's real part at each column's center
     jj, ii = np.indices((rows, cols))
     row0 = jj == j0
 

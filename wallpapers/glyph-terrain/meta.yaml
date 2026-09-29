@@ -1,5 +1,5 @@
 title: ASCII overworld
-description: A roguelike island in carets, tildes and quotes. A road of slashes climbs from the harbour to a one-block town.
+description: A roguelike island in carets, tildes and quotes. A road of slashes climbs from the harbor to a one-block town.
 notes: |
   Noise fields shape the coastline and the woods, and a broader one decides where a couple of mountain ranges may rise. Dots are open ground, quote marks are woods and carets and triangles are hills and peaks, while tildes mark the sea and thin out away from the shore.
 

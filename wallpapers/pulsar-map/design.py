@@ -1,10 +1,10 @@
-"""The Pioneer plaque's pulsar map as line drawing: fourteen rays from the Sun ending in binary period ticks, and one long line to the galactic centre."""
+"""The Pioneer plaque's pulsar map as line drawing: fourteen rays from the Sun ending in binary period ticks, and one long line to the galactic center."""
 
 from walldye import ACCENT, UI, UI_ALT, Canvas, P, Vec, design
 
 HYDROGEN = 7.04024e-10  # hyperfine transition period (s), the plaque's unit of time
 STEP, TICK, DASH = 6, 10, 4  # bit pitch; a '1' tick across the ray, a '0' dash along it
-GAP, EDGE = 26, 140  # clear radius round the Sun; galactic-centre line end to the screen edge
+GAP, EDGE = 26, 140  # clear radius round the Sun; galactic-center line end to the screen edge
 SUN_X = 640  # least landscape Sun x, so the rays reaching 522 units left keep a margin
 H_R, H_SPAN, H_DROP = 26, 128, 80  # hydrogen glyph: atom radius, atom spacing, offset from line
 # (name, galactic longitude deg, ray length px, period s); lengths are composed, not the plaque's distances.
@@ -29,7 +29,7 @@ PULSARS = [
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # Landscape: the Sun a third in, the galactic centre off to the right. Portrait: the map
+    # Landscape: the Sun a third in, the galactic center off to the right. Portrait: the map
     # turned a quarter turn, so that line runs up the tall screen.
     sun = s.pick(landscape=(1 / 3, 0.52), portrait=(0.52, 0.62))
     if s.landscape:
@@ -57,7 +57,7 @@ def draw(s: Canvas) -> None:
     s.stroke(code, UI_ALT, 1.5)
     s.stroke(P().M(sun + gc * GAP).L(end), ACCENT, 2.5)
 
-    # The hydrogen glyph captions the galactic-centre line, flush with its end.
+    # The hydrogen glyph captions the galactic-center line, flush with its end.
     near = end + gc.perp() * H_DROP - gc * H_R
     far = near - gc * H_SPAN
     atoms = P().circle(near, H_R).circle(far, H_R).M(far + gc * H_R).L(near - gc * H_R)

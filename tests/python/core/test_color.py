@@ -19,16 +19,16 @@ from walldye import (
     MASK_WHITE,
     MUTED,
     UI,
-    Colour,
+    Color,
     Ladder,
-    MaskColour,
+    MaskColor,
     _theme,
     by_regime,
     ladder,
     mix,
     ramp,
 )
-from walldye._colour import resolve, token
+from walldye._color import resolve, token
 
 TOKEN_NAMES = [t for t in _theme.TOKENS if t != "orange_dark"]
 
@@ -51,7 +51,7 @@ THEMES = all_themes()
 def test_tokens_are_exported_constants():
     for name in TOKEN_NAMES:
         c = getattr(walldye, name.upper())
-        assert isinstance(c, Colour)
+        assert isinstance(c, Color)
         assert c is token(name)
         assert repr(c) == name.upper()
     assert not hasattr(walldye, "ORANGE_DARK")
@@ -99,37 +99,37 @@ def test_hashes_and_set_order_do_not_depend_on_the_hash_seed():
     assert run_hashes("1") == run_hashes("4242") == run_hashes("99")
 
 
-def test_colours_have_no_order():
+def test_colors_have_no_order():
     for op in ("__lt__", "__le__", "__gt__", "__ge__"):
-        with pytest.raises(TypeError, match="colours have no order"):
+        with pytest.raises(TypeError, match="colors have no order"):
             getattr(UI, op)(BG)
-    with pytest.raises(TypeError, match="colours have no order"):
+    with pytest.raises(TypeError, match="colors have no order"):
         sorted([UI, BG])
     with pytest.raises(TypeError):
         sorted([MASK_WHITE, MASK_BLACK])
 
 
-def test_colours_have_no_text_form():
+def test_colors_have_no_text_form():
     c = mix(UI, BG_ALT, 0.5)
-    msg = r"a Colour has no text form; pass it to a drawing call \(got mix\(UI, BG_ALT, 0\.5\)\)"
+    msg = r"a Color has no text form; pass it to a drawing call \(got mix\(UI, BG_ALT, 0\.5\)\)"
     with pytest.raises(TypeError, match=msg):
         str(c)
     with pytest.raises(TypeError, match=msg):
         f"{c}"
     with pytest.raises(TypeError, match=msg):
         format(c, "")
-    with pytest.raises(TypeError, match="a MaskColour has no text form"):
+    with pytest.raises(TypeError, match="a MaskColor has no text form"):
         str(MASK_WHITE)
 
 
-def test_colours_are_immutable_and_pickle():
+def test_colors_are_immutable_and_pickle():
     c = mix(UI, by_regime(ACCENT, FG), 0.25)
     with pytest.raises(AttributeError):
         c._formula = (0, 1)
     with pytest.raises(AttributeError):
         del c._formula
     for twin in (pickle.loads(pickle.dumps(c)), copy.copy(c), copy.deepcopy(c)):
-        assert twin == c and hash(twin) == hash(c) and type(twin) is Colour
+        assert twin == c and hash(twin) == hash(c) and type(twin) is Color
     assert pickle.loads(pickle.dumps(MASK_WHITE)) == MASK_WHITE
 
 
@@ -160,9 +160,9 @@ def test_mix_errors():
         mix(UI, BG, True)
     with pytest.raises(TypeError):
         mix(UI, BG, "0.5")
-    with pytest.raises(TypeError, match="raw colour strings"):
+    with pytest.raises(TypeError, match="raw color strings"):
         mix("#FF0000", BG, 0.5)
-    with pytest.raises(TypeError, match="Colour with a MaskColour"):
+    with pytest.raises(TypeError, match="Color with a MaskColor"):
         mix(UI, MASK_WHITE, 0.5)
     with pytest.raises(TypeError):
         mix(UI, None, 0.5)
@@ -176,9 +176,9 @@ def test_ramp():
         ramp(UI, BG, 0)
     with pytest.raises(TypeError):
         ramp(UI, BG, 2.0)
-    with pytest.raises(TypeError, match="Colour with a MaskColour"):
+    with pytest.raises(TypeError, match="Color with a MaskColor"):
         ramp(UI, MASK_WHITE, 3)
-    with pytest.raises(TypeError, match="raw colour strings"):
+    with pytest.raises(TypeError, match="raw color strings"):
         ramp(UI, "#FFF", 3)
 
 
@@ -215,7 +215,7 @@ def test_ladder_shape_and_errors():
         ladder((UI, BG), 1)
     with pytest.raises(TypeError):
         ladder((MASK_BLACK, MASK_WHITE), 3)
-    with pytest.raises(TypeError, match="raw colour strings"):
+    with pytest.raises(TypeError, match="raw color strings"):
         ladder(("#000", BG), 3)
 
 
@@ -246,7 +246,7 @@ def test_by_regime():
         assert resolve(nested, tokens) == _theme.mix(resolve(c, tokens), tokens["bg"], 0.3)
     with pytest.raises(TypeError):
         by_regime(MASK_WHITE, MASK_BLACK)
-    with pytest.raises(TypeError, match="raw colour strings"):
+    with pytest.raises(TypeError, match="raw color strings"):
         by_regime("#000", UI)
     assert repr(c) == "by_regime(UI, MUTED)"
 
@@ -264,11 +264,11 @@ def test_resolve_equals_theme_mix_chains():
             assert resolve(mix(mix(ca, cb, t1), cc, t2), tokens) == want2
 
 
-def test_mask_colours_resolve_to_constants():
-    grey = mix(MASK_BLACK, MASK_WHITE, 0.4)
-    assert isinstance(grey, MaskColour)
+def test_mask_colors_resolve_to_constants():
+    gray = mix(MASK_BLACK, MASK_WHITE, 0.4)
+    assert isinstance(gray, MaskColor)
     for tokens in THEMES:
         assert resolve(MASK_WHITE, tokens) == "#FFFFFF"
         assert resolve(MASK_BLACK, tokens) == "#000000"
-        assert resolve(grey, tokens) == "#666666"
-    assert repr(grey) == "mix(MASK_BLACK, MASK_WHITE, 0.4)"
+        assert resolve(gray, tokens) == "#666666"
+    assert repr(gray) == "mix(MASK_BLACK, MASK_WHITE, 0.4)"

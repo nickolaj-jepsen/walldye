@@ -87,7 +87,7 @@ test.describe('resvg-wasm', () => {
     await page.goto('/schotter?t=nord');
     await page.locator('#export').scrollIntoViewIfNeeded();
     const got = decodeRgb(await exportAt(page, REF.width, REF.height));
-    // The browser recolour is within 2 units of the Python render slot by slot, so the pixels are too.
+    // The browser recolor is within 2 units of the Python render slot by slot, so the pixels are too.
     const diff = pixelDiff(got, reference());
     report('export panel', diff);
     expect(diff.max, JSON.stringify(diff)).toBeLessThanOrEqual(3);

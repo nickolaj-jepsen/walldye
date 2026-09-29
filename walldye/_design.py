@@ -11,7 +11,7 @@ from typing import Final, Literal, cast, final
 
 from ._aspect import SITE_ASPECTS, Aspect, canvas_size, native_aspects
 from ._canvas import Canvas
-from ._colour import BG, Colour
+from ._color import BG, Color
 from ._document import Builder, Document
 from ._params import Params
 
@@ -40,7 +40,7 @@ class Design[Pm: Params]:
         params_type: type[Pm],
         declared_aspects: Literal["any"] | tuple[Aspect, ...],
         variants: Mapping[str, Pm],
-        bg: Colour,
+        bg: Color,
     ) -> None:
         """Internal: @design(...) makes Designs."""
         self.fn: Final = fn
@@ -167,24 +167,24 @@ def design[Pm: Params](
     *,
     aspects: Literal["any"] | tuple[Aspect, ...] = ("16:9",),
     variants: Mapping[str, Pm] | None = None,
-    bg: Colour = BG,
+    bg: Color = BG,
 ) -> Callable[[Callable[[Canvas[Pm]], None]], Design[Pm]]:
     """Declare a design: decorates the one function draw(s: Canvas[P]) -> None.
 
     `aspects` is "any" (every site aspect) or a tuple of the site aspects the composition
     follows; 16:9 is always built. `variants` names up to 4 params instances of draw's params
     class besides the implicit default, each different from the default and from each other,
-    named like "late" or "open-sea" (at most 24 characters, not "default"). `bg` is the colour
+    named like "late" or "open-sea" (at most 24 characters, not "default"). `bg` is the color
     of the full-canvas rectangle drawn before draw runs.
 
-    Raises TypeError for a non-tuple `aspects`, a bg that is not a theme colour, a variant of
+    Raises TypeError for a non-tuple `aspects`, a bg that is not a theme color, a variant of
     another class, or a draw without exactly one positional parameter (or without a Canvas[P]
     annotation when there are variants); ValueError for unknown aspects, too many variants,
     bad variant names and equal variants.
     """
     declared = _aspects(aspects)
-    if not isinstance(bg, Colour):
-        raise TypeError(f"bg takes a theme colour, got {bg!r}")
+    if not isinstance(bg, Color):
+        raise TypeError(f"bg takes a theme color, got {bg!r}")
 
     def wrap(fn: Callable[[Canvas[Pm]], None]) -> Design[Pm]:
         # The annotation is Canvas[Pm], so the class read from it is Pm.

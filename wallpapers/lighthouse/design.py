@@ -15,7 +15,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
-    Colour,
+    Color,
     P,
     Path,
     Rect,
@@ -119,7 +119,7 @@ def arched(cx: float, y0: float, w: float, h: float) -> Polygon:
 
 
 def ramp_stops(
-    color: Colour, a0: float, x0: float, x1: float, end: float, n: int = 14
+    color: Color, a0: float, x0: float, x1: float, end: float, n: int = 14
 ) -> list[Stop]:
     """Stops for a gradient running x0 to `end` whose opacity eases from a0 to 0 by x1
     (smoothstep, so it shows no banding)."""

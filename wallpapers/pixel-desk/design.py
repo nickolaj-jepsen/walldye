@@ -80,14 +80,14 @@ class Room:
         self.px = Pixels(COLS, ROWS, PALETTE)
         self.desk: Mask = np.zeros((ROWS, COLS), bool)
         xs, ys = cells(Rect(0, 0, COLS, ROWS), 1)
-        self.centres = np.column_stack([xs.ravel(), ys.ravel()])
+        self.centers = np.column_stack([xs.ravel(), ys.ravel()])
 
     def quad(self, p0: P3, p1: P3, p3: P3, k: int, desk: bool = False) -> None:
         """Fill the parallelogram with world corners p0, p1, p3 and p1 + p3 - p0 in index k,
-        testing cell centres."""
+        testing cell centers."""
         a, b, d = iso(p0), iso(p1), iso(p3)
         uv = Affine(b.x - a.x, b.y - a.y, d.x - a.x, d.y - a.y, a.x, a.y).inverse()
-        local = uv.apply(self.centres)
+        local = uv.apply(self.centers)
         m = ((local >= 0) & (local < 1)).all(axis=1).reshape(ROWS, COLS)
         self.px.grid[m] = k
         self.desk[m] = desk
@@ -152,7 +152,7 @@ def draw(s: Canvas) -> None:
 
     # Screen glow as an iso pool on the desk top, straight out from the screen: two dithered
     # steps of a distance in desk-top units, measured on the plane z = 14.
-    top = plane(14).inverse().apply(room.centres)
+    top = plane(14).inverse().apply(room.centers)
     dx, dy = top[:, 0].reshape(ROWS, COLS), top[:, 1].reshape(ROWS, COLS)
     reach = np.maximum(dy - 3, 1.5 * np.maximum(10.5 - dx, dx - 21.5))
     light = (ramp(reach, 3) + ramp(reach, 5.5)) / 2
@@ -167,6 +167,6 @@ def draw(s: Canvas) -> None:
     for x, z in handle:  # top bar, bottom bar, outer upright
         room.box(x, (6.5, 7), z, (RAISED, RAISED, PLANE))
 
-    # Right of centre on a landscape screen, the upper half on a portrait one.
+    # Right of center on a landscape screen, the upper half on a portrait one.
     c = s.pick(landscape=(0.62, 0.5), portrait=(0.5, 0.42), snap=PX)
     room.px.draw(s, PX, c - (COLS // 2 * PX, ROWS // 2 * PX))

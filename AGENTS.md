@@ -1,6 +1,6 @@
 # walldye
 
-walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colours, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates, which CI builds and never commits, and records every colour in them as a linear mix of three seed colours (bg, fg, accent), read off the formula it was drawn with. The Astro site at walldye.com uses those mixes to show every piece in the visitor's colours and to export it as SVG, PNG, WebP or JPEG.
+walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colors, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates, which CI builds and never commits, and records every color in them as a linear mix of three seed colors (bg, fg, accent), read off the formula it was drawn with. The Astro site at walldye.com uses those mixes to show every piece in the visitor's colors and to export it as SVG, PNG, WebP or JPEG.
 
 ## Docs
 
@@ -15,7 +15,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 
 - Docs describe the current system in as few words as it takes: no plans, history, open tasks or lists of what the tests cover, and nothing the code or a docstring already says. Each fact lives in one doc; the others link to it.
 - Comments say only what the code can't: intent, a constraint, a gotcha, a tradeoff, units or bounds. One line where possible; no narrating the line below, no change history ("v1", "used to", "replaces").
-- Docstrings state the contract (behaviour, non-obvious parameters, return value, errors, invariants), not the signature or the callers.
+- Docstrings state the contract (behavior, non-obvious parameters, return value, errors, invariants), not the signature or the callers.
 - Comments and docstrings stand on their own and never cite the docs or their sections.
 - No AI tropes: em dashes, "not X, it's Y", "serves as", "it's worth noting", magic adverbs (quietly, deeply), bold-first bullets, signposted conclusions.
 
@@ -24,8 +24,8 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Everything outside `tools/` feeds the render-lib hash, so editing it makes the next build re-check every piece's probes.
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand; `build/` is generated and gitignored, with named variants in `build/<variant>/`. Legacy pieces have `source.svg` and `palette.yaml` instead of a script. `wallpapers/index.json` is generated and gitignored too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `taxonomy.yaml`: the allowed facet values for meta.yaml. Only `walldye review` adds to it.
-- `src/`: the site. `src/lib/` is the code the build and the browser share: the TypeScript ports of the theme, recolour and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for facet values and licences. `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time.
-- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
+- `src/`: the site. `src/lib/` is the code the build and the browser share: the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for facet values and licenses. `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time.
+- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recoloring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.
 - `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.
@@ -59,7 +59,7 @@ On NixOS, `nix develop` opens a shell with the locked Python environment (the ch
 ## Rules
 
 - Build output is never committed: `wallpapers/*/build/`, `wallpapers/index.json` and the generated test fixtures are gitignored. CI renders the published pieces itself, from a cache of main's last build. Locally, run `uv run walldye build --all` (drafts included, which `astro dev` shows) and `regen.py` before `pnpm dev`, `pnpm test` or the e2e tests.
-- Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no colour names, no theme roles as nouns, no internal terms, no evaluative adjectives.
+- Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no color names, no theme roles as nouns, no internal terms, no evaluative adjectives.
 - Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.
 - All Python, including ` ```python ` blocks in Markdown, passes `ruff format` and `ruff check` (fix findings, no blanket `noqa`), and Pyrefly at its level: 0 errors in the library. The prek hook and CI run them; `walldye check` does not.
 - All TypeScript passes `pnpm lint` (Biome; fix findings, a `biome-ignore` only with its reason) and `pnpm check`. The prek hook runs Biome, CI both. `.astro` files are left to `astro check`: Biome does not format them.

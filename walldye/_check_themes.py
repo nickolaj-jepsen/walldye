@@ -22,7 +22,7 @@ def regime(theme: Theme) -> str:
 
 def generate(seed: int, n: int) -> dict[str, list[Theme]]:
     """`n` random themes per regime from random.Random(`seed`): each draw is three
-    getrandbits(24) colours, filed under its regime or discarded once that regime is full."""
+    getrandbits(24) colors, filed under its regime or discarded once that regime is full."""
     r = random.Random(seed)
     out: dict[str, list[Theme]] = {"dark": [], "light": []}
     while any(len(v) < n for v in out.values()):
@@ -81,7 +81,7 @@ HELD_OUT: dict[str, list[Theme]] = {
 }
 
 # Skeleton check only. Collapse: every token lands on (nearly) one hex, so
-# colour-keyed dicts merge; an exact tie is dark, so light's bg sits one unit above fg.
+# color-keyed dicts merge; an exact tie is dark, so light's bg sits one unit above fg.
 # Order: bg/fg/accent chosen so token hex strings sort roughly opposite to the regime's
 # template theme (fireproof, flexoki-light), so anything sorted by hex reorders.
 PROBES: dict[str, list[Theme]] = {

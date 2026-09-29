@@ -46,10 +46,10 @@ def lathe(segs: Profile, n: int = 900, m: int = 160) -> Field:
 
 
 def tube(
-    centre: list[tuple[float, float]], r0: float, r1: float, flat: float = 1.0, n: int = 900
+    center: list[tuple[float, float]], r0: float, r1: float, flat: float = 1.0, n: int = 900
 ) -> Field:
     """Tube swept along a planar cubic Bézier in (x, y), radius r0 to r1, depth scaled by `flat`."""
-    c = bezier_points(centre, 259)
+    c = bezier_points(center, 259)
     d = np.gradient(c, axis=0)
     d /= np.linalg.norm(d, axis=1, keepdims=True)
     nrm = np.stack([-d[:, 1], d[:, 0]], 1)
@@ -117,7 +117,7 @@ def render(w: int, h: int) -> tuple[Field, Field, Mask, Mask, Index]:
 
 
 def clean(m: Mask) -> Mask:
-    """Drop half-cells with < 2 filled 4-neighbours and fill enclosed ones, so the outline has
+    """Drop half-cells with < 2 filled 4-neighbors and fill enclosed ones, so the outline has
     no stray steps."""
     for _ in range(2):
         p = np.pad(m, 1)
@@ -128,7 +128,7 @@ def clean(m: Mask) -> Mask:
 
 def despeckle(cell: Index) -> Index:
     """Two passes in which a level cell (-1 marks none) unlike all of its >= 2 level
-    4-neighbours takes their median level."""
+    4-neighbors takes their median level."""
     for _ in range(2):
         p = np.pad(cell, 1, constant_values=-1)
         nb = np.stack([p[:-2, 1:-1], p[2:, 1:-1], p[1:-1, :-2], p[1:-1, 2:]])
@@ -141,7 +141,7 @@ def despeckle(cell: Index) -> Index:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # Right of centre on a landscape screen, the upper middle on a portrait one; the axis snaps
+    # Right of center on a landscape screen, the upper middle on a portrait one; the axis snaps
     # to whole half-cells so the window's origin is a whole unit.
     origin = s.pick(landscape=(2 / 3, 14 / 27), portrait=(0.515, 0.44), snap=CW) - POT
     shade, spec, cov, knob, part = render(COLS * SS, ROWS * 2 * SS)
@@ -178,7 +178,7 @@ def draw(s: Canvas) -> None:
     chars = np.where(full, RAMP_GLYPH[step], " ")
 
     # Glint: where the belly faces SHEEN the ramp carries on past the lit solid, in GLOSS shade
-    # glyphs over LIT that close on a solid GLOSS core, as ANSI art blends one colour into the next.
+    # glyphs over LIT that close on a solid GLOSS core, as ANSI art blends one color into the next.
     sheen = gaussian_filter(spec * cov, BLUR / 2) / np.maximum(
         gaussian_filter(cov * 1.0, BLUR / 2), 1e-6
     )

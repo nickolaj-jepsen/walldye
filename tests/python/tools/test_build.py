@@ -4,13 +4,13 @@ import random
 import numpy as np
 import pytest
 from fixtures import regen
-from tools_support import assert_recolours, built, legacy, seeds, versions
+from tools_support import assert_recolors, built, legacy, seeds, versions
 
 from walldye import _check_themes
 from walldye._aspect import SITE_ASPECTS, canvas_size, template_name
 from walldye._theme import PRESETS, SEEDS
 from walldye.tools import build, coefs, common, hashing, listing, review
-from walldye.tools.tokenize import find_colours
+from walldye.tools.tokenize import find_colors
 
 FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
 ALL_HELD_OUT = _check_themes.HELD_OUT["dark"] + _check_themes.HELD_OUT["light"]
@@ -25,7 +25,7 @@ def slots(slug: str, variant: str = "default") -> dict[str, object]:
 # --- build output -----------------------------------------------------------------
 
 
-def test_collision_builds_and_recolours(wallpapers, capsys):
+def test_collision_builds_and_recolors(wallpapers, capsys):
     regen.install(wallpapers, "collision")
     assert "collision: wrote 16x9.svg, slots.json" in built(capsys, "collision")
     b = common.build_dir("collision")
@@ -59,14 +59,14 @@ def test_collision_builds_and_recolours(wallpapers, capsys):
         entry = table[f"16:9/{regime}"]
         assert list(entry) == ["file", "sha256", "n", "coefs", "occ"]
         assert entry["file"] == "16x9.svg" and entry["sha256"] == hashing.sha256(template.encode())
-        assert entry["n"] == len(entry["occ"]) == len(find_colours(template)) == 3
-    for theme in regen.RECOLOUR_THEMES + ALL_HELD_OUT:
-        assert_recolours("collision", theme)
-    assert build.recolour(template, table["16:9/dark"], FIREPROOF) == template
-    assert build.recolour(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
+        assert entry["n"] == len(entry["occ"]) == len(find_colors(template)) == 3
+    for theme in regen.RECOLOR_THEMES + ALL_HELD_OUT:
+        assert_recolors("collision", theme)
+    assert build.recolor(template, table["16:9/dark"], FIREPROOF) == template
+    assert build.recolor(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
 
 
-def test_recolour_evaluates_like_predict():
+def test_recolor_evaluates_like_predict():
     r = random.Random(1)
     rows = [
         [round(r.uniform(-1, 1.5), 5) for _ in range(3)]
@@ -83,8 +83,8 @@ def test_recolour_evaluates_like_predict():
     }
     for _ in range(20):
         theme = tuple(f"#{r.getrandbits(24):06X}" for _ in range(3))
-        got = build.recolour(template, entry, dict(zip(SEEDS, theme, strict=True)))
-        assert (coefs.colours(got) == coefs.predict(np.array(rows), theme)).all()
+        got = build.recolor(template, entry, dict(zip(SEEDS, theme, strict=True)))
+        assert (coefs.colors(got) == coefs.predict(np.array(rows), theme)).all()
 
 
 def test_select():
@@ -117,7 +117,7 @@ def test_light_branch_gets_its_own_template(wallpapers, capsys):
     assert light == common.render("light-branch", "flexoki-light")
     assert "A100 100" not in light and "A100 100" in common.render("light-branch", "nord")
     for theme in ["solarized-light", "nord", *ALL_HELD_OUT]:
-        assert_recolours("light-branch", theme)
+        assert_recolors("light-branch", theme)
 
 
 def test_any_aspect_pixel_design(wallpapers, capsys):
@@ -137,7 +137,7 @@ def test_any_aspect_pixel_design(wallpapers, capsys):
             == table[f"{aspect}/light"]["file"]
             == template_name(aspect)
         )
-        assert_recolours("pixels", "nord", aspect)
+        assert_recolors("pixels", "nord", aspect)
     index = json.loads((wallpapers / "index.json").read_text())
     assert index["pixels"]["aspects"] == list(SITE_ASPECTS) and index["pixels"]["variants"] == {}
 
@@ -150,7 +150,7 @@ def test_legacy_piece_builds(wallpapers, capsys):
         "#1c1b1a", "#1C1B1A"
     )
     for theme in ["nord", "flexoki-light", *ALL_HELD_OUT]:
-        assert_recolours("old", theme)
+        assert_recolors("old", theme)
 
 
 # --- variants -------------------------------------------------------------------------
@@ -178,7 +178,7 @@ def test_variant_layout(wallpapers, capsys):
         assert list(s)[:3] == ["design_sha", "variant", "focus"]
         assert s["variant"] == name and s["design_sha"] == hashing.design_sha("versions", name)
         assert build.entries(s)["16:9/dark"]["file"] == "16x9.svg"
-        assert_recolours("versions", "nord", "10:16", name)
+        assert_recolors("versions", "nord", "10:16", name)
     assert "variant" not in slots("versions")
     assert (b / "late/16x9.svg").read_text() == common.render(
         "versions", "fireproof", variant="late"

@@ -11,7 +11,7 @@ export const meta = {
     { title: 'Polish', detail: 'rework and judge the weakest, drop the rest' },
     { title: 'Sources', detail: 'fetch every lead, per group of 3' },
     { title: 'Copy', detail: 'one pass over all new copy' },
-    { title: 'Build', detail: 'licences, walldye build' },
+    { title: 'Build', detail: 'licenses, walldye build' },
     { title: 'Review', detail: 'walldye review, then proposed lessons' },
   ],
 }
@@ -67,7 +67,7 @@ const IDEA_PROPS = {
   name: { type: 'string', description: 'kebab-case slug, 1-3 words, unique' },
   facets: FACETS,
   concept: { type: 'string', description: '1-2 sentences: what it is, why it is interesting' },
-  composition: { type: 'string', description: 'placement on a 1920x1080 canvas, negative space, what is grey and what is accent' },
+  composition: { type: 'string', description: 'placement on a 1920x1080 canvas, negative space, what is gray and what is accent' },
   method: { type: 'string', description: 'how to generate it procedurally in Python' },
   inspiration: { type: 'string', description: 'artist, movement or phenomenon' },
   franchise: { type: 'string', description: 'the game, film or other franchise whose assets or look the piece depends on, making it fan work; empty when none' },
@@ -101,7 +101,7 @@ const CURATED = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { ...IDEA_PROPS, why: { type: 'string', description: 'how it differs from its nearest neighbour' } },
+        properties: { ...IDEA_PROPS, why: { type: 'string', description: 'how it differs from its nearest neighbor' } },
         required: [...IDEA_REQUIRED, 'why'],
       },
     },
@@ -364,7 +364,7 @@ const buildJobs = (slugs, tag) => `A Bash call stops after 10 minutes, so start 
    \`uv run walldye build ${slugs.join(' ')} > ${WORK}/${tag}.log 2>&1\`
    Then ${waitFor('[w]alldye build')}. A piece that fails prints "<slug>: not written" after its error lines and writes nothing; the others still build. \`grep -B30 ': not written' ${WORK}/${tag}.log\` shows the failures.`
 
-const LOOK = `THE FAMILY LOOK: read ${SKILL}/references/taste.md (what the owner likes and rejects, and the fan-work rule) and ${SKILL}/references/principles.md (the house style, subjects, critique checklist and scoring) before anything else. Every piece works under any three seed colours, sits behind windows, and is judged under fireproof, flexoki-light and nord.
+const LOOK = `THE FAMILY LOOK: read ${SKILL}/references/taste.md (what the owner likes and rejects, and the fan-work rule) and ${SKILL}/references/principles.md (the house style, subjects, critique checklist and scoring) before anything else. Every piece works under any three seed colors, sits behind windows, and is judged under fireproof, flexoki-light and nord.
 The owner's brief for this batch: ${BRIEF}`
 
 const tool = () => `TOOLING (you are in the walldye repo; run every command from its root):
@@ -400,7 +400,7 @@ const setup = await agent(`Prepare shared context for a batch of new wallpapers.
 
 1. Scratch dir: \`uv run python -c "from walldye.tools.preview import preview_dir; print(preview_dir())"\` prints the preview dir. Create <that dir>/batch; it is WORK. Return its absolute path as work.
 2. Existing names. \`uv run walldye list\` prints one line per piece: slug, title, description, draft, aspects and named variants, tab-separated. Write WORK/existing.txt with one line per piece, "slug: description", and return every slug as existing.
-3. Reference sheets. Pick about 30 pieces that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip the fan pieces, whose meta.yaml has \`franchise:\`) and sheet them as the family: \`uv run walldye sheet <slugs> --cols 6 -o WORK/reference.png\`. Then sheet the whole catalogue small, for spotting look-alikes: \`uv run walldye sheet --all --cols 12 --thumb 160 -o WORK/catalogue.png\`. Read both PNGs to confirm they rendered. Return the path of reference.png as references.
+3. Reference sheets. Pick about 30 pieces that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip the fan pieces, whose meta.yaml has \`franchise:\`) and sheet them as the family: \`uv run walldye sheet <slugs> --cols 6 -o WORK/reference.png\`. Then sheet the whole catalog small, for spotting look-alikes: \`uv run walldye sheet --all --cols 12 --thumb 160 -o WORK/catalog.png\`. Read both PNGs to confirm they rendered. Return the path of reference.png as references.
 4. Read taxonomy.yaml and return its technique, subject and lineage values as taxonomy.`, { label: 'setup', phase: 'Setup', schema: SETUP })
 
 if (!setup) throw new Error('wallpaper-batch: the setup agent returned nothing, and the existing-name list is needed to avoid slug collisions')
@@ -414,15 +414,15 @@ log(`${existing.size} existing names; scratch dir ${WORK}`)
 
 phase('Research')
 const pools = await parallel(LENS_LIST.map(l => () => agent(`${LOOK}
-EXISTING DESIGNS (do not duplicate; a riff is fine only if clearly distinct): Read ${WORK}/existing.txt and look at ${WORK}/catalogue.png, a sheet of every piece. Review dropped the ideas listed under "Dropped in review" in ${SKILL}/references/ideas.md: don't propose them again as they were. Look at ${REFS}: that is the family.
+EXISTING DESIGNS (do not duplicate; a riff is fine only if clearly distinct): Read ${WORK}/existing.txt and look at ${WORK}/catalog.png, a sheet of every piece. Review dropped the ideas listed under "Dropped in review" in ${SKILL}/references/ideas.md: don't propose them again as they were. Look at ${REFS}: that is the family.
 
 YOUR LENS: ${l.territory}
 
 1. Research first: roughly 8-15 web searches or fetches surveying your lens for specific works, visual ideas and techniques (load WebSearch and WebFetch with ToolSearch if they are deferred). Concrete references beat generic ones.
 2. Brainstorm ${PER_LENS} concepts that fit THE FAMILY LOOK. Range matters: vary scale (tiny focal object vs full-bleed texture), placement, density and technique. No clusters of variants of one idea.
-3. Give each a concrete composition (placement on a 1920x1080 canvas, what is grey and what is accent) and a concrete Python-to-SVG method.
+3. Give each a concrete composition (placement on a 1920x1080 canvas, what is gray and what is accent) and a concrete Python-to-SVG method.
 4. facets: technique, subject and lineage values from taxonomy.yaml (${TAXONOMY}). When nothing fits, use a new lowercase slug; it becomes a proposal for the owner.
-5. leads: the specific works, papers, datasets or pages behind the idea, as {kind, title or topic, author, year, url}: a title names a work, a topic anything else. kind is recreation (the piece would redraw that specific work, allowed only for works in the public domain or under an open licence; a work still in copyright is an inspiration, and the idea may keep its spirit but must make two or three deliberate departures of its own, never a copy of the composition), inspiration, reference (a technique or phenomenon) or data (a dataset it plots). Give a url only when you found one. A later agent fetches every lead and drops the ones that don't check out, so never invent one.
+5. leads: the specific works, papers, datasets or pages behind the idea, as {kind, title or topic, author, year, url}: a title names a work, a topic anything else. kind is recreation (the piece would redraw that specific work, allowed only for works in the public domain or under an open license; a work still in copyright is an inspiration, and the idea may keep its spirit but must make two or three deliberate departures of its own, never a copy of the composition), inspiration, reference (a technique or phenomenon) or data (a dataset it plots). Give a url only when you found one. A later agent fetches every lead and drops the ones that don't check out, so never invent one.
 6. franchise: the game, film or other franchise whose assets or look the idea depends on, which makes it fan work (taste.md, Fan work); leave it empty otherwise. The script drops fan work unless the owner's brief names the franchise, so prefer subjects that are free: a game's rules or a real game record drawn as a system, not its assets.
 Names: kebab-case slugs of 1-3 words, unique, not in existing.txt, not about/index/t/og/fonts/404/robots/favicon, not starting with "sitemap".`,
   { label: `lens:${l.key}`, phase: 'Research', schema: IDEAS })))
@@ -439,12 +439,12 @@ phase('Curate')
 const curated = await agent(`${LOOK}
 You are the art director curating a wallpaper set. Below are ${pool.length} brainstormed ideas (JSON) from ${LENS_LIST.length} research lenses. Select exactly ${TARGET} for production (the owner wants ${COUNT}; attrition later is real). Select fewer only if the pool cannot supply ${TARGET} that pass these rules, and say why in rejected_notes.
 - No near-duplicates: merge ideas that would look alike (same motif and method), keeping the stronger spec and combining the best details and leads.
-- Nothing that duplicates an EXISTING design at thumbnail size: Read ${WORK}/existing.txt and look at ${WORK}/catalogue.png. Names must not collide with any name in existing.txt.
-- Diversity: at most ${CAP} of the selected ideas may share any one technique facet value (10% of ${TARGET}, and at least one); an idea with two technique values counts towards both. Mix roughly 55% focal-object compositions, 30% quiet full-bleed textures with an accent event and 15% bold graphic or poster pieces. Vary focal placement (not everything right of centre).
+- Nothing that duplicates an EXISTING design at thumbnail size: Read ${WORK}/existing.txt and look at ${WORK}/catalog.png. Names must not collide with any name in existing.txt.
+- Diversity: at most ${CAP} of the selected ideas may share any one technique facet value (10% of ${TARGET}, and at least one); an idea with two technique values counts towards both. Mix roughly 55% focal-object compositions, 30% quiet full-bleed textures with an accent event and 15% bold graphic or poster pieces. Vary focal placement (not everything right of center).
 - Reject anything off-look: other hues, photos, filters, loud or busy behind windows.
 - No fan work unless the brief names its franchise (taste.md, Fan work), and nothing from the "Dropped in review" list in ${SKILL}/references/ideas.md. Keep each idea's franchise field as the researcher set it.
 - Feasibility: buildable in Python to a template under 600 kB. Rewrite vague methods concretely.
-- Tighten each composition so a designer can build it without guessing: positions, rough sizes, which elements are accent and which grey.
+- Tighten each composition so a designer can build it without guessing: positions, rough sizes, which elements are accent and which gray.
 - Keep facets on taxonomy values where one fits (${TAXONOMY}). Carry the leads over; don't invent new ones.
 IDEAS:
 ${json(pool)}`, { label: 'curate', phase: 'Curate', schema: CURATED })
@@ -538,7 +538,7 @@ Look at ${REFS} first. For each design (${names(done)}):
 - If design.py declares aspects, also --aspect 32:9 and --aspect 9:19.5.
 - For each variant in \`@design(variants=...)\`, a preview with --variant <name>.
 - Read design.py and meta.yaml.
-Judge: does it read instantly; is the composition deliberate; is the accent a restrained event; are the greys quiet enough behind windows; is it clean at 4K (no artefacts, jaggies, awkward clipping, muddy tone steps); does it feel like a sibling of the reference set? Faint is the common failure, more than loud: call it out when the idea only shows up zoomed in.
+Judge: does it read instantly; is the composition deliberate; is the accent a restrained event; are the grays quiet enough behind windows; is it clean at 4K (no artifacts, jaggies, awkward clipping, muddy tone steps); does it feel like a sibling of the reference set? Faint is the common failure, more than loud: call it out when the idea only shows up zoomed in.
 Light: does the flexoki-light render hold up (tone steps visible, the event still reads, no shadow that turned into a glare) and does the event survive nord's cool accent by shape and size? Is the light ladder step (SKILL.md step 5) the lowest that works? light_verdict is ok or fix; put light fixes in fixes, prefixed "light:".
 Variants: judge each proposed variant against VARIANTS. Does it change what is depicted, is it as strong as the default, and does it look different at thumbnail size? A variant that passes check can still be a nudge of one value: drop it if the subject did not change. Return one verdict per variant in variants (keep false with the reason drops it); [] when the design has none.
 Copy: check title, description, notes, variant labels and descriptions, and the docstring against the COPY RULES. Each copy_fixes entry quotes the replacement text.
@@ -633,7 +633,7 @@ ${json(scored)}
 You may run \`walldye build\` (the designers could not). ${TIMING}
 1. Build every new piece. ${buildJobs(kept, 'set')} Note each slug that fails, with its error lines. Do not fix designs yourself.
 2. Near-clones: \`uv run python -c "from walldye.tools.check import near_clones; near_clones('${kept.join(' ')}'.split())"\`. This is the near-clone pass of \`walldye check --similar\` without the full check that build just ran. It compares each new piece's build/16x9.svg (the default version) with every built piece and prints \`similar (0.95): a ~ b\` per close pair (nothing when there are none), then \`similar: skipped, no build/16x9.svg: ...\` for the pieces that failed to build. It compares ink maps, so it misses motif-level duplicates (two different mountain pieces); trust your eyes over it, both ways.
-3. Contact sheets in pages of 30: \`uv run walldye sheet <slugs> --cols 6 -o ${WORK}/set-<page>.png\`, and each page again with \`--theme flexoki-light -o ${WORK}/set-<page>-light.png\`. Read every page next to ${REFS} and ${WORK}/catalogue.png. Hunt for look-alikes (within the batch and against existing pieces), weak thumbnails, tone that drifts from the family, too many focal points in the same spot, and light renders that fall apart.
+3. Contact sheets in pages of 30: \`uv run walldye sheet <slugs> --cols 6 -o ${WORK}/set-<page>.png\`, and each page again with \`--theme flexoki-light -o ${WORK}/set-<page>-light.png\`. Read every page next to ${REFS} and ${WORK}/catalog.png. Hunt for look-alikes (within the batch and against existing pieces), weak thumbnails, tone that drifts from the family, too many focal points in the same spot, and light renders that fall apart.
 4. Decide:
    - duplicates: new pieces to drop because another piece, new or existing, already does the same thing better. Name the one each duplicates. Never list an existing piece, and never both halves of a pair.
    - polish: the weakest ~10%: critic scores of 6 or less, anything the sheets exposed, and every piece that failed to build. One specific issue each, naming the symptom and the target: "Too faint; the lobes do not read. Increase dot size and tone, pick an orbital with a striking silhouette, densest cores in accent" beats "make it better".
@@ -718,8 +718,8 @@ const sourcedGroups = await parallel(chunk(survivors, 3).map(group => () => agen
 For each piece below:
 1. Read wallpapers/<slug>/meta.yaml and design.py, and look at the piece (\`uv run walldye preview <slug>\`, Read the PNG), so you know what was actually built. The leads were written for the idea, and the piece may have drifted from it.
 2. For every lead, WebFetch its url (load WebFetch and WebSearch with ToolSearch if they are deferred). With no url, or a url that fails, you may WebSearch for a page about that exact work and use its url. Keep a lead only when a fetched page confirms the work; correct title, author and year from that page. A site that blocks bots (403 or 429) may stay if a search result confirms the page. Drop everything else, and drop leads that no longer match what the piece shows.
-3. kind: recreation only when the piece deliberately redraws that specific work and that work is in the public domain or openly licensed (the owner must then choose a licence for it, so don't use it loosely). If a piece redraws a work still in copyright, keep the lead as inspiration and flag the piece in your reply as needing rework; inspiration when the work inspired the idea; reference for background on a technique, genre, place or phenomenon; data for a dataset the piece plots.
-4. Write the kept list as \`sources:\` in wallpapers/<slug>/meta.yaml: each item has kind, then title or topic, author, year (a number) and url when known. A title names a work (a game, film, book, paper, article or artwork) and the site italicises it; anything else (a technique, phenomenon, place, building, product, program, logo or wiki entry) is a topic, set upright. A studio or artist with no single work gets author and neither. Titles and topics are plain text with no asterisks or quotes. A piece with a data/ folder needs a data source, or the recreation its files come from. Change nothing else in the file, add no license line, and edit no other file.
+3. kind: recreation only when the piece deliberately redraws that specific work and that work is in the public domain or openly licensed (the owner must then choose a license for it, so don't use it loosely). If a piece redraws a work still in copyright, keep the lead as inspiration and flag the piece in your reply as needing rework; inspiration when the work inspired the idea; reference for background on a technique, genre, place or phenomenon; data for a dataset the piece plots.
+4. Write the kept list as \`sources:\` in wallpapers/<slug>/meta.yaml: each item has kind, then title or topic, author, year (a number) and url when known. A title names a work (a game, film, book, paper, article or artwork) and the site italicizes it; anything else (a technique, phenomenon, place, building, product, program, logo or wiki entry) is a topic, set upright. A studio or artist with no single work gets author and neither. Titles and topics are plain text with no asterisks or quotes. A piece with a data/ folder needs a data source, or the recreation its files come from. Change nothing else in the file, add no license line, and edit no other file.
 Never run \`walldye build\`. Return, per piece, the sources you wrote and the leads you dropped with the reason.
 PIECES AND LEADS:
 ${json(group.map(s => ({ slug: s, leads: pieces[s].idea.leads })))}`, { label: `sources:${group.join(',')}`, phase: 'Sources', schema: SOURCED })))
@@ -737,12 +737,12 @@ Pieces: ${survivors.join(' ')}
 For each, read wallpapers/<slug>/meta.yaml (title, description, notes) and the one-line module docstring of wallpapers/<slug>/design.py. Then read all the descriptions side by side.
 ${COPY_RULES}
 - Across the set: vary sentence shape and length, don't open two descriptions the same way, and drop any stock phrase that repeats from piece to piece. Two short sentences often read better than one long comma chain.
-- Each description stays true to the piece: preview one when unsure (\`uv run walldye preview <slug>\`, Read the PNG). The preview output also flags colour words in the docstring and meta.yaml copy.
+- Each description stays true to the piece: preview one when unsure (\`uv run walldye preview <slug>\`, Read the PNG). The preview output also flags color words in the docstring and meta.yaml copy.
 Edit in place: only title, description and notes in meta.yaml, and the module docstring in design.py (never code, facets or sources). Only these pieces' folders. Never run \`walldye build\`.
 Return every change as {slug, field, before, after}.`, { label: 'copy', phase: 'Copy', schema: COPY })
 if (!copy) log('The copy agent returned nothing; the builders\' copy stands')
 
-// ---- 7. licences and build -----------------------------------------------
+// ---- 7. licenses and build -----------------------------------------------
 
 phase('Build')
 const recreations = survivors.filter(s => sources[s]?.sources.some(x => x.kind === 'recreation'))
@@ -768,7 +768,7 @@ const summary = () => survivors.map(s => ({
 }))
 
 if (pending.length) {
-  log(`Licence needed before walldye build. These pieces recreate a specific work, so the owner must choose each one's license (an SPDX id with a LICENSES/<id>.txt, e.g. CC0-1.0): ${pending.map(p => `${p.slug} (after ${p.recreates.map(r => [r.author, r.title].filter(Boolean).join(', ')).join('; ')})`).join(' | ')}`)
+  log(`License needed before walldye build. These pieces recreate a specific work, so the owner must choose each one's license (an SPDX id with a LICENSES/<id>.txt, e.g. CC0-1.0): ${pending.map(p => `${p.slug} (after ${p.recreates.map(r => [r.author, r.title].filter(Boolean).join(', ')).join('; ')})`).join(' | ')}`)
   return {
     status: 'needs-license',
     work: WORK,
@@ -779,7 +779,7 @@ if (pending.length) {
     near_clones: setRes?.near_clones ?? [],
     copy: copy?.changes ?? null,
     next: [
-      `Ask the owner which licence each of ${pending.map(p => p.slug).join(', ')} should carry (license.pending lists the works they recreate).`,
+      `Ask the owner which license each of ${pending.map(p => p.slug).join(', ')} should carry (license.pending lists the works they recreate).`,
       `Add \`license: <id>\` to each one's wallpapers/<slug>/meta.yaml${licensed.length ? `, and to ${licensed.map(l => `${l.slug} (${l.license})`).join(', ')} as args.licenses asked` : ''}.`,
       `uv run walldye build ${survivors.join(' ')}   (with run_in_background; it checks the pieces in parallel)`,
       `uv run walldye review ${survivors.join(' ')}   (with run_in_background; it blocks until the owner presses Apply)`,
@@ -789,7 +789,7 @@ if (pending.length) {
 }
 
 const final = await agent(`You run the final build for a batch of new wallpapers in the walldye repo. The drafts were built once before a polish and copy pass, so some are stale.
-1. ${licensed.length ? `Licences the owner chose: ${licensed.map(l => `${l.slug}: ${l.license}`).join(', ')}. For each, add \`license: <id>\` to wallpapers/<slug>/meta.yaml on its own line after \`model:\`. Change nothing else.` : 'No licences to add: skip to step 2.'}
+1. ${licensed.length ? `Licenses the owner chose: ${licensed.map(l => `${l.slug}: ${l.license}`).join(', ')}. For each, add \`license: <id>\` to wallpapers/<slug>/meta.yaml on its own line after \`model:\`. Change nothing else.` : 'No licenses to add: skip to step 2.'}
 2. Build ${survivors.join(' ')}. ${TIMING} ${buildJobs(survivors, 'final')} Pieces that are current print "up to date". Record each failing slug with its error lines.
 Don't edit designs to make things pass, don't drop anything, don't commit. Return licensed, built (every slug that built or was up to date), failed and the tail of the output.`, { label: 'build', phase: 'Build', schema: FINAL, effort: 'low' })
 
@@ -830,7 +830,7 @@ Return the summary: url (from the first output line), finished, approved, reject
   if (review && (review.approved.length || review.rejected.length || review.edit?.length)) {
     const reviewed = uniq([...review.approved, ...review.rejected.map(r => r.slug), ...(review.edit ?? []).map(e => e.slug)]).filter(s => pieces[s])
     const res = await agent(`Turn the owner's review of a wallpaper batch into proposed changes to the walldye skill's references, as step 12 of ${SKILL}/SKILL.md describes. Read ${SKILL}/references/principles.md and ${SKILL}/references/taste.md first. Edit no files: the owner approves each proposal.
-For each note and each copy edit, ask whether it would apply to other pieces too. When it would, propose one change: a failure row or checklist item in principles.md, with this piece as the example, or a line in taste.md. Skip what the files already say, and notes about one piece alone ("move the moon left"). Versions sent back for an edit were worth keeping but not yet right; notes on approved versions often ask for more of the same. No colour names.
+For each note and each copy edit, ask whether it would apply to other pieces too. When it would, propose one change: a failure row or checklist item in principles.md, with this piece as the example, or a line in taste.md. Skip what the files already say, and notes about one piece alone ("move the moon left"). Versions sent back for an edit were worth keeping but not yet right; notes on approved versions often ask for more of the same. No color names.
 REVIEW: ${json({ approved: review.approved, rejected: review.rejected, sent_back_for_edit: review.edit ?? [], notes: review.notes ?? [], edits: review.edits ?? [] })}
 PIECES: ${json(reviewed.map(s => ({ slug: s, concept: pieces[s].idea.concept, facets: pieces[s].idea.facets, critic_score: pieces[s].score })))}`, { label: 'lessons', phase: 'Review', schema: LESSONS_OUT, effort: 'low' })
     lessons = res?.proposals?.length ? res.proposals : null

@@ -1,6 +1,6 @@
 # Deploy
 
-How walldye.com is built, deployed and hosted, and how to check or change each part. architecture.md (CI) explains why CI renders the catalogue itself.
+How walldye.com is built, deployed and hosted, and how to check or change each part. architecture.md (CI) explains why CI renders the catalog itself.
 
 `,` in the commands below is comma, which runs a tool from nixpkgs without installing it; elsewhere, `pnpm dlx wrangler` does the same.
 
@@ -25,7 +25,7 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 - On a pull request a newer run cancels the older one. On `main` runs queue instead, so a push never throws away a render or a deploy in progress.
 - The deploy job has no checkout. It runs `wrangler pages deploy dist --project-name=walldye --branch=<branch> --commit-hash=<sha>` through `cloudflare/wrangler-action`, so wrangler gets the commit explicitly. Its `wranglerVersion` is pinned there.
 
-Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days (the daily redeploy below reads it whenever a day had views), and the next run then renders the whole catalogue from scratch, hence the 120-minute timeout. A render cut short is saved as it stands, and the next run on `main` picks up from there: `walldye build` re-hashes every template it keeps and redraws what doesn't match. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
+Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days (the daily redeploy below reads it whenever a day had views), and the next run then renders the whole catalog from scratch, hence the 120-minute timeout. A render cut short is saved as it stands, and the next run on `main` picks up from there: `walldye build` re-hashes every template it keeps and redraws what doesn't match. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
 
 ## Page views
 
@@ -59,7 +59,7 @@ A push to `main` deploys only when `ci.yml` runs, and it skips docs-only changes
 
 ## Check that it works
 
-- walldye.com loads, recolours when the theme changes, and exports a PNG from a detail page.
+- walldye.com loads, recolors when the theme changes, and exports a PNG from a detail page.
 - `curl -sI 'https://www.walldye.com/schotter?t=nord'` answers `301` with `location: https://walldye.com/schotter?t=nord`.
 - `https://walldye.com/robots.txt` ends with `Sitemap: https://walldye.com/sitemap-index.xml`, and the sitemap it names lists every published piece.
 - A template under `/t/` is served with `cache-control: public, max-age=31536000, immutable`, and a page with `max-age=0, must-revalidate`.

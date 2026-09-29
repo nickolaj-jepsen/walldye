@@ -90,7 +90,7 @@ THROTTLE = """
 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100
 100
 """
-# The f1-circuits Suzuka outline in east/north metres, starting at the S/F line.
+# The f1-circuits Suzuka outline in east/north meters, starting at the S/F line.
 TRACK = """
 176,-91 551,-531 578,-565 591,-584 596,-594 603,-613 605,-627 605,-635 598,-670 592,-691 585,-704 574,-716 565,-722
 556,-726 546,-729 536,-730 516,-728 508,-726 492,-717 478,-703 460,-675 420,-609 402,-584 383,-566 363,-554 342,-546
@@ -119,7 +119,7 @@ BRAKE = [
     (3875, 3939),
     (5303, 5386),
 ]
-LAP = 5807  # metres
+LAP = 5807  # meters
 X0, X1 = 160, 1330  # chart columns
 SPEED, THR, BRK = (250, 560), (600, 700), (730, 800)  # panel tops and bottoms
 PANELS = (SPEED, THR, BRK)
@@ -138,7 +138,7 @@ def floats(s: str) -> F:
 
 
 def channel(s: str, sigma: float = 10) -> F:
-    """10 m samples to a per-metre curve: pchip plus a light smooth so the 4 Hz steps vanish."""
+    """10 m samples to a per-meter curve: pchip plus a light smooth so the 4 Hz steps vanish."""
     v = floats(s)
     x = np.arange(len(v) + 1) * 10.0
     f = PchipInterpolator(x, np.append(v, v[0]))
@@ -146,7 +146,7 @@ def channel(s: str, sigma: float = 10) -> F:
 
 
 def brake_trace(kph: F) -> F:
-    """Pressure 0..1 per metre: fast rise, peak by speed shed, bleeding off with speed into the apex."""
+    """Pressure 0..1 per meter: fast rise, peak by speed shed, bleeding off with speed into the apex."""
     b = np.zeros(LAP)
     for s0, s1 in BRAKE:
         m = np.arange(s0, s1)
@@ -178,7 +178,7 @@ def xpos(m: float) -> float:
 
 
 def trace(vals: F, lo: float, hi: float, y0: float, y1: float) -> F:
-    """A per-metre channel decimated to ~1 px columns, as (N, 2) panel points."""
+    """A per-meter channel decimated to ~1 px columns, as (N, 2) panel points."""
     idx = np.linspace(0, LAP - 1, X1 - X0 + 1).astype(int)
     xs = X0 + idx / (LAP - 1) * (X1 - X0)
     ys = y1 - (vals[idx] - lo) / (hi - lo) * (y1 - y0)

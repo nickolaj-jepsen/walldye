@@ -60,7 +60,7 @@ def simulate(feed: Field, kill: Field, dead: Field, rng: NpRng) -> Field:
 
     # u and v stacked in one edge-padded float32 buffer and stepped in place, since this loop
     # is nearly all of the draw time. The 9-point Laplacian, isotropic so spots come out
-    # round, is ([1 4 1] x [1 4 1] - 36) / 6; its centre term and the reaction terms linear
+    # round, is ([1 4 1] x [1 4 1] - 36) / 6; its center term and the reaction terms linear
     # in u or v fold into one factor per cell.
     f32 = np.float32
     z = np.empty((2, rows + 2, cols + 2), f32)
@@ -137,7 +137,7 @@ def draw(s: Canvas[Regime]) -> None:
     origin = (x0 + c0 * CELL + shift, y0 + (MG - 3) * CELL + shift)
 
     def band(pts: Field) -> int:
-        """The TONES index for a spot or hole: which corner band its centre falls in."""
+        """The TONES index for a spot or hole: which corner band its center falls in."""
         dc = math.hypot(ln - pts[:, 0].mean(), sh - pts[:, 1].mean()) / sh
         return 2 if dc < 0.2 else 1 if dc < 0.33 else 0
 

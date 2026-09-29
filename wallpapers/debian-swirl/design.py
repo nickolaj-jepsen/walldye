@@ -14,20 +14,20 @@ FADE = 640  # construction lines dissolve into the background by this radius
 DASHDOT = (24, 6, 3, 6)
 ARROW, ARROW_W = 13, 4.2
 GAP = 4  # the seam between two arcs of the swirl
-TICK = 5  # half the cross marking a centre
+TICK = 5  # half the cross marking a center
 LIT = 9  # the arc picked out: the tail
 OUTER = 5  # the first join whose seam runs on outwards; the ones before face the curl
-# The swirl's centre line as tangent arcs, fitted to the official openlogo-nd.svg: every arc
-# after the first turns 60 degrees, and the radii are whole points, so the centres are the
+# The swirl's center line as tangent arcs, fitted to the official openlogo-nd.svg: every arc
+# after the first turns 60 degrees, and the radii are whole points, so the centers are the
 # corners of a polygon whose sides turn 60 degrees.
 TIP = Vec(61.3, 35.87)  # the inner end, in points
-TIP_DEG = -43.7  # its direction from the first centre
+TIP_DEG = -43.7  # its direction from the first center
 SWEEPS = (32.9, 60, 60, 60, 60, 60, 60, 60, 60, 60)
 RADII = (15, 15, 18, 20, 23, 32, 32, 41, 50, 60)
 
 
 def chain() -> list[tuple[Vec, float, float]]:
-    """Each arc's centre, radius and starting direction (degrees from the centre), in points,
+    """Each arc's center, radius and starting direction (degrees from the center), in points,
     from the inner end outwards; each arc runs `SWEEPS[k]` degrees anticlockwise from there."""
     out: list[tuple[Vec, float, float]] = []
     p, deg = TIP, TIP_DEG
@@ -79,7 +79,7 @@ def draw(s: Canvas) -> None:
     mark = unary_union([outline(p, m) for p in paths])
     arcs = [(m(ac), r * S, deg) for ac, r, deg in ARCS]
     pole = Vec(sum(a[0].x for a in arcs) / len(arcs), sum(a[0].y for a in arcs) / len(arcs))
-    # every join as (centre, radius, direction): the inner end, the nine joins, the tail
+    # every join as (center, radius, direction): the inner end, the nine joins, the tail
     joins = [arcs[0]] + [(a[0], a[1], b[2]) for a, b in pairwise(arcs)]
     joins.append((arcs[-1][0], arcs[-1][1], arcs[-1][2] - SWEEPS[-1]))
 
@@ -105,7 +105,7 @@ def draw(s: Canvas) -> None:
     field = Point(pole.x, pole.y).buffer(FADE, quad_segs=128)
     lc, lr, ldeg = arcs[LIT]
     lines = P()
-    drawn: list[tuple[Vec, float]] = [(lc, lr)]  # arcs sharing a centre share a circle
+    drawn: list[tuple[Vec, float]] = [(lc, lr)]  # arcs sharing a center share a circle
     for ac, r, _ in arcs:
         if any(abs(r - r2) < 1 and abs(ac - c2) < 1 for c2, r2 in drawn):
             continue
@@ -122,11 +122,11 @@ def draw(s: Canvas) -> None:
     fade = s.radial_gradient([(0, BG_ALT), (0.55, BG_ALT), (1, BG)], pole, FADE)
     s.stroke(lines, fade, 1.2)
 
-    # the polygon of centres, each centre ticked
-    centres = P().poly([a[0] for a in arcs])
+    # the polygon of centers, each center ticked
+    centers = P().poly([a[0] for a in arcs])
     for ac, _, _ in arcs:
-        centres.M(ac.x - TICK, ac.y).H(ac.x + TICK).M(ac.x, ac.y - TICK).V(ac.y + TICK)
-    s.stroke(centres, UI, 1.2)
+        centers.M(ac.x - TICK, ac.y).H(ac.x + TICK).M(ac.x, ac.y - TICK).V(ac.y + TICK)
+    s.stroke(centers, UI, 1.2)
 
     # the picked-out arc: the radii to its ends, and its full circle
     a0, a1 = ldeg - SWEEPS[LIT], ldeg

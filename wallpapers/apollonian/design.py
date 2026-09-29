@@ -22,7 +22,7 @@ from walldye import (
 )
 from walldye.geom import Affine
 
-# A circle as its curvature k and k times its centre, in coordinates where the disc is the unit
+# A circle as its curvature k and k times its center, in coordinates where the disc is the unit
 # circle; the outer circle has k = -1.
 type Circle = tuple[float, complex]
 
@@ -115,13 +115,13 @@ def draw(s: Canvas[Gasket]) -> None:
     rings = [P() for _ in range(LEVELS + 1)]
     for circle in gasket(o, a, b, c):
         if key(circle) not in hot_keys:
-            centre, r = place(circle)
+            center, r = place(circle)
             t = min(1.0, math.log(r / MIN_R) / math.log(R / MIN_R))
-            rings[round(t * LEVELS)].circle(centre, r)
+            rings[round(t * LEVELS)].circle(center, r)
     for i, d in enumerate(rings):
         s.stroke(d, TONES[round(i / LEVELS * 4)], 0.6 + i / LEVELS)
 
     for h, paint in zip(hot, CHAIN, strict=True):
-        centre, r = place(h)
+        center, r = place(h)
         # inset so the tangent hairlines around the chain stay unbroken
-        s.fill(P().circle(centre, r - min(1.2, 0.1 * r)), paint)
+        s.fill(P().circle(center, r - min(1.2, 0.1 * r)), paint)

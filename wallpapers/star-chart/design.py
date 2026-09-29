@@ -36,7 +36,7 @@ VARIANTS = {"orion": Chart(sky="orion")}
 
 
 class Sky(TypedDict):
-    tangent: tuple[float, float]  # RA, Dec (deg) of the projection centre
+    tangent: tuple[float, float]  # RA, Dec (deg) of the projection center
     focus: tuple[float, float]  # RA, Dec (deg) of the sky point placed on the focal point
     north: float  # bearing of north at the tangent point, on screen
     scale: float  # px per radian at the tangent point

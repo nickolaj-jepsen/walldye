@@ -124,7 +124,7 @@ def test_grid_runs_errors():
         grid_runs(s, GRID, PALETTE, 0)
     with pytest.raises(TypeError):
         grid_runs(s, GRID, PALETTE, 2, skip=True)
-    with pytest.raises(TypeError, match="raw colour"):
+    with pytest.raises(TypeError, match="raw color"):
         grid_runs(s, [[1]], [None, "#FF0000"], 2)
 
 

@@ -17,18 +17,18 @@ from walldye.geom import Affine, ribbon
 type F = NDArray[np.float64]
 
 R = 300  # ring radius, about the origin
-MAX_X = 1296  # furthest the ring's centre sits from the left edge
+MAX_X = 1296  # furthest the ring's center sits from the left edge
 A0, SWEEP = 150, 328  # where the brush lands and how far it travels, degrees clockwise from east
 LENGTH = math.radians(SWEEP) * R  # stroke length in px, to size head features in pixels
 BRUSH, BRISTLES = 58, 36
-SEAL, SEAL_AT, SEAL_TILT = 88, (370, 320), 2  # side, centre from the ring's centre, tilt in deg
+SEAL, SEAL_AT, SEAL_TILT = 88, (370, 320), 2  # side, center from the ring's center, tilt in deg
 # (t, half-width) of early dry breaks on the inner edge, around 10-11 o'clock
 KASURE = ((0.18, 0.012), (0.255, 0.007))
 TOL = 0.1  # px the merged outlines may move when thinned; the ribbons are sampled far finer
 
 
 def ring_at(n: Noise, t: F, off: F | float = 0.0) -> F:
-    """Points `off` px outward of the brush centreline at stroke parameters `t`: a hand-drawn
+    """Points `off` px outward of the brush centerline at stroke parameters `t`: a hand-drawn
     circle about the origin that drifts slightly outward as it goes round."""
     a = np.radians(A0 + SWEEP * t)
     r = R + 6 * n(t * 3, 0.5) + 10 * t + off
@@ -171,8 +171,8 @@ def seal(r: Rng) -> BaseGeometry:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # left of centre on a landscape screen, so the seal lands right of the middle, and never
-    # past MAX_X, which keeps the seal out of the middle of a 32:9 screen too; centred a little
+    # left of center on a landscape screen, so the seal lands right of the middle, and never
+    # past MAX_X, which keeps the seal out of the middle of a 32:9 screen too; centered a little
     # high on a portrait one, clear of the clock and the dock
     c = s.pick(landscape=(0.40625, 17 / 36), portrait=(0.46, 0.4))
     c = Vec(min(c.x, MAX_X), c.y)
