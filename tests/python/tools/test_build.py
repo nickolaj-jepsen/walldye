@@ -9,7 +9,7 @@ from tools_support import assert_recolours, built, legacy, seeds, versions
 from walldye import _check_themes
 from walldye._aspect import SITE_ASPECTS, canvas_size, template_name
 from walldye._theme import PRESETS, SEEDS
-from walldye.tools import build, coefs, common, hashing, listing, review
+from walldye.tools import build, check, coefs, common, hashing, listing, review
 from walldye.tools.tokenize import find_colours
 
 FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
@@ -37,12 +37,16 @@ def test_collision_builds_and_recolours(wallpapers, capsys):
         "design_sha",
         "focus",
         "cells",
+        "params",
+        "knobs",
+        "redraw",
         "probes",
         "render_lib",
         "checked",
         "16:9/dark",
         "16:9/light",
     ]
+    assert s["params"] == {"seed": None} and s["knobs"] == [] and s["redraw"] is False
     assert s["design_sha"] == hashing.design_sha("collision")
     assert s["checked"] == build.version() == "0.2.0"
     assert s["render_lib"] == hashing.render_lib_sha()
@@ -180,6 +184,16 @@ def test_variant_layout(wallpapers, capsys):
         assert build.entries(s)["16:9/dark"]["file"] == "16x9.svg"
         assert_recolours("versions", "nord", "10:16", name)
     assert "variant" not in slots("versions")
+    plain = {"lo": None, "hi": None, "choices": None, "unit": "", "max_len": None}
+    hour = {"name": "hour", "kind": "float", **plain, "lo": 0.0, "hi": 12.0, "unit": "h"}
+    ring = {"name": "ring", "kind": "bool", **plain}
+    for name, params in [
+        ("default", {"hour": 2.0, "ring": True, "seed": None}),
+        ("late", {"hour": 8.0, "ring": True, "seed": None}),
+        ("bare", {"hour": 5.0, "ring": False, "seed": 3}),
+    ]:
+        s = slots("versions", name)
+        assert s["params"] == params and s["knobs"] == [hour, ring] and s["redraw"] is True
     assert (b / "late/16x9.svg").read_text() == common.render(
         "versions", "fireproof", variant="late"
     )
@@ -271,6 +285,28 @@ def test_skip_restamp_and_rebuild(wallpapers, capsys):
     )
     assert "collision: wrote" in built(capsys, "collision")
     assert "collision: up to date" in built(capsys, "collision")
+
+
+def test_a_build_without_redraw_is_restamped_with_it(wallpapers, capsys):
+    versions(wallpapers)
+    built(capsys, "versions")
+    want = slots("versions")
+    old = {k: v for k, v in want.items() if k not in ("params", "knobs", "redraw")}
+    (common.build_dir("versions") / "slots.json").write_text(build.dump_slots(old))
+    assert "versions: up to date (probe renders unchanged" in built(capsys, "versions")
+    assert list(slots("versions").items()) == list(want.items())
+    assert "versions: up to date\n" in built(capsys, "versions")
+
+
+def test_slow_draws_warn_unless_controls_are_off(wallpapers, capsys, monkeypatch):
+    monkeypatch.setattr(check, "SLOW_DRAW", -1.0)
+    versions(wallpapers)
+    assert check.run(["versions"], jobs=1) == 0
+    assert "set controls: false in meta.yaml" in capsys.readouterr().out
+    meta = wallpapers / "versions/meta.yaml"
+    meta.write_text(meta.read_text() + "controls: false\n")
+    assert check.run(["versions"], jobs=1) == 0
+    assert "controls: false" not in capsys.readouterr().out
 
 
 def test_data_files_trigger_rebuilds(wallpapers, capsys):

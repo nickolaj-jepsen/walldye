@@ -17,3 +17,6 @@ variants:
   five-four:
     label: Five to four
     description: At five to four, an oscilloscope beam knots a dense Lissajous figure.
+controls:
+  fx: {label: Horizontal frequency, drag: x}
+  fy: {label: Vertical frequency, drag: y}

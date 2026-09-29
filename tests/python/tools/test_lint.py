@@ -1,7 +1,10 @@
 import textwrap
+from typing import Literal
 
 import pytest
 
+from walldye import Params, knob
+from walldye._params import describe
 from walldye.tools import lint
 
 HEAD = '"""A design."""\n\nfrom walldye import ACCENT, UI, Canvas, P, Params, design, mix\n'
@@ -382,6 +385,76 @@ def test_meta_rules(slug, meta, names, error, tmp_path, monkeypatch):
         assert found == []
     else:
         assert any(error in e for e in found), found
+
+
+class Knobs(Params):
+    phase: float = knob(default=0, lo=-90, hi=90, unit="deg")
+    sky: Literal["a", "b"] = knob(default="a")
+    cells: int = knob(default=2, choices=(2, 3))
+    lit: bool = True
+    mode: Literal[1, 2] = knob(default=1)
+    free: float = 1.0
+    name: str = "x"
+    crop: float = knob(default=0.5, lo=0, hi=1)
+    note: str = knob(default="hello", max_len=12)
+    tilt: int = knob(default=0, lo=-5, hi=5)
+
+
+KNOBS = describe(Knobs)
+
+
+@pytest.mark.parametrize(
+    ("controls", "error"),
+    [
+        (False, None),
+        (
+            {"phase": "Phase", "sky": {"label": "Sky", "choices": {"a": "North", "b": "South"}}},
+            None,
+        ),
+        ({"cells": "Cell size", "lit": "Lit", "mode": "Mode"}, None),
+        ({"mode": {"label": "Mode", "choices": {1: "One", 2: "Two"}}}, None),
+        ("on", "controls: is false or a mapping"),
+        ({"seed": "Draw"}, "controls: seed is not a knob of design.py"),
+        ({"size": "Size"}, "controls: size is not a knob"),
+        ({"phase": ""}, "controls: phase needs a label of one to four plain words"),
+        ({"phase": "Moon phase seed"}, "the label says seed"),
+        ({"phase": {"label": "Phase", "unit": "deg"}}, "controls: phase: unit not allowed"),
+        ({"note": "Note", "phase": {"label": "Phase", "drag": "x"}}, None),
+        ({"phase": {"label": "Phase", "drag": "x"}, "tilt": {"label": "Tilt", "drag": "y"}}, None),
+        ({"phase": {"label": "Phase", "drag": "z"}}, "controls: phase: drag is x or y"),
+        (
+            {"phase": {"label": "Phase", "drag": "x"}, "tilt": {"label": "Tilt", "drag": "x"}},
+            "controls: tilt: phase already drags along x",
+        ),
+        ({"mode": {"label": "Mode", "drag": "x"}}, "drag moves a knob with lo and hi"),
+        ({"note": {"label": "Note", "drag": "y"}}, "drag moves a knob with lo and hi"),
+        ({"note": {"label": "Note", "choices": {"a": "A"}}}, "controls: note: a text knob has no"),
+        ({"free": "Free"}, "controls: free: a knob without choices needs lo and hi"),
+        ({"sky": "Sky"}, "controls: sky needs choices"),
+        ({"sky": {"label": "Sky", "choices": {"a": "North"}}}, "choices needs a label for b"),
+        ({"sky": {"label": "Sky", "choices": {"a": "N", "b": "S", "c": "E"}}}, "c are not values"),
+        ({"phase": {"label": "Phase", "choices": {"1": "One"}}}, "choices label the values"),
+        ({"name": "Name"}, "controls: name: a str knob is shown only with choices or max_len"),
+        ({"crop": "Crop"}, "controls: crop would clash with the page's ?crop="),
+    ],
+)
+def test_meta_controls(controls, error):
+    found, _ = lint.meta("ok", {**GOOD, "controls": controls}, TAXONOMY, knobs=KNOBS)
+    if error is None:
+        assert found == []
+    else:
+        assert any(error in e for e in found), found
+
+
+def test_meta_controls_without_the_design_checks_labels_only():
+    meta = {**GOOD, "controls": {"size": "Size", "phase": {"label": "Seed", "choices": {1: ""}}}}
+    found, warnings = lint.meta("ok", meta, TAXONOMY)
+    assert found == [
+        "controls: phase: the label says seed, a word visitors never see",
+        "controls: phase: choices: 1 needs a label of one to four plain words",
+    ]
+    _, warnings = lint.meta("ok", {**GOOD, "controls": {"phase": "Red sky"}}, TAXONOMY)
+    assert "colour words in controls: phase: red" in warnings
 
 
 def test_meta_wants_a_source_for_data(wallpapers):

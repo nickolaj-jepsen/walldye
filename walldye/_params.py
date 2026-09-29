@@ -28,10 +28,13 @@ class Knob:
     choices: object
     doc: object
     unit: object
+    max_len: object = None
 
 
 @overload
 def knob(*, default: bool, doc: str = "") -> bool: ...
+@overload
+def knob(*, default: str, max_len: int, doc: str = "") -> str: ...
 @overload
 def knob(
     *, default: int, lo: int | None = None, hi: int | None = None, doc: str = "", unit: str = ""
@@ -59,16 +62,19 @@ def knob(
     choices: Sequence[object] | None = None,
     doc: str = "",
     unit: str = "",
+    max_len: int | None = None,
 ) -> object:
     """A Params field with a default, an optional soft range [lo, hi] (bounds sweeps; --set
     warns outside it), optional hard `choices`, a one-line `doc` and a display `unit`.
+    `max_len` makes a str field text: printable ASCII, 1 to `max_len` characters, which the
+    bitmap fonts can draw.
 
     Every argument is keyword-only, so type checkers see the default. The class creating the
     field validates the arguments (see ParamsMeta).
     """
     return dataclasses.field(
         default=default,
-        metadata={"walldye": Knob(lo, hi, choices, doc, unit)},
+        metadata={"walldye": Knob(lo, hi, choices, doc, unit, max_len)},
     )
 
 
@@ -86,12 +92,14 @@ class _Field:
     choices: tuple[int | str, ...] | None = None
     doc: str = ""
     unit: str = ""
+    max_len: int | None = None
 
     def check(self, owner: str, v: object) -> Value:
         """`v` converted for this field (numpy numbers to int or float, ints to float).
 
         Raises TypeError for the wrong type and ValueError for a value outside the choices,
-        a non-finite float or a negative seed.
+        a non-finite float, a negative seed, or text that is empty, longer than max_len or
+        not printable ASCII.
         """
         what = f"{owner}.{self.name}"
         if self.kind == "seed":
@@ -116,6 +124,12 @@ class _Field:
                 raise ValueError(f"{what} takes a finite float, got {v!r}")
         elif isinstance(v, str):
             out = v
+            if self.max_len is not None and not (
+                1 <= len(v) <= self.max_len and all(" " <= ch <= "~" for ch in v)
+            ):
+                raise ValueError(
+                    f"{what} takes 1 to {self.max_len} printable ASCII characters, got {v!r}"
+                )
         else:
             raise TypeError(f"{what} takes a str, got {v!r}")
         for allowed in (self.literal, self.choices):
@@ -167,7 +181,7 @@ def _field(owner: str, name: str, ann: object, value: object) -> _Field:
     if name == "seed":
         raise TypeError(f"{owner}.seed: seed is declared by Params; set it in a variant instead")
     kind, literal = _kind(owner, name, ann)
-    raw = Knob(None, None, None, "", "")
+    raw = Knob(None, None, None, "", "", None)
     if isinstance(value, dataclasses.Field):
         fld: dataclasses.Field[object] = value
         if fld.default is dataclasses.MISSING:
@@ -194,7 +208,14 @@ def _field(owner: str, name: str, ann: object, value: object) -> _Field:
             raise ValueError(f"{owner}.{name}: choices are empty")
     if not isinstance(raw.doc, str) or not isinstance(raw.unit, str):
         raise TypeError(f"{owner}.{name}: doc and unit are str")
-    field = _Field(name, kind, None, literal, lo, hi, choices, raw.doc, raw.unit)
+    max_len: int | None = None
+    if raw.max_len is not None:
+        if kind != "str" or literal is not None or choices is not None:
+            raise TypeError(f"{owner}.{name}: max_len is for str params without choices")
+        max_len = _int(raw.max_len, f"{owner}.{name} max_len")
+        if max_len < 1:
+            raise ValueError(f"{owner}.{name}: max_len is at least 1, got {max_len}")
+    field = _Field(name, kind, None, literal, lo, hi, choices, raw.doc, raw.unit, max_len)
     default = field.check(owner, value)
     if lo is not None and hi is not None and lo > hi:
         raise ValueError(f"{owner}.{name}: lo {lo} is above hi {hi}")
@@ -264,6 +285,7 @@ class KnobInfo:
     choices: tuple[int | str, ...] | None
     doc: str
     unit: str
+    max_len: int | None = None  # set for a text field
 
 
 def describe(params_type: type[Params]) -> tuple[KnobInfo, ...]:
@@ -285,6 +307,7 @@ def describe(params_type: type[Params]) -> tuple[KnobInfo, ...]:
             f.choices if f.choices is not None else f.literal,
             f.doc,
             f.unit,
+            f.max_len,
         )
         for f in fields
     )

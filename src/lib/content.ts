@@ -60,6 +60,9 @@ export function otherValues(p: Piece): OtherValue[] {
   if (p.sources.length) out.push('references');
   if (fitsAnyScreen(p)) out.push('any-screen');
   if (p.hasScript) out.push('source-code');
+  // The Drawing section's two powers: a new draw of some version, and labelled knobs.
+  if (p.drawable && [p, ...p.versions].some((v) => v.redraw)) out.push('draw-another');
+  if (p.drawable && p.knobs.length) out.push('adjustable');
   out.push(p.model ? 'claude' : 'human-made');
   return out;
 }
@@ -244,7 +247,10 @@ export function fileStem(slug: string, variant: string): string {
   return variant === DEFAULT_VARIANT ? slug : `${slug}--${variant}`;
 }
 
-/** Export file name: `<stem>-<token>-<w>x<h>.<ext>`, or for SVG `<stem>-<token>-<aspect>[-crop].svg`, the stem from fileStem. */
+/**
+ * Export file name: `<stem>-<token>-<w>x<h>.<ext>`, or for SVG `<stem>-<token>-<aspect>[-crop].svg`,
+ * the stem from fileStem followed by `edits`, the suffix that names a drawing the visitor changed.
+ */
 export function downloadName(
   slug: string,
   variant: string,
@@ -253,8 +259,9 @@ export function downloadName(
   size: string,
   aspect: string,
   cropped: boolean,
+  edits = '',
 ): string {
-  const stem = fileStem(slug, variant);
+  const stem = fileStem(slug, variant) + edits;
   if (format.value === 'svg') return `${stem}-${token}-${aspectLabel(aspect)}${cropped ? '-crop' : ''}.svg`;
   return `${stem}-${token}-${size}.${format.ext}`;
 }

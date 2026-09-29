@@ -21,6 +21,12 @@ describe('copy lint (h)', () => {
     expect(colourWords('reddish Blueprint')).toEqual([]);
   });
 
+  it('reads the controls: labels and their choices', () => {
+    const controls = { sweep: 'Red sweep', sky: { label: 'Sky', choices: { a: 'Seed' } } };
+    expect(lintCopy({ controls })).toEqual(['controls.sweep: colour words red', 'controls.sky.choices.a: internal term "Seed"']);
+    expect(lintCopy({ controls: false })).toEqual([]);
+  });
+
   it('flags plural colour words', () => {
     expect(colourWords('Greys and whites under the ambers; GREYS, BLUES, crimsons')).toEqual([
       'ambers',

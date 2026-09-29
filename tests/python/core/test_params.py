@@ -111,6 +111,39 @@ def test_class_creation_errors(name, annotation, default, error, match):
         types.new_class("X", (Params,), {}, lambda body: body.update(ns))
 
 
+class Note(Params):
+    text: str = knob(default="hi there", max_len=12, doc="what it says")
+
+
+def test_text_params():
+    assert Note(text="~ ok, 12 chr").text == "~ ok, 12 chr"
+    for bad in ("", "x" * 13, "tab\there", "naïve", "line\n"):
+        with pytest.raises(ValueError, match="1 to 12 printable ASCII"):
+            Note(text=bad)
+    with pytest.raises(TypeError):
+        Note(text=3)
+    assert describe(Note)[0] == KnobInfo(
+        "text", "str", "hi there", None, None, None, "what it says", "", 12
+    )
+    assert describe(Moon)[1].max_len is None
+
+
+@pytest.mark.parametrize(
+    ("annotation", "default", "error", "match"),
+    [
+        (int, knob(default=1, max_len=3), TypeError, "max_len is for str"),
+        (Literal["a", "b"], knob(default="a", max_len=3), TypeError, "max_len is for str"),
+        (str, knob(default="a", max_len=0), ValueError, "at least 1"),
+        (str, knob(default="toolong", max_len=3), ValueError, "printable ASCII"),
+        (str, knob(default="", max_len=3), ValueError, "printable ASCII"),
+    ],
+)
+def test_text_param_errors(annotation, default, error, match):
+    ns: dict[str, object] = {"__annotations__": {"x": annotation}, "x": default}
+    with pytest.raises(error, match=match):
+        types.new_class("X", (Params,), {}, lambda body: body.update(ns))
+
+
 def test_describe():
     info = describe(Moon)
     assert [k.name for k in info] == [

@@ -21,3 +21,5 @@ variants:
   complete:
     label: Pass complete
     description: A satellite picture of a cyclone, fully received in dithered cells, its lower arm trailing into scattered cloud.
+controls:
+  line: {label: Lines received, drag: y}

@@ -55,6 +55,8 @@ def _value(v: object) -> str:
 def _span(k: KnobInfo) -> str:
     if k.choices is not None:
         return "|".join(str(c) for c in k.choices)
+    if k.max_len is not None:
+        return f"text<={k.max_len}"
     if k.lo is None and k.hi is None:
         return ""
     return f"{'' if k.lo is None else f'{k.lo:g}'}..{'' if k.hi is None else f'{k.hi:g}'}"

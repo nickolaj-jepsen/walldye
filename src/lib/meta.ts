@@ -152,9 +152,21 @@ export function sentences(text: string): number {
   return /[.!?]$/.test(t) ? ends : ends + 1;
 }
 
+/** Every label under meta.yaml `controls:` as [field, label]: `controls.<knob>` and `controls.<knob>.choices.<value>`. */
+function controlLabels(meta: Meta): [string, unknown][] {
+  const out: [string, unknown][] = [];
+  if (!isMapping(meta.controls)) return out;
+  for (const [name, e] of Object.entries(meta.controls)) {
+    out.push([`controls.${name}`, isMapping(e) ? e.label : e]);
+    if (isMapping(e) && isMapping(e.choices)) for (const [v, label] of Object.entries(e.choices)) out.push([`controls.${name}.choices.${v}`, label]);
+  }
+  return out;
+}
+
 /**
- * Copy problems in the title, description and notes of `meta` and in each variant's label and
- * description, each as "<field>: <problem>" (a variant field as `variants.<name>.label`): colour words
+ * Copy problems in the title, description and notes of `meta`, in each variant's label and
+ * description and in the controls: labels, each as "<field>: <problem>" (a variant field as
+ * `variants.<name>.label`, a knob's as `controls.<name>`): colour words
  * and BANNED phrases in any of them; a description over MAX_DESCRIPTION_WORDS words or
  * MAX_DESCRIPTION_SENTENCES sentences. [] when the copy follows the rules.
  */
@@ -170,6 +182,7 @@ export function lintCopy(meta: Meta): string[] {
       if (isMapping(e)) fields.push([`variants.${name}.label`, e.label, false], [`variants.${name}.description`, e.description, true]);
     }
   }
+  for (const [field, label] of controlLabels(meta)) fields.push([field, label, false]);
   const out: string[] = [];
   for (const [field, value, isDescription] of fields) {
     const text = value ? String(value) : '';
@@ -207,8 +220,8 @@ export function smartQuotes(text: string): string {
 
 /**
  * A copy of `meta` with smartQuotes applied to what visitors read outside the notes: the title and
- * description, each variant's label and description, each source's title, topic and author, and the
- * franchise. Values that are not strings are left for the schema to report.
+ * description, each variant's label and description, each source's title, topic and author, the
+ * franchise and the controls: labels. Values that are not strings are left for the schema to report.
  */
 export function typesetMeta(meta: Meta): Meta {
   const q = (v: unknown) => (typeof v === 'string' ? smartQuotes(v) : v);
@@ -219,6 +232,15 @@ export function typesetMeta(meta: Meta): Meta {
   if ('franchise' in meta) out.franchise = pick(meta.franchise, ['title', 'owner']);
   if (isMapping(meta.variants)) {
     out.variants = Object.fromEntries(Object.entries(meta.variants).map(([name, e]) => [name, pick(e, ['label', 'description'])]));
+  }
+  if (isMapping(meta.controls)) {
+    out.controls = Object.fromEntries(
+      Object.entries(meta.controls).map(([name, e]) => {
+        if (!isMapping(e)) return [name, q(e)];
+        const choices = isMapping(e.choices) ? Object.fromEntries(Object.entries(e.choices).map(([v, l]) => [v, q(l)])) : e.choices;
+        return [name, { ...e, label: q(e.label), ...(e.choices === undefined ? {} : { choices }) }];
+      }),
+    );
   }
   return out;
 }

@@ -76,6 +76,8 @@ const template = z.object({
   url: z.string(),
 });
 
+const paramValue = z.union([z.number(), z.string(), z.boolean(), z.null()]);
+
 /** What the loader reads from one build directory: build/ for the default, build/<variant>/ for a named variant. */
 const build = {
   /** Templates by slots.json key, `<aspect>/<regime>`. */
@@ -86,7 +88,47 @@ const build = {
   slotsPath: z.string(),
   /** Ink-weighted centroid of the 16:9 template, each 0..1. */
   focus: z.tuple([z.number(), z.number()]),
+  /** The version's params by field name, `seed` included. */
+  params: z.record(z.string(), paramValue),
+  /** Whether another seed draws this version differently. */
+  redraw: z.boolean(),
 };
+
+/** A knob the detail page shows: the params schema from slots.json with meta.yaml's labels, in meta.yaml order. */
+const knob = z
+  .object({
+    name: z.string(),
+    label: z.string(),
+    kind: z.enum(['int', 'float', 'bool', 'str']),
+    lo: z.number().nullable(),
+    hi: z.number().nullable(),
+    /** Each value with its label; null for a range, a bool or text. */
+    choices: z.array(z.object({ value: z.union([z.number(), z.string()]), label: z.string() })).nullable(),
+    unit: z.string(),
+    /** The longest text a text knob takes; null for any other knob. */
+    maxLen: z.number().nullable(),
+    /** The axis along which dragging the picture moves this knob, if any. */
+    drag: z.enum(['x', 'y']).nullable(),
+  })
+  .strict();
+
+/** meta.yaml `controls:`: false, or knob names mapped to a label or {label, choices, drag}. walldye check holds them to the design. */
+const controlsMeta = z.union([
+  z.literal(false),
+  z.record(
+    z.string(),
+    z.union([
+      z.string().trim().min(1),
+      z
+        .object({
+          label: z.string().trim().min(1),
+          choices: z.record(z.string(), z.string().trim().min(1)).optional(),
+          drag: z.enum(['x', 'y']).optional(),
+        })
+        .strict(),
+    ]),
+  ),
+]);
 
 /** One version of a piece: the default or a named variant, with its meta.yaml copy and its build. */
 const version = z
@@ -124,6 +166,7 @@ const wallpaper = z
     draft: z.boolean().default(false),
     proposed_facets: z.record(z.string(), z.array(z.string())).default({}),
     variants: variantsMeta.optional(),
+    controls: controlsMeta.optional(),
 
     // Attached by the loader, not read from meta.yaml.
     slug: z.string(),
@@ -136,6 +179,12 @@ const wallpaper = z
     script: z.string().nullable(),
     /** Aspects the piece composes natively, in SITE_ASPECTS order; the rest are crops of 16:9. */
     aspects: z.array(z.string()).min(1),
+    /** The knobs the detail page shows; [] when meta.yaml labels none or turns the controls off. */
+    knobs: z.array(knob),
+    /** Whether the detail page may redraw the piece in the browser: it has a script and meta.yaml leaves the controls on. */
+    drawable: z.boolean(),
+    /** A drawable piece's data/ files, served at /t/<sha256[:12]>.data for the browser's draws. */
+    dataFiles: z.array(z.object({ name: z.string(), path: z.string(), url: z.string() }).strict()),
     /** The default version's build, which the index and the social card show. */
     ...build,
     /**
@@ -206,7 +255,50 @@ function readBuild(slug: string, dir: string) {
     slotsUrl: `/t/${sha256(slotsBytes).slice(0, 12)}.slots.json`,
     slotsPath: rootPath(slotsPath),
     focus: (Array.isArray(slots.focus) ? slots.focus : [0.5, 0.5]) as [number, number],
+    // A build from before these keys offers no controls until it is rebuilt.
+    params: (isRecord(slots.params) ? slots.params : {}) as Record<string, z.infer<typeof paramValue>>,
+    redraw: slots.redraw === true,
   };
+}
+
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+type KnobSchema = {
+  name: string;
+  kind: string;
+  lo: number | null;
+  hi: number | null;
+  choices: (number | string)[] | null;
+  unit: string;
+  max_len?: number | null;
+};
+
+/**
+ * The knobs meta.yaml `controls:` labels, in its order, with their schema from the default version's
+ * slots.json. [] when the controls are off or none are labelled; throws naming a knob the build does
+ * not have (walldye check reports the rest of the rules).
+ */
+function shownKnobs(slug: string, controls: unknown, slotsPath: string): z.infer<typeof knob>[] {
+  if (!isRecord(controls)) return [];
+  const slots = JSON.parse(readFileSync(join(ROOT, slotsPath), 'utf8')) as Record<string, unknown>;
+  const schema = new Map((Array.isArray(slots.knobs) ? (slots.knobs as KnobSchema[]) : []).map((k) => [k.name, k]));
+  return Object.entries(controls).map(([name, entry]) => {
+    const k = schema.get(name);
+    if (!k) throw new Error(`${slotsPath} has no knob ${name} for controls: in meta.yaml: run walldye build ${slug}`);
+    const { label, choices, drag } =
+      typeof entry === 'string' ? { label: entry, choices: undefined, drag: undefined } : (entry as { label: string; choices?: Record<string, string>; drag?: 'x' | 'y' });
+    return {
+      name,
+      label: label.trim(),
+      kind: k.kind as z.infer<typeof knob>['kind'],
+      lo: k.lo,
+      hi: k.hi,
+      choices: k.choices ? k.choices.map((value) => ({ value, label: (choices?.[String(value)] ?? String(value)).trim() })) : null,
+      unit: k.unit,
+      maxLen: k.max_len ?? null,
+      drag: drag ?? null,
+    };
+  });
 }
 
 /**
@@ -250,6 +342,17 @@ function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn:
   const scriptPath = join(dir, 'design.py');
   const hasScript = existsSync(scriptPath);
   const licence = licenseOf(meta);
+  const drawable = hasScript && meta.controls !== false;
+  const dataDir = join(dir, 'data');
+  const dataFiles =
+    drawable && existsSync(dataDir)
+      ? readdirSync(dataDir)
+          .sort()
+          .map((name) => {
+            const path = join(dataDir, name);
+            return { name, path: rootPath(path), url: `/t/${sha256(readFileSync(path)).slice(0, 12)}.data` };
+          })
+      : [];
   return {
     slug,
     licence: typeof licence === 'string' ? licence : '',
@@ -257,6 +360,9 @@ function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn:
     hasData: existsSync(join(dir, 'data')),
     script: hasScript ? readFileSync(scriptPath, 'utf8') : null,
     aspects,
+    knobs: drawable ? shownKnobs(slug, meta.controls, main.slotsPath) : [],
+    drawable,
+    dataFiles,
     ...main,
     versions,
   };

@@ -83,8 +83,8 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    uv run ruff format wallpapers/<slug> && uv run ruff check --fix wallpapers/<slug>
    uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/<slug>/design.py
    ```
-   `check` covers every variant. Its warnings are judgement calls, except colour words and
-   fractional grid origins: fix those.
+   `check` covers every variant. Its warnings are judgement calls, except colour words,
+   fractional grid origins and a slow 16:9 draw: fix those.
 9. Independent critique (below). Go on only with a score of 8 or more.
 10. `uv run walldye build <slug>`, then `uv run walldye check --similar <slug>`: after running
     the whole check again, it prints `similar (0.95): a ~ b` for each built piece whose
@@ -183,6 +183,13 @@ docs/wallpapers.md, meta.yaml, has every field and rule. On top of it:
     default: {label: Early in the turn}
     late: {label: Late in the turn, draft: true}
   ```
+- `controls:` labels the knobs a visitor may move on the piece's page. Label a knob only when
+  the piece holds up across its whole `lo..hi` (check with `sheet --wedge`) and it adds
+  something the versions do not; a choice knob that only repeats the versions stays unlabelled.
+  Give a knob `drag: x` or `y` when moving it reads as moving the picture (a sweep, a light, a
+  tilt). Text the piece draws in glyphs (a name, a header line) can be a text knob,
+  `knob(default=..., max_len=N)`, when any printable ASCII of that length still composes.
+  When check warns that a 16:9 draw is slow, write `controls: false` instead.
 
 ## Copy
 

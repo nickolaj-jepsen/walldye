@@ -2,8 +2,8 @@
  * Recoloured plate images for the index and the detail page. Templates and slots.json are fetched
  * at most MAX_FETCHES at a time and cached, templates in an LRU of about TEMPLATE_BUDGET bytes. A
  * plate shows its template recoloured for the given seeds as a blob: URL (the template's own URL
- * when that changes nothing), swapped in only once decoded, after which the previous blob: URL is
- * revoked.
+ * when that changes nothing), or a drawing made in the browser, swapped in only once decoded, after
+ * which the previous blob: URL is revoked.
  */
 import { pickTemplate, prepareTemplate, recolour, type PreparedTemplate, type Slots } from '../lib/recolour';
 import { CANVAS, type Aspect } from '../lib/content';
@@ -233,6 +233,11 @@ async function show(plate: HTMLElement, aspect: string, source: () => Promise<So
  */
 export function showPlate(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<void> {
   return show(plate, aspect, () => sourceFor(plate, aspect, seeds));
+}
+
+/** Shows `svg`, a drawing of `plate` at `aspect`, as its image. Supersedes like showPlate. */
+export function showSvg(plate: HTMLElement, aspect: string, svg: string): Promise<void> {
+  return show(plate, aspect, async () => ({ url: URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })), blob: true }));
 }
 
 /**

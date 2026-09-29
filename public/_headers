@@ -7,6 +7,9 @@
   Cache-Control: public, max-age=31536000, immutable
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+# The Pyodide runtime, one directory per pinned version, whose files never change.
+/py/*
+  Cache-Control: public, max-age=31536000, immutable
 
 # HTML is one path segment (build.format 'file'): /, /about, /404, /<slug>.
 /

@@ -65,6 +65,8 @@ export const OTHER_LABELS = {
   references: 'has references',
   'any-screen': 'fits any screen',
   'source-code': 'has source code',
+  'draw-another': 'can draw another',
+  adjustable: 'can be adjusted',
   claude: 'made with Claude',
   'human-made': 'human-made',
 } as const;

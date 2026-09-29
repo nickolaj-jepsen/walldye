@@ -19,3 +19,6 @@ variants:
   half:
     label: Half moon
     description: A low-poly moon at first quarter, lit from the side, its upper left half catching the light up to a stepped edge.
+controls:
+  phase: {label: Phase, drag: x}
+  exposure: Exposure

@@ -34,6 +34,8 @@ from walldye.tools.common import Regime
 HASH_SEED: Final = "4242"
 NEAR_CLONE: Final = 0.93
 SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
+# Seconds for one 16:9 draw; the site's in-browser redraw runs two to three times slower.
+SLOW_DRAW: Final = 2.0
 INK_WIDTH: Final = 256
 FOCUS_WIDTH: Final = 480
 
@@ -81,6 +83,8 @@ class Result:
     probes: dict[str, str] = field(default_factory=dict[str, str])
     focus: tuple[float, float] | None = None
     ink: Ink | None = None  # the 16:9 dark template's ink map
+    redraw: bool = False  # another seed draws a different 16:9 dark document
+    draw_seconds: float = 0.0  # the 16:9 dark draw with another seed
     seconds: float = 0.0
     unchanged: bool = False  # build: the probes matched, so nothing else was checked
 
@@ -112,12 +116,14 @@ class Target:
     report: Report
     piece: common.Piece | None = None
     variants: tuple[str, ...] = ()
+    controls: bool = True  # meta.yaml leaves the page's drawing controls on
+    labelled: bool = False  # meta.yaml labels at least one knob for the page
 
 
 def prepare(slug: str, variant: str | None = None) -> Target:
-    """Load `slug`, apply the meta.yaml rules (including variants:) and warn for each named
-    variant value outside its knob's soft range. `variant` limits the variants to check;
-    UsageError when the design does not declare it."""
+    """Load `slug`, apply the meta.yaml rules (including variants: and controls:) and warn for
+    each named variant value outside its knob's soft range. `variant` limits the variants to
+    check; UsageError when the design does not declare it."""
     t = Target(slug, Report(slug))
     try:
         meta = common.load_meta(slug)
@@ -128,15 +134,18 @@ def prepare(slug: str, variant: str | None = None) -> Target:
         t.piece = load(slug)
     except DesignError as e:
         t.report.errors.append(str(e))
+    t.controls = meta.get("controls") is not False
+    labels = common.as_dict(meta.get("controls"))
+    t.labelled = labels is not None and len(labels) > 0
     names = ("default", *common.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
-    errors, warnings = lint.meta(slug, meta, lint.load_taxonomy(), names)
+    infos = () if t.piece is None else describe(t.piece.params_type)
+    errors, warnings = lint.meta(slug, meta, lint.load_taxonomy(), names, infos)
     t.report.errors += errors
     t.report.warnings += warnings
     if t.piece is not None:
         if variant is not None:
             common.variant_of(t.piece, slug, variant)
         t.variants = t.piece.variant_names() if variant is None else (variant,)
-        infos = describe(t.piece.params_type)
         for v, params in t.piece.variants.items():
             if v not in t.variants:
                 continue
@@ -144,6 +153,20 @@ def prepare(slug: str, variant: str | None = None) -> Target:
                 if (w := knobs.outside(info, getattr(params, info.name))) is not None:
                     t.report.warnings.append(f"{v}: {w}")
     return t
+
+
+def slow_draws(t: Target) -> None:
+    """Warn for each checked variant whose 16:9 draw took over SLOW_DRAW seconds while the
+    page would offer to redraw it (another seed changes it, or meta.yaml labels a knob)."""
+    if not t.controls:
+        return
+    for r in t.report.results.values():
+        if r.draw_seconds > SLOW_DRAW and (r.redraw or t.labelled):
+            prefix = "" if r.variant == "default" else f"{r.variant}: "
+            t.report.warnings.append(
+                f"{prefix}a 16:9 draw took {r.draw_seconds:.1f} s, over {SLOW_DRAW:.0f} s, and"
+                " browsers draw slower still: set controls: false in meta.yaml"
+            )
 
 
 def lint_source(t: Target) -> None:
@@ -219,6 +242,7 @@ def _check(task: Task, r: Result) -> None:
         r.probes = probe_hashes(docs)
         if r.probes == dict(task.probes):
             r.unchanged = True
+            _redraw(piece, variant, docs["16:9", "dark"], r)
             return
 
     keys = {
@@ -253,6 +277,7 @@ def _check(task: Task, r: Result) -> None:
     r.errors += _fresh_errors(done, expected)
     if len(r.errors) > 0:
         return
+    _redraw(piece, variant, docs["16:9", "dark"], r)
 
     for (aspect, regime), doc in docs.items():
         w, h = canvas_size(aspect)
@@ -281,6 +306,25 @@ def _check(task: Task, r: Result) -> None:
         r.ink = common.ink_map(common.rasterise(dark, INK_WIDTH), bg)
     if task.paranoid and not isinstance(piece, common.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
+
+
+def _redraw(piece: common.Piece, variant: str, dark: Document, r: Result) -> None:
+    """Set r.redraw and r.draw_seconds from one 16:9 dark draw of `variant` with another seed,
+    compared with `dark` under fireproof. A draw that raises counts as responding to the seed
+    and warns, since the site skips seeds that fail."""
+    params = piece.params(variant)
+    other = knobs.replace(params, {"seed": 2 if params.seed == 1 else 1})
+    start = time.perf_counter()
+    try:
+        doc = draw(piece, RenderSpec(variant, other, "16:9", "dark"))
+    except DesignError as e:
+        r.redraw = True
+        r.warnings.append(f"with seed {other.seed}: {e}")
+        return
+    finally:
+        r.draw_seconds = time.perf_counter() - start
+    fireproof = common.tokens_of(TEMPLATE_THEMES["dark"])
+    r.redraw = doc.to_svg(fireproof) != dark.to_svg(fireproof)
 
 
 def _start_fresh(keys: Sequence[str]) -> subprocess.Popen[str]:
@@ -484,6 +528,7 @@ def run(
         if t.piece is not None:
             fresh = {v: r.ink for v, r in t.report.results.items()}
             siblings(t.report, t.piece.variant_names(), fresh)
+        slow_draws(t)
         print_report(t.report)
         failed += len(t.report.errors) > 0
     if similar:

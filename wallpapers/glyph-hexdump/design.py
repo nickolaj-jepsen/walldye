@@ -11,9 +11,11 @@ from walldye import (
     Canvas,
     Colour,
     P,
+    Params,
     Path,
     Rng,
     design,
+    knob,
     mix,
     smoothstep,
 )
@@ -21,16 +23,19 @@ from walldye.pixel import glyphs
 
 PX, FW, FH = 2, 8, 16
 CW, CH = FW * PX, FH * PX  # text cell
-STR = 0x10F  # string table start; splits "fireproof" as fire|proof across a row break
-WORD = b"fireproof"  # the selected string
+STR = 0x10F  # string table start; splits the default word as fire|proof across a row break
 SIZE = 1024  # bytes generated, more than the tallest screen shows
 LIT = (1.0, 0.6, 0.25)  # how far rows 0, 1 and 2 away from the selection brighten
 FADE = 6  # tone steps from the top and bottom rows to the middle
 
 
-def blob(r: Rng) -> bytes:
+class Dump(Params):
+    word: str = knob(default="fireproof", max_len=24, doc="the selected string")
+
+
+def blob(r: Rng, word: bytes) -> bytes:
     """The first SIZE bytes of a plausible x86-64 ELF: header, a program header, code, the
-    string table at STR, then sparse data."""
+    string table at STR with `word` among its names, then sparse data."""
     hdr = bytes.fromhex(
         "7f454c46020101000000000000000000"
         "03003e00010000004010000000000000"
@@ -44,22 +49,23 @@ def blob(r: Rng) -> bytes:
     code = bytes.fromhex("f30f1efa554889e54883ec10897dfc488975f0bf00000000e8")
     code += bytes(r.randrange(256) for _ in range(STR))
     strs = b"\0.symtab\0.strtab\0.shstrtab\0.text\0.data\0.bss\0.rodata\0.comment\0"
-    strs += WORD + b"\0main\0_start\0GCC: (GNU) 14.2.1\0"
+    strs += word + b"\0main\0_start\0GCC: (GNU) 14.2.1\0"
     tail = bytes(r.choice([0, 0, 0, r.randrange(256)]) for _ in range(SIZE))
     return ((hdr + code)[:STR] + strs + tail)[:SIZE]
 
 
 @design(aspects="any")
-def draw(s: Canvas) -> None:
+def draw(s: Canvas[Dump]) -> None:
     # xxd -c 16 on landscape screens, -c 8 on portrait ones: same glyph size, a narrower block
     n = 16 if s.landscape else 8
     hex0, hex1 = 10, 10 + n // 2 * 5 - 1  # hex columns, in groups of two bytes
     asc0 = hex1 + 2  # ASCII columns
     cols, rows = asc0 + n, s.h // CH
 
-    data = blob(s.rng(5))
-    lo = data.index(WORD)
-    hi = lo + len(WORD)  # selected bytes [lo, hi); the cursor sits on hi
+    word = s.params.word.encode()
+    data = blob(s.rng(5), word)
+    lo = data.index(word, STR)  # the string table's copy, even when the header holds it too
+    hi = lo + len(word)  # selected bytes [lo, hi); the cursor sits on hi
     # Start the dump so the selection sits a little below the middle row.
     top = max(0, lo // n - round(0.62 * rows))
     base = top * n

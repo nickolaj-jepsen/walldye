@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import TypedDict
 
 from walldye._aspect import SITE_ASPECTS, TEMPLATE_NAME
+from walldye._params import describe
 from walldye._theme import PRESETS, SEEDS, hex_to_rgb, is_light, normalise_seed, rgb_to_hex
 from walldye.tools import check, common, hashing, lint
 from walldye.tools.tokenize import find_colours, substitute
@@ -105,7 +106,34 @@ def _name(slug: str, variant: str) -> str:
     return slug if variant == "default" else f"{slug} ({variant})"
 
 
-def _write(slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Result) -> list[str]:
+def controls(piece: common.Piece, variant: str, redraw: bool) -> dict[str, object]:
+    """slots.json's `params` (the variant's values by field, seed last), `knobs` (the schema
+    of every field but seed, for the page's controls) and `redraw`."""
+    params = piece.params(variant)
+    infos = describe(piece.params_type)
+    knobs = [
+        {
+            "name": i.name,
+            "kind": i.kind,
+            "lo": i.lo,
+            "hi": i.hi,
+            "choices": i.choices,
+            "unit": i.unit,
+            "max_len": i.max_len,
+        }
+        for i in infos
+        if i.kind != "seed"
+    ]
+    return {
+        "params": {i.name: getattr(params, i.name) for i in infos},
+        "knobs": knobs,
+        "redraw": redraw,
+    }
+
+
+def _write(
+    slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Result, piece: common.Piece
+) -> list[str]:
     """Write a checked variant's templates and slots.json, removing the templates it no
     longer has; returns the written files relative to build/."""
     d = common.build_dir(slug, variant)
@@ -119,8 +147,8 @@ def _write(slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Resu
     if variant != "default":
         slots["variant"] = variant
     focus = r.focus if r.focus is not None else (0.5, 0.5)
-    slots |= {"focus": list(focus), "cells": r.cells, "probes": r.probes}
-    slots |= {"render_lib": lib_sha, "checked": version()}
+    slots |= {"focus": list(focus), "cells": r.cells, **controls(piece, variant, r.redraw)}
+    slots |= {"probes": r.probes, "render_lib": lib_sha, "checked": version()}
     for k, e in r.entries.items():
         sha = hashing.sha256(r.templates[e["file"]].encode())
         entry: SlotsEntry = {
@@ -147,12 +175,20 @@ def _prune(slug: str, names: Sequence[str]) -> None:
             print(f"{slug}: removed build/{p.name}/, not a declared variant")
 
 
-def _restamp(slug: str, variant: str, lib_sha: str) -> None:
-    """Record in a variant's slots.json that its templates hold under render inputs `lib_sha`."""
+def _restamp(slug: str, variant: str, lib_sha: str, r: check.Result, piece: common.Piece) -> None:
+    """Record in a variant's slots.json that its templates hold under render inputs `lib_sha`,
+    with its controls from `r` and `piece`, placed after `cells` as _write() places them."""
     slots = load_slots(slug, variant)
     assert slots is not None
+    fresh = controls(piece, variant, r.redraw)
+    out: dict[str, object] = {}
+    for k, v in slots.items():
+        if k not in fresh:
+            out[k] = v
+        if k == "cells":
+            out |= fresh
     (common.build_dir(slug, variant) / "slots.json").write_text(
-        dump_slots({**slots, "render_lib": lib_sha})
+        dump_slots({**out, "render_lib": lib_sha})
     )
 
 
@@ -198,7 +234,8 @@ def _plan(slug: str, variant: str | None, lib_sha: str, force: bool, published: 
             old = None
         task = check.Task(str(common.WALLPAPERS), slug, v)
         if old is not None and _current(slug, v, old, plan.shas[v]):
-            if old.get("render_lib") == lib_sha:
+            # A build from before `redraw` existed takes the probe path, which measures it.
+            if old.get("render_lib") == lib_sha and "redraw" in old:
                 plan.current.append(v)
                 continue
             probes = common.as_dict(old.get("probes"))
@@ -253,6 +290,7 @@ def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -
     checked = {v: r for v, r in t.report.results.items() if not r.unchanged}
     if t.piece is not None and len(checked) > 0:
         check.siblings(t.report, t.piece.variant_names(), {v: r.ink for v, r in checked.items()})
+    check.slow_draws(t)
     if len(checked) > 0 or len(t.report.errors) > 0:
         check.print_report(t.report)
     if len(t.report.errors) > 0 or t.piece is None:
@@ -262,12 +300,12 @@ def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -
         print(f"{_name(t.slug, v)}: up to date")
     for v, r in t.report.results.items():
         if r.unchanged:
-            _restamp(t.slug, v, plan.lib_sha)
+            _restamp(t.slug, v, plan.lib_sha, r, t.piece)
             print(
                 f"{_name(t.slug, v)}: up to date (probe renders unchanged under the new render inputs)"
             )
         else:
-            written = _write(t.slug, v, plan.shas[v], plan.lib_sha, r)
+            written = _write(t.slug, v, plan.shas[v], plan.lib_sha, r, t.piece)
             print(f"{_name(t.slug, v)}: wrote {', '.join(written)}")
     if variant is None:
         _prune(t.slug, t.piece.variant_names())

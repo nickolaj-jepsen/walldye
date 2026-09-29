@@ -131,7 +131,7 @@ def test_params_command(wallpapers, capsys):
     assert data["slug"] == "versions" and data["class"] == "Clock"
     assert data["knobs"][0] == {
         "name": "hour", "kind": "float", "default": 2.0, "lo": 0.0, "hi": 12.0,
-        "choices": None, "doc": "where the disc sits", "unit": "h",
+        "choices": None, "doc": "where the disc sits", "unit": "h", "max_len": None,
     }  # fmt: skip
     assert data["variants"] == {
         "late": {"hour": 8.0},
