@@ -6,6 +6,7 @@ import {
   cssVars,
   DIM,
   deriveTheme,
+  distance,
   FIREPROOF,
   GUARDED,
   guard,
@@ -65,6 +66,14 @@ describe('number helpers', () => {
   it('mixes with half-even rounding: derived accent_3 of the fireproof seeds is #764233', () => {
     expect(mix('#CF6A4C', '#1C1B1A', 0.5)).toBe('#764233');
     expect(deriveTheme({ ...PRESETS.fireproof }).accent_3).toBe('#764233');
+  });
+
+  it('measures OKLab distance: 0 for equal colors, 1 from black to white, symmetric', () => {
+    expect(distance('#CF6A4C', '#cf6a4c')).toBe(0);
+    expect(distance('#000000', '#FFFFFF')).toBeCloseTo(1, 6);
+    expect(distance('#191724', '#EBBCBA')).toBeCloseTo(distance('#EBBCBA', '#191724'), 12);
+    // rose-pine's old accent next to its fg, close enough for the picker's warning.
+    expect(distance('#EBBCBA', '#E0DEF4')).toBeLessThan(0.1);
   });
 
   it('treats equal luminance as dark', () => {

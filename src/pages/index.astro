@@ -4,7 +4,7 @@ import Chips from '../components/Chips.astro';
 import Plate from '../components/Plate.astro';
 import Base from '../layouts/Base.astro';
 import { SITE_ASPECTS, aspectLabel, defaultSort, filterGroups, sortPieces } from '../lib/content';
-import { DEFAULT_PRESET, PRESETS } from '../lib/presets';
+import { DEFAULT_FAMILY, FAMILIES, presetColors } from '../lib/presets';
 import { inlineScript } from '../server/inline-script';
 
 const collection = await getCollection('wallpapers');
@@ -62,7 +62,8 @@ const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
     <script is:inline set:html={shapeBoot} />
     <div class="themes" role="group" aria-labelledby="themes-h">
       <h2 id="themes-h" class="sc">Colors</h2>
-      {PRESETS.map((p) => <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'} aria-label={p.name} title={p.name}><Chips colors={[p.bg, p.fg, p.accent]} /></button>)}
+      {/* One button per family, showing its theme for the system scheme (site.css picks the set). */}
+      {FAMILIES.map((f) => (f.light ? <button type="button" data-family={f.name} aria-pressed={f.name === DEFAULT_FAMILY ? 'true' : 'false'} aria-label={f.name} title={f.name}><Chips colors={presetColors(f.dark)} class="for-dark" /><Chips colors={presetColors(f.light)} class="for-light" /></button> : <button type="button" data-preset={f.dark} aria-pressed="false" aria-label={f.name} title={f.name}><Chips colors={presetColors(f.dark)} /></button>))}
       <button type="button" class="textbtn" popovertarget="picker">Your own</button>
     </div>
     <p class="results-line"><span id="result-count" class="lnum">{total} {total === 1 ? 'wallpaper' : 'wallpapers'}</span><button type="reset" form="facets" class="textbtn clear" hidden>clear</button></p>

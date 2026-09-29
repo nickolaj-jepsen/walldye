@@ -85,8 +85,8 @@ and `ACCENT_1`..`ACCENT_8` walk toward a pale `BG`. So:
 - A design whose drama relied on a near-black void (shadows, space scenes) can go flat on
   paper white.
 - The dark ramp steps become pale tints on paper, so fades that were muddy on dark themes
-  look clean, and fades that were subtle can vanish. Pale or cool accents (rose-pine,
-  nord) also make the event weaker: make it read by shape and size, not hue alone.
+  look clean, and fades that were subtle can vanish. Pale or cool accents (nord,
+  catppuccin-mocha) also make the event weaker: make it read by shape and size, not hue alone.
 - On the ladder's second step, one `by_regime` can lift a whole set of roles a step, as
   glyph-terrain does with `by_regime(STEPS[k], STEPS[k + 1])`. On the third, dither-moon inks
   its shadows instead of its highlights under `if s.light:`.

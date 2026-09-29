@@ -3,10 +3,13 @@ import {
   applyTheme,
   clearShared,
   followChanges,
+  ownChoice,
   ownTheme,
   PAGE_ATTR,
   resolveTheme,
   STORAGE_KEY,
+  SYSTEM_PAIR,
+  savePair,
   saveTheme,
   sharedDiffers,
   THEME_EVENT,
@@ -127,6 +130,39 @@ describe('resolution and persistence', () => {
     expect(sharedDiffers()).toBe(true);
     env.session.setItem(STORAGE_KEY, 'nord');
     expect(sharedDiffers()).toBe(false);
+  });
+
+  it('follows the system scheme within a saved pair', () => {
+    savePair(['gruvbox-dark', '282828-ebdbb2-fe8019']);
+    expect(env.local.getItem(STORAGE_KEY)).toBe('pair:gruvbox-dark,gruvbox-dark');
+    savePair(['gruvbox-dark', 'gruvbox-light']);
+    expect(env.local.getItem(STORAGE_KEY)).toBe('pair:gruvbox-dark,gruvbox-light');
+    expect(ownChoice()).toEqual({ pair: ['gruvbox-dark', 'gruvbox-light'] });
+    expect(resolveTheme()).toMatchObject({ token: 'gruvbox-dark', source: 'saved' });
+    followChanges();
+    env.setLight(true);
+    expect(resolveTheme().token).toBe('gruvbox-light');
+    expect(env.dataset.theme).toBe('gruvbox-light');
+  });
+
+  it('saving the system pair goes back to the system theme', () => {
+    env.local.setItem(STORAGE_KEY, 'nord');
+    env.session.setItem(STORAGE_KEY, 'dracula');
+    expect(ownChoice()).toEqual({ token: 'nord' });
+    savePair(SYSTEM_PAIR);
+    expect(env.local.getItem(STORAGE_KEY)).toBeNull();
+    expect(env.session.getItem(STORAGE_KEY)).toBeNull();
+    expect(ownChoice()).toEqual({ pair: SYSTEM_PAIR });
+    expect(resolveTheme()).toMatchObject({ token: 'fireproof', source: 'system' });
+  });
+
+  it('refuses a pair that does not parse, and ignores one stored', () => {
+    expect(() => savePair(['nord', 'Nord'])).toThrow(/Nord/);
+    for (const bad of ['pair:nord', 'pair:nord,nope', 'pair:nord,dracula,nord', 'family:gruvbox']) {
+      env.local.setItem(STORAGE_KEY, bad);
+      expect(ownChoice(), bad).toEqual({ pair: SYSTEM_PAIR });
+      expect(resolveTheme().source, bad).toBe('system');
+    }
   });
 
   it('ignores invalid stored values', () => {

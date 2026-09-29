@@ -9,7 +9,7 @@ How walldye.com looks and what it says. `src/styles/site.css` holds the values; 
 - Text is `--text` (fg) or `--text-2` (fg_alt), at 4.5:1 or better in every theme (§2). muted draws only the dot leaders; rules, frames and controls use the ui grays.
 - Accent appears only in the focus ring, the footnote markers and target bar, error text and the invalid-field underline, and the listing's keywords and strings.
 - Italic marks titles of works and nothing else. A source's `topic` (a technique, product, logo, place) stays roman.
-- One convention for "current": text color plus a 1px underline 0.3em below the baseline (nav, sort, shape, export choices, versions, the pressed preset, the open theme button); under the index's swatch buttons, a 1px `--text` line under the swatches. Resting in-text links carry a 1px underline in `--link-line`.
+- One convention for "current": text color plus a 1px underline 0.3em below the baseline (nav, sort, shape, export choices, versions, the pressed theme name, the open theme button); under swatch buttons (the index's and the picker's), a 1px `--text` line under the swatches. Resting in-text links carry a 1px underline in `--link-line`.
 - Every vertical measure is a multiple of the 8px unit (§4), and rules take no layout space.
 - No border radius, no drop shadow, no tinted surface to mark state.
 
@@ -128,12 +128,14 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 ### 6.3 Picker
 
-`src/components/Picker.astro`, a `popover` with `role=dialog`. "Themes" lists the presets as index entries (name in mono, leader, swatches, `aria-pressed`); "Colors" has the Background, Foreground and Accent hex fields, each with its swatch, then "Import"; "Copy link" ends it.
+`src/components/Picker.astro`, a `popover` with `role=dialog`. "Themes" lists the families as index entries (name in mono, leader, swatches, `aria-pressed`); "Colors" has the Background, Foreground and Accent hex fields, each with its swatch, then "Import"; "Copy link" ends it.
+
+- A family with a light preset is three buttons: its name, which follows the system scheme, then a swatch button for each preset (the preset name is the accessible name and the tooltip), in a dark column and a light column. A lone preset is one button, its swatches in the dark column. The first family, fireproof, is what a visitor who never chose gets, so choosing it goes back to that.
 
 - Right-aligned to the gutter (full width on phones), its top border on the masthead rule, with a matte in the page color in place of a shadow.
-- Fields take 3 or 6 digits, with or without `#`, and a pasted theme token fills all three. Valid input applies after 250 ms; Escape reverts unapplied edits.
+- Fields take 3 or 6 digits, with or without `#`, and a pasted theme token fills all three. Valid input applies after 250 ms; Escape reverts unapplied edits. Each swatch opens the browser's color picker, whose choice fills the field; its hit area is 24px, its focus ring the swatch's.
 - Import (placeholder "paste a terminal theme") reads a pasted theme file into the three fields, which then apply as typed: kitty, Ghostty, Alacritty, foot, WezTerm, Windows Terminal, Xresources or base16 (`src/lib/import-theme.ts`). The accent is one the file names, else its most colorful normal ANSI or base16 accent color that reaches 3:1 on the background. The hex fields accept the same paste. Text with no colors shows "No colors found in that text." in accent.
-- An invalid field gets a 2px accent underline and "Use a hex color, like #CF6A4C." in accent. When background and foreground fall under 3:1, "The background and foreground are too close, so wallpapers will be hard to see." appears in `--text`, so it does not read as a failure. These and the import message sit in one polite live region.
+- An invalid field gets a 2px accent underline and "Use a hex color, like #CF6A4C." in accent. When background and foreground fall under 3:1, "The background and foreground are too close, so wallpapers will be hard to see." appears in `--text`, so it does not read as a failure. An accent within 0.1 in OKLab of the background or foreground (`NEAR_ACCENT`, which every preset clears) gets "The accent is too close to the background, so it will barely show in wallpapers." or "The accent is too close to the foreground, so it will barely stand out in wallpapers." in `--text`, the background one first. These and the import message sit in one polite live region.
 
 ### 6.4 Filter and results
 
@@ -144,7 +146,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - Counts are live: each shows how many pieces its box would add (OR within a facet, AND across facets). A box that would add none is disabled, its term in `--text-dim` and its count hidden.
 - Search matches the title, the description and the sources' authors and titles. Sort is featured, newest, popular (views, recent ones weighted up), most viewed or title. Featured lists the pieces on `featured.yaml` in its order, then the rest as popular. Title ties go by slug, the view orders' by newest. The index starts on featured while `featured.yaml` lists a published piece, else on popular when the build has views, else on newest; featured is left out when nothing is listed, and the view orders when there are no views.
 - Shape (16:9, 16:10, 21:9, 32:9, 9:19.5, 10:16, in mono) shows every plate in that shape: a piece's own template when it composes for it, else its 16:9 template cropped around its focus, as the export would crop it. Plate links then open the piece in that shape. Phones start on their screen's nearest shape, and "clear" keeps the shape.
-- Above the results line, "Colors" lists the presets as swatch buttons (the preset name is the accessible name and the tooltip), then "Your own", which opens the picker. A click applies and saves the preset, as in the picker.
+- Above the results line, "Colors" lists the families as swatch buttons (the family name is the accessible name and the tooltip), each showing the preset it would pick under the system scheme, then "Your own", which opens the picker. A click chooses the family, as its name does in the picker.
 - The results line is the page's one live region: "234 wallpapers" or "4 of 234 wallpapers", with "Try fewer filters or a shorter search." under it when nothing matches. "clear" shows while anything is checked or searched.
 - On phones the filter is a closed disclosure whose summary shows "Filter" and the active terms; the color row stays above the grid. There is a skip link.
 

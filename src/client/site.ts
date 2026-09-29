@@ -1,13 +1,14 @@
 /**
- * Every page: the header's theme button, the shared-theme line, the theme picker, the index's preset
+ * Every page: the header's theme button, the shared-theme line, the theme picker, the index's theme
  * row and "Copy link".
  * The theme boot has already applied the theme; this module keeps the controls in step with it and
  * saves the visitor's edits.
  */
 import { seedsFromText } from '../lib/import-theme';
-import { presetLabel } from '../lib/presets';
+import { NEAR_ACCENT, pairedFamily, presetLabel } from '../lib/presets';
 import {
   contrast,
+  distance,
   normalizeSeed,
   PRESETS,
   presetOf,
@@ -22,7 +23,9 @@ import { currentSeeds, onThemeChange } from './theme/current';
 import {
   applyTheme,
   clearShared,
+  ownChoice,
   ownTheme,
+  savePair,
   saveTheme,
   sharedDiffers,
   sharedTheme,
@@ -37,16 +40,23 @@ const themeButton = must('#theme-button');
 const themeName = must('[data-theme-name]', themeButton);
 const sharedLine = must('#shared');
 const picker = must('#picker');
-// The picker's presets and, on the index, the row above the grid.
+// The picker's themes and, on the index, the row above the grid.
 const presetButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-preset]')];
+const familyButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-family]')];
 const fields = Object.fromEntries(
   SEEDS.map((k) => [k, must<HTMLInputElement>(`#seed-${k}`)]),
 ) as Record<Seed, HTMLInputElement>;
 const chips = Object.fromEntries(
   SEEDS.map((k) => [k, must('.chip', fields[k].closest('.hexfield') ?? picker)]),
 ) as Record<Seed, HTMLElement>;
+// The native color picker inside each field's swatch.
+const picks = Object.fromEntries(
+  SEEDS.map((k) => [k, must<HTMLInputElement>('input[type=color]', chips[k])]),
+) as Record<Seed, HTMLInputElement>;
 const seedMsg = must('#seed-msg');
 const faintMsg = must('#faint-msg');
+const accentFgMsg = must('#accent-fg-msg');
+const accentBgMsg = must('#accent-bg-msg');
 const importField = must<HTMLInputElement>('#theme-import');
 const importMsg = must('#import-msg');
 
@@ -67,27 +77,39 @@ function choose(seeds: Seeds): void {
 }
 
 /**
- * The fields' invalid marks, the warning when bg and fg are too close, and each swatch: the typed
- * color while it is valid but not applied yet, else the applied seed.
+ * The fields' invalid marks, the warnings when bg and fg are too close or the accent is too close to
+ * either, and each swatch and color picker: the typed color while it is valid but not applied yet,
+ * else the applied seed.
  */
 function renderFields(): void {
   const bg = normalizeSeed(fields.bg.value);
   const fg = normalizeSeed(fields.fg.value);
+  const accent = normalizeSeed(fields.accent.value);
   const faint = bg !== null && fg !== null && contrast(bg, fg) < FAINT;
+  // One accent warning at a time; vanishing into the ground is the worse of the two.
+  const nearBg = bg !== null && accent !== null && distance(accent, bg) < NEAR_ACCENT;
+  const nearFg = !nearBg && fg !== null && accent !== null && distance(accent, fg) < NEAR_ACCENT;
   const applied = currentSeeds();
   for (const k of SEEDS) {
     const input = fields[k];
     const bad = invalid.has(k);
     if (bad) input.setAttribute('aria-invalid', 'true');
     else input.removeAttribute('aria-invalid');
-    const note = bad ? 'seed-msg' : faint && k !== 'accent' ? 'faint-msg' : null;
+    let note: string | null = null;
+    if (bad) note = 'seed-msg';
+    else if (k !== 'accent') note = faint ? 'faint-msg' : null;
+    else note = nearBg ? 'accent-bg-msg' : nearFg ? 'accent-fg-msg' : null;
     if (note) input.setAttribute('aria-describedby', note);
     else input.removeAttribute('aria-describedby');
     const v = normalizeSeed(input.value);
-    chips[k].style.setProperty('--c', v && v !== applied[k] ? v : `var(--seed-${k})`);
+    const shown = v && v !== applied[k] ? v : null;
+    chips[k].style.setProperty('--c', shown ?? `var(--seed-${k})`);
+    picks[k].value = (shown ?? applied[k]).toLowerCase();
   }
   seedMsg.hidden = invalid.size === 0;
   faintMsg.hidden = !faint;
+  accentBgMsg.hidden = !nearBg;
+  accentFgMsg.hidden = !nearFg;
 }
 
 /** Fields back to the applied theme, dropping unapplied edits; the focused field keeps its text unless `all`. */
@@ -131,15 +153,24 @@ function edited(): void {
   pending = window.setTimeout(() => commit(false), DEBOUNCE_MS);
 }
 
-/** Header, picker and detail color list for the applied theme. */
+/**
+ * Header, picker and detail color list for the applied theme. The pressed theme is the visitor's
+ * choice, a family or a fixed theme, unless a shared theme that differs from it is showing.
+ */
 function sync(seeds: Seeds): void {
-  const preset = presetOf(seeds);
-  const name = preset ?? 'custom';
+  const name = presetOf(seeds) ?? 'custom';
   themeButton.setAttribute('aria-label', presetLabel({ name, ...seeds }));
   themeName.textContent = name;
-  sharedLine.hidden = !sharedDiffers();
+  const differs = sharedDiffers();
+  sharedLine.hidden = !differs;
+  const choice = differs ? { token: tokenOf(seeds) } : ownChoice();
   for (const b of presetButtons) {
-    b.setAttribute('aria-pressed', String(b.dataset.preset === preset));
+    b.setAttribute('aria-pressed', String('token' in choice && b.dataset.preset === choice.token));
+  }
+  for (const b of familyButtons) {
+    const f = pairedFamily(b.dataset.family ?? '');
+    const on = 'pair' in choice && choice.pair[0] === f?.dark && choice.pair[1] === f.light;
+    b.setAttribute('aria-pressed', String(on));
   }
   for (const el of document.querySelectorAll<HTMLElement>('.seedlist [data-seed]')) {
     const k = el.dataset.seed;
@@ -189,6 +220,17 @@ for (const b of presetButtons) {
   });
 }
 
+for (const b of familyButtons) {
+  b.addEventListener('click', () => {
+    const f = pairedFamily(b.dataset.family ?? '');
+    if (!f?.light) return;
+    cancelPending();
+    savePair([f.dark, f.light]);
+    applyTheme(ownTheme().seeds);
+    fillFields(true);
+  });
+}
+
 for (const k of SEEDS) {
   const input = fields[k];
   input.addEventListener('input', edited);
@@ -201,6 +243,15 @@ for (const k of SEEDS) {
     if (!seeds) return;
     e.preventDefault();
     fillFrom(seeds);
+  });
+  // Dragging in the native picker fires `input` continuously; the field's debounce paces it.
+  picks[k].addEventListener('input', () => {
+    input.value = picks[k].value.toUpperCase();
+    edited();
+  });
+  picks[k].addEventListener('change', () => {
+    input.value = picks[k].value.toUpperCase();
+    commit(true);
   });
 }
 

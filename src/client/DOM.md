@@ -35,10 +35,11 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | Hook | Element | Notes |
 |---|---|---|
 | `#picker` | `div[popover][role=dialog]` | Opened natively by any `[popovertarget=picker]`. |
-| `#picker .presets button[data-preset]` | one per preset, in `walldye/_theme.py` order | Set `aria-pressed="true"` on the current one only; the server marks fireproof. |
-| `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent]` | Prefilled with the fireproof seeds. On an invalid value set `aria-invalid` and `aria-describedby="seed-msg"`; while the contrast warning shows, the bg and fg fields point at `faint-msg` instead. |
+| `#picker .presets li` | one per family, in `FAMILIES` order (`src/lib/presets.ts`) | A family with a light preset has `button.family[data-family]` (its name) and one `button.swatch[data-preset][aria-label][title]` per preset; a lone preset is one `button.single[data-preset]`. Set `aria-pressed="true"` on the visitor's choice only (`ownChoice()`, or the shared theme's preset while it differs): a family, or a fixed preset. The server marks the fireproof family. |
+| `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent]` | Prefilled with the fireproof seeds. On an invalid value set `aria-invalid` and `aria-describedby="seed-msg"`; otherwise the bg and fg fields point at `faint-msg` while it shows, and the accent field at `accent-bg-msg` or `accent-fg-msg`. |
 | `.hexfield .chip` | `span.chip` before each input | `style="--c:var(--seed-…)"`. Override `--c` while an unapplied edit is shown. |
-| `#seed-msg`, `#faint-msg` | `p.msg[hidden]` inside the `aria-live` `.msgs` | Unhide for invalid input and for the contrast warning. |
+| `.hexfield .chip input[type=color]` | the native color picker, invisible over the swatch | Keep its value on the swatch's color. Its `input` fills the hex field as an edit, its `change` commits it. |
+| `#seed-msg`, `#faint-msg`, `#accent-bg-msg`, `#accent-fg-msg` | `p.msg[hidden]` inside the `aria-live` `.msgs` | Unhide for invalid input, for the contrast warning, and for an accent within `NEAR_ACCENT` of the background (first) or the foreground. |
 | `#theme-import` | `input` under the hex fields | On paste, read the clipboard text whole with `seedsFromText()` from `src/lib/import-theme.ts`; on change, the typed value. Seeds fill the three fields as an edit; none unhide `#import-msg`. |
 | `#import-msg` | `p.msg[hidden]` inside `.msgs` | "No colors found in that text." |
 | `[data-action=copy-link]` | button "Copy link" (also on the detail page) | Copy the current URL with `?t=<token>`. |
@@ -65,7 +66,7 @@ The query string is the form's own GET serialization: `q=<text>`, `sort=<order>`
 
 ### Color row
 
-`.themes[role=group]` above the results line: `h2#themes-h`, one `button[data-preset][aria-pressed][aria-label][title]` per preset holding its swatches, then `button[popovertarget=picker]` "Your own". `site.ts` handles the preset buttons with the picker's: set `aria-pressed="true"` on the current one only; the server marks fireproof.
+`.themes[role=group]` above the results line: `h2#themes-h`, one button per family, `[aria-pressed][aria-label][title]`, then `button[popovertarget=picker]` "Your own". A family with a light preset is `button[data-family]` holding both presets' swatches as `.chips.for-dark` and `.chips.for-light`, which site.css shows by `prefers-color-scheme`; a lone preset is `button[data-preset]`. `site.ts` handles them with the picker's buttons.
 
 ### Plates
 

@@ -3,8 +3,9 @@
 interface Props {
   /** CSS colors, e.g. `var(--seed-bg)` or `#1C1B1A`. */
   colors: readonly [string, string, string];
+  class?: string;
 }
-const { colors } = Astro.props;
+const { colors, class: extra } = Astro.props;
 ---
 
-<span class="chips" aria-hidden="true">{colors.map((c) => <span class="chip" style={`--c:${c}`} />)}</span>
+<span class:list={['chips', extra]} aria-hidden="true">{colors.map((c) => <span class="chip" style={`--c:${c}`} />)}</span>

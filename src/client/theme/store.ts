@@ -1,18 +1,25 @@
 /**
  * Where the visitor's theme comes from and where it is kept:
  * a shared `?t=` token for the session, then the saved theme, then the system color scheme.
- * Both storages hold a canonical theme token; every storage access is guarded. When a storage cannot
- * be written, the token is kept on `<html>` (PAGE_ATTR) instead, so it holds for the rest of the page
- * and is visible to every bundle that imports this module.
+ * sessionStorage holds a canonical theme token; localStorage holds one too, or `pair:<dark>,<light>`,
+ * two tokens of which the system scheme picks one. Every storage access is guarded. When a storage
+ * cannot be written, the value is kept on `<html>` (PAGE_ATTR) instead, so it holds for the rest of
+ * the page and is visible to every bundle that imports this module.
  */
 
 import { faviconUrl } from '../../lib/favicon';
-import { cssVars, PRESETS, parseToken, regimeOf, type Seeds, tokenOf } from '../../lib/theme';
+import { cssVars, parseToken, regimeOf, type Seeds, tokenOf } from '../../lib/theme';
 
 export const STORAGE_KEY = 'walldye.theme';
 /** Dispatched on `document` after applyTheme(); `detail` is the applied theme's canonical token. */
 export const THEME_EVENT = 'walldye:theme';
 const LIGHT_QUERY = '(prefers-color-scheme: light)';
+const PAIR_PREFIX = 'pair:';
+
+/** Two theme tokens, shown under a dark and a light system scheme. */
+export type Pair = readonly [dark: string, light: string];
+/** The pair nothing saved stands for. */
+export const SYSTEM_PAIR: Pair = ['fireproof', 'flexoki-light'];
 
 export type ThemeSource = 'shared' | 'saved' | 'system';
 export interface ResolvedTheme {
@@ -33,12 +40,12 @@ function pageData(): Record<string, string | undefined> {
   return globalThis.document.documentElement.dataset;
 }
 
-function read(store: Store): Seeds | null {
+function read(store: Store): string | null {
   // Set only when the last write failed, so it is newer than whatever the storage still holds.
-  const kept = parseToken(pageData()[PAGE_ATTR[store]]);
-  if (kept) return kept;
+  const kept = pageData()[PAGE_ATTR[store]];
+  if (kept !== undefined) return kept;
   try {
-    return parseToken(globalThis[store].getItem(STORAGE_KEY));
+    return globalThis[store].getItem(STORAGE_KEY);
   } catch {
     return null;
   }
@@ -60,25 +67,54 @@ function resolved(seeds: Seeds, source: ThemeSource): ResolvedTheme {
   return { token: tokenOf(seeds), seeds, source };
 }
 
+function systemLight(): boolean {
+  try {
+    return globalThis.matchMedia(LIGHT_QUERY).matches;
+  } catch {
+    return false;
+  }
+}
+
+/** The seeds `pair` shows under the system scheme; both tokens must parse. */
+function pairSeeds(pair: Pair): Seeds {
+  return parseToken(pair[systemLight() ? 1 : 0]) as Seeds;
+}
+
+/** The pair a localStorage value holds, as canonical tokens, or null. */
+function storedPair(value: string | null): Pair | null {
+  if (!value?.startsWith(PAIR_PREFIX)) return null;
+  const [dark, light, ...rest] = value.slice(PAIR_PREFIX.length).split(',').map(parseToken);
+  return dark && light && !rest.length ? [tokenOf(dark), tokenOf(light)] : null;
+}
+
 export function sharedTheme(): ResolvedTheme | null {
-  const seeds = read('sessionStorage');
+  const seeds = parseToken(read('sessionStorage'));
   return seeds && resolved(seeds, 'shared');
 }
 
+/**
+ * What the visitor chose, ignoring any shared theme: `{ pair }` for a pair that follows the system
+ * scheme (SYSTEM_PAIR when nothing valid is saved), else `{ token }` of a fixed theme.
+ */
+export function ownChoice(): { pair: Pair } | { token: string } {
+  const value = read('localStorage');
+  const pair = storedPair(value);
+  if (pair) return { pair };
+  const seeds = parseToken(value);
+  return seeds ? { token: tokenOf(seeds) } : { pair: SYSTEM_PAIR };
+}
+
 export function savedTheme(): ResolvedTheme | null {
-  const seeds = read('localStorage');
+  const value = read('localStorage');
+  const pair = storedPair(value);
+  if (pair) return resolved(pairSeeds(pair), 'saved');
+  const seeds = parseToken(value);
   return seeds && resolved(seeds, 'saved');
 }
 
-/** fireproof, or flexoki-light when the system prefers a light scheme. */
+/** SYSTEM_PAIR's theme for the system scheme: fireproof, or flexoki-light under a light one. */
 export function systemTheme(): ResolvedTheme {
-  let light = false;
-  try {
-    light = globalThis.matchMedia(LIGHT_QUERY).matches;
-  } catch {
-    // No matchMedia: dark.
-  }
-  return resolved(PRESETS[light ? 'flexoki-light' : 'fireproof'], 'system');
+  return resolved(pairSeeds(SYSTEM_PAIR), 'system');
 }
 
 /** The visitor's own theme, ignoring any shared one: saved, else the system's. */
@@ -114,6 +150,19 @@ export function takeSharedParam(): void {
 /** Saves `seeds` as the visitor's theme and ends any shared theme. Does not apply it. */
 export function saveTheme(seeds: Seeds): void {
   write('localStorage', tokenOf(seeds));
+  write('sessionStorage', null);
+}
+
+/**
+ * Saves `pair` (two theme tokens) as the visitor's theme, to follow the system scheme, and ends any
+ * shared theme; SYSTEM_PAIR clears the saved theme instead, so nothing is saved. Does not apply it.
+ * Throws when a token does not parse.
+ */
+export function savePair(pair: Pair): void {
+  const [dark, light] = pair.map(parseToken);
+  if (!dark || !light) throw new Error(`bad theme pair ${pair.join(',')}`);
+  const value = `${PAIR_PREFIX}${tokenOf(dark)},${tokenOf(light)}`;
+  write('localStorage', value === `${PAIR_PREFIX}${SYSTEM_PAIR.join(',')}` ? null : value);
   write('sessionStorage', null);
 }
 

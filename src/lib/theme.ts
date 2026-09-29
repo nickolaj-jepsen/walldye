@@ -68,19 +68,36 @@ export function normalizeSeeds(seeds: RawSeeds): Seeds {
   return out;
 }
 
+/** Every preset but fireproof as `bg-fg-accent`, the site's token form, in walldye.PRESETS order. */
+const PRESET_SEEDS: Readonly<Record<string, string>> = {
+  'flexoki-light': 'FFFCF0-100F0F-BC5215',
+  'ayu-dark': '0B0E14-BFBDB6-E6B450',
+  'ayu-light': 'FCFCFC-5C6166-FA8D3E',
+  'catppuccin-mocha': '1E1E2E-CDD6F4-CBA6F7',
+  'catppuccin-latte': 'EFF1F5-4C4F69-8839EF',
+  dracula: '282A36-F8F8F2-FF79C6',
+  'everforest-dark': '2D353B-D3C6AA-E69875',
+  'everforest-light': 'FDF6E3-5C6A72-F57D26',
+  'gruvbox-dark': '282828-EBDBB2-FE8019',
+  'gruvbox-light': 'FBF1C7-3C3836-AF3A03',
+  nord: '2E3440-ECEFF4-88C0D0',
+  'rose-pine': '191724-E0DEF4-EB6F92',
+  'rose-pine-dawn': 'FAF4ED-575279-B4637A',
+  'solarized-dark': '002B36-93A1A1-CB4B16',
+  'solarized-light': 'FDF6E3-586E75-CB4B16',
+  'tokyo-night': '1A1B26-C0CAF5-7AA2F7',
+  'tokyo-night-day': 'E1E2E7-3760BF-9854F1',
+};
+
 /** Preset seeds in walldye.PRESETS order (the picker's order; the first match names a theme). */
 export const PRESETS: Readonly<Record<string, Readonly<Seeds>>> = {
   fireproof: normalizeSeeds(FIREPROOF),
-  'flexoki-light': normalizeSeeds({ bg: '#FFFCF0', fg: '#100F0F', accent: '#BC5215' }),
-  'gruvbox-dark': normalizeSeeds({ bg: '#282828', fg: '#EBDBB2', accent: '#FE8019' }),
-  nord: normalizeSeeds({ bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' }),
-  'catppuccin-mocha': normalizeSeeds({ bg: '#1E1E2E', fg: '#CDD6F4', accent: '#CBA6F7' }),
-  'tokyo-night': normalizeSeeds({ bg: '#1A1B26', fg: '#C0CAF5', accent: '#7AA2F7' }),
-  'rose-pine': normalizeSeeds({ bg: '#191724', fg: '#E0DEF4', accent: '#EBBCBA' }),
-  'everforest-dark': normalizeSeeds({ bg: '#2D353B', fg: '#D3C6AA', accent: '#A7C080' }),
-  'ayu-dark': normalizeSeeds({ bg: '#0B0E14', fg: '#BFBDB6', accent: '#E6B450' }),
-  dracula: normalizeSeeds({ bg: '#282A36', fg: '#F8F8F2', accent: '#FF79C6' }),
-  'solarized-light': normalizeSeeds({ bg: '#FDF6E3', fg: '#586E75', accent: '#CB4B16' }),
+  ...Object.fromEntries(
+    Object.entries(PRESET_SEEDS).map(([name, token]) => {
+      const [bg, fg, accent] = token.split('-');
+      return [name, normalizeSeeds({ bg, fg, accent })];
+    }),
+  ),
 };
 export const DEFAULT_THEME = 'fireproof';
 
@@ -133,6 +150,26 @@ export function contrast(a: string, b: string): number {
   const la = luminance(a);
   const lb = luminance(b);
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/** OKLab [L, a, b] of a hex color (Björn Ottosson's matrices). */
+function oklab(c: string): [number, number, number] {
+  const [r, g, b] = hexToRgb(c).map(lin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+
+/** How different two colors look: Euclidean distance in OKLab, 0 for equal colors, 1 for black to white. */
+export function distance(a: string, b: string): number {
+  const [la, aa, ba] = oklab(a);
+  const [lb, ab, bb] = oklab(b);
+  return Math.hypot(la - lb, aa - ab, ba - bb);
 }
 
 /** True for the light regime: bg strictly brighter than fg (equal luminance is dark). */

@@ -151,7 +151,7 @@ img { display: block; max-width: 100%; }
 button, input, select { font: inherit; color: inherit; }
 code, kbd, samp, pre { font-family: var(--mono); font-size: inherit; }
 /* The mono subset keeps liga, which would join data like "->" or "=="; body turns common ligatures on for the serif. */
-code, kbd, samp, pre, .mono, .count, .presets .name, .hexfield input { font-variant-ligatures: none; }
+code, kbd, samp, pre, .mono, .count, .presets .name, .hexfield input[data-seed] { font-variant-ligatures: none; }
 
 a { color: inherit; text-decoration: none; }
 .prose a, .facts dd a, .credit a, .license a, .textbtn, .download .k {
@@ -367,11 +367,11 @@ abbr {
 }
 .entry input:checked ~ .count { color: var(--text); }
 
-/* The presets as swatch buttons over the grid, so the first screen shows that the colors change. */
+/* The themes as swatch buttons over the grid, so the first screen shows that the colors change. */
 .themes { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--u); margin-bottom: var(--u); }
 .themes h2 { color: var(--text-2); margin-right: var(--u); }
 .themes .textbtn { margin-left: var(--u); }
-.themes [data-preset] {
+.themes button:not(.textbtn), .presets .swatch {
   display: flex;
   align-items: center;
   height: var(--l);
@@ -380,9 +380,15 @@ abbr {
   background: none;
   cursor: pointer;
 }
-.themes [data-preset]:hover .chip { box-shadow: 0 0 0 1px var(--text); }
+.themes button:not(.textbtn):hover .chip, .presets .swatch:hover .chip { box-shadow: 0 0 0 1px var(--text); }
 /* "Current" as everywhere: a 1px underline in the text color, here under the swatches. */
-.themes [aria-pressed="true"] { background: linear-gradient(var(--text), var(--text)) left 50% bottom 3px / calc(100% - var(--u)) 1px no-repeat; }
+.themes [aria-pressed="true"], .presets .swatch[aria-pressed="true"] { background: linear-gradient(var(--text), var(--text)) left 50% bottom 3px / calc(100% - var(--u)) 1px no-repeat; }
+/* A family's button shows the theme it would pick under the system scheme. */
+.themes .for-light { display: none; }
+@media (prefers-color-scheme: light) {
+  .themes .for-dark { display: none; }
+  .themes .for-light { display: inline-flex; }
+}
 
 /* Plain text, not small caps: EB Garamond's small-cap 1 and 0 read as I and O. */
 .results-line {
@@ -722,11 +728,13 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 }
 .picker h3 { color: var(--text-2); }
 .picker .group + .group { margin-top: calc(2 * var(--u)); padding-top: var(--u); }
-.presets button {
+/* Name and leader, then a column of dark swatches and one of light; a lone theme's swatches take the dark column. */
+.presets { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: calc(0.5 * var(--u)); }
+.presets li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; }
+.presets .family, .presets .single {
   display: flex;
   align-items: baseline;
   gap: var(--u);
-  width: 100%;
   padding: 0;
   border: 0;
   background: none;
@@ -735,6 +743,10 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   line-height: var(--l);
   color: var(--text-2);
 }
+/* `gap: normal` takes the list's column gap, as the swatch buttons do. */
+.presets .single { grid-column: 1 / 3; display: grid; grid-template-columns: subgrid; gap: normal; }
+.presets .single .chips { justify-self: start; margin-left: calc(0.5 * var(--u)); }
+.presets .entryname { display: flex; align-items: baseline; gap: var(--u); }
 .presets button:hover { color: var(--text); }
 .presets .name { font-family: var(--mono); font-size: var(--mono-em); white-space: nowrap; }
 /* A shorter leader than the index's lets "catppuccin-mocha" keep one line at 320px. */
@@ -744,8 +756,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 
 .hexfield { display: grid; grid-template-columns: 7rem auto minmax(0, 1fr); align-items: baseline; column-gap: calc(1.5 * var(--u)); }
 .hexfield .k { color: var(--text-2); }
-.hexfield .chip { align-self: center; }
-.hexfield input {
+.hexfield .chip { position: relative; align-self: center; }
+/* The native color input covers the swatch, unseen, with a 24px target. */
+.hexfield .chip input { position: absolute; inset: -5px; width: auto; height: auto; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.hexfield .chip:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.hexfield input[data-seed] {
   width: 100%;
   height: var(--l);
   padding: 0;
@@ -758,7 +773,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   text-transform: uppercase;
   outline-offset: 3px;
 }
-.hexfield input[aria-invalid="true"] {
+.hexfield input[data-seed][aria-invalid="true"] {
   background-image: linear-gradient(var(--link), var(--link));
   background-size: 100% 2px;
 }
@@ -873,7 +888,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 
 /* iOS zooms the page when a focused input is under 16px, which throws the fixed popover off screen. */
 @media (pointer: coarse) {
-  .hexfield input { font-size: 16px; }
+  .hexfield input[data-seed] { font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -891,11 +906,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 /* Forced colors drop backgrounds, gradients and box-shadows: redraw state, rules and swatches with system colors. */
 @media (forced-colors: active) {
   .entry input, .range { appearance: auto; -webkit-appearance: auto; }
-  .search input, .hexfield input, .importfield input { border-bottom: 1px solid CanvasText; }
+  .search input, .hexfield input[data-seed], .importfield input { border-bottom: 1px solid CanvasText; }
   .chip { forced-color-adjust: none; box-shadow: none; outline: 1px solid CanvasText; }
   .masthead { border-bottom: 1px solid GrayText; }
   .hair-t, .appendix > summary, .controls > section + section > h2 { border-top: 1px solid GrayText; }
-  .themes [aria-pressed="true"] { border-bottom: 1px solid CanvasText; }
+  .themes [aria-pressed="true"], .presets .swatch[aria-pressed="true"] { border-bottom: 1px solid CanvasText; }
   .plate::after { border: 1px solid GrayText; }
   .grid a:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
   .crop { outline: 2px solid Highlight; }

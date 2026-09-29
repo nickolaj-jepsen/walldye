@@ -165,7 +165,7 @@ test.describe('focus order', () => {
     await expect(page.locator('#picker')).toBeVisible();
     await expect(page.locator('#theme-button')).toHaveAttribute('aria-expanded', 'true');
     await page.keyboard.press('Tab');
-    await expect(page.locator('#picker button[data-preset=fireproof]')).toBeFocused();
+    await expect(page.locator('#picker button[data-family=fireproof]')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page.locator('#picker')).toBeHidden();
     await expect(page.locator('#theme-button')).toBeFocused();

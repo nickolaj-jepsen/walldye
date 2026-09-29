@@ -58,15 +58,25 @@ PRESETS: dict[str, dict[str, str]] = {
         "orange_dark": "#BC5215",
     },
     "flexoki-light": {"bg": "#FFFCF0", "fg": "#100F0F", "accent": "#BC5215"},
-    "gruvbox-dark": {"bg": "#282828", "fg": "#EBDBB2", "accent": "#FE8019"},
-    "nord": {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"},
-    "catppuccin-mocha": {"bg": "#1E1E2E", "fg": "#CDD6F4", "accent": "#CBA6F7"},
-    "tokyo-night": {"bg": "#1A1B26", "fg": "#C0CAF5", "accent": "#7AA2F7"},
-    "rose-pine": {"bg": "#191724", "fg": "#E0DEF4", "accent": "#EBBCBA"},
-    "everforest-dark": {"bg": "#2D353B", "fg": "#D3C6AA", "accent": "#A7C080"},
     "ayu-dark": {"bg": "#0B0E14", "fg": "#BFBDB6", "accent": "#E6B450"},
+    # ayu's keyword orange: its #FFAA33 accent all but vanishes on the light ground.
+    "ayu-light": {"bg": "#FCFCFC", "fg": "#5C6166", "accent": "#FA8D3E"},
+    "catppuccin-mocha": {"bg": "#1E1E2E", "fg": "#CDD6F4", "accent": "#CBA6F7"},
+    "catppuccin-latte": {"bg": "#EFF1F5", "fg": "#4C4F69", "accent": "#8839EF"},
     "dracula": {"bg": "#282A36", "fg": "#F8F8F2", "accent": "#FF79C6"},
+    # The scheme's orange: its green sits too close to fg for a highlight to stand out.
+    "everforest-dark": {"bg": "#2D353B", "fg": "#D3C6AA", "accent": "#E69875"},
+    "everforest-light": {"bg": "#FDF6E3", "fg": "#5C6A72", "accent": "#F57D26"},
+    "gruvbox-dark": {"bg": "#282828", "fg": "#EBDBB2", "accent": "#FE8019"},
+    "gruvbox-light": {"bg": "#FBF1C7", "fg": "#3C3836", "accent": "#AF3A03"},
+    "nord": {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"},
+    # "love", not the usual "rose", which sits too close to fg for a highlight to stand out.
+    "rose-pine": {"bg": "#191724", "fg": "#E0DEF4", "accent": "#EB6F92"},
+    "rose-pine-dawn": {"bg": "#FAF4ED", "fg": "#575279", "accent": "#B4637A"},
+    "solarized-dark": {"bg": "#002B36", "fg": "#93A1A1", "accent": "#CB4B16"},
     "solarized-light": {"bg": "#FDF6E3", "fg": "#586E75", "accent": "#CB4B16"},
+    "tokyo-night": {"bg": "#1A1B26", "fg": "#C0CAF5", "accent": "#7AA2F7"},
+    "tokyo-night-day": {"bg": "#E1E2E7", "fg": "#3760BF", "accent": "#9854F1"},
 }
 DEFAULT_THEME = "fireproof"
 

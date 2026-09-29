@@ -113,11 +113,15 @@ test.describe('colors', () => {
   test('the row over the grid applies and saves a preset', async ({ page }) => {
     await page.goto('/');
     const nord = page.locator('.themes button[data-preset=nord]');
-    await expect(page.locator('.themes button[data-preset=fireproof]')).toHaveAttribute(
+    await expect(page.locator('.themes button[data-family=fireproof]')).toHaveAttribute(
       'aria-pressed',
       'true',
     );
     await nord.click();
+    await expect(page.locator('.themes button[data-family=fireproof]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'nord');
     await expect(nord).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#picker button[data-preset=nord]')).toHaveAttribute(
@@ -125,6 +129,24 @@ test.describe('colors', () => {
       'true',
     );
     expect(await page.evaluate(() => localStorage.getItem('walldye.theme'))).toBe('nord');
+  });
+
+  test('a family in the row shows and picks its theme for the system scheme', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/');
+    const gruvbox = page.locator('.themes button[data-family=gruvbox]');
+    await expect(gruvbox.locator('.for-light')).toBeVisible();
+    await expect(gruvbox.locator('.for-dark')).toBeHidden();
+    await gruvbox.click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'gruvbox-light');
+    await expect(gruvbox).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#picker button[data-family=gruvbox]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await expect(gruvbox.locator('.for-dark')).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'gruvbox-dark');
   });
 
   test('a pasted terminal theme fills the colors', async ({ page, browserName }) => {

@@ -85,6 +85,40 @@ test.describe('theme', () => {
     await expect(page.locator('[data-theme-name]')).toHaveText('nord');
   });
 
+  test('a family follows the system scheme, and the default family goes back to nothing saved', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.click('#theme-button');
+    const family = page.locator('#picker button[data-family=rose-pine]');
+    await family.click();
+    await expect(page.locator('[data-theme-name]')).toHaveText('rose-pine');
+    await expect(family).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#picker button[data-preset=rose-pine]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(await saved(page)).toBe('pair:rose-pine,rose-pine-dawn');
+    await page.emulateMedia({ colorScheme: 'light' });
+    await expect(page.locator('[data-theme-name]')).toHaveText('rose-pine-dawn');
+
+    // A swatch fixes one theme of the family, whatever the system prefers.
+    await page.click('#picker button[data-preset=rose-pine]');
+    await expect(page.locator('[data-theme-name]')).toHaveText('rose-pine');
+    await expect(family).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('#picker button[data-preset=rose-pine]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(await saved(page)).toBe('rose-pine');
+
+    await page.click('#picker button[data-family=fireproof]');
+    await expect(page.locator('[data-theme-name]')).toHaveText('flexoki-light');
+    expect(await saved(page)).toBeNull();
+    await page.reload();
+    await expect(page.locator('[data-theme-name]')).toHaveText('flexoki-light');
+  });
+
   test('the system scheme is followed while nothing is saved', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('html')).toHaveAttribute('data-regime', 'dark');
@@ -130,6 +164,38 @@ test.describe('theme', () => {
     await expect(page.locator('#seed-bg')).toHaveAttribute('aria-describedby', 'faint-msg');
     await expect(page.locator('#seed-fg')).toHaveAttribute('aria-describedby', 'faint-msg');
     await expect(page.locator('#seed-accent')).not.toHaveAttribute('aria-describedby', /./);
+  });
+
+  test('an accent close to the background or foreground gets a warning', async ({ page }) => {
+    await page.goto('/');
+    await page.click('#theme-button');
+    const accent = page.locator('#seed-accent');
+    await accent.fill('#D6D2C6');
+    await expect(page.locator('#accent-fg-msg')).toBeVisible();
+    await expect(accent).toHaveAttribute('aria-describedby', 'accent-fg-msg');
+    await accent.fill('#24221F');
+    await expect(page.locator('#accent-fg-msg')).toBeHidden();
+    await expect(page.locator('#accent-bg-msg')).toBeVisible();
+    await expect(accent).toHaveAttribute('aria-describedby', 'accent-bg-msg');
+    await accent.fill('#CF6A4C');
+    await expect(page.locator('#accent-bg-msg')).toBeHidden();
+    await expect(accent).not.toHaveAttribute('aria-describedby', /./);
+  });
+
+  test('a swatch opens a color picker whose choice fills its field', async ({ page }) => {
+    await page.goto('/');
+    await page.click('#theme-button');
+    const pick = page.locator('#picker .hexfield .chip input[type=color]').first();
+    await expect(pick).toHaveValue('#1c1b1a');
+    await pick.fill('#102030');
+    await expect(page.locator('#seed-bg')).toHaveValue('#102030');
+    await expect(page.locator('html')).toHaveAttribute('style', /--seed-bg: #102030/);
+    expect(await saved(page)).toBe('102030-dad8ce-cf6a4c');
+    // Typing a color moves the picker with it.
+    await page.locator('#seed-accent').fill('#0AF');
+    await expect(page.locator('#picker .hexfield .chip input[type=color]').last()).toHaveValue(
+      '#00aaff',
+    );
   });
 
   test('a pasted theme fills all three fields', async ({ page, browserName }) => {
