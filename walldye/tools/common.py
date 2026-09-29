@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import io
 import itertools
+import os
 import re
 import shutil
 import sys
@@ -40,14 +41,17 @@ from walldye.tools.tokenize import find_colours
 
 sys.dont_write_bytecode = True  # imported designs must not leave __pycache__ in wallpapers/<slug>/
 
-# The package is only used from a checkout (editable install), so the repo is two levels up.
-ROOT: Final = Path(__file__).resolve().parents[2]
+# An editable install sits in a checkout two levels up; an installed package (the Nix one) is
+# pointed at a folder holding wallpapers/ and taxonomy.yaml by $WALLDYE_ROOT.
+_ROOT_ENV: Final = os.environ.get("WALLDYE_ROOT", "")
+ROOT: Final = Path(_ROOT_ENV) if _ROOT_ENV != "" else Path(__file__).resolve().parents[2]
 WALLPAPERS = ROOT / "wallpapers"
 TAXONOMY = ROOT / "taxonomy.yaml"
 DESIGN_PYREFLY: Final = ROOT / "wallpapers" / "pyrefly.toml"  # the level designs are checked at
 DESIGN_ERROR: Final = "design.py must define @design(...) def draw(s: Canvas[...]) -> None"
 FIREPROOF_BG: Final = PRESETS["fireproof"]["bg"]
 DOC_CACHE: Final = 16
+FOCUS_WIDTH: Final = 480  # px wide the focus is measured at
 
 type Crop = tuple[float, float, float, float]
 type Regime = Literal["dark", "light"]
@@ -385,12 +389,42 @@ def crop_svg(svg: str, crop: Crop) -> str:
     width/height its size."""
     x, y, w, h = crop
     svg = re.sub(r'viewBox="[^"]*"', f'viewBox="{x:g} {y:g} {w:g} {h:g}"', svg, count=1)
+    return _sized(svg, w, h)
+
+
+def _sized(svg: str, w: float, h: float) -> str:
     return re.sub(
         r'(<svg[^>]*?) width="[^"]*" height="[^"]*"',
         lambda m: f'{m.group(1)} width="{w:g}" height="{h:g}"',
         svg,
         count=1,
     )
+
+
+def fit_crop(aspect: str, focus: tuple[float, float]) -> Crop:
+    """The box of the 16:9 canvas an `aspect` it wasn't drawn for is cut from, as the site
+    cuts it: the canvas's full height for a narrower aspect, else its full width, slid along
+    the other axis to centre on `focus` (fractions of the canvas), clamped to the canvas, the
+    position rounded to 0.001."""
+    cw, ch = canvas_size("16:9")
+    aw, ah = canvas_size(aspect)
+    ratio = aw / ah
+    narrow = ratio < cw / ch
+    size = ch * ratio if narrow else cw / ratio
+    span = size / (cw if narrow else ch)
+    f = focus[0] if narrow else focus[1]
+    t = 0.5 if span >= 1 else round(min(1.0, max(0.0, (f - span / 2) / (1 - span))), 3)
+    if narrow:
+        return t * (cw - size), 0.0, size, float(ch)
+    return 0.0, t * (ch - size), float(cw), size
+
+
+def template_focus(
+    slug: str, variant: str = "default", overrides: Sequence[str] = ()
+) -> tuple[float, float]:
+    """focus() of the piece's 16:9 dark template, the one build stores in slots.json."""
+    svg = render(slug, "fireproof", "16:9", variant, overrides)
+    return focus(rasterise(svg, FOCUS_WIDTH), background(svg))
 
 
 def rasterise(svg: str, width: int, crop: Crop | None = None) -> Image.Image:
@@ -404,7 +438,10 @@ def rasterise(svg: str, width: int, crop: Crop | None = None) -> Image.Image:
     else:
         m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
         w, h = (16.0, 9.0) if m is None else (float(m.group(1)), float(m.group(2)))
-    data = resvg_py.svg_to_bytes(svg_string=svg, width=width, height=round(width * h / w))
+    height = round(width * h / w)
+    # resvg keeps the root's width:height, and rounding that can cost a pixel of the target.
+    svg = _sized(svg, width, height)
+    data = resvg_py.svg_to_bytes(svg_string=svg, width=width, height=height)
     # resvg emits RGBA; wallpapers are opaque, and some setters dislike alpha.
     return Image.open(io.BytesIO(data)).convert("RGB")
 

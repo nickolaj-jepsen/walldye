@@ -15,7 +15,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
 
-from walldye._aspect import aspect_label, supports
+from walldye._aspect import aspect_label, canvas_size, supports
 from walldye._theme import DEFAULT_THEME, parse_seeds, theme_token
 from walldye.tools import common, listing, new, preview, review, sheet
 
@@ -102,24 +102,38 @@ def _cmd_render(a: argparse.Namespace) -> int:
     crop = cast("common.Crop | None", a.crop)
     piece = common.load(slug)
     common.variant_of(piece, slug, variant)
-    if not supports(piece.declared_aspects, aspect):
+    native = supports(piece.declared_aspects, aspect)
+    fit = cast("bool", a.fit) and not native
+    if not native and not fit:
         sys.exit(
             f"{slug} declares aspects={piece.declared_aspects!r}, not {aspect};"
-            " render 16:9 with --crop instead"
+            " pass --fit, or render 16:9 with --crop"
         )
+    if fit and crop is not None:
+        raise common.UsageError(f"--fit picks the crop for {aspect} itself; drop --crop")
+    overrides = _items(a, "set")
     try:
-        params, warnings = common.params_for(piece, variant, _items(a, "set"))
+        params, warnings = common.params_for(piece, variant, overrides)
     except (ValueError, TypeError) as e:
         raise common.UsageError(str(e)) from None
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
     from walldye._design import RenderSpec
 
-    doc = common.draw(piece, RenderSpec(variant, params, aspect, common.regime_of(seeds)))
+    drawn = "16:9" if fit else aspect
+    doc = common.draw(piece, RenderSpec(variant, params, drawn, common.regime_of(seeds)))
     svg = doc.to_svg(common.tokens_of(seeds))
+    if fit:
+        focus = common.template_focus(slug, variant, overrides)
+        crop = common.fit_crop(aspect, focus)
+    drawn_svg = svg
     if crop is not None:
         svg = common.crop_svg(svg, crop)
     output = _opt(a, "output", str)
+    width = _opt(a, "width", int)
+    png = output is not None and output.lower().endswith(".png")
+    if width is not None and not png:
+        raise common.UsageError("--width sizes a PNG; name one with -o PATH.png")
     if output == "-":
         sys.stdout.write(svg)
         return 0
@@ -131,7 +145,13 @@ def _cmd_render(a: argparse.Namespace) -> int:
     if target.is_relative_to(wallpapers) and "build" in target.relative_to(wallpapers).parts[1:2]:
         sys.exit(f"refusing to write {out}: only walldye build writes into build/")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(svg)
+    if png:
+        cw, ch = canvas_size(drawn)
+        box = crop if crop is not None else (0.0, 0.0, float(cw), float(ch))
+        px = width if width is not None else round(box[2])
+        common.rasterise(drawn_svg, px, box).save(out)
+    else:
+        out.write_text(svg)
     print(out)
     return 0
 
@@ -269,7 +289,20 @@ def _parser() -> argparse.ArgumentParser:
         help="write one SVG (default ./<slug>[--<variant>]-<theme>-<aspect>.svg)",
     )
     s.add_argument("slug", type=_slug)
-    s.add_argument("-o", "--output", metavar="PATH", help="output file, or - for stdout")
+    s.add_argument(
+        "-o", "--output", metavar="PATH", help="output file (.svg, or .png), or - for stdout"
+    )
+    s.add_argument(
+        "--width",
+        type=_positive,
+        metavar="PX",
+        help="a PNG's width; its height follows the aspect (default: the canvas's)",
+    )
+    s.add_argument(
+        "--fit",
+        action="store_true",
+        help="cut an aspect the piece doesn't declare from 16:9 around its focus, as the site does",
+    )
     s.set_defaults(fn=_cmd_render)
 
     s = sub.add_parser(

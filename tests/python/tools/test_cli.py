@@ -172,6 +172,53 @@ def test_render_refuses_build_dirs_and_undeclared_aspects(wallpapers, tmp_path):
         assert e.value.code == 2
 
 
+def test_render_fit_cuts_undeclared_aspects_from_16_9(wallpapers, capsys):
+    piece(wallpapers, "tiny")
+    piece(wallpapers, "flat", FLAT)
+    # The square sits top left, so both crops clamp to that corner.
+    assert cli.main(["render", "flat", "--aspect", "21:9", "--fit", "-o", "-"]) == 0
+    assert capsys.readouterr().out.startswith(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 822.857"'
+        ' width="1920" height="822.857">'
+    )
+    assert cli.main(["render", "flat", "--aspect", "9:19.5", "--fit", "-o", "-"]) == 0
+    assert 'viewBox="0 0 498.462 1080"' in capsys.readouterr().out
+    # A declared aspect is drawn for, not cut.
+    assert cli.main(["render", "tiny", "--aspect", "21:9", "--fit", "-o", "-"]) == 0
+    assert capsys.readouterr().out == common.render("tiny", "fireproof", "21:9")
+    with pytest.raises(SystemExit) as e:
+        cli.main(["render", "flat", "--aspect", "21:9", "--fit", "--crop", "0,0,10,10"])
+    assert e.value.code == 2
+
+
+def test_render_png_at_exact_pixel_sizes(wallpapers, tmp_path):
+    piece(wallpapers, "tiny")
+    piece(wallpapers, "flat", FLAT)
+    for args, size in (
+        (["tiny", "--aspect", "3440x1440", "--width", "3440"], (3440, 1440)),
+        (["tiny", "--aspect", "21:9"], (2520, 1080)),
+        # 1080 / 2340 of the 16:9 canvas is 498.46 wide: the rounding must not cost a pixel.
+        (["flat", "--aspect", "1080x2340", "--fit", "--width", "1080"], (1080, 2340)),
+        (["flat", "--aspect", "3440x1440", "--fit", "--width", "3440"], (3440, 1440)),
+    ):
+        out = tmp_path / "wall.png"
+        assert cli.main(["render", *args, "-o", str(out)]) == 0
+        with Image.open(out) as img:
+            assert (img.size, img.mode) == (size, "RGB")
+    with pytest.raises(SystemExit) as e:
+        cli.main(["render", "tiny", "--width", "100", "-o", str(tmp_path / "x.svg")])
+    assert e.value.code == 2
+
+
+def test_fit_crop_centres_on_the_focus_within_the_canvas():
+    assert common.fit_crop("16:9", (0.1, 0.9)) == (0.0, 0.0, 1920.0, 1080.0)
+    x, y, w, h = common.fit_crop("21:9", (0.5, 1.0))
+    assert (x, w) == (0.0, 1920.0) and h == pytest.approx(822.857, abs=1e-3)
+    assert y == pytest.approx(1080 - h)
+    x, y, w, h = common.fit_crop("9:19.5", (0.5, 0.5))
+    assert (y, h) == (0.0, 1080.0) and x == pytest.approx((1920 - w) / 2)
+
+
 # --- preview ----------------------------------------------------------------------
 
 

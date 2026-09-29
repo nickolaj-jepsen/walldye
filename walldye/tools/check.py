@@ -35,7 +35,6 @@ HASH_SEED: Final = "4242"
 NEAR_CLONE: Final = 0.93
 SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
 INK_WIDTH: Final = 256
-FOCUS_WIDTH: Final = 480
 
 type Ink = NDArray[np.float64]
 
@@ -277,7 +276,7 @@ def _check(task: Task, r: Result) -> None:
     dark = r.templates.get("16x9.svg")
     if dark is not None:
         bg = common.background(dark)
-        r.focus = common.focus(common.rasterise(dark, FOCUS_WIDTH), bg)
+        r.focus = common.focus(common.rasterise(dark, common.FOCUS_WIDTH), bg)
         r.ink = common.ink_map(common.rasterise(dark, INK_WIDTH), bg)
     if task.paranoid and not isinstance(piece, common.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)

@@ -369,7 +369,7 @@ Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that ta
 |---|---|
 | `new <slug> --model M` | writes the starter design.py (§12.3) and a draft meta.yaml with `model: M`, today's date and no `license:` |
 | `preview <slug>` | a PNG in `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), printing the design lint, the regime and whether light geometry differs. `--theme`, `--aspect`, `--crop X,Y,W,H`, `--variant`, `--set k=v`, `--width`, `--renderer resvg\|inkscape` |
-| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. Takes preview's flags |
+| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. A PATH ending in `.png` gets an opaque PNG `--width PX` wide (default the canvas's). `--fit` cuts an aspect the piece doesn't declare from its 16:9 render around the focus, as the site does, instead of refusing it. Takes preview's `--theme`, `--aspect`, `--crop`, `--variant` and `--set` |
 | `check [<slug>... \| --all]` | the gate (architecture.md, Build and check). `--variant NAME`, `--jobs N` (default every core), `--paranoid` (redraw from a fresh import for every theme), `--similar` (near-clone pairs across pieces) |
 | `build [<slug>... \| --all]` | check, then write `build/` and index.json. `--variant`, `--jobs`, `--force`, `--published` (skip drafts; what CI runs). Refuses `--set`: published values belong in a named variant |
 | `review [<slug>... \| --all]` | the review page (§12.4). `--port`, `--timeout` (default 7200 s), `--no-open` |
@@ -380,6 +380,8 @@ Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that ta
 | `themes` | the presets; `--theme T` also prints that theme's 21 tokens |
 
 `--theme` takes a preset name or bg-fg-accent seeds (also `bg,fg,accent` and `bg=..,fg=..,accent=..`), defaulting to `$WALLDYE_THEME`, else fireproof. `--variant` takes `default` or a declared name.
+
+The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an installed copy, such as the Nix package, at another folder holding `wallpapers/` and `taxonomy.yaml`.
 
 ### 12.2 Exploring
 
