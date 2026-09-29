@@ -93,8 +93,8 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
 | `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recoloured. |
-| `scripting: none` | §6.13. |
-| `forced-colors: active` | §6.12. |
+| `scripting: none` | §6.14. |
+| `forced-colors: active` | §6.13. |
 
 ## 5. Rules, borders and focus
 
@@ -200,11 +200,15 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - The text is the maintainer in the first person, at most 110 words: what the site is, how the three colours work, that Claude writes the scripts and the owner looks over each one, the download formats, one clause on use ("free to use unless their page says otherwise", linked to the CC0 deed) and a link to the code. No piece counts, licence paragraph, colophon or font credits; the site has no footer.
 - The 404 page uses the same layout: "Not found", one sentence and a link to the index.
 
-### 6.12 Forced colours
+### 6.12 Icon
+
+A 4 by 4 grid of seed mixes, bg at the top left, fg at the top right, accent at the bottom left and an even fg and accent blend at the bottom right (`src/lib/favicon.ts`). The theme boot redraws it in the visitor's seeds; the static `/favicon.svg` is fireproof, or flexoki-light under a light system scheme.
+
+### 6.13 Forced colours
 
 Forced-colours mode drops the backgrounds and box-shadows that draw the rules, the checkbox state, the slider, the field underlines, the swatches and the plate's focus ring. The block at the end of site.css redraws them with system colours; rules become real borders, shifting the rhythm by a pixel in that mode only.
 
-### 6.13 Without JavaScript
+### 6.14 Without JavaScript
 
 `@media (scripting: none)` hides the theme button, the filter, the colours and export column, and the source "Copy". Plates take fireproof's ground, because the `<noscript>` image is always the fireproof template.
 

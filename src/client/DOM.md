@@ -16,7 +16,7 @@ The hooks the server-rendered pages give the client code in `src/client/`. The p
 
 ### Theme variables
 
-The theme boot sets every property from `cssVars()` in `src/lib/theme.ts` inline on `<html>`, plus `data-regime="dark|light"` and `data-theme`, the applied theme's token, which the page modules read the seeds from. The swatches read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It applies the theme again, dispatching the theme event, when the system colour scheme changes and when the page returns from the back/forward cache.
+The theme boot sets every property from `cssVars()` in `src/lib/theme.ts` inline on `<html>`, plus `data-regime="dark|light"` and `data-theme`, the applied theme's token, which the page modules read the seeds from. The swatches read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It points `link#favicon`, which comes before the boot script in `<head>`, at a `data:` URL of the icon in the applied seeds. It applies the theme again, dispatching the theme event, when the system colour scheme changes and when the page returns from the back/forward cache.
 
 When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as `data-theme-shared` or `data-theme-saved`, so it holds for the rest of the page in every bundle.
 

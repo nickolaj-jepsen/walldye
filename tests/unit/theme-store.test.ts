@@ -12,6 +12,7 @@ import {
   THEME_EVENT,
   takeSharedParam,
 } from '../../src/client/theme/store';
+import { faviconUrl } from '../../src/lib/favicon';
 import { cssVars, normaliseSeeds, PRESETS } from '../../src/lib/theme';
 import { themeBootScript } from '../../src/server/theme-boot-script';
 
@@ -45,6 +46,7 @@ interface Env {
   local: MemoryStorage;
   props: Map<string, string>;
   dataset: Record<string, string>;
+  favicon: Map<string, string>;
   events: string[];
   replaced: string[];
   schemeListeners: (() => void)[];
@@ -59,6 +61,7 @@ function stubBrowser(href: string, light = false): Env {
     local: new MemoryStorage(),
     props: new Map(),
     dataset: {},
+    favicon: new Map(),
     events: [],
     replaced: [],
     schemeListeners: [],
@@ -89,6 +92,8 @@ function stubBrowser(href: string, light = false): Env {
       style: { setProperty: (k: string, v: string) => env.props.set(k, v) },
       dataset: env.dataset,
     },
+    getElementById: (id: string) =>
+      id === 'favicon' ? { setAttribute: (k: string, v: string) => env.favicon.set(k, v) } : null,
     dispatchEvent: (e: CustomEvent) => env.events.push(`${e.type} ${e.detail}`),
   });
   return env;
@@ -193,11 +198,12 @@ describe('resolution and persistence', () => {
     expect(env.session.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('applies every colour property, the regime, the token and an event', () => {
+  it('applies every colour property, the regime, the token, the icon and an event', () => {
     applyTheme(PRESETS['solarized-light']);
     expect(Object.fromEntries(env.props)).toEqual(cssVars(PRESETS['solarized-light']));
     expect(env.dataset.regime).toBe('light');
     expect(env.dataset.theme).toBe('solarized-light');
+    expect(env.favicon.get('href')).toBe(faviconUrl(PRESETS['solarized-light']));
     expect(env.events).toEqual([`${THEME_EVENT} solarized-light`]);
   });
 

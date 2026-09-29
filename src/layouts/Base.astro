@@ -41,13 +41,14 @@ const themeBoot = await themeBootScript(!import.meta.env.DEV);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Ahead of the boot, which repaints it in the visitor's theme. */}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" id="favicon" />
     {/* THEME BOOT (src/client/theme/boot.ts): keep it the first script, ahead of every stylesheet, so it never waits on CSS. */}
     <script is:inline set:html={themeBoot} />
     <title>{docTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
     {canonical && <link rel="canonical" href={canonical} />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta property="og:site_name" content="Walldye" />
     <meta property="og:title" content={title ?? 'Walldye'} />

@@ -6,6 +6,7 @@
  * and is visible to every bundle that imports this module.
  */
 
+import { faviconUrl } from '../../lib/favicon';
 import { cssVars, PRESETS, parseToken, regimeOf, type Seeds, tokenOf } from '../../lib/theme';
 
 export const STORAGE_KEY = 'walldye.theme';
@@ -123,7 +124,8 @@ export function clearShared(): void {
 
 /**
  * Sets every site colour property (cssVars) inline on <html>, plus `data-regime` and `data-theme`
- * (the canonical token, which currentSeeds() reads back), then dispatches THEME_EVENT.
+ * (the canonical token, which currentSeeds() reads back), points `#favicon` at the icon in `seeds`,
+ * then dispatches THEME_EVENT.
  */
 export function applyTheme(seeds: Seeds): void {
   const root = globalThis.document.documentElement;
@@ -131,6 +133,7 @@ export function applyTheme(seeds: Seeds): void {
   for (const [prop, value] of Object.entries(cssVars(seeds))) root.style.setProperty(prop, value);
   root.dataset.regime = regimeOf(seeds);
   root.dataset.theme = token;
+  globalThis.document.getElementById('favicon')?.setAttribute('href', faviconUrl(seeds));
   globalThis.document.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: token }));
 }
 
