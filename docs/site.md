@@ -92,7 +92,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | `max-width: 60rem` | Phones and small tablets: the theme button shows only its swatches, with a 44px target; the filter becomes a disclosure; one plate column; the detail page stacks label, controls and notes; prose 21px, title 34px. |
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
-| `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recolored. |
+| `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recolored. A plate's first image appears without it. |
 | `scripting: none` | §6.15. |
 | `forced-colors: active` | §6.14. |
 

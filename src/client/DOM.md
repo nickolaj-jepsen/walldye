@@ -10,7 +10,7 @@ The hooks the server-rendered pages give the client code in `src/client/`. The p
 | `index/page.ts` | `src/pages/index.astro` | Filters, shape, results line, the plate grid |
 | `detail/page.ts` | `src/pages/[slug].astro` | Versions and their pictures, plate, crop window, export panel, run command, the `f` key, "Copy", the "See also" grid |
 
-Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>`, and `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`. A boot that does not build fails the build.
+Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>`, and `index.astro` inlines `index/first-plates.ts` in `<head>` after it and `index/shape-boot.ts` as the first child of `section.plates`. A boot that does not build fails the build.
 
 ## Every page
 
@@ -44,6 +44,8 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | `[data-action=copy-link]` | button "Copy link" (also on the detail page) | Copy the current URL with `?t=<token>`. |
 
 ## Index (`src/pages/index.astro`)
+
+The first-plates script in `<head>` reads `data-first` on its own `<script>`: the first four plates of the unfiltered index, each as `{templates, slots}` with every template key's URL. On an address with no query it starts what `sourceFor()` in `plates.ts` loads first, in the device's shape, for as many plates as the first row holds (four at `min-width: 60.0625rem`, else two for a tall shape and one for any other). Where the plate shows the exact fireproof seeds' 16:9 template it preloads that as an image; otherwise it fetches the slots.json and the template for the regime and leaves the response promises in `window.walldyePlateFetches`, a Map by URL that `plates.ts` takes each from once. Keep it in step with `sourceFor()` and `recolored()`, or the requests go unused.
 
 ### Filters
 
@@ -93,7 +95,7 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
      data-slots="/t/a1422a6b6f79.slots.json" data-alt="…description…"
      [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…"},"late":{…}}']>
   <noscript><img src="/t/9c3c8499b388.svg" alt="…" width="1920" height="1080" …></noscript>
-  <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div> -->
+  <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div><span class="frame"></span> -->
 </div>
 ```
 
@@ -101,7 +103,7 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 - `data-slots` is the piece's `build/slots.json`, byte for byte (`focus`, `cells`, and per key `{file, sha256, n, coefs, occ}`), fetched once per piece. If `n` does not match, show the untouched template.
 - `data-alt` is the description, for the `alt` of the inserted `<img>`.
 - `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. The client reads these attributes once and never writes them.
-- Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; the CSS frames a non-16:9 template from `data-aspect`. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
+- Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; the CSS frames a non-16:9 template from `data-aspect`, with the detail page's `.frame`. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
 - While an image fades in over the one it replaces, `site.css` stacks the second `img` over the first.
 - When the template or slots.json fails to load, an empty plate gets the untouched template, and the recolor is retried on the `RETRY_MS` schedule and on the `online` event (`keepShowing()` in `plates.ts`).
 
