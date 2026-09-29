@@ -38,7 +38,29 @@ pnpm build
 pnpm e2e                                     # Playwright; `pnpm e2e:nix` on NixOS
 ```
 
-On NixOS the prebuilt Python wheels (numpy, scipy, shapely, scikit-image, resvg-py) need `programs.nix-ld.enable = true;`, and `pnpm e2e:nix` runs Playwright with the browsers from nixpkgs. There is no Nix devShell.
+With Nix, `nix develop` gives a shell with the Python environment from `uv.lock`, Node, pnpm and the browsers Playwright needs, and every command above works in it unchanged. Without the shell, NixOS needs `programs.nix-ld.enable = true;` for the prebuilt Python wheels, and `pnpm e2e:nix` runs Playwright with the browsers from nixpkgs.
+
+## On NixOS
+
+The flake packages the CLI, with the whole catalogue, drafts included, and renders any piece as a PNG for your screen:
+
+```nix
+# flake inputs: walldye.url = "github:nickolaj-jepsen/walldye";
+let
+  wallpaper = inputs.walldye.packages.${pkgs.stdenv.hostPlatform.system}.default.mkWallpaper {
+    slug = "radar-sweep";
+    theme = "gruvbox-dark"; # or { bg = "#282828"; fg = "#EBDBB2"; accent = "#FE8019"; }
+    width = 3440;
+    height = 1440;
+    # variant = "late";  set = { seed = 7; };
+  };
+in
+{
+  services.hyprpaper.settings.wallpaper = [ ",${wallpaper}" ]; # or stylix.image, swaybg, ...
+}
+```
+
+A shape the piece wasn't drawn for is cut from its 16:9 version around the busiest part of the picture, as the site does. `nix run github:nickolaj-jepsen/walldye -- list` shows the slugs, and `overlays.default` adds `pkgs.walldye`.
 
 ## Adding a wallpaper
 

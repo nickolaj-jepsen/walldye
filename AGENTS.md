@@ -28,6 +28,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.
+- `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.
 - `infra/www-redirect/`: the Worker that sends www.walldye.com to the apex, deployed by hand.
 - `.claude/skills/walldye/`: the skill for designing the wallpapers the owner names, or reworking one. `.claude/workflows/wallpaper-batch.js` invents a batch of new ones from research; `.claude/workflows/README.md` explains its arguments.
 
@@ -50,10 +51,10 @@ pnpm check                            # astro check: the site, client and tests,
 pnpm lint                             # Biome: formatting (line length 100), lint and import order
 pnpm format                           # Biome, fixing what it can
 pnpm astro build
-pnpm e2e:nix                          # Playwright on NixOS, with nixpkgs' browsers; `pnpm e2e` elsewhere
+pnpm e2e:nix                          # Playwright on NixOS outside `nix develop`; `pnpm e2e` elsewhere
 ```
 
-On NixOS the Python wheels need `programs.nix-ld.enable`; there is no devShell.
+On NixOS, `nix develop` opens a shell with the locked Python environment (the checkout installed editable), Node, pnpm and Playwright's browsers, where `uv run` and `pnpm e2e` work as they are; outside it the Python wheels need `programs.nix-ld.enable`. `flake.nix` also packages the CLI and renders wallpapers for a NixOS config (README).
 
 ## Rules
 

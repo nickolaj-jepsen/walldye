@@ -32,6 +32,8 @@ __pycache__/
 .walldye-review.json
 
 # tooling
+result
+result-*
 .wrangler/
 playwright-report/
 test-results/

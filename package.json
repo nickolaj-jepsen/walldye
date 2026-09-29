@@ -24,7 +24,7 @@
     "format": "biome check --write",
     "test": "vitest run",
     "e2e": "playwright test",
-    "e2e:nix": "PLAYWRIGHT_BROWSERS_PATH=$(nix build --no-link --print-out-paths nixpkgs#playwright-driver.browsers) PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true playwright test",
+    "e2e:nix": "PLAYWRIGHT_BROWSERS_PATH=$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#playwright-driver.browsers) PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true playwright test",
     "fonts": "uv run scripts/fonts/subset.py"
   },
   "dependencies": {
@@ -40,7 +40,7 @@
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.14",
-    "@playwright/test": "1.59.1",
+    "@playwright/test": "1.63.0",
     "@types/node": "^24.19.0",
     "esbuild": "^0.28.2",
     "typescript": "^6.0.3",
