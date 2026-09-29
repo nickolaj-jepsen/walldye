@@ -2,18 +2,18 @@
 # first without any). Each entry names a folder in wallpapers/; a draft one is left out of
 # production builds. `walldye drop` takes a dropped piece off this list.
 - dither-moon
-- retro-grid
+- attribute-clash
 - brain-coral
-- arcs
-- ribbons
-- koi
-- isometric
-- pixel-cat
+- racing-spa-minisectors
+- pulsar-map
+- blinkenlights
+- wefax-cyclone
+- chladni
 - stipple-nautilus
 - metro
 - dither-wave
 - red-wedge
 - lighthouse
 - electron-cloud
-- vinyl
+- glyph-sun
 - dragon-quartet
