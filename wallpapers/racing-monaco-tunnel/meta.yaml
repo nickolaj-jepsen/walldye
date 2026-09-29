@@ -1,0 +1,28 @@
+title: Monaco tunnel
+description: Monaco's buildings as flat blocks round the harbour, the Circuit de Monaco traced through its streets. Where it tunnels under the Fairmont hotel, the blocks above are lit.
+notes: |
+  Giambattista Nolli's 1748 plan of Rome shades its buildings as solid mass and leaves the streets open, along with public interiors such as the Pantheon. This plan of Monaco draws its buildings the same way. Buildings, coastline and circuit are traced from OpenStreetMap; neighbouring buildings are merged into blocks, and scattered houses on the western hillsides are left out.
+
+  The Circuit de Monaco is 3.337 km of public streets, closed off for motor racing. From the harbour it climbs Avenue d'Ostende to the casino, drops to the hairpin and comes back along the sea through a tunnel under the Fairmont hotel, which is built partly into the coast. Wherever the tunnel passes beneath a building, that block is lit from below.
+technique: [flat]
+subject: [maps, sport]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Pianta Grande di Roma
+    author: Giambattista Nolli
+    year: 1748
+    url: https://en.wikipedia.org/wiki/Giambattista_Nolli
+    lang: it
+  - kind: data
+    topic: OpenStreetMap
+    author: OpenStreetMap contributors
+    url: https://www.openstreetmap.org/copyright
+  - kind: reference
+    topic: Circuit de Monaco
+    url: https://en.wikipedia.org/wiki/Circuit_de_Monaco
+  - kind: reference
+    topic: Fairmont Monte Carlo
+    url: https://en.wikipedia.org/wiki/Fairmont_Monte_Carlo
+added: 2026-09-28
+model: claude-opus-5-5

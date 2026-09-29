@@ -1,0 +1,32 @@
+title: Lean angle
+description: A motorcycle's rear racing tyre in section, caught five times as it rolls from upright onto its shoulder. The strip of tread that met the ground is lit.
+notes: |
+  The section is a 200/65 R17 slick on a 6.00-inch rim, the rear size Pirelli brought to the Superbike World Championship in 2018. Its tread is drawn as an arc of 108 mm radius. As the bike leans, the tyre rolls across that arc without slipping, so the point touching the ground walks out from the crown towards the shoulder, and the wheel centre drops and moves sideways along the ticked curve above.
+
+  The positions are 16.5 degrees apart. The last is 66 degrees, the lean shown for Marc Márquez's MotoGP Honda in Turn 3 at the Sachsenring in practice for the 2019 German Grand Prix, on another maker's tyres. That position is cut and hatched: the tread rubber, the carcass ply wrapped round the steel bead wires, and the belt under the tread cut across its cords. The rim it sits on is dashed. The construction is that of a generic radial tyre. The tread rubber that has met the ground is lit, and its arc is as long as the lit stretch of ground between the first and last contact.
+technique: [drafting]
+subject: [sport, machines]
+lineage: [scientific-illustration]
+sources:
+  - kind: inspiration
+    topic: Chronophotography
+    url: https://en.wikipedia.org/wiki/Chronophotography
+  - kind: reference
+    title: Pirelli introduces the new 2019 range of DIABLO track compound tyres
+    author: Pirelli
+    year: 2019
+    url: https://press.pirelli.com/pirelli-introduces-the-new-2019-range-of-diablo-track-compound-tyres/
+  - kind: reference
+    topic: Pirelli Diablo Superbike 200/65 R17
+    author: Pirelli
+    url: https://www.pirelli.com/tyres/en-ww/motorcycle/catalogue/product/diablo-superbike/200_65r17?structure=R
+  - kind: reference
+    title: Remember when Marc Marquez tipped into an outrageous 66-degree lean angle
+    author: Ollie Barstow
+    year: 2021
+    url: https://www.visordown.com/news/viral/remember-when%C2%A0marc-marquez-tipped-outrageous-66-degree-lean-angle
+  - kind: reference
+    topic: Bicycle and motorcycle dynamics
+    url: https://en.wikipedia.org/wiki/Bicycle_and_motorcycle_dynamics
+added: 2026-09-28
+model: claude-opus-5-5

@@ -1,0 +1,26 @@
+title: Pikes Peak hill climb
+description: Twelve miles of the Pikes Peak Highway, lit from the hill climb's start line through its switchbacks to the summit, on a contour map of the mountain.
+notes: |
+  The Pikes Peak International Hill Climb has run up the mountain in Colorado since 1916. Its course starts at the mile 7 marker of the Pikes Peak Highway, at 9,390 feet, and climbs 4,720 feet over 12.42 miles and 156 turns to the summit.
+
+  The contours come from the US Geological Survey's elevation data: a heavier one every 1,000 feet, and one every 200 feet above the start line. Only the summit rises inside the 14,000-foot line. The road is traced from OpenStreetMap, and the map is turned so the course climbs up the screen.
+technique: [line]
+subject: [maps, sport]
+lineage: []
+sources:
+  - kind: data
+    topic: 3D Elevation Program
+    author: U.S. Geological Survey
+    url: https://www.usgs.gov/3d-elevation-program
+  - kind: data
+    topic: Pikes Peak International Hill Climb course
+    author: OpenStreetMap contributors
+    url: https://www.openstreetmap.org/relation/21180239
+  - kind: reference
+    topic: Pikes Peak International Hill Climb
+    url: https://ppihc.org/about/
+  - kind: reference
+    topic: Pikes Peak
+    url: https://en.wikipedia.org/wiki/Pikes_Peak
+added: 2026-09-28
+model: claude-opus-5-5
