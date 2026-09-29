@@ -29,20 +29,3 @@ const variants =
 
 <div class="plate" data-plate={p.slug} data-templates={JSON.stringify(urls(p.templates))} data-slots={p.slotsUrl} data-alt={p.description} data-variants={variants}><noscript><img src={p.templates['16:9/dark'].url} alt={p.description} width="1920" height="1080" loading={lazy ? 'lazy' : undefined} decoding="async" /></noscript><slot /></div>
 
-<style>
-  /* site.css sizes an `:empty` plate; one holding only its <noscript> (or the crop window) is still waiting for its image. */
-  .plate:not(:has(img)) {
-    aspect-ratio: var(--ratio);
-  }
-  /* Same rounded-up height as the image will take (site.css .plate img), so captions do not move when it arrives. */
-  @supports (height: round(up, 1px, 1px)) {
-    .plate:not(:has(img)) {
-      aspect-ratio: auto;
-    }
-    .plate:not(:has(img))::before {
-      content: '';
-      display: block;
-      height: round(up, calc(100cqw / var(--ratio)), var(--u));
-    }
-  }
-</style>

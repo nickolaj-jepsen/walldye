@@ -145,12 +145,13 @@ function placeCrop(shape: ExportShape): void {
   const offset = shape.t * (1 - span);
   const axis = cropAxis(shape.aspect);
   cropWindow.dataset.axis = axis;
-  // In % of the plate, so the frame also covers the plate's 0-7px rounding strip.
+  // Heights are fractions of the picture's (site.css .plate::after), not the plate's, which ends in a 0-7px rounding strip.
+  const tall = (f: number) => `calc(${f} * 100cqw / var(--ratio))`;
   Object.assign(
     cropWindow.style,
     axis === 'x'
-      ? { left: `${offset * 100}%`, width: `${span * 100}%`, top: '0', height: '100%' }
-      : { left: '0', width: '100%', top: `${offset * 100}%`, height: `${span * 100}%` },
+      ? { left: `${offset * 100}%`, width: `${span * 100}%`, top: '0', height: tall(1) }
+      : { left: '0', width: '100%', top: tall(offset), height: tall(span) },
   );
 }
 
@@ -279,7 +280,8 @@ cropWindow.addEventListener('pointerdown', (e) => {
   if (e.button !== 0) return;
   e.preventDefault();
   const x = cropAxis(state.aspect) === 'x';
-  const travel = (x ? plate.clientWidth : plate.clientHeight) * (1 - cropSpan(state.aspect));
+  const picture = x ? plate.clientWidth : (plate.querySelector('img')?.clientHeight ?? 0);
+  const travel = picture * (1 - cropSpan(state.aspect));
   const start = x ? e.clientX : e.clientY;
   const from = shapeOf(state, native, focus).t;
   cropWindow.setPointerCapture(e.pointerId);

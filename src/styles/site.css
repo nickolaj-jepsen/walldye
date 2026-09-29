@@ -414,28 +414,22 @@ abbr {
   container-type: inline-size;
   background: var(--seed-bg);
 }
-/* Drawn inside the plate: grid rows use content-visibility, whose paint containment clips outside strokes. */
+/* The plate's height: the picture's, rounded up to the 8px unit so captions stay on the grid. The 0-7px strip under the picture is plate ground. */
+.plate::before { content: ""; display: block; height: calc(100cqw / var(--ratio)); }
+@supports (height: round(up, 1px, 1px)) {
+  .plate::before { height: round(up, calc(100cqw / var(--ratio)), var(--u)); }
+}
+/* Drawn inside the plate: grid rows use content-visibility, whose paint containment clips outside strokes. It frames the picture, not the strip. */
 .plate::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 0 auto;
+  height: calc(100cqw / var(--ratio));
   box-shadow: inset 0 0 0 1px var(--plate-edge);
   pointer-events: none;
 }
-/* Before JS the plate is an empty box of the right shape. */
-.plate:empty { aspect-ratio: var(--ratio); }
-.plate img { width: 100%; aspect-ratio: var(--ratio); height: auto; }
-/* A new image fades in over the one it replaces, which goes once the fade ends. */
-.plate > img + img { position: absolute; top: 0; left: 0; }
-/* Round the box up to the 8px unit so captions stay on the grid; the image is never cropped, and the 0-7px strip is plate background. */
-@supports (height: round(up, 1px, 1px)) {
-  .plate img {
-    aspect-ratio: auto;
-    height: round(up, calc(100cqw / var(--ratio)), var(--u));
-    object-fit: contain;
-    object-position: top;
-  }
-}
+/* Pictures lie over the spacer at their exact shape, so a new one fades in over the one it replaces, which goes once the fade ends. */
+.plate img { position: absolute; top: 0; left: 0; width: 100%; aspect-ratio: var(--ratio); height: auto; object-fit: contain; }
 
 /* A grid in another shape: pieces without a template of that shape show the 16:9 one cropped around its focus (--pos, set per plate), as the export would crop it. */
 [data-shape="16:10"] { --ratio: 1.6; }

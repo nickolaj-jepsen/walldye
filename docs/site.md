@@ -80,7 +80,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 
 - The unit is `--u`, 8px; `--l` (4u) is the line for UI text and prose. Captions, footnotes and listings run on 3u lines, the detail title on 6u and the "Source code" heading on 5u. Margins and paddings are whole units.
 - Rules are 1px background gradients inside an existing padding, so they add no height.
-- Plate boxes round their height up to the unit and letterbox the remainder with the plate ground. Nothing is cropped.
+- Plate boxes round their height up to the unit: the picture keeps its exact shape at the top, and the remainder below it is plate ground, outside the frame. Nothing is cropped.
 - The page is at most 110rem wide, with a side gutter of `clamp(1rem, 4vw, 3.5rem)` and no footer.
 - The masthead, the index and About share one `18rem | 1fr` column pair, so the nav, the plate grid and About's prose share a left edge.
 - Grid columns are at least 18rem (`--track`): two from about 1045px, three from about 1390 and four from about 1710. A grid in another shape (§6.4) sets `--ratio` and `--track`: 26rem for 21:9, 40rem for 32:9 and 12rem for the tall shapes, which take two columns on phones.
@@ -102,7 +102,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 |---|---|---|
 | Masthead bottom, "Source code" heading | 1px background rule | `--rule-strong` |
 | `.hair-t` rules: facts, Notes and Sources heads, picker groups, the Export head, phone controls and filter summary | 1px background rule at the top | `--rule` |
-| Plate frame | `inset 0 0 0 1px` box-shadow on `.plate::after`, since paint containment clips anything outside | `--plate-edge` |
+| Plate frame | `inset 0 0 0 1px` box-shadow on `.plate::after`, since paint containment clips anything outside; the picture's height, not the rounded plate's | `--plate-edge` |
 | Picker | 1px border, its top edge on the masthead rule | `--rule-strong` |
 | Text fields | 1px underline; 2px when invalid | `--control`; invalid `--link` |
 | Facet checkbox | 12px square, 1px border; filled when checked | `--control`; checked `--text` |
