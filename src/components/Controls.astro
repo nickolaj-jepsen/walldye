@@ -4,6 +4,7 @@
  * 16:9 and the default size and format; the client keeps it in step.
  */
 import { DEFAULT_PRESET } from '../lib/presets';
+import DownloadSummary from './DownloadSummary.astro';
 import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, EXPORT_SIZES, FORMATS, SITE_ASPECTS, downloadName, type Piece } from '../lib/content';
 
 interface Props {
@@ -22,7 +23,7 @@ const format = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!;
 const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, size, '16:9', false);
 ---
 
-<section class="controls" aria-label={p.versions.length ? 'Versions, colors and export' : 'Colors and export'}>
+<section class="controls" aria-label={p.versions.length ? 'Versions, export and colors' : 'Export and colors'}>
   {
     p.versions.length > 0 && (
       <section aria-labelledby="versions-h">
@@ -33,22 +34,22 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
       </section>
     )
   }
+  <section id="export" aria-labelledby="export-h" data-license={p.resolvedLicense}>
+    <h2 id="export-h" class="sc">Export</h2>
+    <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint" hidden>cropped from <span class="mono">16:9</span></span></div>
+    <div class="row center" id="crop-row" hidden><span class="k">Crop</span><div><span class="plate crop-map" aria-hidden="true"><span class="crop"><span class="handle"></span></span></span><input class="range" id="crop" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="Crop position" /></div></div>
+    <div class="row"><span class="k">Size</span><div class="seg" id="sizes" role="radiogroup" aria-label="Size">{sizes.map((s) => <label data-aspect={s.aspect} hidden={s.aspect !== '16:9'}><input type="radio" name="size" value={s.value} checked={s.value === size} disabled={s.aspect !== '16:9'} /><span><span class="mono">{s.value.replace('x', '×')}</span></span></label>)}<label><input type="radio" name="size" value="screen" /><span>your screen</span></label></div><span class="sub hint" id="size-limit" hidden>This browser can’t draw a file that large.</span><span class="sub hint lnum" id="cell-note" hidden></span></div>
+    <div class="row"><span class="k">Format</span><div class="seg" role="radiogroup" aria-label="Format">{FORMATS.map((f) => <label><input type="radio" name="fmt" value={f.value} data-ext={f.ext} checked={f === format} /><span>{f.label}</span></label>)}</div><span class="sub hint" id="format-hint" hidden>This browser can’t make WebP files.</span></div>
+    <button type="button" class="download row" id="download" title={file}><span class="k">Download</span><DownloadSummary format={format.label} size={size.replace('x', '×')} /></button>
+    <p class="row" aria-live="polite"><span class="sub msg err" id="export-error"></span></p>
+  </section>
+
   <section aria-labelledby="theme-h">
     <h2 id="theme-h" class="sc">Colors</h2>
     <ul class="seedlist">
       {seeds.map((s) => <li><span class="chip" style={`--c:var(--seed-${s.seed})`} /><span class="mono" data-seed={s.seed}>{s.value}</span><span class="role">{s.role}</span></li>)}
     </ul>
     <p class="actions"><button type="button" class="textbtn" popovertarget="picker">Change</button><button type="button" class="textbtn" data-action="copy-link">Copy link</button></p>
-  </section>
-
-  <section id="export" aria-labelledby="export-h" data-license={p.resolvedLicense}>
-    <h2 id="export-h" class="sc">Export</h2>
-    <div class="row"><span class="k">Format</span><div class="seg" role="radiogroup" aria-label="Format">{FORMATS.map((f) => <label><input type="radio" name="fmt" value={f.value} data-ext={f.ext} checked={f === format} /><span>{f.label}</span></label>)}</div><span class="sub hint" id="format-hint" hidden>This browser can’t make WebP files.</span></div>
-    <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint" hidden>cropped from <span class="mono">16:9</span></span></div>
-    <div class="row center" id="crop-row" hidden><span class="k">Crop</span><div><span class="plate crop-map" aria-hidden="true"><span class="crop"><span class="handle"></span></span></span><input class="range" id="crop" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="Crop position" /></div></div>
-    <div class="row"><span class="k">Size</span><div class="seg" id="sizes" role="radiogroup" aria-label="Size">{sizes.map((s) => <label data-aspect={s.aspect} hidden={s.aspect !== '16:9'}><input type="radio" name="size" value={s.value} checked={s.value === size} disabled={s.aspect !== '16:9'} /><span><span class="mono">{s.value.replace('x', '×')}</span></span></label>)}<label><input type="radio" name="size" value="screen" /><span>your screen</span></label></div><span class="sub hint" id="size-limit" hidden>This browser can’t draw a file that large.</span><span class="sub hint lnum" id="cell-note" hidden></span></div>
-    <button type="button" class="download row" id="download"><span class="k">Download</span><span class="file"><span class="mono" id="download-name">{file}</span></span></button>
-    <p class="row" aria-live="polite"><span class="sub msg err" id="export-error"></span></p>
   </section>
 </section>
 

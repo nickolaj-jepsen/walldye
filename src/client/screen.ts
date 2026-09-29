@@ -20,7 +20,8 @@ export function deviceAspect(): Aspect {
   return isPhone() ? nearestAspect(...screenPx()) : '16:9';
 }
 
-/** The detail page's first shape: deviceAspect(), unless the screen is too large to draw at its size. */
+/** The detail page's first shape: the screen's nearest, unless the screen is too large to draw at its size. */
 export function exportAspect(): Aspect {
-  return withinLimits(...screenPx()) ? deviceAspect() : '16:9';
+  const px = screenPx();
+  return withinLimits(...px) ? nearestAspect(...px) : '16:9';
 }

@@ -27,7 +27,13 @@ const setCrop = (page: Page, value: number) =>
   }, value);
 
 test.describe('detail', () => {
-  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+  test.use({
+    colorScheme: 'dark',
+    viewport: { width: 1440, height: 1000 },
+    // A 16:9 screen at 2560×1440, so the page starts on 16:9 and "your screen" is the default size's pixels.
+    deviceScaleFactor: 1,
+    contextOptions: { screen: { width: 2560, height: 1440 } },
+  });
 
   test('a shape without its own template shows a crop window that follows the range and a drag', async ({
     page,
@@ -36,8 +42,12 @@ test.describe('detail', () => {
     await expect(page.locator('.spread .plate > img')).toHaveAttribute('src', /^\/t\//);
     await expect(page.locator('.spread .crop')).toBeHidden();
     await expect(page.locator('#crop-row')).toBeHidden();
-    // The export panel is beside the label, so there is no second Download.
-    await expect(page.locator('#quick-download')).toBeHidden();
+    // A Download under the attribution, on the first screen, starts on your screen.
+    await expect(page.locator('#quick-download')).toBeInViewport();
+    await expect(page.locator('#quick-download')).toHaveText(
+      'Download PNG, 2560×1440 for your screen',
+    );
+    await expect(page.locator('#export input[name=size][value=screen]')).toBeChecked();
 
     await pick(page, 'asp', '16:10');
     await expect(page.locator('.spread .crop')).toBeVisible();
@@ -47,7 +57,10 @@ test.describe('detail', () => {
     await expect(page.locator('#crop')).toHaveValue('0.133');
     // An unplaced crop follows the focus, so the address carries no position.
     expect(new URL(page.url()).search).toBe('?shape=16x10');
-    await expect(page.locator('#download-name')).toHaveText('schotter-fireproof-2560x1600.png');
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      'schotter-fireproof-2560x1600.png',
+    );
     await expect(page.locator('#sizes input:enabled')).toHaveCount(5);
     await expect(page.locator('#sizes label:visible')).toHaveCount(5);
     await expect(page.locator('#run-render')).toHaveText(
@@ -75,7 +88,10 @@ test.describe('detail', () => {
   test('PNG export is RGB at the exact size', async ({ page }) => {
     await page.goto('/schotter?shape=21x9&crop=0.5');
     await pick(page, 'size', '3440x1440');
-    await expect(page.locator('#download-name')).toHaveText('schotter-fireproof-3440x1440.png');
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      'schotter-fireproof-3440x1440.png',
+    );
     const { dl, buf } = await download(page);
     expect(dl.suggestedFilename()).toBe('schotter-fireproof-3440x1440.png');
     expect(pngHeader(buf)).toEqual({ width: 3440, height: 1440, colorType: 2 });
@@ -95,7 +111,10 @@ test.describe('detail', () => {
     await pick(page, 'fmt', 'svg');
     await pick(page, 'asp', '9:19.5');
     await setCrop(page, 0);
-    await expect(page.locator('#download-name')).toHaveText('schotter-nord-9x19.5-crop.svg');
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      'schotter-nord-9x19.5-crop.svg',
+    );
     const { dl, buf } = await download(page);
     expect(dl.suggestedFilename()).toBe('schotter-nord-9x19.5-crop.svg');
     const svg = buf.toString('utf8');
@@ -270,7 +289,10 @@ test.describe('detail on a phone', () => {
     await page.goto('/schotter');
     await expect(page.locator('#export input[name=asp][value="9:19.5"]')).toBeChecked();
     await expect(page.locator('#export input[name=size][value=screen]')).toBeChecked();
-    await expect(page.locator('#download-name')).toHaveText('schotter-flexoki-light-1170x2532.png');
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      'schotter-flexoki-light-1170x2532.png',
+    );
     // The phone default is not written to the address.
     expect(new URL(page.url()).search).toBe('');
   });
@@ -312,20 +334,21 @@ test.describe('detail on a phone', () => {
     await expect(page.locator('.crop-map')).toBeHidden();
   });
 
-  test('the Download under the title follows the export panel and saves its file', async ({
+  test('the Download under the attribution follows the export panel and saves its file', async ({
     page,
   }) => {
     await page.goto('/schotter');
     const quick = page.locator('#quick-download');
-    await expect(quick).toHaveText('Download PNG, 1170×2532');
+    // Narrow phones leave out "for your screen", keeping the line to one.
+    await expect(quick).toHaveText('Download PNG, 1170×2532', { useInnerText: true });
     await pick(page, 'fmt', 'svg');
-    await expect(quick).toHaveText('Download SVG, 9:19.5');
+    await expect(quick).toHaveText('Download SVG, 9:19.5', { useInnerText: true });
     await pick(page, 'fmt', 'jpeg');
     const [dl] = await Promise.all([
       page.waitForEvent('download', { timeout: 90_000 }),
       quick.click(),
     ]);
-    expect(dl.suggestedFilename()).toBe(await page.locator('#download-name').textContent());
+    expect(dl.suggestedFilename()).toBe(await quick.getAttribute('title'));
   });
 });
 

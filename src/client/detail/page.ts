@@ -1,6 +1,6 @@
 /**
  * The detail page: versions and their pictures, plate, crop window, export panel and the Download
- * under the title, run command, the `f` key, "Copy" and the "See also" plates, shown in the page's
+ * under the attribution, run command, the `f` key, "Copy" and the "See also" plates, shown in the page's
  * shape. On narrow screens a tall cropped shape shows the crop in the plate itself, with the crop
  * window on a small 16:9 map in the export panel.
  * A visitor's change goes through update(), which renders the whole page from the state and writes
@@ -40,7 +40,7 @@ import {
 import { plateGrid } from '../grid';
 import { getSlots, keepShowing, type PlateData, plateData, recolored } from '../plates';
 import { retrying } from '../retry';
-import { exportAspect, isPhone, screenPx } from '../screen';
+import { exportAspect, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
 import { type DetailState, keptCrop, readAddress, shapeOf, sizeFor, writeAddress } from './state';
 
@@ -63,9 +63,10 @@ const formatHint = must('#format-hint');
 const downloadBtn = must<HTMLButtonElement>('#download');
 const quickBtn = must<HTMLButtonElement>('#quick-download');
 const downloadBtns = [downloadBtn, quickBtn];
-const fileName = must('#download-name');
-const quickFormat = must('#quick-format');
-const quickSize = must('#quick-size');
+const summaryParts = (part: string) => downloadBtns.map((btn) => must(`[data-part=${part}]`, btn));
+const summaryFormats = summaryParts('format');
+const summarySizes = summaryParts('size');
+const summaryYours = summaryParts('yours');
 const exportError = must('#export-error');
 const desc = must('#desc');
 const aspectRadios = [...panel.querySelectorAll<HTMLInputElement>('input[name=asp]')];
@@ -84,7 +85,6 @@ const slug = plate.dataset.plate ?? '';
 const native = new Set(
   aspectRadios.filter((r) => r.hasAttribute('data-native')).map((r) => r.value),
 );
-const phone = isPhone();
 const screenAspect = nearestAspect(...screenPx());
 // Keep in step with site.css's phone query.
 const narrow = matchMedia('(max-width: 60rem)');
@@ -122,7 +122,7 @@ const state: DetailState = (() => {
     asked.variant && Object.hasOwn(versions, asked.variant) ? asked.variant : DEFAULT_VARIANT;
   // As the shape boot chose, so the plate keeps its size.
   const aspect = asked.aspect ?? exportAspect();
-  const keep = phone && aspect === screenAspect ? 'screen' : '';
+  const keep = aspect === screenAspect ? 'screen' : '';
   return { variant, aspect, crop: asked.crop ?? null, size: sizeFor(aspect, keep, allowed) };
 })();
 /** The shown version's crop focus and grid cell sizes, from its slots.json once loaded. */
@@ -207,7 +207,7 @@ function renderNames(shape: ExportShape): void {
   const token = tokenOf(currentSeeds());
   const f = format();
   const [w, h] = sizePx(state.size);
-  fileName.textContent = downloadName(
+  const name = downloadName(
     slug,
     state.variant,
     token,
@@ -216,9 +216,11 @@ function renderNames(shape: ExportShape): void {
     state.aspect,
     !shape.native,
   );
-  quickFormat.textContent = f.label;
+  for (const btn of downloadBtns) btn.title = name;
+  for (const el of summaryFormats) el.textContent = f.label;
   // An SVG has a shape but no pixel size.
-  quickSize.textContent = f.value === 'svg' ? state.aspect : `${w}×${h}`;
+  for (const el of summarySizes) el.textContent = f.value === 'svg' ? state.aspect : `${w}×${h}`;
+  for (const el of summaryYours) el.hidden = f.value === 'svg' || state.size !== 'screen';
   if (runRender) runRender.textContent = renderCommand(slug, state.variant, token, shape);
   const widths =
     f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(shape, w, h));

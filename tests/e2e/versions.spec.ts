@@ -28,7 +28,13 @@ const pick = (page: Page, name: string, value: string) =>
 const plateImg = (page: Page) => page.locator('.spread .plate > img').last();
 
 test.describe('versions', () => {
-  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+  test.use({
+    colorScheme: 'dark',
+    viewport: { width: 1440, height: 1000 },
+    // A 16:9 screen at 2560×1440, so the page starts on 16:9 and "your screen" is the default size's pixels.
+    deviceScaleFactor: 1,
+    contextOptions: { screen: { width: 2560, height: 1440 } },
+  });
   test.skip(!PIECE, 'no published piece with versions, a portrait template and a 16:10 crop');
   const { slug, versions, license } = PIECE ?? { slug: '', versions: [], license: '' };
   const [base, other] = versions as [CatalogVersion, CatalogVersion];
@@ -62,14 +68,20 @@ test.describe('versions', () => {
     );
     await expect(version(page, base.label)).toBeChecked();
     await expect(plateImg(page)).toHaveAttribute('src', templateUrl(base.slots, '16:9'));
-    await expect(page.locator('#download-name')).toHaveText(`${slug}-fireproof-2560x1440.png`);
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      `${slug}-fireproof-2560x1440.png`,
+    );
 
     await choose(page, other.label);
     expect(new URL(page.url()).search).toBe(`?v=${other.name}`);
     await expect(plateImg(page)).toHaveAttribute('src', templateUrl(other.slots, '16:9'));
     await expect(plateImg(page)).toHaveAttribute('alt', other.description);
     await expect(page.locator('#desc')).toHaveText(other.description);
-    await expect(page.locator('#download-name')).toHaveText(`${named}-fireproof-2560x1440.png`);
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      `${named}-fireproof-2560x1440.png`,
+    );
     await expect(page.locator('#run-render')).toHaveText(
       `uv run walldye render ${slug} --variant ${other.name} --theme fireproof -o ${named}-fireproof-16x9.svg`,
     );
@@ -115,7 +127,7 @@ test.describe('versions', () => {
     await choose(page, other.label);
     await expect(page.locator('#crop')).toHaveValue(at(other));
     expect(new URL(page.url()).search).toBe(`?v=${other.name}&shape=16x10`);
-    await expect(page.locator('#download-name')).toHaveText(`${named}-nord-2560x1600.png`);
+    await expect(page.locator('#download')).toHaveAttribute('title', `${named}-nord-2560x1600.png`);
     await expect(plateImg(page)).toHaveAttribute('src', /^blob:/);
 
     await page.locator('#crop').evaluate((el) => {
@@ -126,7 +138,7 @@ test.describe('versions', () => {
     await expect(page.locator('#crop')).toHaveValue('0.9');
     expect(new URL(page.url()).search).toBe('?shape=16x10&crop=0.9');
     await expect(page.locator('#export input[name=asp][value="16:10"]')).toBeChecked();
-    await expect(page.locator('#download-name')).toHaveText(`${slug}-nord-2560x1600.png`);
+    await expect(page.locator('#download')).toHaveAttribute('title', `${slug}-nord-2560x1600.png`);
   });
 
   test("a native shape shows that version's own template, and the export carries the version", async ({
@@ -139,7 +151,10 @@ test.describe('versions', () => {
     await expect(page.locator('#cell-note')).toBeVisible({ visible: other.slots.cells.length > 0 });
 
     await pick(page, 'fmt', 'svg');
-    await expect(page.locator('#download-name')).toHaveText(`${named}-fireproof-10x16.svg`);
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      `${named}-fireproof-10x16.svg`,
+    );
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#download')]);
     expect(dl.suggestedFilename()).toBe(`${named}-fireproof-10x16.svg`);
     const svg = await readFile((await dl.path())!, 'utf8');
@@ -160,7 +175,10 @@ test.describe('versions', () => {
     await expect(version(page, base.label)).toBeChecked();
     await expect(page.locator('#desc')).toHaveText(base.description);
     await expect(plateImg(page)).toHaveAttribute('src', templateUrl(base.slots, '16:9'));
-    await expect(page.locator('#download-name')).toHaveText(`${slug}-fireproof-2560x1440.png`);
+    await expect(page.locator('#download')).toHaveAttribute(
+      'title',
+      `${slug}-fireproof-2560x1440.png`,
+    );
     const shown = JSON.parse(
       (await page.locator('.spread .plate').getAttribute('data-variants'))!,
     ) as Record<string, unknown>;
@@ -186,7 +204,7 @@ test.describe('versions', () => {
       );
     }
     await expect(page.locator('.spread .plate')).not.toHaveAttribute('data-variants');
-    await expect(page.locator('.controls')).toHaveAttribute('aria-label', 'Colors and export');
+    await expect(page.locator('.controls')).toHaveAttribute('aria-label', 'Export and colors');
     const sitemap = await (await request.get('/sitemap-0.xml')).text();
     for (const s of [slug, PLAIN.slug]) {
       expect(

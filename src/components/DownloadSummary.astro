@@ -1,0 +1,13 @@
+---
+/**
+ * What a Download button makes: the format, the size (or an SVG's shape) and, for the visitor's own
+ * screen size, "for your screen". The detail page's client keeps every copy in step.
+ */
+interface Props {
+  format: string;
+  size: string;
+}
+const { format, size } = Astro.props;
+---
+
+<span class="file"><span data-part="format">{format}</span>, <span class="mono" data-part="size">{size}</span><span data-part="yours" hidden> for your screen</span></span>

@@ -450,8 +450,8 @@ abbr {
 /* ---- detail ---- */
 
 .spread .plate {
-  /* Plate and the label's first two lines share the first screen: 28u of masthead, gaps, title and attribution, plus 1u for the plate's round-up. */
-  width: min(100%, max(20rem, calc((100svh - 29 * var(--u)) * 16 / 9)));
+  /* Plate and the label's first three lines share the first screen: 32u of masthead, gaps, title, attribution and Download, plus 1u for the plate's round-up. */
+  width: min(100%, max(20rem, calc((100svh - 33 * var(--u)) * 16 / 9)));
   overflow: hidden;
 }
 
@@ -615,11 +615,10 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   text-align: left;
 }
 .download .k { color: var(--text); }
-.download .file { color: var(--text-2); overflow-wrap: anywhere; }
-.download .file .mono { white-space: normal; }
-/* The export panel's Download, repeated under the title where the panel comes a screen or more below it. */
-.download.quick { display: none; margin-top: var(--u); }
-.download.quick .file .mono { white-space: nowrap; }
+.download .file { color: var(--text-2); }
+.download .file .mono { white-space: nowrap; }
+/* The export panel's Download, repeated under the attribution so it shares the first screen with the plate. */
+.download.quick { display: block; }
 
 /* see also */
 .related { margin-top: calc(10 * var(--u)); }
@@ -862,7 +861,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
     row-gap: calc(5 * var(--u));
     margin-top: calc(3 * var(--u));
   }
-  .download.quick { display: block; }
+  .download.quick { margin-top: var(--u); }
   .controls { padding-top: var(--u); background: linear-gradient(var(--rule), var(--rule)) top / 100% 1px no-repeat; }
   .below > .label-more > .sect:first-child { margin-top: 0; }
   .facts { grid-template-columns: 7rem 1fr; }
@@ -884,6 +883,8 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   :root:has(.masthead .shared:not([hidden])) { --masthead-h: calc(22 * var(--u)); }
   .nav { grid-column: 1 / -1; grid-row: 2; }
   .shared { grid-row: 3; }
+  /* Keeps the Download under the attribution to one line. */
+  .download.quick [data-part="yours"] { display: none; }
 }
 
 /* iOS zooms the page when a focused input is under 16px, which throws the fixed popover off screen. */

@@ -32,7 +32,10 @@ async function exportAt(page: Page, width: number, height: number): Promise<Buff
     sizes.append(label);
   }, `${width}x${height}`);
   await page.locator(`#sizes input[value="${width}x${height}"]`).check({ force: true });
-  await expect(page.locator('#download-name')).toHaveText(`schotter-nord-${width}x${height}.png`);
+  await expect(page.locator('#download')).toHaveAttribute(
+    'title',
+    `schotter-nord-${width}x${height}.png`,
+  );
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 90_000 }),
     page.click('#download'),

@@ -110,7 +110,7 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 
 ## Detail (`src/pages/[slug].astro`)
 
-The page keeps its state in the query string, written with `history.replaceState` when the visitor changes it: `v=<variant>` (left out for the default), `shape=<w>x<h>` (left out for 16:9) and `crop=<0..1>` (on a cropped shape, once the visitor placed it; an unplaced crop follows the version's focus, so the address needs no position). Nothing is written until the visitor changes something, so a phone's own shape stays out of the address. A `v` that names no version on the page shows the default. `detail/state.ts` has these rules.
+The page keeps its state in the query string, written with `history.replaceState` when the visitor changes it: `v=<variant>` (left out for the default), `shape=<w>x<h>` (left out for 16:9) and `crop=<0..1>` (on a cropped shape, once the visitor placed it; an unplaced crop follows the version's focus, so the address needs no position). Nothing is written until the visitor changes something, so the screen's own shape stays out of the address. A `v` that names no version on the page shows the default. `detail/state.ts` has these rules.
 
 ### Spread and label
 
@@ -119,11 +119,11 @@ The page keeps its state in the query string, written with `history.replaceState
 | `.spread` | `figure` | Set `data-aspect` to the Shape, which the page's CSS reads to set a tall shape in the plate on phones. The shape boot sets the first one before first paint (`exportAspect()` in `screen.ts` unless the address has `shape`); the page module starts on the same. |
 | `.spread .plate` | Plate box with every aspect | Set `--pos`, the `object-position` of the crop, for that view; there a sideways drag on a cropped 16:9 picture moves the crop. |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
-| `#quick-download` | `button.download.quick` after the attribution | Phones only (site.css). Runs the export as `#download` does, sharing its "Preparing…" and `aria-busy`. |
-| `#quick-format`, `#quick-size` | spans inside `#quick-download` | The format's label, and the size as `w×h`, or the shape for SVG. |
+| `#quick-download` | `button.download.quick` after the attribution | Runs the export as `#download` does, sharing its "Preparing…", `aria-busy`, summary and `title`. |
+| `[data-part=format\|size\|yours]` | spans inside both Download buttons (`DownloadSummary.astro`) | The format's label; the size as `w×h`, or the shape for SVG; " for your screen", shown for a raster at the `screen` size. |
 | `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].alt`). |
 
-### Versions, colors and export (`src/components/Controls.astro`)
+### Versions, export and colors (`src/components/Controls.astro`)
 
 | Hook | Element | Notes |
 |---|---|---|
@@ -138,12 +138,11 @@ The page keeps its state in the query string, written with `history.replaceState
 | `#shape-hint` | `span.hint[hidden]` | Show it for cropped shapes. |
 | `#crop-row`, `#crop` | `div.row[hidden]` and `input[type=range]` 0 to 1 | Show for cropped shapes. The value is the position along the crop's travel (0 left or top). It follows the version's `focus` (clamped) until the visitor places it (range, drag or `?crop=`); a placed crop is kept when the new shape crops along the same axis. |
 | `.crop-map` | `span.plate[aria-hidden]` above `#crop`, holding a `.crop` like the spread's | While the plate shows a tall crop itself (phones), show the 16:9 template in the current version and theme, and place and drag its window as the spread's. site.css shows it in that view only. |
-| `#sizes` | radiogroup | One `label[data-aspect=<aspect>]` per size of every shape in `EXPORT_SIZES` (value `<w>x<h>`, label `<span class="mono">w×h</span>`), then `screen`. Only the 16:9 ones are shown and enabled at first, 2560×1440 checked; the client shows and enables the chosen shape's. Picking `screen` switches to the nearest shape; leaving that shape drops it for the default size. Phones (`(max-width: 60rem) and (pointer: coarse)`) start on it. |
+| `#sizes` | radiogroup | One `label[data-aspect=<aspect>]` per size of every shape in `EXPORT_SIZES` (value `<w>x<h>`, label `<span class="mono">w×h</span>`), then `screen`. Only the 16:9 ones are shown and enabled at first, 2560×1440 checked; the client shows and enables the chosen shape's. Picking `screen` switches to the nearest shape; leaving that shape drops it for the default size. The page starts on it when it starts in the screen's shape. |
 | `#size-limit` | `span.hint[hidden]` | Shown while a size is disabled for the canvas limits; disabled radios point at it with `aria-describedby`. |
 | `#cell-note` | `span.hint.lnum[hidden]` | Pieces with `cells`, raster formats only: shown when cells land on uneven pixel widths. |
-| `#download` | `button.download` | Runs the export; its `.k` reads "Preparing…" with `aria-busy` meanwhile. |
+| `#download` | `button.download` | Runs the export; its `.k` reads "Preparing…" with `aria-busy` meanwhile. Set its `title` to the file name, from `downloadName()` in `src/lib/content.ts`. |
 | `#export-error` | `span.msg.err` in a polite live row | Set when an export fails. |
-| `#download-name` | `span.mono` | The file name, from `downloadName()` in `src/lib/content.ts`. |
 
 ### See also
 

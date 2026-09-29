@@ -93,7 +93,13 @@ async function tabStops(page: Page, limit = 80): Promise<Stop[]> {
 }
 
 test.describe('focus order', () => {
-  test.use({ viewport: { width: 1440, height: 1000 }, colorScheme: 'dark' });
+  test.use({
+    viewport: { width: 1440, height: 1000 },
+    colorScheme: 'dark',
+    // A 16:9 screen at 2560×1440, so the page starts on 16:9 and "your screen" is the default size's pixels.
+    deviceScaleFactor: 1,
+    contextOptions: { screen: { width: 2560, height: 1440 } },
+  });
 
   test('the index runs header, filter, colors, then plates, each stop visible with a ring', async ({
     page,
@@ -127,7 +133,7 @@ test.describe('focus order', () => {
     }
   });
 
-  test('a detail page runs label, versions, colors, export, notes, see also, then the source code', async ({
+  test('a detail page runs label, versions, export, colors, notes, see also, then the source code', async ({
     page,
   }) => {
     await page.goto('/schotter');
@@ -143,12 +149,13 @@ test.describe('focus order', () => {
     const order = [
       /^button#theme-button/,
       /^a#fnref1 Source 1/,
+      /^button#quick-download/,
       /^a technical drawing/,
-      /^button Change/,
-      /^input\[fmt=png\]/,
       /^input\[asp=16:9\]/,
-      /^input\[size=2560x1440\]/,
+      /^input\[size=screen\]/,
+      /^input\[fmt=png\]/,
       /^button#download/,
+      /^button Change/,
       /^a Schotter$/,
       /^a Back to text/,
       /^summary Source code/,

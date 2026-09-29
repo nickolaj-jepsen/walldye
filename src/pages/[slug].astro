@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Attribution from '../components/Attribution.astro';
 import Controls from '../components/Controls.astro';
+import DownloadSummary from '../components/DownloadSummary.astro';
 import Footnotes from '../components/Footnotes.astro';
 import Plate from '../components/Plate.astro';
 import PlateBox from '../components/PlateBox.astro';
@@ -63,7 +64,7 @@ const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
     <div class="label">
       <h1>{p.title}</h1>
       {captionSources(p) && <p class="attr"><Attribution piece={p} refs /></p>}
-      <button type="button" class="download quick" id="quick-download"><span class="k">Download</span> <span class="file"><span id="quick-format">{quickFormat}</span>, <span class="mono" id="quick-size">{quickSize}</span></span></button>
+      <button type="button" class="download quick" id="quick-download"><span class="k">Download</span> <DownloadSummary format={quickFormat} size={quickSize} /></button>
       <p class="desc" id="desc">{p.description}</p>
       <p class="credit">{credit.map((c) => (c.lnum ? <span class="lnum">{c.text}</span> : c.text))}</p>
       {fanWork && <p class="license">Unofficial fan tribute, not affiliated with or endorsed by {fanWork.owner}. <i>{fanWork.title}</i> and its characters are trademarks of their owners. Non-commercial; contact <a href={`mailto:${TAKEDOWN_CONTACT}`}>{TAKEDOWN_CONTACT}</a> for takedown.</p>}
@@ -155,9 +156,9 @@ const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
   }
   /* Phones in a tall shape: the plate takes that shape, showing the crop itself rather than 16:9 with the crop window, and a sideways drag moves the crop. */
   @media (max-width: 60rem) {
-    /* Plate and the label's first three lines (title, attribution, Download) share the first screen: 20u of gaps and lines, plus 1u for the round-up. */
+    /* Plate, title, attribution (up to two lines) and Download share the first screen: 25u of gaps and lines, plus 1u for the round-up. */
     .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate) {
-      width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 21 * var(--u)) * var(--ratio))));
+      width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 26 * var(--u)) * var(--ratio))));
       margin-inline: auto;
       touch-action: pan-y;
     }
