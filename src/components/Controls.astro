@@ -28,7 +28,7 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
       <section aria-labelledby="versions-h">
         <h2 id="versions-h" class="sc">Versions</h2>
         <div class="seg versions" id="versions" role="radiogroup" aria-labelledby="versions-h">
-          {p.versions.map((v) => <label><input type="radio" name="v" value={v.name} checked={v.name === DEFAULT_VARIANT} /><span>{v.label}</span></label>)}
+          {p.versions.map((v) => <label><input type="radio" name="v" value={v.name} checked={v.name === DEFAULT_VARIANT} /><span>{v.label}</span><span class="plate thumb" data-version={v.name} aria-hidden="true" /></label>)}
         </div>
       </section>
     )
@@ -53,10 +53,19 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
 </section>
 
 <style>
-  /* One version per line, like the index's facet entries. */
+  /* Each version's picture over its name, a row of them. */
   .versions {
-    flex-direction: column;
-    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    column-gap: calc(2 * var(--u));
+    row-gap: var(--u);
+  }
+  .versions label {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .versions .thumb {
+    margin-top: var(--u);
   }
   /* A format or size the browser cannot make (the client disables it) fades to the guarded --text-dim. */
   .seg :global(input:disabled + span) {

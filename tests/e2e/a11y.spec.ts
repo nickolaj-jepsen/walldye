@@ -95,7 +95,7 @@ async function tabStops(page: Page, limit = 80): Promise<Stop[]> {
 test.describe('focus order', () => {
   test.use({ viewport: { width: 1440, height: 1000 }, colorScheme: 'dark' });
 
-  test('the index runs header, filter, then plates, each stop visible with a ring', async ({
+  test('the index runs header, filter, colours, then plates, each stop visible with a ring', async ({
     page,
   }) => {
     await page.goto('/');
@@ -105,15 +105,19 @@ test.describe('focus order', () => {
     expect(names[0]).toMatch(/^a Skip to content/);
     expect(at(/^a Walldye/)).toBeLessThan(at(/^button#theme-button/));
     expect(at(/^button#theme-button/)).toBeLessThan(at(/^input#q/));
-    expect(at(/^input#q/)).toBeLessThan(at(/^input\[sort=newest\]/));
-    expect(at(/^input\[sort=newest\]/)).toBeLessThan(at(/^input\[technique=/));
+    expect(at(/^input#q/)).toBeLessThan(at(/^input\[sort=/));
+    expect(at(/^input\[sort=/)).toBeLessThan(at(/^input\[shape=16x9\]/));
+    expect(at(/^input\[shape=16x9\]/)).toBeLessThan(at(/^input\[technique=/));
+    expect(at(/^input\[(technique|subject|lineage|other)=/)).toBeLessThan(at(/^button fireproof/));
+    expect(at(/^button fireproof/)).toBeLessThan(at(/^button Your own/));
     // One stop per radio group, then the plates in grid order (as far as the walk goes).
     expect(names.filter((n) => n.startsWith('input[sort='))).toHaveLength(1);
+    expect(names.filter((n) => n.startsWith('input[shape='))).toHaveLength(1);
     const titles = await page
       .locator('.grid > li')
       .evaluateAll((lis) => lis.map((li) => `a ${(li as HTMLElement).dataset.title}`.slice(0, 42)));
     const firstPlate = names.indexOf(titles[0]);
-    expect(firstPlate).toBeGreaterThan(at(/^input\[(technique|subject|lineage|other)=/));
+    expect(firstPlate).toBeGreaterThan(at(/^button Your own/));
     const plates = names.slice(firstPlate);
     expect(plates.length).toBeGreaterThanOrEqual(5);
     expect(plates).toEqual(titles.slice(0, plates.length));
@@ -123,7 +127,7 @@ test.describe('focus order', () => {
     }
   });
 
-  test('a detail page runs label, colours, export, notes, then the source code', async ({
+  test('a detail page runs label, versions, colours, export, notes, see also, then the source code', async ({
     page,
   }) => {
     await page.goto('/schotter');
@@ -147,9 +151,7 @@ test.describe('focus order', () => {
       /^button#download/,
       /^a Schotter$/,
       /^a Back to text/,
-      /^button Copy$/,
-      /^pre design\.py source/,
-      /^pre Run command/,
+      /^summary Source code/,
     ];
     const idx = order.map(at);
     expect(idx).toEqual([...idx].sort((a, b) => a - b));

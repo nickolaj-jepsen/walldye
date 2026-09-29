@@ -6,10 +6,10 @@
 import {
   type Aspect,
   aspectLabel,
+  aspectOfLabel,
   DEFAULT_SIZE_INDEX,
   DEFAULT_VARIANT,
   EXPORT_SIZES,
-  isAspect,
 } from '../../lib/content';
 import { cropAxis, type ExportShape, focusPosition, num } from '../export/shape';
 
@@ -32,8 +32,8 @@ export function readAddress(
   const out: Partial<DetailState> = {};
   const v = params.get('v');
   if (v) out.variant = v;
-  const shape = params.get('shape')?.replace('x', ':');
-  if (isAspect(shape)) out.aspect = shape;
+  const shape = aspectOfLabel(params.get('shape'));
+  if (shape) out.aspect = shape;
   // Only a plain decimal: Number() alone would take "0x1" and "", parseFloat "0.9junk".
   const raw = params.get('crop') ?? '';
   const crop = /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw) ? Number(raw) : Number.NaN;

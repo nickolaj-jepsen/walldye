@@ -6,7 +6,7 @@
 import { Font } from 'astro:assets';
 import Masthead from '../components/Masthead.astro';
 import Picker from '../components/Picker.astro';
-import { themeBootScript } from '../server/theme-boot-script';
+import { inlineScript } from '../server/inline-script';
 import '../styles/site.css';
 
 interface Props {
@@ -33,7 +33,7 @@ const docTitle = title ? `${title} · Walldye` : 'Walldye';
 const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') || '/';
 const canonical = noindex ? undefined : new URL(path, Astro.site).href;
 const imageUrl = image ? new URL(image, Astro.site).href : undefined;
-const themeBoot = await themeBootScript(!import.meta.env.DEV);
+const themeBoot = await inlineScript('theme', !import.meta.env.DEV);
 ---
 
 <!doctype html>

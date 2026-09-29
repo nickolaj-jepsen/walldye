@@ -13,6 +13,7 @@ import {
   prepareTemplate,
   recolour,
   type Slots,
+  templateUrl,
 } from '../lib/recolour';
 import { isFireproof, type Regime, regimeOf, type Seeds } from '../lib/theme';
 import { readJson } from './dom';
@@ -23,7 +24,10 @@ export const MAX_FETCHES = 6;
 export const MAX_PLATES = 6;
 export const TEMPLATE_BUDGET = 8 * 1024 * 1024;
 
-/** One version's plate data: slots.json key to template URL, the slots.json URL and the alt text. */
+/**
+ * One version's plate data: slots.json key to template URL, the slots.json URL and the alt text. A
+ * key left out of `templates` is served where templateUrl() says, read from slots.json.
+ */
 export interface PlateData {
   templates: Record<string, string>;
   slots: string;
@@ -189,8 +193,7 @@ export async function recoloured(
 ): Promise<{ svg: string; url: string; untouched: boolean }> {
   const slots = await getSlots(data.slots);
   const picked = pickTemplate(slots, aspect, regimeOf(seeds));
-  const url = data.templates[picked.key];
-  if (!url) throw new Error(`no ${picked.key} template`);
+  const url = data.templates[picked.key] ?? templateUrl(picked.entry);
   const tpl = await getTemplate(url);
   // A template whose URL does not carry its slots hash is not the one the coefficients were made for.
   if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) {

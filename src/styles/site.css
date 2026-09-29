@@ -91,6 +91,9 @@
   --index-col: 18rem;
   --col-gap: 4rem;
   --masthead-h: calc(10 * var(--u));
+  /* Width over height of a plate box, and the narrowest a grid column may get; a [data-shape] grid sets both. */
+  --ratio: calc(16 / 9);
+  --track: 18rem;
 
   --fs-2: 1.1875rem;       /* 19: secondary lines, small-caps heads */
   --fs-ui: 1.25rem;        /* 20: UI text, the body default */
@@ -364,6 +367,23 @@ abbr {
 }
 .entry input:checked ~ .count { color: var(--text); }
 
+/* The presets as swatch buttons over the grid, so the first screen shows that the colours change. */
+.themes { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--u); margin-bottom: var(--u); }
+.themes h2 { color: var(--text-2); margin-right: var(--u); }
+.themes .textbtn { margin-left: var(--u); }
+.themes [data-preset] {
+  display: flex;
+  align-items: center;
+  height: var(--l);
+  padding: 0 calc(0.5 * var(--u));
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.themes [data-preset]:hover .chip { box-shadow: 0 0 0 1px var(--text); }
+/* "Current" as everywhere: a 1px underline in the text colour, here under the swatches. */
+.themes [aria-pressed="true"] { background: linear-gradient(var(--text), var(--text)) left 50% bottom 3px / calc(100% - var(--u)) 1px no-repeat; }
+
 /* Plain text, not small caps: EB Garamond's small-cap 1 and 0 read as I and O. */
 .results-line {
   display: flex;
@@ -376,7 +396,7 @@ abbr {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--track)), 1fr));
   column-gap: var(--l);
   row-gap: calc(6 * var(--u));
 }
@@ -397,19 +417,27 @@ abbr {
   pointer-events: none;
 }
 /* Before JS the plate is an empty box of the right shape. */
-.plate:empty { aspect-ratio: 16 / 9; }
-.plate img { width: 100%; aspect-ratio: 16 / 9; height: auto; }
+.plate:empty { aspect-ratio: var(--ratio); }
+.plate img { width: 100%; aspect-ratio: var(--ratio); height: auto; }
 /* A new image fades in over the one it replaces, which goes once the fade ends. */
 .plate > img + img { position: absolute; top: 0; left: 0; }
 /* Round the box up to the 8px unit so captions stay on the grid; the image is never cropped, and the 0-7px strip is plate background. */
 @supports (height: round(up, 1px, 1px)) {
   .plate img {
     aspect-ratio: auto;
-    height: round(up, calc(100cqw * 9 / 16), var(--u));
+    height: round(up, calc(100cqw / var(--ratio)), var(--u));
     object-fit: contain;
     object-position: top;
   }
 }
+
+/* A grid in another shape: pieces without a template of that shape show the 16:9 one cropped around its focus (--pos, set per plate), as the export would crop it. */
+[data-shape="16:10"] { --ratio: 1.6; }
+[data-shape="21:9"] { --ratio: calc(21 / 9); --track: 26rem; }
+[data-shape="32:9"] { --ratio: calc(32 / 9); --track: 40rem; }
+[data-shape="9:19.5"] { --ratio: calc(9 / 19.5); --track: 12rem; }
+[data-shape="10:16"] { --ratio: 0.625; --track: 12rem; }
+[data-shape]:not([data-shape="16:9"]) .plate > img[data-aspect="16:9"] { object-fit: cover; object-position: var(--pos, 50% 50%); }
 
 .label-s { margin-top: calc(2 * var(--u)); font-size: var(--fs-2); line-height: calc(3 * var(--u)); }
 .label-s .t { display: block; font-size: var(--fs-ui); font-weight: calc(var(--wt) + 100); color: var(--text); }
@@ -589,15 +617,28 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 .download .file { color: var(--text-2); overflow-wrap: anywhere; }
 .download .file .mono { white-space: normal; }
 
-/* appendix */
+/* see also */
+.related { margin-top: calc(10 * var(--u)); }
+.related > h2 { color: var(--text-2); padding-top: var(--u); margin-bottom: var(--u); }
+
+/* appendix: a disclosure, closed until asked for */
 .appendix { margin-top: calc(10 * var(--u)); }
-.appendix > h2 {
+.appendix > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  list-style: none;
+  cursor: pointer;
   font-size: var(--fs-l);
   line-height: calc(5 * var(--u));
   padding-top: calc(2 * var(--u));
-  margin-bottom: calc(2 * var(--u));
   background: linear-gradient(var(--rule-strong), var(--rule-strong)) top / 100% 1px no-repeat;
 }
+.appendix > summary::-webkit-details-marker { display: none; }
+.appendix > summary::after { content: "+" / ""; font-family: var(--mono); color: var(--text-2); }
+.appendix[open] > summary { margin-bottom: calc(2 * var(--u)); }
+.appendix[open] > summary::after { content: "\2212" / ""; }
+.appendix > summary:hover h2 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 .listing-head {
   display: flex;
   flex-wrap: wrap;
@@ -721,6 +762,19 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   background-image: linear-gradient(var(--link), var(--link));
   background-size: 100% 2px;
 }
+.importfield { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: baseline; column-gap: calc(1.5 * var(--u)); }
+.importfield .k { color: var(--text-2); }
+.importfield input {
+  width: 100%;
+  height: var(--l);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(var(--control), var(--control)) bottom / 100% 1px no-repeat;
+  line-height: var(--l);
+  outline-offset: 3px;
+}
+.importfield input::placeholder { color: var(--text-2); opacity: 1; }
 .msgs { margin-top: var(--u); line-height: calc(3 * var(--u)); text-wrap: pretty; }
 .msg.err { color: var(--link); }
 .msg.warn { color: var(--text); }
@@ -781,7 +835,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   .filter .facets { padding-top: calc(2 * var(--u)); columns: 2 16rem; column-gap: calc(4 * var(--u)); }
   .filter .facets > * { break-inside: avoid; }
 
-  .grid { grid-template-columns: minmax(0, 1fr); row-gap: calc(5 * var(--u)); }
+  :root { --track: 100%; }
+  /* Tall plates two to a row. */
+  [data-shape="9:19.5"], [data-shape="10:16"] { --track: 9rem; }
+  .grid { row-gap: calc(5 * var(--u)); }
+  [data-shape="9:19.5"] > .grid, [data-shape="10:16"] > .grid { column-gap: calc(2 * var(--u)); }
 
   .below {
     grid-template-columns: minmax(0, 1fr);
@@ -824,7 +882,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 
 /* Without JS nothing can change the theme, filter the index or export, so those controls stay out of the way. */
 @media (scripting: none) {
-  .seeds, .filter, .controls, [data-action="copy-source"] { display: none; }
+  .seeds, .filter, .controls, .themes, [data-action="copy-source"] { display: none; }
   .index > .plates { grid-column: 2; }
   /* The <noscript> image is always the fireproof template, whatever colours the page falls back to. */
   .plate { background: #1C1B1A; }
@@ -833,10 +891,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 /* Forced colours drop backgrounds, gradients and box-shadows: redraw state, rules and swatches with system colours. */
 @media (forced-colors: active) {
   .entry input, .range { appearance: auto; -webkit-appearance: auto; }
-  .search input, .hexfield input { border-bottom: 1px solid CanvasText; }
+  .search input, .hexfield input, .importfield input { border-bottom: 1px solid CanvasText; }
   .chip { forced-color-adjust: none; box-shadow: none; outline: 1px solid CanvasText; }
   .masthead { border-bottom: 1px solid GrayText; }
-  .hair-t, .appendix > h2, .controls > section + section > h2 { border-top: 1px solid GrayText; }
+  .hair-t, .appendix > summary, .controls > section + section > h2 { border-top: 1px solid GrayText; }
+  .themes [aria-pressed="true"] { border-bottom: 1px solid CanvasText; }
   .plate::after { border: 1px solid GrayText; }
   .grid a:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
   .crop { outline: 2px solid Highlight; }

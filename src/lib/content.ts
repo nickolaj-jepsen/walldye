@@ -1,6 +1,13 @@
 /** Helpers over the `wallpapers` collection. No Node or Astro imports, so client code may use it too. */
 import type { CollectionEntry } from 'astro:content';
-import { FACET_LEGENDS, type Facet, facetLabel, type OtherValue, TAXONOMY_FACETS } from './labels';
+import {
+  FACET_LEGENDS,
+  type Facet,
+  facetLabel,
+  type OtherValue,
+  TAXONOMY_FACETS,
+  type TaxonomyFacet,
+} from './labels';
 
 export type Piece = CollectionEntry<'wallpapers'>['data'];
 export type Source = Piece['sources'][number];
@@ -49,9 +56,15 @@ export const FORMATS = [
 ] as const;
 export const DEFAULT_FORMAT = 'png';
 
-/** '16:9' -> '16x9', the aspect as it appears in template and export file names. */
+/** '16:9' -> '16x9', the aspect as it appears in template and export file names and in `?shape=`. */
 export function aspectLabel(aspect: string): string {
   return aspect.replace(':', 'x');
+}
+
+/** The Aspect a `?shape=` value such as `16x10` names, or undefined. */
+export function aspectOfLabel(label: string | null | undefined): Aspect | undefined {
+  const aspect = label?.replace('x', ':');
+  return isAspect(aspect) ? aspect : undefined;
 }
 
 /** Whether a piece composes natively for every site aspect. */
@@ -93,9 +106,12 @@ export interface FilterGroup {
   entries: FilterEntry[];
 }
 
+/** Share of the pieces above which a filter entry is left out: it would barely narrow the grid. */
+export const NARROW_SHARE = 0.9;
+
 /**
  * The index's filter groups over `pieces`: entries sorted by label, with their unfiltered counts.
- * Entries matching every piece or none are left out (they cannot narrow the grid); groups left
+ * Entries matching none of the pieces or more than NARROW_SHARE of them are left out; groups left
  * empty are dropped.
  */
 export function filterGroups(pieces: Piece[]): FilterGroup[] {
@@ -112,7 +128,7 @@ export function filterGroups(pieces: Piece[]): FilterGroup[] {
     const entries: FilterEntry[] = [];
     for (const value of values) {
       const count = pairs.filter((s) => s.has(`${facet}:${value}`)).length;
-      if (count === 0 || count === pieces.length) continue;
+      if (count === 0 || count > pieces.length * NARROW_SHARE) continue;
       entries.push({ value, label: facetLabel(facet, value) ?? value, count });
     }
     entries.sort((a, b) => collator.compare(a.label, b.label));
@@ -123,9 +139,14 @@ export function filterGroups(pieces: Piece[]): FilterGroup[] {
 
 const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 
-/** The index's sort orders, in the order the form lists them; `newest` is the default. */
+/** The index's sort orders, in the order the form lists them. */
 export const SORT_ORDERS = ['newest', 'popular', 'views', 'title'] as const;
 export type SortOrder = (typeof SORT_ORDERS)[number];
+
+/** The index's first order: `popular` once any piece has a recorded view, else `newest`. */
+export function defaultSort(pieces: readonly Pick<SortKey, 'views'>[]): SortOrder {
+  return pieces.some((p) => p.views > 0) ? 'popular' : 'newest';
+}
 
 /** Whether `value` names a SortOrder. */
 export function isSortOrder(value: unknown): value is SortOrder {
@@ -162,6 +183,28 @@ export function sortPieces<T extends { data: SortKey }>(
   order: SortOrder = 'newest',
 ): T[] {
   return pieces.slice().sort((a, b) => comparePieces(a.data, b.data, order));
+}
+
+/** How much sharing one value of each facet counts towards relatedPieces(). */
+const RELATED_WEIGHTS: Record<TaxonomyFacet, number> = { technique: 2, lineage: 2, subject: 1 };
+
+/**
+ * Up to `n` of `pieces` most like `p`, `p` itself left out: the most shared facet values first,
+ * weighted by RELATED_WEIGHTS, then newest, then by slug. A piece sharing nothing is never chosen.
+ */
+export function relatedPieces<T extends Piece>(p: Piece, pieces: readonly T[], n: number): T[] {
+  const score = (q: Piece) =>
+    TAXONOMY_FACETS.reduce(
+      (sum, f) => sum + RELATED_WEIGHTS[f] * q[f].filter((v) => p[f].includes(v)).length,
+      0,
+    );
+  return pieces
+    .filter((q) => q.slug !== p.slug)
+    .map((q) => ({ q, s: score(q) }))
+    .filter((r) => r.s > 0)
+    .sort((a, b) => b.s - a.s || comparePieces(a.q, b.q))
+    .slice(0, n)
+    .map((r) => r.q);
 }
 
 /** Lowercase, accents stripped, curly quotes straightened and whitespace collapsed; applied to both the search text and the query. */

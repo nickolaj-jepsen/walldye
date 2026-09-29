@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   countFor,
   type Filterable,
+  type FilterDefaults,
   filterQuery,
   filterState,
   matches,
@@ -27,6 +28,8 @@ const item = (
   search,
 });
 
+const DEFAULTS: FilterDefaults = { sort: 'newest', shape: '16:9' };
+
 const ITEMS = [
   item('a', 'Zebra', '2026-01-01', ['technique:dither', 'subject:space'], 'zebra', 90, 1.5),
   item(
@@ -43,55 +46,79 @@ const ITEMS = [
 ];
 
 describe('filterState / filterQuery', () => {
-  it('reads the form serialisation, every key but q and sort as a facet', () => {
+  it('reads the form serialisation, every key but q, sort and shape as a facet', () => {
     const s = filterState(
-      new URLSearchParams('q=moon&sort=title&technique=dither&subject=maps&technique=drafting'),
+      new URLSearchParams(
+        'q=moon&sort=title&shape=21x9&technique=dither&subject=maps&technique=drafting',
+      ),
+      DEFAULTS,
     );
     expect(s.q).toBe('moon');
     expect(s.sort).toBe('title');
+    expect(s.shape).toBe('21:9');
     expect([...(s.facets.get('technique') ?? [])]).toEqual(['dither', 'drafting']);
     expect([...(s.facets.get('subject') ?? [])]).toEqual(['maps']);
     expect(s.facets.has('q')).toBe(false);
+    expect(s.facets.has('shape')).toBe(false);
   });
 
-  it('reads each sort order and treats any other as newest', () => {
-    for (const sort of ['popular', 'views', 'title'] as const) {
-      expect(filterState(new URLSearchParams({ sort })).sort).toBe(sort);
+  it('reads each sort order and treats any other as the default', () => {
+    for (const sort of ['newest', 'popular', 'views', 'title'] as const) {
+      expect(filterState(new URLSearchParams({ sort }), DEFAULTS).sort).toBe(sort);
     }
-    expect(filterState(new URLSearchParams('sort=oldest')).sort).toBe('newest');
-    expect(filterState(new URLSearchParams()).sort).toBe('newest');
+    expect(filterState(new URLSearchParams('sort=oldest'), DEFAULTS).sort).toBe('newest');
+    const popular = { ...DEFAULTS, sort: 'popular' } as const;
+    expect(filterState(new URLSearchParams(), popular).sort).toBe('popular');
   });
 
-  it('leaves out a blank search and the default sort, and keeps the form order', () => {
-    expect(filterQuery(new URLSearchParams('q=%20%20&sort=newest'))).toBe('');
+  it('reads the shape and treats an unknown one as the default', () => {
+    expect(filterState(new URLSearchParams('shape=9x19.5'), DEFAULTS).shape).toBe('9:19.5');
+    expect(filterState(new URLSearchParams('shape=4x3'), DEFAULTS).shape).toBe('16:9');
+    const phone = { ...DEFAULTS, shape: '9:19.5' } as const;
+    expect(filterState(new URLSearchParams(), phone).shape).toBe('9:19.5');
+  });
+
+  it('leaves out a blank search and the default sort and shape, and keeps the form order', () => {
+    expect(filterQuery(new URLSearchParams('q=%20%20&sort=newest&shape=16x9'), DEFAULTS)).toBe('');
     expect(
       filterQuery(
-        new URLSearchParams('q=moon&sort=title&technique=drafting&technique=dither&subject=maps'),
+        new URLSearchParams(
+          'q=moon&sort=title&shape=10x16&technique=drafting&technique=dither&subject=maps',
+        ),
+        DEFAULTS,
       ),
-    ).toBe('q=moon&sort=title&technique=drafting&technique=dither&subject=maps');
+    ).toBe('q=moon&sort=title&shape=10x16&technique=drafting&technique=dither&subject=maps');
+    const popular = { sort: 'popular', shape: '9:19.5' } as const;
+    expect(filterQuery(new URLSearchParams('sort=popular&shape=9x19.5'), popular)).toBe('');
+    expect(filterQuery(new URLSearchParams('sort=newest&shape=16x9'), popular)).toBe(
+      'sort=newest&shape=16x9',
+    );
   });
 });
 
 describe('matches / countFor', () => {
   it('is OR within a facet and AND across facets', () => {
-    const s = filterState(new URLSearchParams('technique=dither&technique=drafting&subject=maps'));
+    const s = filterState(
+      new URLSearchParams('technique=dither&technique=drafting&subject=maps'),
+      DEFAULTS,
+    );
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['b', 'c']);
   });
 
   it('searches the normalised text', () => {
-    const s = filterState(new URLSearchParams('q=  GEORG   Nées '));
+    const s = filterState(new URLSearchParams('q=  GEORG   Nées '), DEFAULTS);
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['d']);
   });
 
   it("matches typewriter and typographer's apostrophes alike", () => {
     const baldur = item('e', 'Baldur’s Gate', '2026-02-01', [], normaliseSearch('Baldur’s Gate'));
     for (const q of ["baldur's", 'Baldur’s gate']) {
-      expect(matches(baldur, filterState(new URLSearchParams({ q })))).toBe(true);
+      expect(matches(baldur, filterState(new URLSearchParams({ q }), DEFAULTS))).toBe(true);
     }
   });
 
   it('counts a box against the other facets only', () => {
-    const s = filterState(new URLSearchParams('technique=dither&subject=maps'));
+    const s = filterState(new URLSearchParams('technique=dither&subject=maps'), DEFAULTS);
     // Adding drafting to the technique group would show b; the subject group still applies.
     expect(countFor(ITEMS, s, 'technique', 'drafting')).toBe(1);
     expect(countFor(ITEMS, s, 'technique', 'glyph')).toBe(0);

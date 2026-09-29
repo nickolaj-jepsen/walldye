@@ -9,7 +9,7 @@ How walldye.com looks and what it says. `src/styles/site.css` holds the values; 
 - Text is `--text` (fg) or `--text-2` (fg_alt), at 4.5:1 or better in every theme (§2). muted draws only the dot leaders; rules, frames and controls use the ui greys.
 - Accent appears only in the focus ring, the footnote markers and target bar, error text and the invalid-field underline, and the listing's keywords and strings.
 - Italic marks titles of works and nothing else. A source's `topic` (a technique, product, logo, place) stays roman.
-- One convention for "current": text colour plus a 1px underline 0.3em below the baseline (nav, sort, export choices, versions, the pressed preset, the open theme button). Resting in-text links carry a 1px underline in `--link-line`.
+- One convention for "current": text colour plus a 1px underline 0.3em below the baseline (nav, sort, shape, export choices, versions, the pressed preset, the open theme button); under the index's swatch buttons, a 1px `--text` line under the swatches. Resting in-text links carry a 1px underline in `--link-line`.
 - Every vertical measure is a multiple of the 8px unit (§4), and rules take no layout space.
 - No border radius, no drop shadow, no tinted surface to mark state.
 
@@ -83,7 +83,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 - Plate boxes round their height up to the unit and letterbox the remainder with the plate ground. Nothing is cropped.
 - The page is at most 110rem wide, with a side gutter of `clamp(1rem, 4vw, 3.5rem)` and no footer.
 - The masthead, the index and About share one `18rem | 1fr` column pair, so the nav, the plate grid and About's prose share a left edge.
-- The plate grid holds one column up to about 1024px, two from 1280 and three from about 1680.
+- Grid columns are at least 18rem (`--track`): two from about 1045px, three from about 1390 and four from about 1710. A grid in another shape (§6.4) sets `--ratio` and `--track`: 26rem for 21:9, 40rem for 32:9 and 12rem for the tall shapes, which take two columns on phones.
 - On the detail page the plate spans the content width, capped so the plate and the first two lines of the label fit one screen. Below it, the label (at most 42rem) sits left and the controls (30rem) right, starting 2u lower so their rows share baselines with the label's.
 
 | Query | Changes |
@@ -93,8 +93,8 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
 | `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recoloured. |
-| `scripting: none` | §6.14. |
-| `forced-colors: active` | §6.13. |
+| `scripting: none` | §6.15. |
+| `forced-colors: active` | §6.14. |
 
 ## 5. Rules, borders and focus
 
@@ -128,30 +128,33 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 ### 6.3 Picker
 
-`src/components/Picker.astro`, a `popover` with `role=dialog`. "Themes" lists the presets as index entries (name in mono, leader, swatches, `aria-pressed`); "Colours" has the Background, Foreground and Accent hex fields, each with its swatch; "Copy link" ends it.
+`src/components/Picker.astro`, a `popover` with `role=dialog`. "Themes" lists the presets as index entries (name in mono, leader, swatches, `aria-pressed`); "Colours" has the Background, Foreground and Accent hex fields, each with its swatch, then "Import"; "Copy link" ends it.
 
 - Right-aligned to the gutter (full width on phones), its top border on the masthead rule, with a matte in the page colour in place of a shadow.
 - Fields take 3 or 6 digits, with or without `#`, and a pasted theme token fills all three. Valid input applies after 250 ms; Escape reverts unapplied edits.
-- An invalid field gets a 2px accent underline and "Use a hex colour, like #CF6A4C." in accent. When background and foreground fall under 3:1, "The background and foreground are too close, so wallpapers will be hard to see." appears in `--text`, so it does not read as a failure. Both sit in one polite live region.
+- Import (placeholder "paste a terminal theme") reads a pasted theme file into the three fields, which then apply as typed: kitty, Ghostty, Alacritty, foot, WezTerm, Windows Terminal, Xresources or base16 (`src/lib/import-theme.ts`). The accent is one the file names, else its most colourful normal ANSI or base16 accent colour that reaches 3:1 on the background. The hex fields accept the same paste. Text with no colours shows "No colours found in that text." in accent.
+- An invalid field gets a 2px accent underline and "Use a hex colour, like #CF6A4C." in accent. When background and foreground fall under 3:1, "The background and foreground are too close, so wallpapers will be hard to see." appears in `--text`, so it does not read as a failure. These and the import message sit in one polite live region.
 
 ### 6.4 Filter and results
 
 `src/pages/index.astro`: search, sort, the facet fieldsets and the results line.
 
 - Set like a book index: 20px entries with dot leaders and mono counts under small-caps legends, each row one full-width target, lowercase and sorted by label.
-- The groups are Technique, Subject, "Inspired by" (the lineage facet) and Other, which holds the computed facets: "has references", "fits any screen", "has source code", "made with Claude" and "human-made". Labels come from `src/lib/labels.ts`. An entry that matches every piece or none is left out.
+- The groups are Technique, Subject, "Inspired by" (the lineage facet) and Other, which holds the computed facets: "has references", "fits any screen", "has source code", "made with Claude" and "human-made". Labels come from `src/lib/labels.ts`. An entry that matches no piece or more than nine in ten (`NARROW_SHARE`) is left out, since it would barely narrow the grid.
 - Counts are live: each shows how many pieces its box would add (OR within a facet, AND across facets). A box that would add none is disabled, its term in `--text-dim` and its count hidden.
-- Search matches the title, the description and the sources' authors and titles. Sort is newest, popular (views, recent ones weighted up), most viewed or title. Title ties go by slug, the view orders' by newest; the view orders are left out of a build with no views.
+- Search matches the title, the description and the sources' authors and titles. Sort is newest, popular (views, recent ones weighted up), most viewed or title. Title ties go by slug, the view orders' by newest. The index starts on popular when the build has views; without them the view orders are left out and it starts on newest.
+- Shape (16:9, 16:10, 21:9, 32:9, 9:19.5, 10:16, in mono) shows every plate in that shape: a piece's own template when it composes for it, else its 16:9 template cropped around its focus, as the export would crop it. Plate links then open the piece in that shape. Phones start on their screen's nearest shape, and "clear" keeps the shape.
+- Above the results line, "Colours" lists the presets as swatch buttons (the preset name is the accessible name and the tooltip), then "Your own", which opens the picker. A click applies and saves the preset, as in the picker.
 - The results line is the page's one live region: "234 wallpapers" or "4 of 234 wallpapers", with "Try fewer filters or a shorter search." under it when nothing matches. "clear" shows while anything is checked or searched.
-- On phones the filter is a closed disclosure whose summary shows "Filter" and the active terms. There is a skip link.
+- On phones the filter is a closed disclosure whose summary shows "Filter" and the active terms; the colour row stays above the grid. There is a skip link.
 
 ### 6.5 Plate and caption
 
 `src/components/Plate.astro` and `PlateBox.astro`.
 
-- One `<li>` per piece, showing the default version: a link named by its title around a figure, the description as alt text.
+- One `<li>` per piece, showing the default version in the grid's shape: a link named by its title around a figure, the description as alt text. The same plates make up "See also" (§6.8), with h3 titles.
 - The caption is a tombstone: the title, "N versions" when the piece has published named variants ("(N draft)" added in `astro dev`), then the attribution line of §6.7.
-- Before JavaScript runs, a plate is an empty 16:9 box on `--seed-bg`, with a `<noscript>` image of the untouched template.
+- Before JavaScript runs, a plate is an empty box of the grid's shape on `--seed-bg`, with a `<noscript>` image of the untouched 16:9 template. An inline script sets the index's shape before first paint, so the grid does not reflow.
 
 ### 6.6 Detail spread and crop window
 
@@ -171,46 +174,50 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - The facts are Technique, Inspired by, Shape and Added. A facet value links to the index filtered by it. Shape reads "Any screen", or the composed shapes followed by "(cropped for other screens)".
 - There are no previous and next links, arrow keys or `?from=`. The header's Index link is the way back.
 
-### 6.8 Footnotes
+### 6.8 See also
+
+After the label, notes and sources, "See also" (a small-caps head over a `.hair-t` rule) shows up to four other pieces as index plates, those sharing the most facet values first: a shared technique or "Inspired by" value counts 2, a shared subject 1, ties by newest (`relatedPieces()` in `src/lib/content.ts`). A piece sharing nothing is not shown, and without any the section is left out. The plates follow the export panel's Shape, and so do their links.
+
+### 6.9 Footnotes
 
 `src/components/Footnotes.astro`: the sources under "Sources", numbered in lining figures, each "{author}, {title}, {year}." with the title linked when there is a URL; a topic stands in the title's place, in roman. No kind label. A source cited in the caption gets a "Back to text" link that never wraps away from the entry's last word. The `:target` entry gets a 2px `--link` bar in the margin and a `--link` number.
 
-### 6.9 Versions, colours and export
+### 6.10 Versions, colours and export
 
 `src/components/Controls.astro`, a labelled `section`.
 
-- Versions, when the piece has published named variants: a radio group headed "Versions", the default first, then meta.yaml order. Choosing one swaps the plate, the description and alt text, the file names and the run command, and writes `?v=<name>`; theme, shape and a placed crop are kept. An unknown or draft `?v=` shows the default.
+- Versions, when the piece has published named variants: a radio group headed "Versions", the default first, then meta.yaml order, each its 16:9 picture in the current colours over its name, in a row. The picture is hidden from assistive tech, so the radio is named by the version alone. Choosing one swaps the plate, the description and alt text, the file names and the run command, and writes `?v=<name>`; theme, shape and a placed crop are kept. An unknown or draft `?v=` shows the default.
 - Colours: swatch, hex value and role for each of the three, then "Change", which opens the picker, and "Copy link".
 - Export: Format (SVG, PNG, WebP, JPEG), Shape, Crop (for a cropped shape only, with "cropped from 16:9" under Shape) and Size, then Download. The sizes per shape come from `EXPORT_SIZES` in `src/lib/content.ts`, with "your screen" last: the screen size times the device pixel ratio, at the nearest shape by |log ratio|. Phones start on it.
 - Hints under a row, in `--text-2`: "This browser can't make WebP files.", "This browser can't draw a file that large." (over 16,777,216 pixels or 32,767 px a side), and for pixel pieces whose squares miss whole pixels, "At this size the squares come out 3 or 4 pixels wide." Choices the browser cannot make fade to `--text-dim`.
 - Download is a row of text: the underlined word, then the file name. Raster files are `<slug>[--<variant>]-<token>-<w>x<h>.<ext>`, SVG files `<slug>[--<variant>]-<token>-<aspect>[-crop].svg` with `<title>` and `<desc>` "walldye.com/<slug>[?v=<variant>] · <license> · theme <token>". Slugs and variant names never contain `--`, so a name splits back. Errors go to a polite live region below.
 
-### 6.10 Source code
+### 6.11 Source code
 
 `src/components/SourceCode.astro` and `src/server/highlight.ts`.
 
-- An appendix under the "Source code" heading: the file path and line count with "Copy", the listing, then "Run it yourself": `git clone https://github.com/nickolaj-jepsen/walldye && cd walldye` and `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg`, the token being the preset name when the seeds match one.
+- An appendix under the "Source code" heading, a disclosure that starts closed: its summary is the heading with a mono "+" (a minus when open) at the right. Inside: the file path and line count with "Copy", the listing, then "Run it yourself": `git clone https://github.com/nickolaj-jepsen/walldye && cd walldye` and `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg`, the token being the preset name when the seeds match one.
 - The listing is Shiki with a CSS-variables theme (§2): keywords in accent, strings in accent_hi, comments, punctuation, operators and line numbers in fg_alt, everything else in fg. To keep accent rare, `keyword.operator` takes the punctuation colour and `meta.function-call.arguments` the foreground.
 - Both `pre` blocks scroll sideways and are focusable named regions. On phones each command wraps with a hanging indent.
 - A piece without a script shows "The script for this wallpaper has been lost." instead.
 
-### 6.11 About and 404
+### 6.12 About and 404
 
 - About's heading is a side head in the index column, and the prose starts level with it.
 - The text is the maintainer in the first person, at most 110 words: what the site is, how the three colours work, that Claude writes the scripts and the owner looks over each one, the download formats, one clause on use ("free to use unless their page says otherwise", linked to the CC0 deed) and a link to the code. No piece counts, licence paragraph, colophon or font credits; the site has no footer.
 - The 404 page uses the same layout: "Not found", one sentence and a link to the index.
 
-### 6.12 Icon
+### 6.13 Icon
 
 A 4 by 4 grid of seed mixes, bg at the top left, fg at the top right, accent at the bottom left and an even fg and accent blend at the bottom right (`src/lib/favicon.ts`). The theme boot redraws it in the visitor's seeds; the static `/favicon.svg` is fireproof, or flexoki-light under a light system scheme.
 
-### 6.13 Forced colours
+### 6.14 Forced colours
 
 Forced-colours mode drops the backgrounds and box-shadows that draw the rules, the checkbox state, the slider, the field underlines, the swatches and the plate's focus ring. The block at the end of site.css redraws them with system colours; rules become real borders, shifting the rhythm by a pixel in that mode only.
 
-### 6.14 Without JavaScript
+### 6.15 Without JavaScript
 
-`@media (scripting: none)` hides the theme button, the filter, the colours and export column, and the source "Copy". Plates take fireproof's ground, because the `<noscript>` image is always the fireproof template.
+`@media (scripting: none)` hides the theme button, the filter, the index's colour row, the colours and export column, and the source "Copy". Plates take fireproof's ground, because the `<noscript>` image is always the fireproof template.
 
 ## 7. Voice
 
@@ -238,6 +245,6 @@ Beyond what §1 and §7 rule out:
 - `maxlength` on the hex fields: it truncates a pasted token before any handler runs.
 - `content-visibility` with an intrinsic inline size: the grid track could no longer shrink to 320px (WCAG 1.4.10).
 - Measures in `ch` (in Garamond, the narrow tabular zero), and `hyphens: auto` without limits.
-- Cropping a plate to fit the grid, or framing it with an outline or outside stroke.
+- Cropping a plate to fit the grid, or framing it with an outline or outside stroke. A plate cropped to the Shape the visitor chose shows what that export would be, and is not this.
 - Inline SVG plates (architecture.md, Recolouring).
 - A detail image with `alt=""` plus `aria-describedby`: an empty alt makes the image presentational, and the description goes with it.

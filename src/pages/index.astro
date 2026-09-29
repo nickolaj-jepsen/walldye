@@ -1,14 +1,20 @@
 ---
 import { getCollection } from 'astro:content';
+import Chips from '../components/Chips.astro';
 import Plate from '../components/Plate.astro';
 import Base from '../layouts/Base.astro';
-import { filterGroups, sortPieces } from '../lib/content';
+import { SITE_ASPECTS, aspectLabel, defaultSort, filterGroups, sortPieces } from '../lib/content';
+import { DEFAULT_PRESET, PRESETS } from '../lib/presets';
+import { inlineScript } from '../server/inline-script';
 
-const entries = sortPieces(await getCollection('wallpapers'));
+const collection = await getCollection('wallpapers');
+const sort = defaultSort(collection.map((e) => e.data));
+const entries = sortPieces(collection, sort);
 const groups = filterGroups(entries.map((e) => e.data));
 const total = entries.length;
 // The view orders need a recorded view to mean anything (none in local builds without stats/).
-const viewed = entries.some((e) => e.data.views > 0);
+const viewed = sort === 'popular';
+const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
 ---
 
 <Base description="Wallpapers drawn with code, in colours you choose." nav="index" mainClass="index">
@@ -23,10 +29,16 @@ const viewed = entries.some((e) => e.data.views > 0);
       <fieldset>
         <legend class="sc">Sort</legend>
         <div class="seg">
-          <label><input type="radio" name="sort" value="newest" checked /><span>newest</span></label>
-          {viewed && <label><input type="radio" name="sort" value="popular" /><span>popular</span></label>}
+          <label><input type="radio" name="sort" value="newest" checked={sort === 'newest'} /><span>newest</span></label>
+          {viewed && <label><input type="radio" name="sort" value="popular" checked={sort === 'popular'} /><span>popular</span></label>}
           {viewed && <label><input type="radio" name="sort" value="views" /><span>most viewed</span></label>}
           <label><input type="radio" name="sort" value="title" /><span>title</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend class="sc">Shape</legend>
+        <div class="seg">
+          {SITE_ASPECTS.map((a) => <label><input type="radio" name="shape" value={aspectLabel(a)} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}
         </div>
       </fieldset>
       {
@@ -44,6 +56,13 @@ const viewed = entries.some((e) => e.data.views > 0);
   {/* Phones start with the filter closed; decided before first paint so the grid does not jump. */}
   <script is:inline>document.currentScript.previousElementSibling.open = matchMedia('(min-width: 60.0625rem)').matches;</script>
   <section class="plates" aria-label="Wallpapers">
+    {/* SHAPE BOOT (src/client/index/shape-boot.ts): sets this section's data-shape before first paint. */}
+    <script is:inline set:html={shapeBoot} />
+    <div class="themes" role="group" aria-labelledby="themes-h">
+      <h2 id="themes-h" class="sc">Colours</h2>
+      {PRESETS.map((p) => <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'} aria-label={p.name} title={p.name}><Chips colours={[p.bg, p.fg, p.accent]} /></button>)}
+      <button type="button" class="textbtn" popovertarget="picker">Your own</button>
+    </div>
     <p class="results-line"><span id="result-count" class="lnum">{total} {total === 1 ? 'wallpaper' : 'wallpapers'}</span><button type="reset" form="facets" class="textbtn clear" hidden>clear</button></p>
     <p class="empty" hidden>Try fewer filters or a shorter search.</p>
     <ul class="grid">

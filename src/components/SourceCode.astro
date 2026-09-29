@@ -1,5 +1,5 @@
 ---
-/** The "Source code" appendix: design.py through Shiki, a Copy button, and the run command. */
+/** The "Source code" appendix, closed at first: design.py through Shiki, a Copy button, and the run command. */
 import { highlightDesign } from '../server/highlight';
 import { DEFAULT_PRESET } from '../lib/presets';
 import { lineCount, type Piece } from '../lib/content';
@@ -12,8 +12,8 @@ const listing = p.script === null ? '' : await highlightDesign(p.script);
 const token = DEFAULT_PRESET.name;
 ---
 
-<section class="appendix" aria-labelledby="appendix-h">
-  <h2 id="appendix-h">Source code</h2>
+<details class="appendix">
+  <summary><h2 id="appendix-h">Source code</h2></summary>
   {
     p.script === null ? (
       <p class="lost">The script for this wallpaper has been lost.</p>
@@ -31,7 +31,7 @@ const token = DEFAULT_PRESET.name;
       </Fragment>
     )
   }
-</section>
+</details>
 
 <style>
   .lost {

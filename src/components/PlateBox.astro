@@ -2,14 +2,14 @@
 /**
  * A `.plate`: the wallpaper box the client fills with a recoloured `<img>`,
  * carrying the default version's template and slots URLs, and on the detail spread every version's.
- * Before JS it is an empty 16:9 box on the plate ground; without JS a `<noscript>` shows the
+ * Before JS it is an empty box of the grid's shape (16:9 unless site.css says otherwise) on the plate ground; without JS a `<noscript>` shows the
  * untouched 16:9 template. Children (the crop window) go after it.
  */
 import type { Piece } from '../lib/content';
 
 interface Props {
   piece: Piece;
-  /** Only the 16:9 templates of the default version (index plates); otherwise every aspect and version (detail spread). */
+  /** Only the 16:9 templates of the default version (grid plates, which read other shapes' URLs from slots.json); otherwise every aspect and version (detail spread). */
   only169?: boolean;
   /** Lazy-load the no-JS image. */
   lazy?: boolean;
@@ -32,7 +32,7 @@ const variants =
 <style>
   /* site.css sizes an `:empty` plate; one holding only its <noscript> (or the crop window) is still waiting for its image. */
   .plate:not(:has(img)) {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: var(--ratio);
   }
   /* Same rounded-up height as the image will take (site.css .plate img), so captions do not move when it arrives. */
   @supports (height: round(up, 1px, 1px)) {
@@ -42,7 +42,7 @@ const variants =
     .plate:not(:has(img))::before {
       content: '';
       display: block;
-      height: round(up, calc(100cqw * 9 / 16), var(--u));
+      height: round(up, calc(100cqw / var(--ratio)), var(--u));
     }
   }
 </style>

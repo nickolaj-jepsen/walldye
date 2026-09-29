@@ -1,16 +1,16 @@
 # DOM contract for the client modules
 
-The hooks the server-rendered pages give the client code in `src/client/`. The pages render fireproof, the default sort, no filters, 16:9 and the default export choices, so the client changes only what the visitor changed. Behaviour and look are in `docs/site.md`. The client reads required hooks with `must()` from `dom.ts`, which throws when one is missing.
+The hooks the server-rendered pages give the client code in `src/client/`. The pages render fireproof, the build's first sort, no filters, 16:9 and the default export choices, so the client changes only what the visitor changed. Behaviour and look are in `docs/site.md`. The client reads required hooks with `must()` from `dom.ts`, which throws when one is missing.
 
 ## Script hooks
 
 | File | Loaded by | Does |
 |---|---|---|
-| `site.ts` | `src/layouts/Base.astro`, after `<Picker />` | Theme button, shared-theme line, picker, "Copy link", the detail colour list |
-| `index/page.ts` | `src/pages/index.astro` | Filters, results line, lazily recoloured plates |
-| `detail/page.ts` | `src/pages/[slug].astro` | Versions, plate, crop window, export panel, run command, the `f` key, "Copy" |
+| `site.ts` | `src/layouts/Base.astro`, after `<Picker />` | Theme button, shared-theme line, picker, the index's colour row, "Copy link", the detail colour list |
+| `index/page.ts` | `src/pages/index.astro` | Filters, shape, results line, the plate grid |
+| `detail/page.ts` | `src/pages/[slug].astro` | Versions and their pictures, plate, crop window, export panel, run command, the `f` key, "Copy", the "See also" grid |
 
-`Base.astro` inlines `theme/boot.ts`, bundled by `src/server/theme-boot-script.ts`, as the first script in `<head>`; a boot that does not build fails the build.
+Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>`, and `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`. A boot that does not build fails the build.
 
 ## Every page
 
@@ -39,6 +39,8 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent]` | Prefilled with the fireproof seeds. On an invalid value set `aria-invalid` and `aria-describedby="seed-msg"`; while the contrast warning shows, the bg and fg fields point at `faint-msg` instead. |
 | `.hexfield .chip` | `span.chip` before each input | `style="--c:var(--seed-…)"`. Override `--c` while an unapplied edit is shown. |
 | `#seed-msg`, `#faint-msg` | `p.msg[hidden]` inside the `aria-live` `.msgs` | Unhide for invalid input and for the contrast warning. |
+| `#theme-import` | `input` under the hex fields | On paste, read the clipboard text whole with `seedsFromText()` from `src/lib/import-theme.ts`; on change, the typed value. Seeds fill the three fields as an edit; none unhide `#import-msg`. |
+| `#import-msg` | `p.msg[hidden]` inside `.msgs` | "No colours found in that text." |
 | `[data-action=copy-link]` | button "Copy link" (also on the detail page) | Copy the current URL with `?t=<token>`. |
 
 ## Index (`src/pages/index.astro`)
@@ -51,22 +53,29 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | `.filter > summary .state` | empty span | The active terms, e.g. `“moon”, dithering`. |
 | `#facets` | `form[action="/"][method=get][role=search]` | Stop `submit`. On `reset`, defer the re-apply by one task. |
 | `#q` | `input[type=search][name=q]` | Normalise with `normaliseSearch()` from `src/lib/content.ts` and match against `data-search`. |
-| `#facets input[name=sort]` | radios `newest` (checked), `popular`, `views` and `title` | `popular` and `views` are there only when a piece has a recorded view. |
+| `#facets input[name=sort]` | radios `newest`, `popular`, `views` and `title` | `popular` and `views` are there only when a piece has a recorded view, and then `popular` is checked, else `newest`. The checked one's `defaultChecked` is the build's first order. |
+| `#facets input[name=shape]` | radios `16x9` (checked), `16x10`, `21x9`, `32x9`, `9x19.5`, `10x16` | Check the device's shape (`deviceAspect()` in `screen.ts`) when the address has none, and make it the reset value; "clear" keeps the checked one. |
 | `#facets input[type=checkbox][name=<facet>][value=<value>]` | inside `label.entry` | `<facet>` is `technique`, `subject`, `lineage` or `other`; `other` takes `references`, `any-screen`, `source-code`, `claude` or `human-made`. |
 | `label.entry .count` | `span.count` | Starts at the unfiltered count. Disable a box when its live count is 0 and it is not checked. |
 | `#result-count` | `span`, the one live region | Starts as "N wallpapers". Add `role=status` after the first render from the query string, so a filtered load is not announced; then write it only when the text changes. |
 | `.results-line .clear` | `button[type=reset][form=facets][hidden]` | Show it while any box is checked or the search is not empty. |
 | `.plates .empty` | `p[hidden]` | Show it when nothing matches. |
 
-The query string is the form's own GET serialisation: `q=<text>`, `sort=<order>` (left out for `newest`) and repeated `<facet>=<value>` keys, e.g. `/?technique=drafting&technique=dither&other=any-screen`. Detail pages link their facts the same way. The client reads it back into the controls, ignoring values that have no checkbox or radio, and writes `FormData` of the form, so a new control is in the address without client changes.
+The query string is the form's own GET serialisation: `q=<text>`, `sort=<order>` (left out for the first order), `shape=<w>x<h>` (left out for the device's shape) and repeated `<facet>=<value>` keys, e.g. `/?technique=drafting&technique=dither&other=any-screen`. Detail pages link their facts the same way. The client reads it back into the controls, ignoring values that have no checkbox or radio, and writes `FormData` of the form, so a new control is in the address without client changes.
+
+### Colour row
+
+`.themes[role=group]` above the results line: `h2#themes-h`, one `button[data-preset][aria-pressed][aria-label][title]` per preset holding its swatches, then `button[popovertarget=picker]` "Your own". `site.ts` handles the preset buttons with the picker's: set `aria-pressed="true"` on the current one only; the server marks fireproof.
 
 ### Plates
 
-`ul.grid > li`, in default order (newest first, ties by slug):
+`section.plates[data-shape]` holds `ul.grid > li`, in the build's first order (popular or newest, ties as `comparePieces()`). The shape boot and `grid.ts` set `data-shape` to the shown shape (`16:9` until then), which site.css reads for the plate ratio and the column width.
 
 | Attribute on `li` | Value |
 |---|---|
 | `data-slug` | slug |
+| `data-aspects` | space-separated shapes with a template of their own; any other shape is shown as a crop of 16:9 |
+| `data-focus` | the 16:9 template's focus, `x y` as fractions of the canvas |
 | `data-title` | display title; sort with `comparePieces()` from `src/lib/content.ts` |
 | `data-added` | `YYYY-MM-DD` |
 | `data-views` | page views, all of them |
@@ -74,7 +83,7 @@ The query string is the form's own GET serialisation: `q=<text>`, `sort=<order>`
 | `data-facets` | space-separated `facet:value` pairs, the computed `other:*` included (`facetPairs()`) |
 | `data-search` | normalised title, description and source authors and titles (`searchText()`) |
 
-Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-describedby` listing `v-<slug>` and `a-<slug>` when present; the href never changes. Then `figure` with the default version's `.plate` (below) and `figcaption` holding `h2#t-<slug>`, `span.v#v-<slug>` ("N versions", N counting the default) and `span.a#a-<slug>`.
+Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-describedby` listing `v-<slug>` and `a-<slug>` when present; set the href to `/<slug>?shape=<w>x<h>` while the shown shape is not the device's, never anything else. Then `figure` with the default version's `.plate` (below) and `figcaption` holding `h2#t-<slug>` (`h3` in "See also"), `span.v#v-<slug>` ("N versions", N counting the default) and `span.a#a-<slug>`. A plate shown as a crop gets `--pos`, the CSS `object-position` of the crop at the focus (`focusPosition()`).
 
 ## Plate box (`src/components/PlateBox.astro`, index and detail)
 
@@ -88,7 +97,7 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 </div>
 ```
 
-- `data-templates` maps each slots.json key (`<aspect>/<regime>`) to a template URL: only the `16:9/*` keys on the index, every key on the detail page. The URL hash is `slots[key].sha256.slice(0, 12)`. Under the exact fireproof seeds, use the template URL itself as `img.src`.
+- `data-templates` maps each slots.json key (`<aspect>/<regime>`) to a template URL: only the `16:9/*` keys in grids, every key on the detail spread. The URL hash is `slots[key].sha256.slice(0, 12)`, so a key left out comes from slots.json (`templateUrl()` in `src/lib/recolour.ts`). Under the exact fireproof seeds, use the template URL itself as `img.src`.
 - `data-slots` is the piece's `build/slots.json`, byte for byte (`focus`, `cells`, and per key `{file, sha256, n, coefs, occ}`), fetched once per piece. If `n` does not match, show the untouched template.
 - `data-alt` is the description, for the `alt` of the inserted `<img>`.
 - `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. The client reads these attributes once and never writes them.
@@ -112,7 +121,7 @@ The page keeps its state in the query string, written with `history.replaceState
 
 | Hook | Element | Notes |
 |---|---|---|
-| `#versions` | `div.seg.versions[role=radiogroup]` | Pieces with versions only. One `label > input[type=radio][name=v][value=<name>] + span` per version, the default (checked) first. On change: swap the plate data, set `#desc` and the alt, reload focus and cells from that version's slots.json (moving a crop the visitor has not placed), rename the download and the run command, write `v`. |
+| `#versions` | `div.seg.versions[role=radiogroup]` | Pieces with versions only. One `label > input[type=radio][name=v][value=<name>] + span` per version, the default (checked) first, then `span.plate.thumb[data-version=<name>][aria-hidden=true]`: show that version's 16:9 template in the current theme. On change: swap the plate data, set `#desc` and the alt, reload focus and cells from that version's slots.json (moving a crop the visitor has not placed), rename the download and the run command, write `v`. |
 | `.seedlist [data-seed=bg\|fg\|accent]` | `span.mono` | The uppercase `#RRGGBB` seed. |
 | `button[popovertarget=picker]` | "Change" | Native. |
 | `[data-action=copy-link]` | "Copy link" | As in the picker, so with the page's `v`, `shape` and `crop`. |
@@ -129,16 +138,22 @@ The page keeps its state in the query string, written with `history.replaceState
 | `#export-error` | `span.msg.err` in a polite live row | Set when an export fails. |
 | `#download-name` | `span.mono` | The file name, from `downloadName()` in `src/lib/content.ts`. |
 
+### See also
+
+`section.related[aria-labelledby=related-h]`, only when some piece shares a facet value: `h2#related-h`, then `ul.grid` of up to four `li`s as on the index (Plates), with h3 titles. Show them with `grid.ts` in the page's shape, following every change of it.
+
 ### Source code (`src/components/SourceCode.astro`)
+
+`details.appendix`, closed, whose `summary` holds `h2#appendix-h`; the hooks below are inside it.
 
 | Hook | Element | Notes |
 |---|---|---|
 | `[data-action=copy-source]` | "Copy" | Copy `#raw-source`. |
 | `#raw-source` | `template` | The design.py text. |
-| `#run-render[data-slug]` | `span` with the `uv run walldye render …` command | Set it with `renderCommand()` (docs/site.md §6.10). |
+| `#run-render[data-slug]` | `span` with the `uv run walldye render …` command | Set it with `renderCommand()` (docs/site.md §6.11). |
 
 Script-less pieces have `p.lost` instead, and none of these hooks.
 
 ## Shared helpers
 
-`src/lib/` has no Node or Astro runtime imports, so client code can import it. `content.ts` has `SITE_ASPECTS`, `isAspect`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `normaliseSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset); `labels.ts` has the facet labels; `theme.ts` returns seeds already normalised (`Seeds`), so the client never normalises them again.
+`src/lib/` has no Node or Astro runtime imports, so client code can import it. `content.ts` has `SITE_ASPECTS`, `isAspect`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `aspectOfLabel`, `normaliseSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset); `import-theme.ts` reads pasted themes; `labels.ts` has the facet labels; `theme.ts` returns seeds already normalised (`Seeds`), so the client never normalises them again.

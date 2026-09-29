@@ -38,6 +38,11 @@ export interface Picked {
   entry: SlotsEntry;
 }
 
+/** Where the site serves the template `entry` describes: /t/<sha256[:12]>.svg. */
+export function templateUrl(entry: SlotsEntry): string {
+  return `/t/${entry.sha256.slice(0, 12)}.svg`;
+}
+
 export function isEntry(value: unknown): value is SlotsEntry {
   return typeof value === 'object' && value !== null && 'file' in value;
 }

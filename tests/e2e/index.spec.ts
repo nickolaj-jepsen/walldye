@@ -6,6 +6,7 @@ import {
   matches,
   ordered,
 } from '../../src/client/index/filter';
+import type { SortOrder } from '../../src/lib/content';
 
 const visibleSlugs = (page: Page) =>
   page
@@ -35,21 +36,23 @@ async function catalogue(page: Page): Promise<Filterable[]> {
   return rows.map((r) => ({ ...r, facets: new Set(r.facets.split(' ').filter(Boolean)) }));
 }
 
+/** A filter state; without `sort` the grid keeps the server's order, the build's first. */
 const state = (
   facets: Record<string, string[]>,
   q = '',
-  sort: FilterState['sort'] = 'newest',
-): FilterState => ({
+  sort?: SortOrder,
+): FilterState & { kept: boolean } => ({
   q,
-  sort,
+  sort: sort ?? 'newest',
+  shape: '16:9',
   facets: new Map(Object.entries(facets).map(([f, vs]) => [f, new Set(vs)])),
+  kept: sort === undefined,
 });
 /** The slugs `s` shows, in order. */
-const shown = (items: Filterable[], s: FilterState) =>
-  ordered(
-    items.filter((it) => matches(it, s)),
-    s.sort,
-  ).map((it) => it.slug);
+const shown = (items: Filterable[], s: ReturnType<typeof state>) => {
+  const hits = items.filter((it) => matches(it, s));
+  return (s.kept ? hits : ordered(hits, s.sort)).map((it) => it.slug);
+};
 /** The results line for `n` of `total` plates. */
 const results = (n: number, total: number) =>
   n === total ? `${total} wallpapers` : `${n} of ${total} wallpapers`;

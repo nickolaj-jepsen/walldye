@@ -31,9 +31,11 @@ const fields = [
         <label class="hexfield"><span class="k">{f.label}</span><span class="chip" style={`--c:var(--seed-${f.seed})`} /><input id={`seed-${f.seed}`} data-seed={f.seed} value={f.value} spellcheck="false" autocomplete="off" autocapitalize="characters" /></label>
       ))
     }
+    <label class="importfield"><span class="k">Import</span><input id="theme-import" placeholder="paste a terminal theme" spellcheck="false" autocomplete="off" aria-describedby="import-msg" /></label>
     <div class="msgs" aria-live="polite">
       <p id="seed-msg" class="msg err" hidden>Use a hex colour, like <span class="mono">#CF6A4C</span>.</p>
       <p id="faint-msg" class="msg warn" hidden>The background and foreground are too close, so wallpapers will be hard to see.</p>
+      <p id="import-msg" class="msg err" hidden>No colours found in that text.</p>
     </div>
   </div>
   <p class="actions"><button type="button" class="textbtn" data-action="copy-link">Copy link</button></p>

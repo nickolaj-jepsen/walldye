@@ -1,5 +1,6 @@
 /**
- * The detail page: versions, plate, crop window, export panel, run command, the `f` key and "Copy".
+ * The detail page: versions and their pictures, plate, crop window, export panel, run command, the
+ * `f` key, "Copy" and the "See also" plates, shown in the page's shape.
  * A visitor's change goes through update(), which renders the whole page from the state and writes
  * the address; render() is cheap enough to run on every crop drag.
  */
@@ -27,8 +28,10 @@ import {
   svgExport,
   withinLimits,
 } from '../export/shape';
+import { plateGrid } from '../grid';
 import { getSlots, keepShowing, type PlateData, plateData, recoloured } from '../plates';
 import { retrying } from '../retry';
+import { isPhone, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
 import { type DetailState, keptCrop, readAddress, shapeOf, sizeFor, writeAddress } from './state';
 
@@ -55,6 +58,9 @@ const formatRadios = [...panel.querySelectorAll<HTMLInputElement>('input[name=fm
 // Pieces with versions only.
 const versionsEl = document.getElementById('versions');
 const versionRadios = [...(versionsEl?.querySelectorAll<HTMLInputElement>('input[name=v]') ?? [])];
+const thumbs = [...(versionsEl?.querySelectorAll<HTMLElement>('.thumb[data-version]') ?? [])];
+// Pieces that share a facet with another only.
+const related = document.querySelector<HTMLElement>('section.related');
 // Pieces with a script only.
 const runRender = document.getElementById('run-render');
 const copySource = document.querySelector<HTMLElement>('[data-action=copy-source]');
@@ -63,13 +69,7 @@ const slug = plate.dataset.plate ?? '';
 const native = new Set(
   aspectRadios.filter((r) => r.hasAttribute('data-native')).map((r) => r.value),
 );
-const phone = matchMedia('(max-width: 60rem) and (pointer: coarse)').matches;
-
-/** Output pixels of "your screen": the screen at device resolution. */
-function screenPx(): [number, number] {
-  const dpr = devicePixelRatio || 1;
-  return [Math.round(screen.width * dpr), Math.round(screen.height * dpr)];
-}
+const phone = isPhone();
 const screenAspect = nearestAspect(...screenPx());
 
 /** Output pixels of a size radio's value. */
@@ -135,6 +135,7 @@ function render(): void {
   renderSizes();
   renderNames(shape);
   renderPlate();
+  seeAlso?.setShape(state.aspect);
 }
 
 function placeCrop(shape: ExportShape): void {
@@ -211,6 +212,20 @@ function renderPlate(): void {
   stopPlate = keepShowing(plate, dataOf(state.variant), sourceAspect(), seeds);
 }
 
+let thumbsKey = '';
+let stopThumbs: (() => void)[] = [];
+/** Each version's 16:9 picture in the current theme. */
+function renderThumbs(): void {
+  const seeds = currentSeeds();
+  const key = tokenOf(seeds);
+  if (key === thumbsKey) return;
+  thumbsKey = key;
+  for (const stop of stopThumbs) stop();
+  stopThumbs = thumbs.map((t) =>
+    keepShowing(t, dataOf(t.dataset.version ?? DEFAULT_VARIANT), '16:9', seeds),
+  );
+}
+
 let stopSlots = () => {};
 /** Reads the shown version's focus and cells from its slots.json, retrying a failed fetch. */
 function loadSlots(): void {
@@ -228,9 +243,14 @@ function loadSlots(): void {
   );
 }
 
+const seeAlso = related ? plateGrid(related, state.aspect) : undefined;
 render();
+renderThumbs();
 loadSlots();
-onThemeChange(render);
+onThemeChange(() => {
+  render();
+  renderThumbs();
+});
 
 // ---- panel events ----
 

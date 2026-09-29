@@ -3,10 +3,11 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Attribution from '../components/Attribution.astro';
 import Controls from '../components/Controls.astro';
 import Footnotes from '../components/Footnotes.astro';
+import Plate from '../components/Plate.astro';
 import PlateBox from '../components/PlateBox.astro';
 import SourceCode from '../components/SourceCode.astro';
 import Base from '../layouts/Base.astro';
-import { captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery } from '../lib/content';
+import { captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery, relatedPieces, type Piece } from '../lib/content';
 import { LICENCE_LINES, MODEL_NAMES, TAKEDOWN_CONTACT, facetLabel, type TaxonomyFacet } from '../lib/labels';
 import { DEFAULT_LICENSE, FAN_WORK } from '../lib/meta';
 
@@ -15,15 +16,21 @@ export async function getStaticPaths() {
   const groups = filterGroups(entries.map((e) => e.data));
   // Facts link to the index only for values it offers as filters.
   const filters = new Set(groups.flatMap((g) => g.entries.map((e) => `${g.facet}:${e.value}`)));
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry, filters } }));
+  const pieces = entries.map((e) => e.data);
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    // Four fill a row of the grid at desktop widths.
+    props: { entry, filters, related: relatedPieces(entry.data, pieces, 4) },
+  }));
 }
 
 interface Props {
   entry: CollectionEntry<'wallpapers'>;
   filters: Set<string>;
+  related: Piece[];
 }
 
-const { entry, filters } = Astro.props;
+const { entry, filters, related } = Astro.props;
 const p = entry.data;
 const { Content } = await render(entry);
 const hasNotes = Boolean(entry.rendered?.html);
@@ -82,6 +89,19 @@ const licenceLine = p.licence !== DEFAULT_LICENSE && p.licence !== FAN_WORK ? LI
       )
     }
   </div>
+
+  {
+    related.length > 0 && (
+      <section class="related" aria-labelledby="related-h">
+        <h2 id="related-h" class="sc hair-t">See also</h2>
+        <ul class="grid">
+          {related.map((r) => (
+            <Plate piece={r} heading="h3" />
+          ))}
+        </ul>
+      </section>
+    )
+  }
 
   <SourceCode piece={p} />
   <script>

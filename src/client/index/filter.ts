@@ -2,10 +2,13 @@
  * The index filter as pure functions: search over the normalised `search` text, OR within a facet,
  * AND across facets, and the orders of comparePieces().
  *
- * The query string is the facets form's own GET serialisation: `q=<text>`, `sort=<order>` and one
- * `<facet>=<value>` per checked box, in form order.
+ * The query string is the facets form's own GET serialisation: `q=<text>`, `sort=<order>`,
+ * `shape=<w>x<h>` and one `<facet>=<value>` per checked box, in form order.
  */
 import {
+  type Aspect,
+  aspectLabel,
+  aspectOfLabel,
   comparePieces,
   isSortOrder,
   normaliseSearch,
@@ -13,12 +16,23 @@ import {
   type SortOrder,
 } from '../../lib/content';
 
+/** The keys of the query string that are not facets. */
+const CONTROLS = new Set(['q', 'sort', 'shape']);
+
 export interface FilterState {
   /** Search text as typed. */
   q: string;
   sort: SortOrder;
+  /** The shape the plates are shown in. */
+  shape: Aspect;
   /** Checked values per facet. */
   facets: Map<string, Set<string>>;
+}
+
+/** The sort and shape a query string without them means: the build's first order and the device's shape. */
+export interface FilterDefaults {
+  sort: SortOrder;
+  shape: Aspect;
 }
 
 /** One filterable piece: an index `li`. */
@@ -29,21 +43,30 @@ export interface Filterable extends SortKey {
   search: string;
 }
 
-/** The filter state in `params`: `q`, `sort` (newest when absent or unknown) and every other key as a facet. */
-export function filterState(params: URLSearchParams): FilterState {
+/**
+ * The filter state in `params`: `q`, `sort` and `shape` (the defaults' when absent or unknown) and
+ * every other key as a facet.
+ */
+export function filterState(params: URLSearchParams, defaults: FilterDefaults): FilterState {
   const facets = new Map<string, Set<string>>();
   for (const [key, value] of params) {
-    if (key !== 'q' && key !== 'sort') facets.set(key, (facets.get(key) ?? new Set()).add(value));
+    if (!CONTROLS.has(key)) facets.set(key, (facets.get(key) ?? new Set()).add(value));
   }
   const sort = params.get('sort');
-  return { q: params.get('q') ?? '', sort: isSortOrder(sort) ? sort : 'newest', facets };
+  return {
+    q: params.get('q') ?? '',
+    sort: isSortOrder(sort) ? sort : defaults.sort,
+    shape: aspectOfLabel(params.get('shape')) ?? defaults.shape,
+    facets,
+  };
 }
 
-/** The address's query string for the form's `params`, without a blank search or the default sort. */
-export function filterQuery(params: URLSearchParams): string {
+/** The address's query string for the form's `params`, without a blank search or a default sort or shape. */
+export function filterQuery(params: URLSearchParams, defaults: FilterDefaults): string {
   const out = new URLSearchParams(params);
   if (!out.get('q')?.trim()) out.delete('q');
-  if (out.get('sort') === 'newest') out.delete('sort');
+  if (out.get('sort') === defaults.sort) out.delete('sort');
+  if (out.get('shape') === aspectLabel(defaults.shape)) out.delete('shape');
   return out.toString();
 }
 

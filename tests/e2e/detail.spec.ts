@@ -178,6 +178,7 @@ test.describe('detail', () => {
     await pick(page, 'asp', '16:10');
     await expect(page.locator('#crop')).toBeVisible();
     await ignored('f', () => page.locator('#crop').focus());
+    await page.locator('.appendix > summary').click();
     await ignored('f', () => page.locator('.listing pre').focus());
     await ignored('f', () => page.locator('.run pre').focus());
     await page.evaluate(() => {
@@ -241,6 +242,7 @@ test.describe('detail', () => {
     test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only in Playwright');
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/schotter');
+    await page.locator('.appendix > summary').click();
     await page.click('[data-action=copy-source]');
     await expect(page.locator('[data-action=copy-source]')).toHaveText('Copied');
     const text = await page.evaluate(() => navigator.clipboard.readText());

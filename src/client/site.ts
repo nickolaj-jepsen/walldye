@@ -1,14 +1,15 @@
 /**
- * Every page: the header's theme button, the shared-theme line, the theme picker and "Copy link".
+ * Every page: the header's theme button, the shared-theme line, the theme picker, the index's preset
+ * row and "Copy link".
  * The theme boot has already applied the theme; this module keeps the controls in step with it and
  * saves the visitor's edits.
  */
+import { seedsFromText } from '../lib/import-theme';
 import { presetLabel } from '../lib/presets';
 import {
   contrast,
   normaliseSeed,
   PRESETS,
-  parseToken,
   presetOf,
   SEEDS,
   type Seed,
@@ -36,9 +37,8 @@ const themeButton = must('#theme-button');
 const themeName = must('[data-theme-name]', themeButton);
 const sharedLine = must('#shared');
 const picker = must('#picker');
-const presetButtons = [
-  ...picker.querySelectorAll<HTMLButtonElement>('.presets button[data-preset]'),
-];
+// The picker's presets and, on the index, the row above the grid.
+const presetButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-preset]')];
 const fields = Object.fromEntries(
   SEEDS.map((k) => [k, must<HTMLInputElement>(`#seed-${k}`)]),
 ) as Record<Seed, HTMLInputElement>;
@@ -47,6 +47,8 @@ const chips = Object.fromEntries(
 ) as Record<Seed, HTMLElement>;
 const seedMsg = must('#seed-msg');
 const faintMsg = must('#faint-msg');
+const importField = must<HTMLInputElement>('#theme-import');
+const importMsg = must('#import-msg');
 
 /** The debounced commit waiting to run, or 0. */
 let pending = 0;
@@ -129,17 +131,6 @@ function edited(): void {
   pending = window.setTimeout(() => commit(false), DEBOUNCE_MS);
 }
 
-/** Three colours from pasted text: a theme token, or three hex colours separated by commas, spaces or dashes. */
-function pastedSeeds(text: string): Seeds | null {
-  const t = text.trim();
-  const token = parseToken(t);
-  if (token) return token;
-  const parts = t.split(/[\s,-]+/).filter(Boolean);
-  if (parts.length !== 3) return null;
-  const [bg, fg, accent] = parts.map(normaliseSeed);
-  return bg && fg && accent ? { bg, fg, accent } : null;
-}
-
 /** Header, picker and detail colour list for the applied theme. */
 function sync(seeds: Seeds): void {
   const preset = presetOf(seeds);
@@ -206,13 +197,40 @@ for (const k of SEEDS) {
     if (e.key === 'Enter') commit(true);
   });
   input.addEventListener('paste', (e) => {
-    const seeds = pastedSeeds(e.clipboardData?.getData('text') ?? '');
+    const seeds = seedsFromText(e.clipboardData?.getData('text') ?? '');
     if (!seeds) return;
     e.preventDefault();
-    for (const j of SEEDS) fields[j].value = seeds[j];
-    edited();
+    fillFrom(seeds);
   });
 }
+
+/** Puts `seeds` in the three fields, to apply like typed colours. */
+function fillFrom(seeds: Seeds): void {
+  importMsg.hidden = true;
+  for (const k of SEEDS) fields[k].value = seeds[k];
+  edited();
+}
+
+/** Reads a theme from `text` into the fields, or says it holds none. */
+function importTheme(text: string): void {
+  const seeds = seedsFromText(text);
+  if (seeds) {
+    importField.value = '';
+    fillFrom(seeds);
+  } else {
+    importMsg.hidden = text.trim() === '';
+  }
+}
+
+// A pasted file is read whole: the field itself would keep only its first line.
+importField.addEventListener('paste', (e) => {
+  e.preventDefault();
+  importTheme(e.clipboardData?.getData('text') ?? '');
+});
+importField.addEventListener('change', () => importTheme(importField.value));
+importField.addEventListener('input', () => {
+  importMsg.hidden = true;
+});
 
 for (const b of document.querySelectorAll<HTMLButtonElement>('[data-action=copy-link]')) {
   b.addEventListener('click', async () => {

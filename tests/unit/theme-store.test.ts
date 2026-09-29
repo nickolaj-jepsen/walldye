@@ -14,7 +14,7 @@ import {
 } from '../../src/client/theme/store';
 import { faviconUrl } from '../../src/lib/favicon';
 import { cssVars, normaliseSeeds, PRESETS } from '../../src/lib/theme';
-import { themeBootScript } from '../../src/server/theme-boot-script';
+import { inlineScript } from '../../src/server/inline-script';
 
 class MemoryStorage {
   data = new Map<string, string>();
@@ -242,7 +242,7 @@ describe('resolution and persistence', () => {
 
 describe('theme boot', () => {
   // The script Base.astro inlines.
-  const bundle = () => themeBootScript(false);
+  const bundle = () => inlineScript('theme', false);
 
   it('stays small', async () => {
     expect((await bundle()).length).toBeLessThan(8 * 1024);
