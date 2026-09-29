@@ -115,6 +115,9 @@ test.describe('detail', () => {
     // The old image stays until the new one has faded in over it.
     await expect(page.locator('.spread .plate > img')).toHaveCount(1);
     await expect(page.locator('.spread .plate > img')).toHaveAttribute('data-aspect', '9:19.5');
+    // The shape's frame must not take the plate's height with it.
+    const plate = await page.locator('.spread .plate').boundingBox();
+    expect(plate!.height / plate!.width).toBeCloseTo(9 / 16, 2);
     await expect(page.locator('#run-render')).toHaveText(
       'uv run walldye render dither-moon --theme fireproof --aspect 9:19.5 -o dither-moon-fireproof-9x19.5.svg',
     );

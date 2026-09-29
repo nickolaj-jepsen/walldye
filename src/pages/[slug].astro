@@ -123,21 +123,19 @@ const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
     font-size: var(--fs-2);
     color: var(--text-2);
   }
-  /* A shape with its own template shows that template whole, centered in the 16:9 box, inside a frame like the crop window's so the shape reads. */
+  /* A shape with its own template shows that template whole, centered in the 16:9 picture, inside a frame like the crop window's so the shape reads. The frame replaces the plate's; ::before stays the height spacer. */
   .spread :global(.plate img:not([data-aspect='16:9'])) {
     object-position: center;
   }
-  .spread :global(.plate:has(> img:not([data-aspect='16:9']))::before) {
-    content: '';
-    position: absolute;
+  .spread :global(.plate:has(> img:not([data-aspect='16:9']))::after) {
+    --w: min(100cqw, 100cqw * 9 / 16 * var(--shape));
+    --h: min(100cqw * 9 / 16, 100cqw / var(--shape));
     z-index: 1;
-    inset: 0;
-    margin: auto;
-    width: min(100%, calc(100cqw * 9 / 16 * var(--shape)));
-    width: min(100%, calc(round(up, 100cqw * 9 / 16, var(--u)) * var(--shape)));
-    height: min(100%, calc(100cqw / var(--shape)));
+    left: calc((100cqw - var(--w)) / 2);
+    top: calc((100cqw * 9 / 16 - var(--h)) / 2);
+    width: var(--w);
+    height: var(--h);
     box-shadow: inset 0 0 0 1px var(--text);
-    pointer-events: none;
   }
   /* Width over height of each shape a piece may have its own template for. */
   .spread :global(.plate:has(> img[data-aspect='16:10'])) {
@@ -177,14 +175,13 @@ const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
     .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate > .crop) {
       display: none;
     }
-    /* The shape's own template fills the plate, so the frame above goes back to being the height spacer. */
-    .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate:has(> img:not([data-aspect='16:9']))::before) {
-      position: static;
-      margin: 0;
+    /* The shape's own template fills the plate, so the plate's own frame comes back. */
+    .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate:has(> img:not([data-aspect='16:9']))::after) {
+      left: 0;
+      top: 0;
       width: auto;
       height: calc(100cqw / var(--ratio));
-      height: round(up, calc(100cqw / var(--ratio)), var(--u));
-      box-shadow: none;
+      box-shadow: inset 0 0 0 1px var(--plate-edge);
     }
   }
   /* Fullscreen (the f key): the wallpaper alone, centered on its ground. */
