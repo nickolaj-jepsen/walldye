@@ -3,9 +3,17 @@
  * and the results line, and lazily recoloured plates.
  */
 import { isSortOrder } from '../lib/content';
-import { tokenOf, type Seeds } from '../lib/theme';
+import { type Seeds, tokenOf } from '../lib/theme';
 import { currentSeeds, onThemeChange } from './current-theme';
-import { countFor, matches, ordered, parseQuery, serialiseQuery, type Filterable, type FilterState } from './filter';
+import {
+  countFor,
+  type Filterable,
+  type FilterState,
+  matches,
+  ordered,
+  parseQuery,
+  serialiseQuery,
+} from './filter';
 import { RETRY_MS, showPlate, showTemplate } from './plates';
 
 interface Item extends Filterable {
@@ -15,17 +23,19 @@ interface Item extends Filterable {
 
 const form = document.getElementById('facets') as HTMLFormElement | null;
 const grid = document.querySelector<HTMLUListElement>('.plates .grid');
-const items: Item[] = [...(grid?.querySelectorAll<HTMLLIElement>(':scope > li') ?? [])].map((li) => ({
-  li,
-  slug: li.dataset.slug ?? '',
-  title: li.dataset.title ?? '',
-  added: li.dataset.added ?? '',
-  views: Number(li.dataset.views ?? 0),
-  recent: Number(li.dataset.recent ?? 0),
-  facets: new Set((li.dataset.facets ?? '').split(' ').filter(Boolean)),
-  search: li.dataset.search ?? '',
-  plate: li.querySelector<HTMLElement>('.plate'),
-}));
+const items: Item[] = [...(grid?.querySelectorAll<HTMLLIElement>(':scope > li') ?? [])].map(
+  (li) => ({
+    li,
+    slug: li.dataset.slug ?? '',
+    title: li.dataset.title ?? '',
+    added: li.dataset.added ?? '',
+    views: Number(li.dataset.views ?? 0),
+    recent: Number(li.dataset.recent ?? 0),
+    facets: new Set((li.dataset.facets ?? '').split(' ').filter(Boolean)),
+    search: li.dataset.search ?? '',
+    plate: li.querySelector<HTMLElement>('.plate'),
+  }),
+);
 
 // ---- filters ----
 
@@ -81,13 +91,16 @@ if (form && grid) {
     const checked = boxes.filter((b) => b.checked);
     if (clear) clear.hidden = checked.length === 0 && needle === '';
     if (summary) {
-      const terms = checked.map((b) => b.closest('label')?.querySelector('.term')?.textContent ?? b.value);
+      const terms = checked.map(
+        (b) => b.closest('label')?.querySelector('.term')?.textContent ?? b.value,
+      );
       if (needle) terms.unshift(`“${needle}”`);
       summary.textContent = terms.join(', ');
     }
 
     const sorted = ordered(items, s.sort);
-    if (sorted.some((it, i) => grid.children[i] !== it.li)) grid.append(...sorted.map((it) => it.li));
+    if (sorted.some((it, i) => grid.children[i] !== it.li))
+      grid.append(...sorted.map((it) => it.li));
 
     const url = new URL(location.href);
     url.search = serialiseQuery(s, order);
@@ -95,7 +108,11 @@ if (form && grid) {
   };
 
   const controls = [...boxes, ...sorts];
-  write(parseQuery(new URLSearchParams(location.search), (name, value) => controls.some((c) => c.name === name && c.value === value)));
+  write(
+    parseQuery(new URLSearchParams(location.search), (name, value) =>
+      controls.some((c) => c.name === name && c.value === value),
+    ),
+  );
   apply();
   // The count only becomes a live region once it matches the address, so a filtered load is not announced.
   status?.setAttribute('role', 'status');
@@ -155,7 +172,8 @@ function pump(): void {
           if (shown.get(plate) !== t) return;
           shown.delete(plate);
           // An empty box would say nothing: stand in with the untouched template and its alt text.
-          if (!plate.querySelector(':scope > img')) showTemplate(plate, '16:9', seeds).catch(() => {});
+          if (!plate.querySelector(':scope > img'))
+            showTemplate(plate, '16:9', seeds).catch(() => {});
           const n = failures.get(plate) ?? 0;
           failures.set(plate, n + 1);
           if (n < RETRY_MS.length) setTimeout(() => retry(plate), RETRY_MS[n]);

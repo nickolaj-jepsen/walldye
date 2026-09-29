@@ -12,7 +12,10 @@ const ENTRY = resolve('src/lib/theme-boot.ts');
 let cached: Promise<string> | undefined;
 
 export function themeBootScript(cache = true): Promise<string> {
-  const run = () => build({ entryPoints: [ENTRY], bundle: true, format: 'iife', minify: true, write: false }).then((r) => r.outputFiles[0].text);
+  const run = () =>
+    build({ entryPoints: [ENTRY], bundle: true, format: 'iife', minify: true, write: false }).then(
+      (r) => r.outputFiles[0].text,
+    );
   if (!cache) return run();
   cached ??= run();
   return cached;

@@ -8,11 +8,11 @@ import {
   ownTheme,
   PAGE_ATTR,
   resolveTheme,
+  STORAGE_KEY,
   saveTheme,
   sharedDiffers,
-  STORAGE_KEY,
-  takeSharedParam,
   THEME_EVENT,
+  takeSharedParam,
 } from '../../src/lib/theme-store';
 
 class MemoryStorage {
@@ -71,16 +71,24 @@ function stubBrowser(href: string, light = false): Env {
   vi.stubGlobal('sessionStorage', env.session);
   vi.stubGlobal('localStorage', env.local);
   vi.stubGlobal('location', { href });
-  vi.stubGlobal('history', { state: { kept: 1 }, replaceState: (_s: unknown, _t: string, url: string) => env.replaced.push(url) });
+  vi.stubGlobal('history', {
+    state: { kept: 1 },
+    replaceState: (_s: unknown, _t: string, url: string) => env.replaced.push(url),
+  });
   vi.stubGlobal('matchMedia', (query: string) => ({
     get matches() {
       return query === '(prefers-color-scheme: light)' && light;
     },
     addEventListener: (_type: string, fn: () => void) => env.schemeListeners.push(fn),
   }));
-  vi.stubGlobal('addEventListener', (type: string, fn: (e: Event) => void) => env.windowListeners.push([type, fn]));
+  vi.stubGlobal('addEventListener', (type: string, fn: (e: Event) => void) =>
+    env.windowListeners.push([type, fn]),
+  );
   vi.stubGlobal('document', {
-    documentElement: { style: { setProperty: (k: string, v: string) => env.props.set(k, v) }, dataset: env.dataset },
+    documentElement: {
+      style: { setProperty: (k: string, v: string) => env.props.set(k, v) },
+      dataset: env.dataset,
+    },
     dispatchEvent: (e: CustomEvent) => env.events.push(`${e.type} ${e.detail}`),
   });
   return env;
@@ -106,7 +114,11 @@ describe('resolution and persistence', () => {
     env.local.setItem(STORAGE_KEY, 'nord');
     expect(resolveTheme()).toMatchObject({ token: 'nord', source: 'saved' });
     env.session.setItem(STORAGE_KEY, 'ffffff-000000-ff8800');
-    expect(resolveTheme()).toMatchObject({ token: 'ffffff-000000-ff8800', source: 'shared', seeds: { accent: '#FF8800' } });
+    expect(resolveTheme()).toMatchObject({
+      token: 'ffffff-000000-ff8800',
+      source: 'shared',
+      seeds: { accent: '#FF8800' },
+    });
     expect(sharedDiffers()).toBe(true);
     env.session.setItem(STORAGE_KEY, 'nord');
     expect(sharedDiffers()).toBe(false);
@@ -126,7 +138,10 @@ describe('resolution and persistence', () => {
   });
 
   it('keeps a shared or saved theme on the page when storage cannot hold it', () => {
-    for (const store of [blocked, { ...new MemoryStorage(), getItem: () => null, setItem: blocked.setItem, removeItem() {} }]) {
+    for (const store of [
+      blocked,
+      { ...new MemoryStorage(), getItem: () => null, setItem: blocked.setItem, removeItem() {} },
+    ]) {
       env = stubBrowser('https://walldye.com/?t=nord');
       vi.stubGlobal('sessionStorage', store);
       vi.stubGlobal('localStorage', store);
@@ -196,12 +211,18 @@ describe('resolution and persistence', () => {
     env.session.setItem(STORAGE_KEY, 'flexoki-light');
     env.setLight(true);
     expect(env.props.get('--bg')).toBe('#FFFCF0');
-    expect(env.events).toEqual([`${THEME_EVENT} flexoki-light`, `${THEME_EVENT} nord`, `${THEME_EVENT} flexoki-light`]);
+    expect(env.events).toEqual([
+      `${THEME_EVENT} flexoki-light`,
+      `${THEME_EVENT} nord`,
+      `${THEME_EVENT} flexoki-light`,
+    ]);
   });
 
   it('re-resolves a page restored from the back/forward cache', () => {
     followChanges();
-    const pageshow = env.windowListeners.filter(([type]) => type === 'pageshow').map(([, fn]) => fn);
+    const pageshow = env.windowListeners
+      .filter(([type]) => type === 'pageshow')
+      .map(([, fn]) => fn);
     expect(pageshow).toHaveLength(1);
     env.local.setItem(STORAGE_KEY, 'nord');
     pageshow[0]({ persisted: false } as unknown as Event);

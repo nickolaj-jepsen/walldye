@@ -1,14 +1,28 @@
-import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
 import { defineCollection } from 'astro:content';
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join, relative, resolve, sep } from 'node:path';
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
 import YAML from 'yaml';
 import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
-import { DEFAULT_LICENSE, FAN_WORK, isDraft, licenseOf, namedVariants, typesetMeta, variantsMeta } from './lib/meta';
-import { FACET_LABELS, LICENCE_LINES, MODEL_NAMES, TAXONOMY_FACETS, type TaxonomyFacet } from './lib/labels';
-import { DAY_FILE, parseDay, renames, viewTotals, type Day, type Views } from './lib/views';
+import {
+  FACET_LABELS,
+  LICENCE_LINES,
+  MODEL_NAMES,
+  TAXONOMY_FACETS,
+  type TaxonomyFacet,
+} from './lib/labels';
+import {
+  DEFAULT_LICENSE,
+  FAN_WORK,
+  isDraft,
+  licenseOf,
+  namedVariants,
+  typesetMeta,
+  variantsMeta,
+} from './lib/meta';
+import { DAY_FILE, type Day, parseDay, renames, type Views, viewTotals } from './lib/views';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
 const ROOT = resolve('.');
@@ -29,11 +43,15 @@ export function reservedSlug(slug: string): boolean {
 }
 
 function loadTaxonomy(): Record<TaxonomyFacet, string[]> {
-  const data = (YAML.parse(readFileSync(join(ROOT, 'taxonomy.yaml'), 'utf8')) ?? {}) as Record<string, unknown>;
+  const data = (YAML.parse(readFileSync(join(ROOT, 'taxonomy.yaml'), 'utf8')) ?? {}) as Record<
+    string,
+    unknown
+  >;
   const out = {} as Record<TaxonomyFacet, string[]>;
   for (const facet of TAXONOMY_FACETS) {
     const values = data[facet] ?? [];
-    if (!Array.isArray(values) || !values.every((v) => typeof v === 'string')) throw new Error(`taxonomy.yaml: ${facet} must be a list of slugs`);
+    if (!Array.isArray(values) || !values.every((v) => typeof v === 'string'))
+      throw new Error(`taxonomy.yaml: ${facet} must be a list of slugs`);
     out[facet] = values;
   }
   return out;
@@ -46,7 +64,11 @@ const facetList = (facet: TaxonomyFacet) =>
     .default([])
     .superRefine((vs, ctx) => {
       for (const v of vs) {
-        if (!taxonomy[facet].includes(v)) ctx.addIssue({ code: 'custom', message: `${v} is not in taxonomy.yaml (suggest it under proposed_facets)` });
+        if (!taxonomy[facet].includes(v))
+          ctx.addIssue({
+            code: 'custom',
+            message: `${v} is not in taxonomy.yaml (suggest it under proposed_facets)`,
+          });
       }
     });
 
@@ -64,8 +86,12 @@ const source = z
     lang: z.string().min(2).optional(),
   })
   .strict()
-  .refine((s) => !(s.title && s.topic), { message: 'a title names a work and a topic anything else; not both' })
-  .refine((s) => s.title || s.topic || s.author, { message: 'a source needs a title, a topic or an author' });
+  .refine((s) => !(s.title && s.topic), {
+    message: 'a title names a work and a topic anything else; not both',
+  })
+  .refine((s) => s.title || s.topic || s.author, {
+    message: 'a source needs a title, a topic or an author',
+  });
 
 const template = z.object({
   /** File name inside its build directory. */
@@ -120,7 +146,10 @@ const wallpaper = z
     /** The model id that made the piece, credited by its MODEL_NAMES name. */
     model: z.string().trim().min(1).optional(),
     license: z.string().optional(),
-    franchise: z.object({ title: z.string().min(1), owner: z.string().min(1) }).strict().optional(),
+    franchise: z
+      .object({ title: z.string().min(1), owner: z.string().min(1) })
+      .strict()
+      .optional(),
     draft: z.boolean().default(false),
     proposed_facets: z.record(z.string(), z.array(z.string())).default({}),
     variants: variantsMeta.optional(),
@@ -150,28 +179,47 @@ const wallpaper = z
   })
   .strict()
   .superRefine((m, ctx) => {
-    const issue = (message: string, path: string[] = []) => ctx.addIssue({ code: 'custom', message, path });
-    if (!SLUG.test(m.slug)) issue(`folder name ${m.slug} must be lowercase words joined by single hyphens`, ['slug']);
+    const issue = (message: string, path: string[] = []) =>
+      ctx.addIssue({ code: 'custom', message, path });
+    if (!SLUG.test(m.slug))
+      issue(`folder name ${m.slug} must be lowercase words joined by single hyphens`, ['slug']);
     if (reservedSlug(m.slug)) issue(`slug ${m.slug} is reserved for a site route`, ['slug']);
-    if (!m.author && !m.model) issue('needs model: (the model id that made it) or author: (who did)', ['model']);
-    else if (m.author && m.model) issue('author: is for human-made pieces; a piece a model made has only model:', ['author']);
-    else if (m.model && !MODEL_NAMES[m.model]) issue(`model ${m.model} needs a credit name in MODEL_NAMES (src/lib/labels.ts)`, ['model']);
+    if (!m.author && !m.model)
+      issue('needs model: (the model id that made it) or author: (who did)', ['model']);
+    else if (m.author && m.model)
+      issue('author: is for human-made pieces; a piece a model made has only model:', ['author']);
+    else if (m.model && !MODEL_NAMES[m.model])
+      issue(`model ${m.model} needs a credit name in MODEL_NAMES (src/lib/labels.ts)`, ['model']);
     const recreation = m.sources.some((s) => s.kind === 'recreation');
-    if (m.license && m.franchise) issue(`franchise: makes the piece fan work (${FAN_WORK}); drop license:`, ['license']);
-    else if (m.license === FAN_WORK) issue('fan work is marked by franchise: {title, owner}, not license:', ['license']);
-    else if (!m.license && !m.franchise && recreation) issue('a kind: recreation source needs an explicit license: (ask the owner)', ['license']);
-    else if (!m.license && !m.franchise && !m.model) issue('human-made pieces need an explicit license:', ['license']);
-    if (m.licence && !existsSync(join(ROOT, 'LICENSES', `${m.licence}.txt`))) issue(`license ${m.licence} has no LICENSES/${m.licence}.txt`, ['license']);
-    if (m.licence && m.licence !== DEFAULT_LICENSE && m.licence !== FAN_WORK && !LICENCE_LINES[m.licence]) {
-      issue(`license ${m.licence} needs a plain-words line in LICENCE_LINES (src/lib/labels.ts)`, ['license']);
+    if (m.license && m.franchise)
+      issue(`franchise: makes the piece fan work (${FAN_WORK}); drop license:`, ['license']);
+    else if (m.license === FAN_WORK)
+      issue('fan work is marked by franchise: {title, owner}, not license:', ['license']);
+    else if (!m.license && !m.franchise && recreation)
+      issue('a kind: recreation source needs an explicit license: (ask the owner)', ['license']);
+    else if (!m.license && !m.franchise && !m.model)
+      issue('human-made pieces need an explicit license:', ['license']);
+    if (m.licence && !existsSync(join(ROOT, 'LICENSES', `${m.licence}.txt`)))
+      issue(`license ${m.licence} has no LICENSES/${m.licence}.txt`, ['license']);
+    if (
+      m.licence &&
+      m.licence !== DEFAULT_LICENSE &&
+      m.licence !== FAN_WORK &&
+      !LICENCE_LINES[m.licence]
+    ) {
+      issue(`license ${m.licence} needs a plain-words line in LICENCE_LINES (src/lib/labels.ts)`, [
+        'license',
+      ]);
     }
     if (m.hasData && !m.sources.some((s) => s.kind === 'data' || s.kind === 'recreation')) {
       issue('data/ needs a kind: data source (or the recreation it comes from)', ['sources']);
     }
-    if (Object.values(m.proposed_facets).some((vs) => vs.length) && !m.draft) issue('proposed_facets are only allowed while draft: true', ['proposed_facets']);
+    if (Object.values(m.proposed_facets).some((vs) => vs.length) && !m.draft)
+      issue('proposed_facets are only allowed while draft: true', ['proposed_facets']);
     for (const facet of TAXONOMY_FACETS) {
       for (const v of m[facet]) {
-        if (taxonomy[facet].includes(v) && !FACET_LABELS[facet][v]) issue(`${v} needs a label in src/lib/labels.ts`, [facet]);
+        if (taxonomy[facet].includes(v) && !FACET_LABELS[facet][v])
+          issue(`${v} needs a label in src/lib/labels.ts`, [facet]);
       }
     }
   });
@@ -196,11 +244,17 @@ function readBuild(slug: string, dir: string) {
       const file = join(dir, entry.file);
       if (!existsSync(file)) throw new Error(`${rootPath(file)} is missing: ${run}`);
       const hash = sha256(readFileSync(file));
-      if (hash !== entry.sha256) throw new Error(`${rootPath(file)} differs from slots.json: ${run}`);
-      templates[key] = { file: entry.file, path: rootPath(file), url: `/t/${hash.slice(0, 12)}.svg` };
+      if (hash !== entry.sha256)
+        throw new Error(`${rootPath(file)} differs from slots.json: ${run}`);
+      templates[key] = {
+        file: entry.file,
+        path: rootPath(file),
+        url: `/t/${hash.slice(0, 12)}.svg`,
+      };
     }
   }
-  if (!templates['16:9/dark']) throw new Error(`${rootPath(slotsPath)} has no 16:9/dark template: ${run}`);
+  if (!templates['16:9/dark'])
+    throw new Error(`${rootPath(slotsPath)} has no 16:9/dark template: ${run}`);
   return {
     templates,
     slotsUrl: `/t/${sha256(slotsBytes).slice(0, 12)}.slots.json`,
@@ -214,12 +268,18 @@ function readBuild(slug: string, dir: string) {
  * design.py. Draft variants are read only in `dev`, where one that is not built yet is skipped with
  * a warning; anything else stale throws naming the file.
  */
-function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn: (message: string) => void) {
+function attach(
+  slug: string,
+  meta: Record<string, unknown>,
+  dev: boolean,
+  warn: (message: string) => void,
+) {
   const dir = join(WALLPAPERS, slug);
   const main = readBuild(slug, join(dir, 'build'));
   const aspects = SITE_ASPECTS.filter((a) => main.templates[`${a}/dark`]);
   const unlit = aspects.find((a) => !main.templates[`${a}/light`]);
-  if (unlit) throw new Error(`${main.slotsPath} has no ${unlit}/light template: run walldye build ${slug}`);
+  if (unlit)
+    throw new Error(`${main.slotsPath} has no ${unlit}/light template: run walldye build ${slug}`);
 
   const description = typeof meta.description === 'string' ? meta.description.trim() : '';
   const versions: z.infer<typeof version>[] = [];
@@ -228,22 +288,37 @@ function attach(slug: string, meta: Record<string, unknown>, dev: boolean, warn:
     const keys = Object.keys(main.templates).sort().join(', ');
     for (const v of namedVariants(meta)) {
       if (v.draft && !dev) continue;
-      let named;
+      let named: ReturnType<typeof readBuild>;
       try {
         named = readBuild(slug, join(dir, 'build', v.name));
         const got = Object.keys(named.templates).sort().join(', ');
-        if (got !== keys) throw new Error(`${named.slotsPath} has templates for ${got}, not ${keys} like build/slots.json: run walldye build ${slug}`);
+        if (got !== keys)
+          throw new Error(
+            `${named.slotsPath} has templates for ${got}, not ${keys} like build/slots.json: run walldye build ${slug}`,
+          );
       } catch (e) {
         if (!v.draft) throw e;
         warn(`skipping draft variant ${slug} ${v.name}: ${(e as Error).message}`);
         continue;
       }
       const own = typeof v.description === 'string' ? v.description.trim() : '';
-      versions.push({ name: v.name, label: String(v.label).trim(), description: own || description, draft: v.draft, ...named });
+      versions.push({
+        name: v.name,
+        label: String(v.label).trim(),
+        description: own || description,
+        draft: v.draft,
+        ...named,
+      });
     }
     if (versions.length) {
       const { label } = (meta.variants as Record<string, { label: string }>)[DEFAULT_VARIANT];
-      versions.unshift({ name: DEFAULT_VARIANT, label: label.trim(), description, draft: false, ...main });
+      versions.unshift({
+        name: DEFAULT_VARIANT,
+        label: label.trim(),
+        description,
+        draft: false,
+        ...main,
+      });
     }
   }
 
@@ -276,7 +351,10 @@ function loadViews(): Map<string, Views> {
     }
   }
   const redirects = join(ROOT, 'public', '_redirects');
-  return viewTotals(days, existsSync(redirects) ? renames(readFileSync(redirects, 'utf8')) : new Map());
+  return viewTotals(
+    days,
+    existsSync(redirects) ? renames(readFileSync(redirects, 'utf8')) : new Map(),
+  );
 }
 
 /** Notes HTML with `<em>` as `<i>` (italics mark titles), acronyms in `<abbr>` and letter-like figures (Z64, 5.5) in `.lnum`; tags, entities and code are left alone. */
@@ -296,7 +374,10 @@ function typesetNotes(html: string): string {
       if (depth > 0) return part;
       return part
         .replace(/\b[A-Z]{2,}\b/g, '<abbr>$&</abbr>')
-        .replace(/\b(?:(?=[A-Za-z]*\d)(?=\d*[A-Za-z])[A-Za-z\d]+|\d+\.\d+|\d+ ?× ?\d+)\b/g, '<span class="lnum">$&</span>');
+        .replace(
+          /\b(?:(?=[A-Za-z]*\d)(?=\d*[A-Za-z])[A-Za-z\d]+|\d+\.\d+|\d+ ?× ?\d+)\b/g,
+          '<span class="lnum">$&</span>',
+        );
     })
     .join('');
 }
@@ -326,15 +407,19 @@ function wallpapers(): Loader {
           const filePath = rootPath(join(WALLPAPERS, slug, 'meta.yaml'));
           let meta: Record<string, unknown>;
           try {
-            meta = (YAML.parse(readFileSync(join(ROOT, filePath), 'utf8')) ?? {}) as Record<string, unknown>;
+            meta = (YAML.parse(readFileSync(join(ROOT, filePath), 'utf8')) ?? {}) as Record<
+              string,
+              unknown
+            >;
           } catch (e) {
             throw new Error(`${filePath}: not valid YAML: ${(e as Error).message}`);
           }
-          if (typeof meta !== 'object' || Array.isArray(meta)) throw new Error(`${filePath}: must be a mapping`);
+          if (typeof meta !== 'object' || Array.isArray(meta))
+            throw new Error(`${filePath}: must be a mapping`);
           // meta.yaml keeps typewriter quotes; the notes get the same curling from Markdown.
           meta = typesetMeta(meta);
           if (isDraft(meta) && !dev) continue;
-          let attached;
+          let attached: ReturnType<typeof attach>;
           try {
             attached = attach(slug, meta, dev, (message) => logger.warn(message));
           } catch (e) {
@@ -347,12 +432,23 @@ function wallpapers(): Loader {
           }
           const v = views.get(slug);
           const counts = { views: v?.views ?? 0, recent: Math.round((v?.recent ?? 0) * 100) / 100 };
-          const data = await parseData<Record<string, unknown>>({ id: slug, data: { ...meta, ...attached, ...counts }, filePath });
-          const notes = typeof data.notes === 'string' && data.notes.trim() ? data.notes : undefined;
+          const data = await parseData<Record<string, unknown>>({
+            id: slug,
+            data: { ...meta, ...attached, ...counts },
+            filePath,
+          });
+          const notes =
+            typeof data.notes === 'string' && data.notes.trim() ? data.notes : undefined;
           const rendered = notes ? await renderMarkdown(notes) : undefined;
           if (rendered) rendered.html = typesetNotes(rendered.html);
           seen.add(slug);
-          store.set({ id: slug, data, filePath, digest: generateDigest({ data, notes: rendered?.html ?? '' }), rendered });
+          store.set({
+            id: slug,
+            data,
+            filePath,
+            digest: generateDigest({ data, notes: rendered?.html ?? '' }),
+            rendered,
+          });
         }
         for (const id of store.keys()) if (!seen.has(id)) store.delete(id);
       };

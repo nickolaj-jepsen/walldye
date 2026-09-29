@@ -56,13 +56,26 @@ export function canEncodeWebp(): Promise<boolean> {
   return webp;
 }
 
-async function encodeOnPage(rgba: Uint8Array, width: number, height: number, format: RasterFormat): Promise<Blob> {
+async function encodeOnPage(
+  rgba: Uint8Array,
+  width: number,
+  height: number,
+  format: RasterFormat,
+): Promise<Blob> {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('no 2d canvas');
-  ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer as ArrayBuffer, rgba.byteOffset, rgba.byteLength), width, height), 0, 0);
+  ctx.putImageData(
+    new ImageData(
+      new Uint8ClampedArray(rgba.buffer as ArrayBuffer, rgba.byteOffset, rgba.byteLength),
+      width,
+      height,
+    ),
+    0,
+    0,
+  );
   const type = `image/${format}`;
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, QUALITY));
   if (!blob || blob.type !== type) throw new Error(`no ${type} encoder`);
@@ -73,7 +86,11 @@ async function encodeOnPage(rgba: Uint8Array, width: number, height: number, for
  * `svg` (already sized to the output pixels) rasterised over `background` and encoded as `format`.
  * Rejects when rendering or encoding fails.
  */
-export async function rasteriseSvg(svg: string, background: string, format: RasterFormat): Promise<Blob> {
+export async function rasteriseSvg(
+  svg: string,
+  background: string,
+  format: RasterFormat,
+): Promise<Blob> {
   const compiled = await module();
   const worker = new Worker(new URL('./export-worker.ts', import.meta.url), { type: 'module' });
   try {

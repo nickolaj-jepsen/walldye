@@ -1,11 +1,14 @@
 /** The picker's theme list as the server renders it, from src/lib/theme.ts in walldye.PRESETS order. */
-import { DEFAULT_THEME, PRESETS as THEME_PRESETS, type Seeds } from '../lib/theme';
+import { DEFAULT_THEME, type Seeds, PRESETS as THEME_PRESETS } from '../lib/theme';
 
 export interface Preset extends Seeds {
   name: string;
 }
 
-export const PRESETS: readonly Preset[] = Object.entries(THEME_PRESETS).map(([name, seeds]) => ({ name, ...seeds }));
+export const PRESETS: readonly Preset[] = Object.entries(THEME_PRESETS).map(([name, seeds]) => ({
+  name,
+  ...seeds,
+}));
 
 /** The theme pages are rendered in before the theme boot runs. */
 export const DEFAULT_PRESET: Preset = PRESETS.find((p) => p.name === DEFAULT_THEME)!;

@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest';
 import {
   contrast,
   cssVars,
-  deriveTheme,
   DIM,
+  deriveTheme,
   FIREPROOF,
   GUARDED,
   guard,
@@ -13,14 +13,14 @@ import {
   luminance,
   mix,
   normaliseSeed,
-  parseToken,
   PRESETS,
+  parseToken,
   presetOf,
   roundHalfEven,
+  type Seeds,
+  TOKENS,
   themeTokens,
   tokenOf,
-  TOKENS,
-  type Seeds,
 } from '../../src/lib/theme';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -44,13 +44,20 @@ function rng(seed: number): () => number {
 
 function randomSeeds(count: number, seed = 20260927): Seeds[] {
   const next = rng(seed);
-  const hex = () => '#' + Math.floor(next() * 0x1000000).toString(16).padStart(6, '0').toUpperCase();
+  const hex = () =>
+    '#' +
+    Math.floor(next() * 0x1000000)
+      .toString(16)
+      .padStart(6, '0')
+      .toUpperCase();
   return Array.from({ length: count }, () => ({ bg: hex(), fg: hex(), accent: hex() }));
 }
 
 describe('number helpers', () => {
   it('rounds half to even like Python', () => {
-    expect([0.5, 1.5, 2.5, 66.5, -0.5, -1.5, 2.4999, 2.5001].map(roundHalfEven)).toEqual([0, 2, 2, 66, 0, -2, 2, 3]);
+    expect([0.5, 1.5, 2.5, 66.5, -0.5, -1.5, 2.4999, 2.5001].map(roundHalfEven)).toEqual([
+      0, 2, 2, 66, 0, -2, 2, 3,
+    ]);
   });
 
   it('mixes with half-even rounding: derived accent_3 of the fireproof seeds is #764233', () => {
@@ -68,18 +75,24 @@ describe('number helpers', () => {
 describe('derive_theme (c)', () => {
   const text = readFileSync(`${FIXTURES}themes.json`, 'utf8');
   const fixture = JSON.parse(text) as { random: Record<'dark' | 'light', Entry[]>; edges: Entry[] };
-  const entry = (seeds: Seeds): Entry => ({ seeds, light: isLight(seeds.bg, seeds.fg), tokens: themeTokens(seeds) });
+  const entry = (seeds: Seeds): Entry => ({
+    seeds,
+    light: isLight(seeds.bg, seeds.fg),
+    tokens: themeTokens(seeds),
+  });
 
   it('is byte-equal to themes.json from regen.py', () => {
     const built = {
-      presets: Object.fromEntries(Object.keys(PRESETS).map((name) => [name, entry(parseToken(name) as Seeds)])),
+      presets: Object.fromEntries(
+        Object.keys(PRESETS).map((name) => [name, entry(parseToken(name) as Seeds)]),
+      ),
       random: {
         dark: fixture.random.dark.map((e) => entry(e.seeds)),
         light: fixture.random.light.map((e) => entry(e.seeds)),
       },
       edges: fixture.edges.map((e) => entry(e.seeds)),
     };
-    expect(JSON.stringify(built, null, 2) + '\n').toBe(text);
+    expect(`${JSON.stringify(built, null, 2)}\n`).toBe(text);
   });
 
   it('covers both regimes with at least 20 triples each', () => {
@@ -142,7 +155,9 @@ function block(css: string, selector: string): Record<string, string> {
   const start = css.indexOf(`${selector} {`);
   expect(start, selector).toBeGreaterThanOrEqual(0);
   const body = css.slice(start, css.indexOf('}', start));
-  return Object.fromEntries([...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
+  return Object.fromEntries(
+    [...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]),
+  );
 }
 
 function resolveVars(props: Record<string, string>): Record<string, string> {
@@ -167,7 +182,11 @@ describe('token order', () => {
 describe('site CSS', () => {
   const css = readFileSync(`${ROOT}src/styles/site.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   const root = block(css, ':root');
-  const light = { ...root, ...block(css, ':root:not([data-regime])'), ...block(css, '[data-regime="light"]') };
+  const light = {
+    ...root,
+    ...block(css, ':root:not([data-regime])'),
+    ...block(css, '[data-regime="light"]'),
+  };
 
   it('fireproof reproduces the pinned :root block of site.css', () => {
     const want = resolveVars(root);
@@ -207,8 +226,10 @@ describe('contrast guard (d)', () => {
       const t = themeTokens(seeds);
       for (const [prop, token, surface, min] of GUARDED) {
         const got = vars[prop];
-        if (contrast(got, t[surface]) < min) failures.push(`${tokenOf(seeds)} ${prop} ${got} on ${surface}`);
-        if (got !== t[token] && contrast(t[token], t[surface]) >= min) failures.push(`${tokenOf(seeds)} ${prop} nudged needlessly`);
+        if (contrast(got, t[surface]) < min)
+          failures.push(`${tokenOf(seeds)} ${prop} ${got} on ${surface}`);
+        if (got !== t[token] && contrast(t[token], t[surface]) >= min)
+          failures.push(`${tokenOf(seeds)} ${prop} nudged needlessly`);
       }
     }
     expect(failures).toEqual([]);
@@ -225,7 +246,8 @@ describe('contrast guard (d)', () => {
         const got = guard(c, surface, min);
         if (got === c) continue;
         nudged++;
-        const pole = contrast('#000000', surface) >= contrast('#FFFFFF', surface) ? '#000000' : '#FFFFFF';
+        const pole =
+          contrast('#000000', surface) >= contrast('#FFFFFF', surface) ? '#000000' : '#FFFFFF';
         // The first passing step of a 1/512 scan bounds how far the smallest t can have moved.
         let scan = pole;
         for (let i = 1; i <= 512; i++) {
@@ -237,7 +259,9 @@ describe('contrast guard (d)', () => {
         }
         const moved = Math.abs(luminance(got) - luminance(c));
         expect(moved).toBeLessThanOrEqual(Math.abs(luminance(scan) - luminance(c)) + 1e-12);
-        expect((luminance(got) - luminance(c)) * (luminance(pole) - luminance(c))).toBeGreaterThanOrEqual(0);
+        expect(
+          (luminance(got) - luminance(c)) * (luminance(pole) - luminance(c)),
+        ).toBeGreaterThanOrEqual(0);
       }
     }
     expect(nudged).toBeGreaterThan(50);
@@ -249,8 +273,10 @@ describe('contrast guard (d)', () => {
       const v = cssVars(seeds);
       const bg = themeTokens(seeds).bg;
       const faded = mix(v['--text-2'], bg, DIM);
-      if (contrast(v['--text-dim'], bg) < 4.5) failures.push(`${tokenOf(seeds)} --text-dim ${v['--text-dim']}`);
-      if (v['--text-dim'] !== faded && contrast(faded, bg) >= 4.5) failures.push(`${tokenOf(seeds)} --text-dim nudged needlessly`);
+      if (contrast(v['--text-dim'], bg) < 4.5)
+        failures.push(`${tokenOf(seeds)} --text-dim ${v['--text-dim']}`);
+      if (v['--text-dim'] !== faded && contrast(faded, bg) >= 4.5)
+        failures.push(`${tokenOf(seeds)} --text-dim nudged needlessly`);
     }
     expect(failures).toEqual([]);
     // solarized-light's guarded --text-2 has no room to fade: at 0.75 opacity it was 2.9:1.

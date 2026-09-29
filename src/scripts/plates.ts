@@ -5,8 +5,15 @@
  * when that changes nothing), swapped in only once decoded, after which the previous blob: URL is
  * revoked.
  */
-import { pickTemplate, prepareTemplate, recolour, type PreparedTemplate, type Slots } from '../lib/recolour';
-import { CANVAS, type Aspect } from '../lib/content';
+
+import { type Aspect, CANVAS } from '../lib/content';
+import {
+  type PreparedTemplate,
+  pickTemplate,
+  prepareTemplate,
+  recolour,
+  type Slots,
+} from '../lib/recolour';
 import { normaliseSeeds, PRESETS, regimeOf, type Seeds } from '../lib/theme';
 
 export const MAX_FETCHES = 6;
@@ -129,7 +136,11 @@ interface Source {
  * text is the template unchanged. Rejects when the slots or template cannot be loaded or the piece has
  * no template for `aspect`.
  */
-export async function recoloured(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<{ svg: string; url: string; untouched: boolean }> {
+export async function recoloured(
+  plate: HTMLElement,
+  aspect: string,
+  seeds: Seeds,
+): Promise<{ svg: string; url: string; untouched: boolean }> {
   const s = normaliseSeeds(seeds);
   const urls = templatesOf(plate);
   const slots = await getSlots(plate.dataset.slots ?? '');
@@ -138,7 +149,8 @@ export async function recoloured(plate: HTMLElement, aspect: string, seeds: Seed
   if (!url) throw new Error(`no ${picked.key} template`);
   const tpl = await getTemplate(url);
   // A template whose URL does not carry its slots hash is not the one the coefficients were made for.
-  if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) return { svg: tpl.svg, url, untouched: true };
+  if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`))
+    return { svg: tpl.svg, url, untouched: true };
   await yieldToMain();
   const svg = recolour(tpl, picked.entry, s);
   return { svg, url, untouched: svg === tpl.svg };
@@ -167,7 +179,12 @@ function fadeMs(img: HTMLElement): number {
   return d.endsWith('ms') ? parseFloat(d) : parseFloat(d) * 1000 || 0;
 }
 
-async function swapIn(plate: HTMLElement, src: Source, aspect: string, isCurrent: () => boolean): Promise<void> {
+async function swapIn(
+  plate: HTMLElement,
+  src: Source,
+  aspect: string,
+  isCurrent: () => boolean,
+): Promise<void> {
   const old = plate.querySelector<HTMLImageElement>(':scope > img');
   if (old?.getAttribute('src') === src.url) {
     if (src.blob) revoke(src.url);
@@ -212,7 +229,11 @@ async function swapIn(plate: HTMLElement, src: Source, aspect: string, isCurrent
   }
 }
 
-async function show(plate: HTMLElement, aspect: string, source: () => Promise<Source>): Promise<void> {
+async function show(
+  plate: HTMLElement,
+  aspect: string,
+  source: () => Promise<Source>,
+): Promise<void> {
   const gen = (generation.get(plate) ?? 0) + 1;
   generation.set(plate, gen);
   const isCurrent = () => generation.get(plate) === gen;
@@ -222,8 +243,13 @@ async function show(plate: HTMLElement, aspect: string, source: () => Promise<So
     return;
   }
   const prev = swapping.get(plate) ?? Promise.resolve();
-  const run = prev.then(() => (isCurrent() ? swapIn(plate, src, aspect, isCurrent) : src.blob ? revoke(src.url) : undefined));
-  swapping.set(plate, run.catch(() => {}));
+  const run = prev.then(() =>
+    isCurrent() ? swapIn(plate, src, aspect, isCurrent) : src.blob ? revoke(src.url) : undefined,
+  );
+  swapping.set(
+    plate,
+    run.catch(() => {}),
+  );
   await run;
 }
 
@@ -240,7 +266,11 @@ export function showPlate(plate: HTMLElement, aspect: string, seeds: Seeds): Pro
  * stand-in while a recolour cannot be loaded. The image keeps the alt text even when the template itself
  * fails to load. Supersedes like showPlate.
  */
-export async function showTemplate(plate: HTMLElement, aspect: string, seeds: Seeds): Promise<void> {
+export async function showTemplate(
+  plate: HTMLElement,
+  aspect: string,
+  seeds: Seeds,
+): Promise<void> {
   const url = templatesOf(plate)[`${aspect}/${regimeOf(seeds)}`];
   if (url) await show(plate, aspect, async () => ({ url, blob: false }));
 }

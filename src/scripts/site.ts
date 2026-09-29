@@ -4,8 +4,25 @@
  * saves the visitor's edits.
  */
 import { presetLabel } from '../components/presets';
-import { contrast, normaliseSeed, parseToken, PRESETS, presetOf, SEEDS, tokenOf, type Seed, type Seeds } from '../lib/theme';
-import { applyTheme, clearShared, ownTheme, saveTheme, sharedDiffers, sharedTheme } from '../lib/theme-store';
+import {
+  contrast,
+  normaliseSeed,
+  PRESETS,
+  parseToken,
+  presetOf,
+  SEEDS,
+  type Seed,
+  type Seeds,
+  tokenOf,
+} from '../lib/theme';
+import {
+  applyTheme,
+  clearShared,
+  ownTheme,
+  saveTheme,
+  sharedDiffers,
+  sharedTheme,
+} from '../lib/theme-store';
 import { copyText, flash } from './clipboard';
 import { currentSeeds, onThemeChange } from './current-theme';
 
@@ -18,8 +35,12 @@ const themeButton = document.getElementById('theme-button');
 const themeName = themeButton?.querySelector<HTMLElement>('[data-theme-name]');
 const sharedLine = document.getElementById('shared');
 const picker = document.getElementById('picker');
-const presetButtons = [...document.querySelectorAll<HTMLButtonElement>('#picker .presets button[data-preset]')];
-const fields = Object.fromEntries(SEEDS.map((k) => [k, document.getElementById(`seed-${k}`) as HTMLInputElement | null])) as Record<Seed, HTMLInputElement | null>;
+const presetButtons = [
+  ...document.querySelectorAll<HTMLButtonElement>('#picker .presets button[data-preset]'),
+];
+const fields = Object.fromEntries(
+  SEEDS.map((k) => [k, document.getElementById(`seed-${k}`) as HTMLInputElement | null]),
+) as Record<Seed, HTMLInputElement | null>;
 const seedMsg = document.getElementById('seed-msg');
 const faintMsg = document.getElementById('faint-msg');
 
@@ -136,7 +157,8 @@ function sync(seeds: Seeds): void {
   if (themeButton) themeButton.setAttribute('aria-label', presetLabel({ name, ...seeds }));
   if (themeName) themeName.textContent = name;
   if (sharedLine) sharedLine.hidden = !sharedDiffers();
-  for (const b of presetButtons) b.setAttribute('aria-pressed', String(b.dataset.preset === preset));
+  for (const b of presetButtons)
+    b.setAttribute('aria-pressed', String(b.dataset.preset === preset));
   for (const el of document.querySelectorAll<HTMLElement>('.seedlist [data-seed]')) {
     const k = el.dataset.seed as Seed;
     if (k in seeds) el.textContent = seeds[k];

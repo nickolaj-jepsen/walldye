@@ -8,7 +8,7 @@
  */
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DAY_FILE, dayNumber, isoDay, pathSlug, type Day } from '../../src/lib/views.ts';
+import { DAY_FILE, type Day, dayNumber, isoDay, pathSlug } from '../../src/lib/views.ts';
 
 const API = 'https://api.cloudflare.com/client/v4/graphql';
 const HOST = 'walldye.com';
@@ -55,7 +55,11 @@ export function chunks(days: readonly number[], maxDays: number): number[][] {
  * Before the first day with a view, days are left out when `fresh`, so a run that finds nothing
  * records nothing and a later run starts over.
  */
-export function toDays(rows: readonly Row[], days: readonly number[], fresh: boolean): Map<string, Day> {
+export function toDays(
+  rows: readonly Row[],
+  days: readonly number[],
+  fresh: boolean,
+): Map<string, Day> {
   const out = new Map<string, Day>(days.map((d) => [isoDay(d), {}]));
   for (const { count, dimensions } of rows) {
     const slug = pathSlug(dimensions.requestPath);
@@ -78,15 +82,24 @@ export function dayJson(day: Day): string {
   return `${JSON.stringify(sorted, null, 2)}\n`;
 }
 
-async function query<T>(token: string, text: string, variables: Record<string, unknown>): Promise<T> {
+async function query<T>(
+  token: string,
+  text: string,
+  variables: Record<string, unknown>,
+): Promise<T> {
   const res = await fetch(API, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     body: JSON.stringify({ query: text, variables }),
   });
-  const body = (await res.json().catch(() => ({}))) as { data?: T; errors?: { message: string }[] | null };
+  const body = (await res.json().catch(() => ({}))) as {
+    data?: T;
+    errors?: { message: string }[] | null;
+  };
   if (!res.ok || body.errors?.length || !body.data) {
-    throw new Error(`Cloudflare GraphQL ${res.status}: ${body.errors?.map((e) => e.message).join('; ') ?? res.statusText}`);
+    throw new Error(
+      `Cloudflare GraphQL ${res.status}: ${body.errors?.map((e) => e.message).join('; ') ?? res.statusText}`,
+    );
   }
   return body.data;
 }
@@ -94,7 +107,11 @@ async function query<T>(token: string, text: string, variables: Record<string, u
 type Accounts<T> = { viewer: { accounts: T[] } };
 
 async function limits(token: string, account: string): Promise<Limits> {
-  const data = await query<Accounts<{ settings: { rumPageloadEventsAdaptiveGroups: (Limits & { enabled: boolean }) | null } }>>(
+  const data = await query<
+    Accounts<{
+      settings: { rumPageloadEventsAdaptiveGroups: (Limits & { enabled: boolean }) | null };
+    }>
+  >(
     token,
     `query ($account: string!) {
       viewer { accounts(filter: { accountTag: $account }) { settings {
@@ -104,11 +121,17 @@ async function limits(token: string, account: string): Promise<Limits> {
     { account },
   );
   const s = data.viewer.accounts[0]?.settings.rumPageloadEventsAdaptiveGroups;
-  if (!s?.enabled) throw new Error(`account ${account} cannot read rumPageloadEventsAdaptiveGroups`);
+  if (!s?.enabled)
+    throw new Error(`account ${account} cannot read rumPageloadEventsAdaptiveGroups`);
   return s;
 }
 
-async function rows(token: string, account: string, days: readonly number[], pageSize: number): Promise<Row[]> {
+async function rows(
+  token: string,
+  account: string,
+  days: readonly number[],
+  pageSize: number,
+): Promise<Row[]> {
   const data = await query<Accounts<{ rumPageloadEventsAdaptiveGroups: Row[] }>>(
     token,
     `query ($account: string!, $host: string!, $start: Time!, $end: Time!) {
@@ -128,7 +151,10 @@ async function rows(token: string, account: string, days: readonly number[], pag
   );
   const out = data.viewer.accounts[0]?.rumPageloadEventsAdaptiveGroups ?? [];
   // The limit truncates without an error.
-  if (out.length >= pageSize) throw new Error(`${isoDay(days[0])}..${isoDay(days.at(-1)!)}: ${out.length} groups hit the page size`);
+  if (out.length >= pageSize)
+    throw new Error(
+      `${isoDay(days[0])}..${isoDay(days.at(-1)!)}: ${out.length} groups hit the page size`,
+    );
   return out;
 }
 

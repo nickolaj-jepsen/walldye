@@ -42,11 +42,13 @@ uv run pytest
 uv run ruff format . && uv run ruff check --fix .   # formatting (line length 100) and import order
 uv run pyrefly check                  # the library at the strictest preset
 uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py   # designs, at the design level
-uv run prek install                   # once per clone: ruff and Pyrefly as a pre-commit hook
+uv run prek install                   # once per clone: ruff, Pyrefly and Biome as a pre-commit hook
 uv run python tests/python/fixtures/regen.py   # after a build, before pnpm test
 
 pnpm test                             # vitest
-pnpm check                            # astro check
+pnpm check                            # astro check: the site, client and tests, after a build
+pnpm lint                             # Biome: formatting (line length 100), lint and import order
+pnpm format                           # Biome, fixing what it can
 pnpm astro build
 pnpm e2e:nix                          # Playwright on NixOS, with nixpkgs' browsers; `pnpm e2e` elsewhere
 ```
@@ -59,6 +61,7 @@ On NixOS the Python wheels need `programs.nix-ld.enable`; there is no devShell.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no colour names, no theme roles as nouns, no internal terms, no evaluative adjectives.
 - Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.
 - All Python, including ` ```python ` blocks in Markdown, passes `ruff format` and `ruff check` (fix findings, no blanket `noqa`), and Pyrefly at its level: 0 errors in the library. The prek hook and CI run them; `walldye check` does not.
+- All TypeScript passes `pnpm lint` (Biome; fix findings, a `biome-ignore` only with its reason) and `pnpm check`. The prek hook runs Biome, CI both. `.astro` files are left to `astro check`: Biome does not format them.
 
 ## Dev server
 

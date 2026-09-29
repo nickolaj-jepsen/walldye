@@ -6,7 +6,7 @@
  * and is visible to every bundle that imports this module.
  */
 
-import { cssVars, parseToken, regimeOf, tokenOf, type Seeds } from './theme';
+import { cssVars, parseToken, regimeOf, type Seeds, tokenOf } from './theme';
 
 export const STORAGE_KEY = 'walldye.theme';
 /** Dispatched on `document` after applyTheme(); `detail` is the applied theme's canonical token. */
@@ -23,7 +23,10 @@ export interface ResolvedTheme {
 type Store = 'sessionStorage' | 'localStorage';
 
 /** `<html>` dataset keys standing in for each storage when it cannot be written. */
-export const PAGE_ATTR: Readonly<Record<Store, string>> = { sessionStorage: 'themeShared', localStorage: 'themeSaved' };
+export const PAGE_ATTR: Readonly<Record<Store, string>> = {
+  sessionStorage: 'themeShared',
+  localStorage: 'themeSaved',
+};
 
 function pageData(): Record<string, string | undefined> {
   return globalThis.document.documentElement.dataset;

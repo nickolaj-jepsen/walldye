@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 /** The theme token saved in localStorage, or null. */
 const saved = (page: Page) => page.evaluate(() => localStorage.getItem('walldye.theme'));
@@ -14,7 +14,9 @@ async function plateSvgs(page: Page): Promise<string[]> {
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false, colorScheme: 'light' });
 
-  test('controls that need it are left out, and plates keep the template ground', async ({ page }) => {
+  test('controls that need it are left out, and plates keep the template ground', async ({
+    page,
+  }) => {
     await page.goto('/');
     await expect(page.locator('#theme-button')).toBeHidden();
     await expect(page.locator('#facets')).toBeHidden();
@@ -22,7 +24,12 @@ test.describe('without JavaScript', () => {
     const plates = await page.locator('.grid > li').count();
     expect(plates).toBeGreaterThan(0);
     await expect(page.locator('.grid .plate img')).toHaveCount(plates);
-    expect(await page.locator('.grid .plate').first().evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(28, 27, 26)');
+    expect(
+      await page
+        .locator('.grid .plate')
+        .first()
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe('rgb(28, 27, 26)');
     await page.goto('/schotter');
     await expect(page.locator('.controls')).toBeHidden();
     await expect(page.locator('[data-action=copy-source]')).toBeHidden();
@@ -35,19 +42,39 @@ test.describe('theme', () => {
   test('a preset recolours the index and is saved', async ({ page }) => {
     await page.goto('/');
     // Plates near the view load; fireproof shows the untouched templates.
-    await expect(page.locator('.grid .plate > img').first()).toHaveAttribute('src', /^\/t\/[0-9a-f]{12}\.svg$/);
+    await expect(page.locator('.grid .plate > img').first()).toHaveAttribute(
+      'src',
+      /^\/t\/[0-9a-f]{12}\.svg$/,
+    );
 
     await page.click('#theme-button');
     await expect(page.locator('#theme-button')).toHaveAttribute('aria-expanded', 'true');
     await page.click('#picker button[data-preset=nord]');
 
     await expect(page.locator('html')).toHaveAttribute('style', /--seed-bg: #2E3440/);
-    await expect(page.locator('#picker button[data-preset=nord]')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('#picker button[data-preset=fireproof]')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('#picker button[data-preset=nord]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.locator('#picker button[data-preset=fireproof]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await expect(page.locator('[data-theme-name]')).toHaveText('nord');
-    await expect(page.locator('#theme-button')).toHaveAttribute('aria-label', 'nord theme: background #2E3440, foreground #ECEFF4, accent #88C0D0');
+    await expect(page.locator('#theme-button')).toHaveAttribute(
+      'aria-label',
+      'nord theme: background #2E3440, foreground #ECEFF4, accent #88C0D0',
+    );
     await expect(page.locator('#seed-bg')).toHaveValue('#2E3440');
-    await expect.poll(async () => (await page.locator('.grid .plate > img').evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))).every((s) => s?.startsWith('blob:'))).toBe(true);
+    await expect
+      .poll(async () =>
+        (
+          await page
+            .locator('.grid .plate > img')
+            .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))
+        ).every((s) => s?.startsWith('blob:')),
+      )
+      .toBe(true);
     for (const svg of await plateSvgs(page)) {
       expect(svg).toContain('#2E3440');
       expect(svg).not.toContain('#1C1B1A');
@@ -113,7 +140,11 @@ test.describe('theme', () => {
     await page.evaluate(() => {
       const data = new DataTransfer();
       data.setData('text', '282828, ebdbb2, fe8019');
-      document.getElementById('seed-bg')!.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+      document
+        .getElementById('seed-bg')!
+        .dispatchEvent(
+          new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+        );
     });
     await expect(page.locator('#seed-bg')).toHaveValue('#282828');
     await expect(page.locator('#seed-fg')).toHaveValue('#EBDBB2');

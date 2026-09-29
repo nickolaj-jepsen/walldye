@@ -3,7 +3,15 @@
  * slots are set from the seeds through the per-occurrence coefficients in slots.json.
  */
 
-import { hexToRgb, isLight, normaliseSeeds, PRESETS, rgbToHex, type Regime, type Seeds } from './theme';
+import {
+  hexToRgb,
+  isLight,
+  normaliseSeeds,
+  PRESETS,
+  type Regime,
+  rgbToHex,
+  type Seeds,
+} from './theme';
 import { findColours, joinSlots, splitSlots } from './tokenize';
 
 /** One slots.json template entry, keyed "<aspect>/<regime>". coefs rows are [a, b, c, dr, dg, db]; occ[i] is slot i's row. */
@@ -75,12 +83,21 @@ const FIREPROOF = PRESETS.fireproof;
  * Returns the template unchanged for exact fireproof seeds, and as the fallback when its slot count is
  * not `entry.n` or `entry.occ` does not index `entry.coefs` once per slot. Throws on an invalid seed.
  */
-export function recolour(template: string | PreparedTemplate, entry: SlotsEntry, seeds: Seeds): string {
+export function recolour(
+  template: string | PreparedTemplate,
+  entry: SlotsEntry,
+  seeds: Seeds,
+): string {
   const prepared = typeof template === 'string' ? prepareTemplate(template) : template;
   const s = normaliseSeeds(seeds);
   const n = prepared.parts.length - 1;
   const fireproof = s.bg === FIREPROOF.bg && s.fg === FIREPROOF.fg && s.accent === FIREPROOF.accent;
-  if (fireproof || n !== entry.n || entry.occ.length !== n || entry.occ.some((o) => !Array.isArray(entry.coefs[o]))) {
+  if (
+    fireproof ||
+    n !== entry.n ||
+    entry.occ.length !== n ||
+    entry.occ.some((o) => !Array.isArray(entry.coefs[o]))
+  ) {
     return prepared.svg;
   }
   const bg = hexToRgb(s.bg);

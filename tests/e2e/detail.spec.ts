@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { expect, test, type Download, type Page } from '@playwright/test';
+import { type Download, expect, type Page, test } from '@playwright/test';
 
 /** Width, height and colour type from a PNG's IHDR chunk. */
 function pngHeader(buf: Buffer): { width: number; height: number; colourType: number } {
@@ -8,12 +8,16 @@ function pngHeader(buf: Buffer): { width: number; height: number; colourType: nu
 }
 
 async function download(page: Page): Promise<{ dl: Download; buf: Buffer }> {
-  const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 90_000 }), page.click('#download')]);
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 90_000 }),
+    page.click('#download'),
+  ]);
   const path = await dl.path();
   return { dl, buf: await readFile(path!) };
 }
 
-const pick = (page: Page, name: string, value: string) => page.locator(`#export input[name=${name}][value="${value}"]`).check({ force: true });
+const pick = (page: Page, name: string, value: string) =>
+  page.locator(`#export input[name=${name}][value="${value}"]`).check({ force: true });
 
 /** Moves the crop range the way a keyboard or pointer would: set the value, fire `input`. */
 const setCrop = (page: Page, value: number) =>
@@ -25,7 +29,9 @@ const setCrop = (page: Page, value: number) =>
 test.describe('detail', () => {
   test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
 
-  test('a shape without its own template shows a crop window that follows the range and a drag', async ({ page }) => {
+  test('a shape without its own template shows a crop window that follows the range and a drag', async ({
+    page,
+  }) => {
     await page.goto('/schotter');
     await expect(page.locator('.spread .plate > img')).toHaveAttribute('src', /^\/t\//);
     await expect(page.locator('.spread .crop')).toBeHidden();
@@ -40,7 +46,9 @@ test.describe('detail', () => {
     expect(new URL(page.url()).search).toBe('?shape=16x10&crop=0.133');
     await expect(page.locator('#download-name')).toHaveText('schotter-fireproof-2560x1600.png');
     await expect(page.locator('#sizes input')).toHaveCount(5);
-    await expect(page.locator('#run-render')).toHaveText('uv run walldye render schotter --theme fireproof --crop 25.536,0,1728,1080 -o schotter-fireproof-16x10-crop.svg');
+    await expect(page.locator('#run-render')).toHaveText(
+      'uv run walldye render schotter --theme fireproof --crop 25.536,0,1728,1080 -o schotter-fireproof-16x10-crop.svg',
+    );
 
     await setCrop(page, 1);
     expect(new URL(page.url()).searchParams.get('crop')).toBe('1');
@@ -88,7 +96,9 @@ test.describe('detail', () => {
     expect(dl.suggestedFilename()).toBe('schotter-nord-9x19.5-crop.svg');
     const svg = buf.toString('utf8');
     expect(svg).toMatch(/^<svg [^>]*viewBox="0 0 498\.4615 1080" width="498\.4615" height="1080"/);
-    expect(svg).toContain('<title>Squares shaking loose</title><desc>walldye.com/schotter · CC0-1.0 · theme nord</desc>');
+    expect(svg).toContain(
+      '<title>Squares shaking loose</title><desc>walldye.com/schotter · CC0-1.0 · theme nord</desc>',
+    );
     expect(svg).toContain('#2E3440');
     expect(svg).not.toContain('#1C1B1A');
   });
@@ -101,10 +111,14 @@ test.describe('detail', () => {
     // The old image stays until the new one has faded in over it.
     await expect(page.locator('.spread .plate > img')).toHaveCount(1);
     await expect(page.locator('.spread .plate > img')).toHaveAttribute('data-aspect', '9:19.5');
-    await expect(page.locator('#run-render')).toHaveText('uv run walldye render dither-moon --theme fireproof --aspect 9:19.5 -o dither-moon-fireproof-9x19.5.svg');
+    await expect(page.locator('#run-render')).toHaveText(
+      'uv run walldye render dither-moon --theme fireproof --aspect 9:19.5 -o dither-moon-fireproof-9x19.5.svg',
+    );
     // 1170 px over a 1080-unit canvas puts 3-unit cells at 3.25 px.
     await pick(page, 'size', '1170x2532');
-    await expect(page.locator('#cell-note')).toHaveText('At this size the squares come out 3 or 4 pixels wide.');
+    await expect(page.locator('#cell-note')).toHaveText(
+      'At this size the squares come out 3 or 4 pixels wide.',
+    );
     await pick(page, 'size', '1080x2340');
     await expect(page.locator('#cell-note')).toBeHidden();
 
@@ -121,21 +135,28 @@ test.describe('detail', () => {
     await expect(page.locator('nav.crumbs, a[rel=prev], a[rel=next]')).toHaveCount(0);
     await expect(page.locator('main a', { hasText: /^(← Index|Previous:|Next:)/ })).toHaveCount(0);
     // The label ends with the facts list.
-    expect(await page.locator('.label > :last-child').evaluate((el) => el.matches('dl.facts'))).toBe(true);
+    expect(
+      await page.locator('.label > :last-child').evaluate((el) => el.matches('dl.facts')),
+    ).toBe(true);
 
     await page.evaluate(() => {
       (window as unknown as { prevented: string[] }).prevented = [];
       addEventListener('keydown', (e) => {
-        if (e.defaultPrevented) (window as unknown as { prevented: string[] }).prevented.push(e.key);
+        if (e.defaultPrevented)
+          (window as unknown as { prevented: string[] }).prevented.push(e.key);
       });
     });
     for (const key of ['ArrowLeft', 'ArrowRight']) await page.locator('body').press(key);
     await page.waitForTimeout(150);
     expect(new URL(page.url()).pathname).toBe('/radar-sweep');
-    expect(await page.evaluate(() => (window as unknown as { prevented: string[] }).prevented)).toEqual([]);
+    expect(
+      await page.evaluate(() => (window as unknown as { prevented: string[] }).prevented),
+    ).toEqual([]);
   });
 
-  test('f is ignored with modifiers, in fields, listings and editable text, and while the picker is open', async ({ page }) => {
+  test('f is ignored with modifiers, in fields, listings and editable text, and while the picker is open', async ({
+    page,
+  }) => {
     // schotter crops every other shape, so the crop range is there to focus.
     await page.goto('/schotter');
     const fullscreen = () => page.evaluate(() => document.fullscreenElement !== null);
@@ -180,12 +201,18 @@ test.describe('detail', () => {
     test.skip(browserName === 'webkit', 'headless WebKit has no fullscreen');
     await page.goto('/schotter');
     await page.locator('body').press('f');
-    await expect.poll(() => page.evaluate(() => document.fullscreenElement?.classList.contains('plate') ?? false)).toBe(true);
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.fullscreenElement?.classList.contains('plate') ?? false),
+      )
+      .toBe(true);
     await page.locator('body').press('f');
     await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
   });
 
-  test('WebP exports where the browser can encode it, and is refused with a reason elsewhere', async ({ page }) => {
+  test('WebP exports where the browser can encode it, and is refused with a reason elsewhere', async ({
+    page,
+  }) => {
     await page.goto('/radar-sweep');
     const webp = page.locator('#export input[name=fmt][value=webp]');
     await page.locator('#export').scrollIntoViewIfNeeded();
@@ -222,7 +249,13 @@ test.describe('detail', () => {
 
 test.describe('detail on a phone', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox has no mobile emulation');
-  test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true, colorScheme: 'light' });
+  test.use({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    hasTouch: true,
+    isMobile: true,
+    colorScheme: 'light',
+  });
 
   test('starts on your screen, in the nearest shape', async ({ page }) => {
     await page.goto('/schotter');
@@ -238,12 +271,19 @@ test.describe('detail on a phone', () => {
 test.describe('detail on a very large screen', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox ignores screen emulation');
   // `screen` is not a test option of its own; it goes through contextOptions.
-  test.use({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, contextOptions: { screen: { width: 7680, height: 4320 } } });
+  test.use({
+    viewport: { width: 1440, height: 1000 },
+    deviceScaleFactor: 1,
+    contextOptions: { screen: { width: 7680, height: 4320 } },
+  });
 
   test('refuses your screen with a reason', async ({ page }) => {
     await page.goto('/radar-sweep');
     await expect(page.locator('#export input[name=size][value=screen]')).toBeDisabled();
-    await expect(page.locator('#export input[name=size][value=screen]')).toHaveAttribute('aria-describedby', 'size-limit');
+    await expect(page.locator('#export input[name=size][value=screen]')).toHaveAttribute(
+      'aria-describedby',
+      'size-limit',
+    );
     await expect(page.locator('#size-limit')).toBeVisible();
     await expect(page.locator('#export input[name=size][value="2560x1440"]')).toBeChecked();
   });

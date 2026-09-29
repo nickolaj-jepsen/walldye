@@ -1,6 +1,6 @@
 /** Helpers over the `wallpapers` collection. No Node or Astro imports, so client code may use it too. */
 import type { CollectionEntry } from 'astro:content';
-import { FACET_LEGENDS, TAXONOMY_FACETS, facetLabel, type Facet, type OtherValue } from './labels';
+import { FACET_LEGENDS, type Facet, facetLabel, type OtherValue, TAXONOMY_FACETS } from './labels';
 
 export type Piece = CollectionEntry<'wallpapers'>['data'];
 export type Source = Piece['sources'][number];
@@ -99,7 +99,11 @@ export function filterGroups(pieces: Piece[]): FilterGroup[] {
   const groups: FilterGroup[] = [];
   for (const facet of facets) {
     const values = new Set<string>();
-    for (const set of pairs) for (const pair of set) if (pair.startsWith(`${facet}:`)) values.add(pair.slice(facet.length + 1));
+    for (const set of pairs) {
+      for (const pair of set) {
+        if (pair.startsWith(`${facet}:`)) values.add(pair.slice(facet.length + 1));
+      }
+    }
     const entries: FilterEntry[] = [];
     for (const value of values) {
       const count = pairs.filter((s) => s.has(`${facet}:${value}`)).length;
@@ -143,11 +147,15 @@ export function comparePieces(a: SortKey, b: SortKey, order: SortOrder = 'newest
   const primary =
     order === 'title'
       ? collator.compare(a.title, b.title)
-      : (order === 'popular' ? b.recent - a.recent : order === 'views' ? b.views - a.views : 0) || newest;
+      : (order === 'popular' ? b.recent - a.recent : order === 'views' ? b.views - a.views : 0) ||
+        newest;
   return primary || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
 }
 
-export function sortPieces<T extends { data: SortKey }>(pieces: T[], order: SortOrder = 'newest'): T[] {
+export function sortPieces<T extends { data: SortKey }>(
+  pieces: T[],
+  order: SortOrder = 'newest',
+): T[] {
   return pieces.slice().sort((a, b) => comparePieces(a.data, b.data, order));
 }
 
@@ -165,7 +173,13 @@ export function normaliseSearch(text: string): string {
 
 /** What the index search matches for a piece: title, description and source authors, titles and topics. */
 export function searchText(p: Piece): string {
-  return normaliseSearch([p.title, p.description, ...p.sources.flatMap((s) => [s.author ?? '', s.title ?? s.topic ?? ''])].join(' '));
+  return normaliseSearch(
+    [
+      p.title,
+      p.description,
+      ...p.sources.flatMap((s) => [s.author ?? '', s.title ?? s.topic ?? '']),
+    ].join(' '),
+  );
 }
 
 export interface CaptionSource {
@@ -178,7 +192,9 @@ export interface CaptionSource {
  * Sources named in the caption: the recreations ("after …"), or when there are none the
  * inspirations ("inspired by …"); reference and data sources appear only as footnotes.
  */
-export function captionSources(p: Pick<Piece, 'sources'>): { kind: 'recreation' | 'inspiration'; items: CaptionSource[] } | undefined {
+export function captionSources(
+  p: Pick<Piece, 'sources'>,
+): { kind: 'recreation' | 'inspiration'; items: CaptionSource[] } | undefined {
   const numbered = p.sources.map((source, i) => ({ source, n: i + 1 }));
   for (const kind of ['recreation', 'inspiration'] as const) {
     const items = numbered.filter((s) => s.source.kind === kind);
@@ -205,14 +221,20 @@ export interface CaptionPart {
  * source's author and title (recreations add the year); a source by the same author as the one before
  * leaves the name out. Undefined when no source is captioned.
  */
-export function captionParts(p: Pick<Piece, 'sources'>): { lead: string; parts: CaptionPart[] } | undefined {
+export function captionParts(
+  p: Pick<Piece, 'sources'>,
+): { lead: string; parts: CaptionPart[] } | undefined {
   const caption = captionSources(p);
   if (!caption) return undefined;
   const { kind, items } = caption;
   const parts = items.map(({ source: s, n }, i) => {
     const sep = i === 0 ? '' : i === items.length - 1 ? ' and ' : ', ';
     const named = s.title ?? s.topic;
-    const sameAuthor = i > 0 && named !== undefined && s.author !== undefined && s.author === items[i - 1].source.author;
+    const sameAuthor =
+      i > 0 &&
+      named !== undefined &&
+      s.author !== undefined &&
+      s.author === items[i - 1].source.author;
     const author = s.author && !sameAuthor ? `${s.author}${named ? ', ' : ''}` : '';
     const after = kind === 'recreation' && s.year !== undefined ? `, ${s.year}` : '';
     return { before: sep + author, title: s.title, topic: s.topic, lang: s.lang, after, n };
@@ -223,7 +245,12 @@ export function captionParts(p: Pick<Piece, 'sources'>): { lead: string; parts: 
 /** "27 September 2026" from an ISO date. */
 export function formatAdded(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number);
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d));
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(Date.UTC(y, m - 1, d));
 }
 
 /** Number of lines in a source file, not counting a final newline. */
@@ -236,7 +263,10 @@ export function lineCount(text: string): number {
  * loader keeps draft variants only in `astro dev`, so a production build counts published ones.
  */
 export function versionCount(p: Piece): { versions: number; drafts: number } {
-  return { versions: Math.max(1, p.versions.length), drafts: p.versions.filter((v) => v.draft).length };
+  return {
+    versions: Math.max(1, p.versions.length),
+    drafts: p.versions.filter((v) => v.draft).length,
+  };
 }
 
 /** `<slug>`, or `<slug>--<variant>` for a named variant; neither contains `--`, so the name splits back. */
@@ -255,6 +285,7 @@ export function downloadName(
   cropped: boolean,
 ): string {
   const stem = fileStem(slug, variant);
-  if (format.value === 'svg') return `${stem}-${token}-${aspectLabel(aspect)}${cropped ? '-crop' : ''}.svg`;
+  if (format.value === 'svg')
+    return `${stem}-${token}-${aspectLabel(aspect)}${cropped ? '-crop' : ''}.svg`;
   return `${stem}-${token}-${size}.${format.ext}`;
 }

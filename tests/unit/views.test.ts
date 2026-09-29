@@ -1,16 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { chunks, dayJson, daysToFetch, toDays, type Row } from '../../scripts/views/fetch';
-import { HALF_LIFE_DAYS, dayNumber, isoDay, parseDay, pathSlug, renames, viewTotals, type Day } from '../../src/lib/views';
+import { chunks, dayJson, daysToFetch, type Row, toDays } from '../../scripts/views/fetch';
+import {
+  type Day,
+  dayNumber,
+  HALF_LIFE_DAYS,
+  isoDay,
+  parseDay,
+  pathSlug,
+  renames,
+  viewTotals,
+} from '../../src/lib/views';
 
-const row = (date: string, requestPath: string, count: number): Row => ({ count, dimensions: { date, requestPath } });
+const row = (date: string, requestPath: string, count: number): Row => ({
+  count,
+  dimensions: { date, requestPath },
+});
 
 describe('pathSlug', () => {
   it('reads a slug from a one-segment path, trailing slash or not', () => {
-    expect(['/schotter', '/schotter/', '/dither-moon'].map(pathSlug)).toEqual(['schotter', 'schotter', 'dither-moon']);
+    expect(['/schotter', '/schotter/', '/dither-moon'].map(pathSlug)).toEqual([
+      'schotter',
+      'schotter',
+      'dither-moon',
+    ]);
   });
 
   it('drops everything else', () => {
-    for (const path of ['/', '/t/abc.svg', '/wp-login.php', '/Schotter', '/a--b', '/-a', '/.env', 'schotter']) {
+    for (const path of [
+      '/',
+      '/t/abc.svg',
+      '/wp-login.php',
+      '/Schotter',
+      '/a--b',
+      '/-a',
+      '/.env',
+      'schotter',
+    ]) {
       expect(pathSlug(path), path).toBeUndefined();
     }
   });
@@ -24,13 +49,15 @@ describe('days', () => {
 
   it('parses a day file and rejects anything but counts', () => {
     expect(parseDay('{"schotter": 3}')).toEqual({ schotter: 3 });
-    for (const text of ['[]', 'null', '{"a": -1}', '{"a": 1.5}', '{"a": "2"}']) expect(() => parseDay(text), text).toThrow();
+    for (const text of ['[]', 'null', '{"a": -1}', '{"a": 1.5}', '{"a": "2"}'])
+      expect(() => parseDay(text), text).toThrow();
   });
 });
 
 describe('renames', () => {
   it('reads the 301 lines of _redirects and skips comments', () => {
-    const text = '# Renamed wallpapers, one per line: /<old-slug> /<new-slug> 301\n/moon /dither-moon 301\n/x /y 302\n';
+    const text =
+      '# Renamed wallpapers, one per line: /<old-slug> /<new-slug> 301\n/moon /dither-moon 301\n/x /y 302\n';
     expect([...renames(text)]).toEqual([['moon', 'dither-moon']]);
   });
 });
@@ -50,7 +77,15 @@ describe('viewTotals', () => {
 
   it('counts a renamed slug for the one it now goes by, through chains, and leaves loops alone', () => {
     const days = new Map<string, Day>([['2026-09-27', { old: 1, older: 2, now: 3, p: 5, q: 7 }]]);
-    const t = viewTotals(days, new Map([['older', 'old'], ['old', 'now'], ['p', 'q'], ['q', 'p']]));
+    const t = viewTotals(
+      days,
+      new Map([
+        ['older', 'old'],
+        ['old', 'now'],
+        ['p', 'q'],
+        ['q', 'p'],
+      ]),
+    );
     expect(t.get('now')?.views).toBe(6);
     expect(t.has('old')).toBe(false);
     expect([t.get('p')?.views, t.get('q')?.views]).toEqual([5, 7]);
@@ -66,12 +101,22 @@ describe('fetch helpers', () => {
   const week = 7 * 86_400;
 
   it('fetches from the day after the newest file up to yesterday', () => {
-    expect(daysToFetch(['2026-09-20', '2026-09-25'], now, week).map(isoDay)).toEqual(['2026-09-26', '2026-09-27']);
+    expect(daysToFetch(['2026-09-20', '2026-09-25'], now, week).map(isoDay)).toEqual([
+      '2026-09-26',
+      '2026-09-27',
+    ]);
     expect(daysToFetch(['2026-09-27'], now, week)).toEqual([]);
   });
 
   it('starts at the oldest whole day the dataset still holds', () => {
-    expect(daysToFetch([], now, week).map(isoDay)).toEqual(['2026-09-22', '2026-09-23', '2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27']);
+    expect(daysToFetch([], now, week).map(isoDay)).toEqual([
+      '2026-09-22',
+      '2026-09-23',
+      '2026-09-24',
+      '2026-09-25',
+      '2026-09-26',
+      '2026-09-27',
+    ]);
     expect(daysToFetch(['2026-01-01'], now, 2 * 86_400).map(isoDay)).toEqual(['2026-09-27']);
   });
 
@@ -81,7 +126,12 @@ describe('fetch helpers', () => {
 
   it('groups rows into days, merging trailing slashes and dropping other paths', () => {
     const days = ['2026-09-26', '2026-09-27'].map(dayNumber);
-    const rows = [row('2026-09-26', '/a', 2), row('2026-09-26', '/a/', 1), row('2026-09-26', '/', 50), row('2026-09-27', '/t/x.svg', 9)];
+    const rows = [
+      row('2026-09-26', '/a', 2),
+      row('2026-09-26', '/a/', 1),
+      row('2026-09-26', '/', 50),
+      row('2026-09-27', '/t/x.svg', 9),
+    ];
     expect([...toDays(rows, days, false)]).toEqual([
       ['2026-09-26', { a: 3 }],
       ['2026-09-27', {}],
@@ -90,7 +140,10 @@ describe('fetch helpers', () => {
 
   it('leaves out the days before the first view when starting fresh', () => {
     const days = ['2026-09-25', '2026-09-26', '2026-09-27'].map(dayNumber);
-    expect([...toDays([row('2026-09-26', '/a', 1)], days, true).keys()]).toEqual(['2026-09-26', '2026-09-27']);
+    expect([...toDays([row('2026-09-26', '/a', 1)], days, true).keys()]).toEqual([
+      '2026-09-26',
+      '2026-09-27',
+    ]);
     expect(toDays([], days, true).size).toBe(0);
     expect(toDays([], days, false).size).toBe(3);
   });

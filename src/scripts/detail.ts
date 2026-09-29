@@ -2,16 +2,26 @@
  * The detail page. Its query string holds `v` (the
  * version, left out for the default), `shape` (e.g. `16x10`, left out for 16:9) and `crop` (0..1).
  */
-import { aspectLabel, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, downloadName, EXPORT_SIZES, FORMATS, SITE_ASPECTS, type Aspect } from '../lib/content';
+import {
+  type Aspect,
+  aspectLabel,
+  DEFAULT_SIZE_INDEX,
+  DEFAULT_VARIANT,
+  downloadName,
+  EXPORT_SIZES,
+  FORMATS,
+  SITE_ASPECTS,
+} from '../lib/content';
 import { tokenOf } from '../lib/theme';
 import { copyText, flash } from './clipboard';
 import { currentSeeds, onThemeChange } from './current-theme';
-import { canEncodeWebp, prefetchRasteriser, rasteriseSvg, save, type RasterFormat } from './export';
+import { canEncodeWebp, prefetchRasteriser, type RasterFormat, rasteriseSvg, save } from './export';
 import {
   cellWidths,
+  crispPixels,
   cropAxis,
   cropSpan,
-  crispPixels,
+  type ExportShape,
   exportScale,
   focusPosition,
   nearestAspect,
@@ -20,9 +30,8 @@ import {
   renderCommand,
   svgExport,
   withinLimits,
-  type ExportShape,
 } from './export-svg';
-import { getSlots, recoloured, RETRY_MS, showPlate, showTemplate } from './plates';
+import { getSlots, RETRY_MS, recoloured, showPlate, showTemplate } from './plates';
 
 const plate = document.querySelector<HTMLElement>('.spread .plate');
 const cropWindow = plate?.querySelector<HTMLElement>(':scope > .crop') ?? null;
@@ -49,8 +58,10 @@ const phone = matchMedia('(max-width: 60rem) and (pointer: coarse)').matches;
 
 const aspectRadios = [...(panel?.querySelectorAll<HTMLInputElement>('input[name=asp]') ?? [])];
 const formatRadios = [...(panel?.querySelectorAll<HTMLInputElement>('input[name=fmt]') ?? [])];
-const isAspect = (a: string | null): a is Aspect => (SITE_ASPECTS as readonly string[]).includes(a ?? '');
-const nativeOf = (a: string) => aspectRadios.some((r) => r.value === a && r.hasAttribute('data-native'));
+const isAspect = (a: string | null): a is Aspect =>
+  (SITE_ASPECTS as readonly string[]).includes(a ?? '');
+const nativeOf = (a: string) =>
+  aspectRadios.some((r) => r.value === a && r.hasAttribute('data-native'));
 
 /** Output pixels of "your screen": the screen at device resolution. */
 function screenPx(): [number, number] {
@@ -137,7 +148,10 @@ function renderSizes(keep: string): void {
   if (!sizesEl) return;
   const list = EXPORT_SIZES[aspect];
   const options = [...list, 'screen'];
-  const allowed = (v: string) => (v === 'screen' ? withinLimits(...screenPx()) : withinLimits(...(v.split('x').map(Number) as [number, number])));
+  const allowed = (v: string) =>
+    v === 'screen'
+      ? withinLimits(...screenPx())
+      : withinLimits(...(v.split('x').map(Number) as [number, number]));
   const fallback = [list[DEFAULT_SIZE_INDEX], ...options].find(allowed) ?? list[0];
   size = options.includes(keep) && allowed(keep) ? keep : fallback;
   const labels = options.map(sizeLabel);
@@ -163,8 +177,20 @@ function placeCrop(): void {
   const axis = cropAxis(aspect);
   cropWindow.dataset.axis = axis;
   // In % of the plate, so the frame also covers the plate's 0-7px rounding strip.
-  if (axis === 'x') Object.assign(cropWindow.style, { left: `${offset * 100}%`, width: `${span * 100}%`, top: '0', height: '100%' });
-  else Object.assign(cropWindow.style, { left: '0', width: '100%', top: `${offset * 100}%`, height: `${span * 100}%` });
+  if (axis === 'x')
+    Object.assign(cropWindow.style, {
+      left: `${offset * 100}%`,
+      width: `${span * 100}%`,
+      top: '0',
+      height: '100%',
+    });
+  else
+    Object.assign(cropWindow.style, {
+      left: '0',
+      width: '100%',
+      top: `${offset * 100}%`,
+      height: `${span * 100}%`,
+    });
 }
 
 function renderNames(): void {
@@ -172,12 +198,15 @@ function renderNames(): void {
   const s = shape();
   const f = format();
   const [w, h] = sizePx();
-  if (fileName) fileName.textContent = downloadName(slug, variant, token, f, `${w}x${h}`, aspect, !s.native);
+  if (fileName)
+    fileName.textContent = downloadName(slug, variant, token, f, `${w}x${h}`, aspect, !s.native);
   if (runRender) runRender.textContent = renderCommand(slug, variant, token, s);
   if (cellNote) {
-    const widths = f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(s, w, h));
+    const widths =
+      f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(s, w, h));
     cellNote.hidden = !widths;
-    if (widths) cellNote.textContent = `At this size the squares come out ${widths[0]} ${widths[1] - widths[0] > 1 ? 'to' : 'or'} ${widths[1]} pixels wide.`;
+    if (widths)
+      cellNote.textContent = `At this size the squares come out ${widths[0]} ${widths[1] - widths[0] > 1 ? 'to' : 'or'} ${widths[1]} pixels wide.`;
   }
 }
 
@@ -211,7 +240,8 @@ function renderPlate(): void {
       if (shownKey !== key) return;
       shownKey = '';
       if (!plate.querySelector(':scope > img')) showTemplate(plate, a, seeds).catch(() => {});
-      if (plateFailures < RETRY_MS.length) plateRetry = window.setTimeout(renderPlate, RETRY_MS[plateFailures++]);
+      if (plateFailures < RETRY_MS.length)
+        plateRetry = window.setTimeout(renderPlate, RETRY_MS[plateFailures++]);
     },
   );
 }
@@ -292,14 +322,17 @@ function loadSlots(): void {
     (slots) => {
       if (url !== slotsUrl || loadedSlots === url) return;
       loadedSlots = url;
-      focus = Array.isArray(slots.focus) ? [Number(slots.focus[0]), Number(slots.focus[1])] : [0.5, 0.5];
+      focus = Array.isArray(slots.focus)
+        ? [Number(slots.focus[0]), Number(slots.focus[1])]
+        : [0.5, 0.5];
       cells = Array.isArray(slots.cells) ? slots.cells.map(Number).filter((c) => c > 0) : [];
       if (!nativeOf(aspect) && !cropPlaced) t = focusPosition(aspect, focus);
       renderShape();
       if (urlWritten) syncUrl();
     },
     () => {
-      if (url === slotsUrl && slotsFailures < RETRY_MS.length) slotsRetry = window.setTimeout(loadSlots, RETRY_MS[slotsFailures++]);
+      if (url === slotsUrl && slotsFailures < RETRY_MS.length)
+        slotsRetry = window.setTimeout(loadSlots, RETRY_MS[slotsFailures++]);
     },
   );
 }
@@ -386,14 +419,16 @@ const piece = {
   licence: panel?.dataset.license ?? '',
   // "walldye.com/<slug>" from the canonical URL, so previews and local builds name the real site.
   address: (() => {
-    const href = document.querySelector<HTMLLinkElement>('link[rel=canonical]')?.href ?? location.href;
+    const href =
+      document.querySelector<HTMLLinkElement>('link[rel=canonical]')?.href ?? location.href;
     const u = new URL(href);
     return `${u.host}${u.pathname}`;
   })(),
 };
 
 /** "walldye.com/<slug>", with `?v=<variant>` for a named variant. */
-const address = () => (variant === DEFAULT_VARIANT ? piece.address : `${piece.address}?v=${variant}`);
+const address = () =>
+  variant === DEFAULT_VARIANT ? piece.address : `${piece.address}?v=${variant}`;
 
 let busy = false;
 
@@ -455,7 +490,8 @@ if (panel) {
 // ---- keys ----
 
 function toggleFullscreen(): void {
-  if (!plate || !document.fullscreenEnabled || typeof plate.requestFullscreen !== 'function') return;
+  if (!plate || !document.fullscreenEnabled || typeof plate.requestFullscreen !== 'function')
+    return;
   if (document.fullscreenElement) void document.exitFullscreen();
   else plate.requestFullscreen().catch(() => {});
 }
@@ -464,7 +500,11 @@ document.addEventListener('keydown', (e) => {
   if (e.defaultPrevented || e.repeat || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
   if (document.getElementById('picker')?.matches(':popover-open')) return;
   const target = e.target instanceof Element ? e.target : null;
-  if (target?.closest('input, textarea, select, [role=slider], [role=region]') || (target instanceof HTMLElement && target.isContentEditable)) return;
+  if (
+    target?.closest('input, textarea, select, [role=slider], [role=region]') ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  )
+    return;
   if (e.key === 'f' || e.key === 'F') toggleFullscreen();
 });
 

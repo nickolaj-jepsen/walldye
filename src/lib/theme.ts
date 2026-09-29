@@ -10,6 +10,7 @@ export type Seeds = Record<Seed, string>;
 export type Regime = 'dark' | 'light';
 
 export const SEEDS: readonly Seed[] = ['bg', 'fg', 'accent'];
+// biome-ignore format: tokens in walldye/_theme.py order, a few per line
 export const TOKENS = [
   'black', 'bg_deep', 'bg', 'bg_alt', 'ui', 'ui_alt', 'ui_hi', 'muted', 'fg_alt', 'fg',
   'accent_hi', 'accent', 'accent_1', 'accent_2', 'accent_3', 'accent_4',
@@ -18,9 +19,11 @@ export const TOKENS = [
 export type Token = (typeof TOKENS)[number];
 export type Tokens = Record<Token, string>;
 
+// biome-ignore format: one table
 const GREY_T: readonly (readonly [Token, number])[] = [
   ['bg_alt', 0.063], ['ui', 0.126], ['ui_alt', 0.189], ['ui_hi', 0.31], ['muted', 0.563], ['fg_alt', 0.816],
 ];
+// biome-ignore format: one table
 const ACCENT_T: readonly (readonly [Token, number])[] = [
   ['accent_1', 0.17], ['accent_2', 0.26], ['accent_3', 0.5], ['accent_4', 0.56],
   ['accent_5', 0.68], ['accent_6', 0.8], ['accent_7', 0.9], ['accent_8', 0.955],
@@ -28,6 +31,7 @@ const ACCENT_T: readonly (readonly [Token, number])[] = [
 const WIDENED: ReadonlySet<Token> = new Set(['bg_alt', 'ui', 'ui_alt', 'ui_hi']);
 
 /** fireproof's hand-pinned tokens; its exact seeds resolve to this table, never to deriveTheme. */
+// biome-ignore format: the pinned table, laid out like walldye/_theme.py
 export const FIREPROOF: Readonly<Tokens> = {
   black: '#100F0F', bg_deep: '#181716', bg: '#1C1B1A', bg_alt: '#282726',
   ui: '#343331', ui_alt: '#403E3C', ui_hi: '#575653', muted: '#878580',
@@ -74,7 +78,10 @@ export function hexToRgb(c: string): [number, number, number] {
 /** Uppercase #RRGGBB; channels are rounded half to even, then clamped to 0..255. */
 export function rgbToHex(r: number, g: number, b: number): string {
   let out = '#';
-  for (const v of [r, g, b]) out += Math.max(0, Math.min(255, roundHalfEven(v))).toString(16).padStart(2, '0');
+  for (const v of [r, g, b]) {
+    const channel = Math.max(0, Math.min(255, roundHalfEven(v)));
+    out += channel.toString(16).padStart(2, '0');
+  }
   return out.toUpperCase();
 }
 
@@ -141,7 +148,7 @@ export function normaliseSeed(c: string): string | null {
   const m = SEED_RE.exec(c.trim());
   if (!m) return null;
   const h = m[1];
-  return '#' + (h.length === 6 ? h : h.replace(/./g, '$&$&')).toUpperCase();
+  return `#${(h.length === 6 ? h : h.replace(/./g, '$&$&')).toUpperCase()}`;
 }
 
 /** `seeds` with each seed normalised; throws naming the first invalid one. */
@@ -218,7 +225,12 @@ export function guard(c: string, surface: string, min: number): string {
 }
 
 /** A contrast-guarded CSS role: [custom property, token, surface token, minimum ratio]. */
-export type GuardedRole = readonly [prop: string, token: Token, surface: 'bg' | 'bg_alt', min: number];
+export type GuardedRole = readonly [
+  prop: string,
+  token: Token,
+  surface: 'bg' | 'bg_alt',
+  min: number,
+];
 
 /** Every guarded role of site.css: text 4.5:1, controls and focus 3:1, listing tokens against bg_alt. */
 export const GUARDED: readonly GuardedRole[] = [
@@ -277,8 +289,8 @@ export function cssVars(seeds: Seeds): Record<string, string> {
   const memo = new Map<string, string>();
   for (const [prop, token, surface, min] of GUARDED) {
     const key = `${token} ${surface} ${min}`;
-    let v = memo.get(key);
-    if (v === undefined) memo.set(key, (v = guard(t[token], t[surface], min)));
+    const v = memo.get(key) ?? guard(t[token], t[surface], min);
+    memo.set(key, v);
     vars[prop] = v;
   }
   vars['--text-dim'] = guard(mix(vars['--text-2'], t.bg, DIM), t.bg, 4.5);

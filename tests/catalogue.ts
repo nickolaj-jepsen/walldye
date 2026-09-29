@@ -13,6 +13,9 @@ export function slugs(root: string): string[] {
 
 /** wallpapers/<slug>/meta.yaml parsed the way PyYAML's safe_load reads it ({} when empty). */
 export function loadMeta(root: string, slug: string): Record<string, unknown> {
-  const meta: unknown = parse(readFileSync(join(root, 'wallpapers', slug, 'meta.yaml'), 'utf8'), { version: '1.1', uniqueKeys: false });
+  const meta: unknown = parse(readFileSync(join(root, 'wallpapers', slug, 'meta.yaml'), 'utf8'), {
+    version: '1.1',
+    uniqueKeys: false,
+  });
   return (meta ?? {}) as Record<string, unknown>;
 }

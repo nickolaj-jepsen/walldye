@@ -32,13 +32,19 @@ const scope = self as unknown as {
 async function run(req: ExportRequest): Promise<ExportResponse> {
   await initWasm(req.wasm);
   const raster = rasterise(req.svg, req.background);
-  if (req.format === 'png') return { ok: true, blob: new Blob([encodePngRgb(raster) as BlobPart], { type: 'image/png' }) };
+  if (req.format === 'png')
+    return { ok: true, blob: new Blob([encodePngRgb(raster) as BlobPart], { type: 'image/png' }) };
   const type = `image/${req.format}`;
-  if (typeof OffscreenCanvas === 'undefined') return { ok: true, rgba: raster.pixels, width: raster.width, height: raster.height };
+  if (typeof OffscreenCanvas === 'undefined')
+    return { ok: true, rgba: raster.pixels, width: raster.width, height: raster.height };
   const canvas = new OffscreenCanvas(raster.width, raster.height);
   const ctx = canvas.getContext('2d');
   if (!ctx) return { ok: true, rgba: raster.pixels, width: raster.width, height: raster.height };
-  const data = new Uint8ClampedArray(raster.pixels.buffer as ArrayBuffer, raster.pixels.byteOffset, raster.pixels.byteLength);
+  const data = new Uint8ClampedArray(
+    raster.pixels.buffer as ArrayBuffer,
+    raster.pixels.byteOffset,
+    raster.pixels.byteLength,
+  );
   ctx.putImageData(new ImageData(data, raster.width, raster.height), 0, 0);
   const blob = await canvas.convertToBlob({ type, quality: req.quality });
   // Engines without an encoder for `type` silently return PNG.

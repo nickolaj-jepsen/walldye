@@ -34,9 +34,11 @@ export function isoDay(n: number): string {
 /** A day file's JSON as a Day; throws unless it is an object of non-negative integer counts. */
 export function parseDay(text: string): Day {
   const data: unknown = JSON.parse(text);
-  if (typeof data !== 'object' || data === null || Array.isArray(data)) throw new Error('must be an object of slug: views');
+  if (typeof data !== 'object' || data === null || Array.isArray(data))
+    throw new Error('must be an object of slug: views');
   for (const [slug, n] of Object.entries(data)) {
-    if (!Number.isInteger(n) || (n as number) < 0) throw new Error(`${slug}: views must be a non-negative integer`);
+    if (!Number.isInteger(n) || (n as number) < 0)
+      throw new Error(`${slug}: views must be a non-negative integer`);
   }
   return data as Day;
 }
@@ -62,13 +64,16 @@ export interface Views {
  * Each slug's Views over `days` (date to Day). A renamed slug's views count for the slug it
  * redirects to, following chains; a redirect loop leaves the slugs in it as they are.
  */
-export function viewTotals(days: ReadonlyMap<string, Day>, renamed: ReadonlyMap<string, string> = new Map()): Map<string, Views> {
+export function viewTotals(
+  days: ReadonlyMap<string, Day>,
+  renamed: ReadonlyMap<string, string> = new Map(),
+): Map<string, Views> {
   const current = (slug: string) => {
     const seen = new Set<string>();
     let s = slug;
-    while (renamed.has(s) && !seen.has(s)) {
+    for (let next = renamed.get(s); next !== undefined && !seen.has(s); next = renamed.get(s)) {
       seen.add(s);
-      s = renamed.get(s)!;
+      s = next;
     }
     return seen.has(s) ? slug : s;
   };

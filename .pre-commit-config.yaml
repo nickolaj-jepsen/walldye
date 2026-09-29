@@ -23,3 +23,8 @@ repos:
         entry: uv run pyrefly check -c wallpapers/pyrefly.toml
         language: system
         files: ^wallpapers/[^/]+/design\.py$
+      - id: biome
+        name: biome (format, lint and import order for TypeScript)
+        entry: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true
+        language: system
+        types_or: [ts, javascript]

@@ -14,7 +14,11 @@ export interface Raster {
 
 /** `svg` drawn at its own width and height over `background` (a CSS colour). resvg's errors propagate. */
 export function rasterise(svg: string, background: string): Raster {
-  const resvg = new Resvg(svg, { background, fitTo: { mode: 'original' }, font: { loadSystemFonts: false } });
+  const resvg = new Resvg(svg, {
+    background,
+    fitTo: { mode: 'original' },
+    font: { loadSystemFonts: false },
+  });
   try {
     const img = resvg.render();
     try {
@@ -40,5 +44,11 @@ export function toRgb(rgba: Uint8Array): Uint8Array {
 
 /** An 8-bit RGB PNG of `raster` (wallpapers are opaque; some wallpaper setters mishandle alpha). */
 export function encodePngRgb(raster: Raster): Uint8Array {
-  return encode({ width: raster.width, height: raster.height, data: toRgb(raster.pixels), channels: 3, depth: 8 });
+  return encode({
+    width: raster.width,
+    height: raster.height,
+    data: toRgb(raster.pixels),
+    channels: 3,
+    depth: 8,
+  });
 }

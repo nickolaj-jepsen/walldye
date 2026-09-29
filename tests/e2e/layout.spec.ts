@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { horizontalOverflow } from './helpers';
 
 const WIDTHS = [320, 390, 1440] as const;
@@ -7,15 +7,26 @@ const WIDTHS = [320, 390, 1440] as const;
 const STATES: { name: string; path: string; act?: (page: Page) => Promise<void> }[] = [
   { name: 'index', path: '/' },
   { name: 'index filtered, shared theme', path: '/?technique=drafting&q=s&t=catppuccin-mocha' },
-  { name: 'index with the filter open', path: '/?other=any-screen', act: (page) => openFilter(page) },
+  {
+    name: 'index with the filter open',
+    path: '/?other=any-screen',
+    act: (page) => openFilter(page),
+  },
   { name: 'index with nothing found', path: '/?q=zebra' },
   { name: 'index with the picker open', path: '/', act: (page) => openPicker(page) },
   { name: 'picker with both messages', path: '/', act: (page) => invalidPicker(page) },
   { name: 'schotter', path: '/schotter' },
-  { name: 'schotter cropped to 32:9, shared theme', path: '/schotter?shape=32x9&crop=1&t=catppuccin-mocha' },
+  {
+    name: 'schotter cropped to 32:9, shared theme',
+    path: '/schotter?shape=32x9&crop=1&t=catppuccin-mocha',
+  },
   { name: 'dither-moon at 9:19.5', path: '/dither-moon?shape=9x19.5' },
   { name: 'radar-sweep under light colours', path: '/radar-sweep?t=flexoki-light' },
-  { name: 'radar-sweep with the picker open', path: '/radar-sweep', act: (page) => openPicker(page) },
+  {
+    name: 'radar-sweep with the picker open',
+    path: '/radar-sweep',
+    act: (page) => openPicker(page),
+  },
   { name: 'about', path: '/about' },
   { name: 'not found', path: '/no-such-wallpaper' },
 ];
@@ -36,7 +47,8 @@ async function invalidPicker(page: Page): Promise<void> {
 
 async function openFilter(page: Page): Promise<void> {
   const details = page.locator('details.filter');
-  if (!(await details.evaluate((d) => (d as HTMLDetailsElement).open))) await page.click('.filter > summary');
+  if (!(await details.evaluate((d) => (d as HTMLDetailsElement).open)))
+    await page.click('.filter > summary');
   await expect(details).toHaveAttribute('open');
 }
 
@@ -51,7 +63,8 @@ test.describe('no sideways scrolling', () => {
         await page.evaluate(() => document.fonts.ready);
         await s.act?.(page);
         // Plates change height when their image arrives.
-        if (await page.locator('.plate:visible').count()) await expect(page.locator('.plate:visible > img').first()).toBeAttached();
+        if (await page.locator('.plate:visible').count())
+          await expect(page.locator('.plate:visible > img').first()).toBeAttached();
         expect(await horizontalOverflow(page)).toEqual([]);
       });
     }

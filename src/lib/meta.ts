@@ -43,23 +43,32 @@ const variantEntry = z
  * `walldye check`'s to say.
  */
 export const variantsMeta = z.record(z.string(), variantEntry).superRefine((vs, ctx) => {
-  const issue = (message: string, path: string[] = []) => ctx.addIssue({ code: 'custom', message, path });
+  const issue = (message: string, path: string[] = []) =>
+    ctx.addIssue({ code: 'custom', message, path });
   const names = Object.keys(vs).filter((k) => k !== DEFAULT_VARIANT);
   const unnamed = vs[DEFAULT_VARIANT];
-  if (!unnamed) issue('needs a default entry, the label of the version design.py draws without a variant');
+  if (!unnamed)
+    issue('needs a default entry, the label of the version design.py draws without a variant');
   if (!names.length) issue('lists no named variants; leave variants: out');
-  if (names.length > MAX_VARIANTS) issue(`at most ${MAX_VARIANTS} named variants, got ${names.length}`);
+  if (names.length > MAX_VARIANTS)
+    issue(`at most ${MAX_VARIANTS} named variants, got ${names.length}`);
   for (const name of names) {
     if (!VARIANT_NAME.test(name) || name.length > MAX_VARIANT_NAME) {
-      issue(`${name} is not a variant name: lowercase words joined by single hyphens, at most ${MAX_VARIANT_NAME} characters`, [name]);
+      issue(
+        `${name} is not a variant name: lowercase words joined by single hyphens, at most ${MAX_VARIANT_NAME} characters`,
+        [name],
+      );
     }
   }
-  if (unnamed?.description !== undefined) issue('the default version shows the piece description', [DEFAULT_VARIANT, 'description']);
-  if (unnamed?.draft !== undefined) issue('the default version is a draft only with the piece', [DEFAULT_VARIANT, 'draft']);
+  if (unnamed?.description !== undefined)
+    issue('the default version shows the piece description', [DEFAULT_VARIANT, 'description']);
+  if (unnamed?.draft !== undefined)
+    issue('the default version is a draft only with the piece', [DEFAULT_VARIANT, 'draft']);
   const seen = new Map<string, string>();
   for (const [name, v] of Object.entries(vs)) {
     const n = words(v.label);
-    if (n > MAX_LABEL_WORDS) issue(`label has ${n} words, over ${MAX_LABEL_WORDS}`, [name, 'label']);
+    if (n > MAX_LABEL_WORDS)
+      issue(`label has ${n} words, over ${MAX_LABEL_WORDS}`, [name, 'label']);
     const key = v.label.toLowerCase();
     const other = seen.get(key);
     if (other !== undefined) issue(`label repeats the label of ${other}`, [name, 'label']);
@@ -74,7 +83,8 @@ export interface NamedVariant {
   draft: boolean;
 }
 
-const isMapping = (v: unknown): v is Meta => typeof v === 'object' && v !== null && !Array.isArray(v);
+const isMapping = (v: unknown): v is Meta =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
 
 /**
  * The named variants under meta.yaml `variants:`, in file order, read without validating them
@@ -97,17 +107,59 @@ export function licenseOf(meta: Meta): unknown {
   if (meta.license) return meta.license;
   if ('franchise' in meta) return FAN_WORK;
   const sources = Array.isArray(meta.sources) ? meta.sources : [];
-  const recreation = sources.some((s) => typeof s === 'object' && s !== null && (s as Meta).kind === 'recreation');
+  const recreation = sources.some(
+    (s) => typeof s === 'object' && s !== null && (s as Meta).kind === 'recreation',
+  );
   return meta.model && !recreation ? DEFAULT_LICENSE : null;
 }
 
 /** walldye/tools/lint.py COLOUR_WORDS: hues and named shades that copy never names. */
 export const COLOUR_WORDS: ReadonlySet<string> = new Set([
-  'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'violet', 'pink', 'brown', 'black',
-  'white', 'grey', 'gray', 'cyan', 'magenta', 'teal', 'turquoise', 'indigo', 'crimson',
-  'scarlet', 'maroon', 'amber', 'golden', 'beige', 'cream', 'ivory', 'terracotta', 'ochre',
-  'umber', 'sepia', 'navy', 'lavender', 'lilac', 'mauve', 'azure', 'cobalt', 'vermilion',
-  'burgundy', 'charcoal', 'khaki', 'sienna', 'cerulean', 'ultramarine', 'chartreuse', 'fuchsia',
+  'red',
+  'orange',
+  'yellow',
+  'green',
+  'blue',
+  'purple',
+  'violet',
+  'pink',
+  'brown',
+  'black',
+  'white',
+  'grey',
+  'gray',
+  'cyan',
+  'magenta',
+  'teal',
+  'turquoise',
+  'indigo',
+  'crimson',
+  'scarlet',
+  'maroon',
+  'amber',
+  'golden',
+  'beige',
+  'cream',
+  'ivory',
+  'terracotta',
+  'ochre',
+  'umber',
+  'sepia',
+  'navy',
+  'lavender',
+  'lilac',
+  'mauve',
+  'azure',
+  'cobalt',
+  'vermilion',
+  'burgundy',
+  'charcoal',
+  'khaki',
+  'sienna',
+  'cerulean',
+  'ultramarine',
+  'chartreuse',
+  'fuchsia',
 ]);
 
 /**
@@ -130,7 +182,10 @@ export const BANNED: readonly (readonly [RegExp, string])[] = [
     /\b(stunning|mesmeri[sz]ing|elegant|timeless|beautiful(ly)?|breathtaking|captivating|gorgeous|exquisite|hypnotic|vibrant|evocative|sublime|majestic|iconic|dazzling|striking)\b/i,
     'evaluative adjective',
   ],
-  [/\b(delve[sd]?|delving|tapestry|testament|quietly|seamless(ly)?|serves as|stands as)\b/i, 'stock phrase'],
+  [
+    /\b(delve[sd]?|delving|tapestry|testament|quietly|seamless(ly)?|serves as|stands as)\b/i,
+    'stock phrase',
+  ],
   [
     /\b(regimes?|seeds?|tokens?|native|hand-tuned|light-ready|presets?|variants?|params?|slots?|templates?|derived|guards?|has script|AI-generated|generator lost|appendix)\b/i,
     'internal term',
@@ -167,7 +222,11 @@ export function lintCopy(meta: Meta): string[] {
   const vs = meta.variants;
   if (isMapping(vs)) {
     for (const [name, e] of Object.entries(vs)) {
-      if (isMapping(e)) fields.push([`variants.${name}.label`, e.label, false], [`variants.${name}.description`, e.description, true]);
+      if (isMapping(e))
+        fields.push(
+          [`variants.${name}.label`, e.label, false],
+          [`variants.${name}.description`, e.description, true],
+        );
     }
   }
   const out: string[] = [];
@@ -182,9 +241,11 @@ export function lintCopy(meta: Meta): string[] {
     }
     if (isDescription) {
       const n = words(text);
-      if (n > MAX_DESCRIPTION_WORDS) out.push(`${field}: ${n} words, over ${MAX_DESCRIPTION_WORDS}`);
+      if (n > MAX_DESCRIPTION_WORDS)
+        out.push(`${field}: ${n} words, over ${MAX_DESCRIPTION_WORDS}`);
       const s = sentences(text);
-      if (s > MAX_DESCRIPTION_SENTENCES) out.push(`${field}: ${s} sentences, over ${MAX_DESCRIPTION_SENTENCES}`);
+      if (s > MAX_DESCRIPTION_SENTENCES)
+        out.push(`${field}: ${s} sentences, over ${MAX_DESCRIPTION_SENTENCES}`);
     }
   }
   return out;
@@ -213,12 +274,17 @@ export function smartQuotes(text: string): string {
 export function typesetMeta(meta: Meta): Meta {
   const q = (v: unknown) => (typeof v === 'string' ? smartQuotes(v) : v);
   const pick = (v: unknown, keys: string[]) =>
-    isMapping(v) ? { ...v, ...Object.fromEntries(keys.filter((k) => k in v).map((k) => [k, q(v[k])])) } : v;
+    isMapping(v)
+      ? { ...v, ...Object.fromEntries(keys.filter((k) => k in v).map((k) => [k, q(v[k])])) }
+      : v;
   const out = pick(meta, ['title', 'description']) as Meta;
-  if (Array.isArray(meta.sources)) out.sources = meta.sources.map((s) => pick(s, ['title', 'topic', 'author']));
+  if (Array.isArray(meta.sources))
+    out.sources = meta.sources.map((s) => pick(s, ['title', 'topic', 'author']));
   if ('franchise' in meta) out.franchise = pick(meta.franchise, ['title', 'owner']);
   if (isMapping(meta.variants)) {
-    out.variants = Object.fromEntries(Object.entries(meta.variants).map(([name, e]) => [name, pick(e, ['label', 'description'])]));
+    out.variants = Object.fromEntries(
+      Object.entries(meta.variants).map(([name, e]) => [name, pick(e, ['label', 'description'])]),
+    );
   }
   return out;
 }
