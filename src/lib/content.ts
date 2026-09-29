@@ -12,6 +12,11 @@ export const DEFAULT_VARIANT = 'default';
 export const SITE_ASPECTS = ['16:9', '16:10', '21:9', '32:9', '9:19.5', '10:16'] as const;
 export type Aspect = (typeof SITE_ASPECTS)[number];
 
+/** Whether `value` names an Aspect. */
+export function isAspect(value: unknown): value is Aspect {
+  return SITE_ASPECTS.includes(value as Aspect);
+}
+
 /** Template canvas per aspect; the short side is 1080. */
 export const CANVAS: Record<Aspect, readonly [number, number]> = {
   '16:9': [1920, 1080],

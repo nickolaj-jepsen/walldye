@@ -5,7 +5,7 @@ import {
   type FilterState,
   matches,
   ordered,
-} from '../../src/scripts/filter';
+} from '../../src/client/index/filter';
 
 const visibleSlugs = (page: Page) =>
   page

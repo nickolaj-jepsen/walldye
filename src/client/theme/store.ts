@@ -6,7 +6,7 @@
  * and is visible to every bundle that imports this module.
  */
 
-import { cssVars, parseToken, regimeOf, type Seeds, tokenOf } from './theme';
+import { cssVars, PRESETS, parseToken, regimeOf, type Seeds, tokenOf } from '../../lib/theme';
 
 export const STORAGE_KEY = 'walldye.theme';
 /** Dispatched on `document` after applyTheme(); `detail` is the applied theme's canonical token. */
@@ -77,7 +77,7 @@ export function systemTheme(): ResolvedTheme {
   } catch {
     // No matchMedia: dark.
   }
-  return resolved(parseToken(light ? 'flexoki-light' : 'fireproof') as Seeds, 'system');
+  return resolved(PRESETS[light ? 'flexoki-light' : 'fireproof'], 'system');
 }
 
 /** The visitor's own theme, ignoring any shared one: saved, else the system's. */
@@ -121,12 +121,17 @@ export function clearShared(): void {
   write('sessionStorage', null);
 }
 
-/** Sets every site colour property (cssVars) inline on <html> plus `data-regime`, then dispatches THEME_EVENT. */
+/**
+ * Sets every site colour property (cssVars) inline on <html>, plus `data-regime` and `data-theme`
+ * (the canonical token, which currentSeeds() reads back), then dispatches THEME_EVENT.
+ */
 export function applyTheme(seeds: Seeds): void {
   const root = globalThis.document.documentElement;
+  const token = tokenOf(seeds);
   for (const [prop, value] of Object.entries(cssVars(seeds))) root.style.setProperty(prop, value);
   root.dataset.regime = regimeOf(seeds);
-  globalThis.document.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: tokenOf(seeds) }));
+  root.dataset.theme = token;
+  globalThis.document.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: token }));
 }
 
 /**

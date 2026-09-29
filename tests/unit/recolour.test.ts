@@ -11,7 +11,7 @@ import {
   type SlotsEntry,
   select,
 } from '../../src/lib/recolour';
-import { PRESETS, parseToken, type Seeds } from '../../src/lib/theme';
+import { normaliseSeeds, PRESETS, parseToken, type Seeds } from '../../src/lib/theme';
 import { findColours, skeleton } from '../../src/lib/tokenize';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -62,7 +62,11 @@ describe('fireproof passthrough (a)', () => {
     const template = read(`wallpapers/${slug}/build/${entry.file}`);
     expect(recolour(template, entry, PRESETS.fireproof)).toBe(template);
     expect(
-      recolour(prepareTemplate(template), entry, { bg: '#1c1b1a', fg: 'DAD8CE', accent: 'cf6a4c' }),
+      recolour(
+        prepareTemplate(template),
+        entry,
+        normaliseSeeds({ bg: '#1c1b1a', fg: 'DAD8CE', accent: 'cf6a4c' }),
+      ),
     ).toBe(template);
   });
 });
@@ -180,9 +184,9 @@ describe('template choice', () => {
       ],
       occ: [0, 1],
     };
-    expect(recolour(template, e, { bg: '#808080', fg: '#000000', accent: '#000000' })).toBe(
-      '<svg><rect fill="#424400"/><rect fill="#FFFFFF"/></svg>',
-    );
+    expect(
+      recolour(template, e, normaliseSeeds({ bg: '#808080', fg: '#000000', accent: '#000000' })),
+    ).toBe('<svg><rect fill="#424400"/><rect fill="#FFFFFF"/></svg>');
   });
 });
 

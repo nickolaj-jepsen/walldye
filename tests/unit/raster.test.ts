@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { initWasm } from '@resvg/resvg-wasm';
 import { decode } from 'fast-png';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { rasterSvg } from '../../src/scripts/export-svg';
-import { encodePngRgb, rasterise, toRgb } from '../../src/scripts/raster';
+import { encodePngRgb, rasterise, toRgb } from '../../src/client/export/resvg';
+import { rasterSvg } from '../../src/client/export/shape';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (rel: string) => readFileSync(`${ROOT}${rel}`);

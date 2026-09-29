@@ -1,15 +1,14 @@
 /**
  * Export worker: rasterises one prepared SVG with resvg-wasm and encodes it, then waits to be
- * terminated. PNG is encoded here as RGB; JPEG and WebP go through OffscreenCanvas, and where the
- * worker has none the RGBA pixels go back for the page to encode.
+ * terminated. PNG is encoded here as RGB; JPEG and WebP go through OffscreenCanvas.
  */
 import { initWasm } from '@resvg/resvg-wasm';
-import { encodePngRgb, rasterise } from './raster';
+import { encodePngRgb, rasterise } from './resvg';
 
 export interface ExportRequest {
   /** resvg's compiled index_bg.wasm. */
   wasm: WebAssembly.Module;
-  /** SVG sized to the output pixels (export-svg.ts rasterSvg). */
+  /** SVG sized to the output pixels (shape.ts rasterSvg). */
   svg: string;
   /** CSS colour drawn under the SVG. */
   background: string;
@@ -18,15 +17,12 @@ export interface ExportRequest {
   quality: number;
 }
 
-export type ExportResponse =
-  | { ok: true; blob: Blob }
-  | { ok: true; rgba: Uint8Array; width: number; height: number }
-  | { ok: false; error: string };
+export type ExportResponse = { ok: true; blob: Blob } | { ok: false; error: string };
 
 // The project compiles against the DOM lib, not the webworker one.
 const scope = self as unknown as {
   onmessage: ((e: MessageEvent<ExportRequest>) => void) | null;
-  postMessage(message: ExportResponse, transfer?: Transferable[]): void;
+  postMessage(message: ExportResponse): void;
 };
 
 async function run(req: ExportRequest): Promise<ExportResponse> {
@@ -35,11 +31,9 @@ async function run(req: ExportRequest): Promise<ExportResponse> {
   if (req.format === 'png')
     return { ok: true, blob: new Blob([encodePngRgb(raster) as BlobPart], { type: 'image/png' }) };
   const type = `image/${req.format}`;
-  if (typeof OffscreenCanvas === 'undefined')
-    return { ok: true, rgba: raster.pixels, width: raster.width, height: raster.height };
   const canvas = new OffscreenCanvas(raster.width, raster.height);
   const ctx = canvas.getContext('2d');
-  if (!ctx) return { ok: true, rgba: raster.pixels, width: raster.width, height: raster.height };
+  if (!ctx) return { ok: false, error: 'no 2d canvas' };
   const data = new Uint8ClampedArray(
     raster.pixels.buffer as ArrayBuffer,
     raster.pixels.byteOffset,
@@ -59,6 +53,5 @@ scope.onmessage = async (e: MessageEvent<ExportRequest>) => {
   } catch (err) {
     res = { ok: false, error: String(err) };
   }
-  if (res.ok && 'rgba' in res) scope.postMessage(res, [res.rgba.buffer]);
-  else scope.postMessage(res);
+  scope.postMessage(res);
 };

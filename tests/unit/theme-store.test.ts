@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cssVars, PRESETS } from '../../src/lib/theme';
-import { themeBootScript } from '../../src/lib/theme-boot-script';
 import {
   applyTheme,
   clearShared,
@@ -13,7 +11,9 @@ import {
   sharedDiffers,
   THEME_EVENT,
   takeSharedParam,
-} from '../../src/lib/theme-store';
+} from '../../src/client/theme/store';
+import { cssVars, normaliseSeeds, PRESETS } from '../../src/lib/theme';
+import { themeBootScript } from '../../src/server/theme-boot-script';
 
 class MemoryStorage {
   data = new Map<string, string>();
@@ -188,15 +188,16 @@ describe('resolution and persistence', () => {
 
   it('saving keeps the theme and ends the shared one', () => {
     env.session.setItem(STORAGE_KEY, 'nord');
-    saveTheme({ bg: '#FFF', fg: '#000', accent: '#f80' });
+    saveTheme(normaliseSeeds({ bg: '#FFF', fg: '#000', accent: '#f80' }));
     expect(env.local.getItem(STORAGE_KEY)).toBe('ffffff-000000-ff8800');
     expect(env.session.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('applies every colour property, the regime and an event', () => {
+  it('applies every colour property, the regime, the token and an event', () => {
     applyTheme(PRESETS['solarized-light']);
     expect(Object.fromEntries(env.props)).toEqual(cssVars(PRESETS['solarized-light']));
     expect(env.dataset.regime).toBe('light');
+    expect(env.dataset.theme).toBe('solarized-light');
     expect(env.events).toEqual([`${THEME_EVENT} solarized-light`]);
   });
 

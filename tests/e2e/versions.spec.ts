@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
-import { focusPosition } from '../../src/scripts/export-svg';
+import { focusPosition } from '../../src/client/export/shape';
 import { type CatalogueVersion, publishedPieces, templateUrl } from './helpers';
 
 /**
@@ -114,7 +114,7 @@ test.describe('versions', () => {
 
     await choose(page, other.label);
     await expect(page.locator('#crop')).toHaveValue(at(other));
-    expect(new URL(page.url()).search).toBe(`?v=${other.name}&shape=16x10&crop=${at(other)}`);
+    expect(new URL(page.url()).search).toBe(`?v=${other.name}&shape=16x10`);
     await expect(page.locator('#download-name')).toHaveText(`${named}-nord-2560x1600.png`);
     await expect(plateImg(page)).toHaveAttribute('src', /^blob:/);
 

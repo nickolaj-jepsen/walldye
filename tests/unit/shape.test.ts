@@ -15,7 +15,7 @@ import {
   svgExport,
   withinLimits,
   withTitle,
-} from '../../src/scripts/export-svg';
+} from '../../src/client/export/shape';
 
 const ROOT =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">';

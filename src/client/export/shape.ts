@@ -9,7 +9,7 @@ import {
   DEFAULT_VARIANT,
   fileStem,
   SITE_ASPECTS,
-} from '../lib/content';
+} from '../../lib/content';
 
 export interface Box {
   x: number;
@@ -155,7 +155,7 @@ export function cellWidths(cells: readonly number[], scale: number): [number, nu
 /** Everything that shapes one export's geometry. */
 export interface ExportShape {
   /** Selected shape, like "16:10". */
-  aspect: string;
+  aspect: Aspect;
   /** Whether the piece has its own template for `aspect`; otherwise it is a crop of 16:9. */
   native: boolean;
   /** Crop position, used only when not native. */
@@ -163,9 +163,9 @@ export interface ExportShape {
 }
 
 /** The template aspect an export reads and the box of that canvas it shows. */
-export function sourceBox(shape: ExportShape): { aspect: string; box: Box } {
+export function sourceBox(shape: ExportShape): { aspect: Aspect; box: Box } {
   if (shape.native) {
-    const [w, h] = CANVAS[shape.aspect as Aspect];
+    const [w, h] = CANVAS[shape.aspect];
     return { aspect: shape.aspect, box: { x: 0, y: 0, w, h } };
   }
   return { aspect: '16:9', box: cropBox(shape.aspect, shape.t) };

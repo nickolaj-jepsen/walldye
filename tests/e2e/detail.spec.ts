@@ -43,9 +43,11 @@ test.describe('detail', () => {
     await expect(page.locator('#crop-row')).toBeVisible();
     // Centred on the piece's focus from slots.json (x 0.4633 → 0.133 of the travel).
     await expect(page.locator('#crop')).toHaveValue('0.133');
-    expect(new URL(page.url()).search).toBe('?shape=16x10&crop=0.133');
+    // An unplaced crop follows the focus, so the address carries no position.
+    expect(new URL(page.url()).search).toBe('?shape=16x10');
     await expect(page.locator('#download-name')).toHaveText('schotter-fireproof-2560x1600.png');
-    await expect(page.locator('#sizes input')).toHaveCount(5);
+    await expect(page.locator('#sizes input:enabled')).toHaveCount(5);
+    await expect(page.locator('#sizes label:visible')).toHaveCount(5);
     await expect(page.locator('#run-render')).toHaveText(
       'uv run walldye render schotter --theme fireproof --crop 25.536,0,1728,1080 -o schotter-fireproof-16x10-crop.svg',
     );

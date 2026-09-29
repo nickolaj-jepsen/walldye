@@ -42,16 +42,6 @@
           }
         }
       }
-    },
-    {
-      "includes": ["src/scripts/**", "src/components/presets.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noNonNullAssertion": "off"
-          }
-        }
-      }
     }
   ]
 }

@@ -13,6 +13,7 @@ import {
   luminance,
   mix,
   normaliseSeed,
+  normaliseSeeds,
   PRESETS,
   parseToken,
   presetOf,
@@ -45,12 +46,13 @@ function rng(seed: number): () => number {
 function randomSeeds(count: number, seed = 20260927): Seeds[] {
   const next = rng(seed);
   const hex = () =>
-    '#' +
-    Math.floor(next() * 0x1000000)
+    `#${Math.floor(next() * 0x1000000)
       .toString(16)
       .padStart(6, '0')
-      .toUpperCase();
-  return Array.from({ length: count }, () => ({ bg: hex(), fg: hex(), accent: hex() }));
+      .toUpperCase()}`;
+  return Array.from({ length: count }, () =>
+    normaliseSeeds({ bg: hex(), fg: hex(), accent: hex() }),
+  );
 }
 
 describe('number helpers', () => {
@@ -103,8 +105,10 @@ describe('derive_theme (c)', () => {
   });
 
   it('pins fireproof and derives its 1-unit neighbour', () => {
-    expect(themeTokens({ bg: '#1c1b1a', fg: 'dad8ce', accent: '#CF6A4C' })).toEqual(FIREPROOF);
-    const near = themeTokens({ bg: '#1C1B1B', fg: '#DAD8CE', accent: '#CF6A4C' });
+    expect(themeTokens(normaliseSeeds({ bg: '#1c1b1a', fg: 'dad8ce', accent: '#CF6A4C' }))).toEqual(
+      FIREPROOF,
+    );
+    const near = themeTokens(normaliseSeeds({ bg: '#1C1B1B', fg: '#DAD8CE', accent: '#CF6A4C' }));
     expect(near.accent_1).not.toBe(FIREPROOF.accent_1);
     expect(deriveTheme({ ...PRESETS.fireproof, ...FIREPROOF })).toEqual(FIREPROOF);
   });
@@ -135,13 +139,21 @@ describe('theme tokens (e)', () => {
   });
 
   it('canonicalises to the preset name or lowercase hex', () => {
-    expect(tokenOf({ bg: '1c1b1a', fg: '#DAD8CE', accent: 'cf6a4c' })).toBe('fireproof');
-    expect(tokenOf({ bg: '#fff', fg: '#000', accent: '#F80' })).toBe('ffffff-000000-ff8800');
-    expect(presetOf({ bg: '#2e3440', fg: '#eceff4', accent: '#88c0d0' })).toBe('nord');
-    expect(presetOf({ bg: '#2e3441', fg: '#eceff4', accent: '#88c0d0' })).toBeNull();
+    expect(tokenOf(normaliseSeeds({ bg: '1c1b1a', fg: '#DAD8CE', accent: 'cf6a4c' }))).toBe(
+      'fireproof',
+    );
+    expect(tokenOf(normaliseSeeds({ bg: '#fff', fg: '#000', accent: '#F80' }))).toBe(
+      'ffffff-000000-ff8800',
+    );
+    expect(presetOf(normaliseSeeds({ bg: '#2e3440', fg: '#eceff4', accent: '#88c0d0' }))).toBe(
+      'nord',
+    );
+    expect(
+      presetOf(normaliseSeeds({ bg: '#2e3441', fg: '#eceff4', accent: '#88c0d0' })),
+    ).toBeNull();
     expect(normaliseSeed(' #aBc ')).toBe('#AABBCC');
     expect(normaliseSeed('#abcd')).toBeNull();
-    expect(() => tokenOf({ bg: 'nope', fg: '#000', accent: '#000' })).toThrow(/bg/);
+    expect(() => normaliseSeeds({ bg: 'nope', fg: '#000', accent: '#000' })).toThrow(/bg/);
   });
 
   it('never resolves a name inherited from Object.prototype', () => {

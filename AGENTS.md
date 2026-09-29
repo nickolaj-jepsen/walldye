@@ -9,7 +9,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `docs/api.md`: the design API, build files and CLI. The docstrings in `walldye/` hold the exact semantics; when the two disagree, fix one of them in the same change.
 - `docs/site.md`: the site's visual system, components and voice.
 - `docs/deploy.md`: CI, Cloudflare and the going-live checklist.
-- `src/scripts/DOM.md`: the hooks the server-rendered pages give the client modules.
+- `src/client/DOM.md`: the hooks the server-rendered pages give the client modules.
 
 ## Writing docs and comments
 
@@ -24,7 +24,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Everything outside `tools/` feeds the render-lib hash, so editing it makes the next build re-check every piece's probes.
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand; `build/` is generated and gitignored, with named variants in `build/<variant>/`. Legacy pieces have `source.svg` and `palette.yaml` instead of a script. `wallpapers/index.json` is generated and gitignored too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `taxonomy.yaml`: the allowed facet values for meta.yaml. Only `walldye review` adds to it.
-- `src/`: the site. `src/lib/` has the TypeScript ports of the theme, recolour and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`; `src/lib/labels.ts` has the words visitors see for facet values and licences.
+- `src/`: the site. `src/lib/` is the code the build and the browser share: the TypeScript ports of the theme, recolour and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for facet values and licences. `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time.
 - `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.

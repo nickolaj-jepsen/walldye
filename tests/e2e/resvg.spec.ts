@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { expect, type Page, test } from '@playwright/test';
-import { rasterSvg } from '../../src/scripts/export-svg';
+import { rasterSvg } from '../../src/client/export/shape';
 import { decodeRgb, MANIFEST, type PixelDiff, pixelDiff, ROOT } from './helpers';
 
 const REF = MANIFEST.resvg;
@@ -24,6 +24,10 @@ function report(what: string, diff: PixelDiff): void {
 async function exportAt(page: Page, width: number, height: number): Promise<Buffer> {
   await page.locator('#sizes').evaluate((sizes, value) => {
     const label = document.createElement('label');
+    // Offered for the chosen shape, like the panel's own sizes.
+    label.dataset.aspect = document.querySelector<HTMLInputElement>(
+      '#export input[name=asp]:checked',
+    )?.value;
     label.innerHTML = `<input type="radio" name="size" value="${value}"><span>${value}</span>`;
     sizes.append(label);
   }, `${width}x${height}`);
@@ -64,7 +68,7 @@ test.describe('resvg-wasm', () => {
         }
       },
       {
-        workerUrl: builtAsset(/^export-worker-.*\.js$/),
+        workerUrl: builtAsset(/^worker-.*\.js$/),
         wasmUrl: builtAsset(/^index_bg\..*\.wasm$/),
         svg,
         background: REF.background,
