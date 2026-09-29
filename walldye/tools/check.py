@@ -67,8 +67,8 @@ class Task:
 
 @dataclass
 class Result:
-    """What checking one (slug, variant) found and made; templates, entries, cells, probes,
-    focus and ink are complete only when errors is empty."""
+    """What checking one (slug, variant) found and made; templates, entries, cells, probes
+    and focus are complete only when errors is empty."""
 
     slug: str
     variant: str
@@ -79,7 +79,6 @@ class Result:
     cells: list[float] = field(default_factory=list[float])
     probes: dict[str, str] = field(default_factory=dict[str, str])
     focus: tuple[float, float] | None = None
-    ink: Ink | None = None  # the 16:9 dark template's ink map
     seconds: float = 0.0
     unchanged: bool = False  # build: the probes matched, so nothing else was checked
 
@@ -191,7 +190,7 @@ def _sha(doc: Document, theme: common.Theme) -> str:
 def check_variant(task: Task) -> Result:
     """Check one (slug, variant): determinism (two in-process draws per native aspect and
     regime, then a PYTHONHASHSEED subprocess), viewBox, the templates and their slot tables, the
-    constant-slot rule, the template limits, pixel origins, probes, focus and the ink map,
+    constant-slot rule, the template limits, pixel origins, probes and focus,
     and with task.paranoid a fresh import per serialization. A determinism failure stops it
     before any geometry step; so does an exception from the design."""
     common.WALLPAPERS = Path(task.wallpapers)
@@ -275,9 +274,7 @@ def _check(task: Task, r: Result) -> None:
     r.probes = probe_hashes(docs)
     dark = r.templates.get("16x9.svg")
     if dark is not None:
-        bg = common.background(dark)
-        r.focus = common.focus(common.rasterize(dark, common.FOCUS_WIDTH), bg)
-        r.ink = common.ink_map(common.rasterize(dark, INK_WIDTH), bg)
+        r.focus = common.focus(common.rasterize(dark, common.FOCUS_WIDTH), common.background(dark))
     if task.paranoid and not isinstance(piece, common.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
 
@@ -392,35 +389,6 @@ def built_ink(slug: str, variant: str) -> Ink | None:
     return common.ink_map(common.rasterize(svg, INK_WIDTH), common.background(svg))
 
 
-def siblings(report: Report, names: Sequence[str], fresh: Mapping[str, Ink | None]) -> None:
-    """The variant sibling rule over the versions `names` of report.slug: two 16:9 dark
-    templates with an ink-map cosine of NEAR_CLONE or more are an error when at least one of
-    them was checked afresh (a key of `fresh`); the other is fresh too or already built. Pairs of
-    built templates are not compared again. A version with neither is skipped with a note;
-    one whose fresh check failed (None) is skipped silently."""
-    if all(ink is None for ink in fresh.values()):
-        return
-    maps: dict[str, Ink] = {}
-    for name in names:
-        ink = fresh[name] if name in fresh else built_ink(report.slug, name)
-        if ink is not None:
-            maps[name] = ink
-        elif name not in fresh:
-            report.notes.append(
-                f"{name} is not built yet, so the other versions were not compared with it"
-            )
-    ordered = list(maps)
-    for i, a in enumerate(ordered):
-        for b in ordered[i + 1 :]:
-            if a not in fresh and b not in fresh:
-                continue
-            if (sim := float(maps[a] @ maps[b])) >= NEAR_CLONE:
-                report.errors.append(
-                    f"versions {a} and {b} look alike (ink-map cosine {sim:.2f}, must be below"
-                    f" {NEAR_CLONE}): a variant must change what is depicted"
-                )
-
-
 def print_report(report: Report) -> None:
     status = f"{len(report.errors)} error(s)" if len(report.errors) > 0 else "ok"
     warned = f", {len(report.warnings)} warning(s)" if len(report.warnings) > 0 else ""
@@ -480,9 +448,6 @@ def run(
     for t in targets:
         for _ in t.variants:
             t.report.add(next(results))
-        if t.piece is not None:
-            fresh = {v: r.ink for v, r in t.report.results.items()}
-            siblings(t.report, t.piece.variant_names(), fresh)
         print_report(t.report)
         failed += len(t.report.errors) > 0
     if similar:

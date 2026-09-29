@@ -16,3 +16,9 @@ model: claude-opus-5-5
 franchise:
   title: Fedora
   owner: Red Hat, Inc.
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions
+    description: Fedora's infinity mark worked out with compass and rule. Centers and the circle under its squared-off corner are marked, and the lower loop is filled in.

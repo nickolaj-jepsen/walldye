@@ -13,3 +13,8 @@ sources:
     url: https://en.wikipedia.org/wiki/Cassette_tape
 added: 2026-09-27
 model: claude-opus-5-5
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions

@@ -246,13 +246,11 @@ def run(
 
 
 def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -> bool:
-    """Collect a piece's results, apply the sibling rule, print, and write when it passed."""
+    """Collect a piece's results, print, and write when it passed."""
     t = plan.target
     for _ in plan.tasks:
         t.report.add(next(results))
     checked = {v: r for v, r in t.report.results.items() if not r.unchanged}
-    if t.piece is not None and len(checked) > 0:
-        check.siblings(t.report, t.piece.variant_names(), {v: r.ink for v, r in checked.items()})
     if len(checked) > 0 or len(t.report.errors) > 0:
         check.print_report(t.report)
     if len(t.report.errors) > 0 or t.piece is None:

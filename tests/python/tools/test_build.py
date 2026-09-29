@@ -218,11 +218,14 @@ def test_a_failing_variant_writes_nothing_for_the_piece(wallpapers, capsys):
     versions(wallpapers)
     design = wallpapers / "versions/design.py"
     design.write_text(
-        design.read_text().replace('"late": Clock(hour=8)', '"late": Clock(hour=2.05)')
+        design.read_text().replace(
+            "    p = s.params\n",
+            '    p = s.params\n    if p.hour == 8:\n        raise ValueError("late")\n',
+        )
     )
     assert build.run(["versions"], jobs=1) == 1
     out = capsys.readouterr().out
-    assert "default and late look alike" in out and "versions: not written" in out
+    assert "draw failed: ValueError" in out and "versions: not written" in out
     assert not common.build_dir("versions").exists()
 
 

@@ -2,7 +2,20 @@
 
 import math
 
-from walldye import ACCENT, ACCENT_1, ACCENT_2, ACCENT_3, ACCENT_5, BG_ALT, UI, Canvas, P, design
+from walldye import (
+    ACCENT,
+    ACCENT_1,
+    ACCENT_2,
+    ACCENT_3,
+    ACCENT_5,
+    BG_ALT,
+    UI,
+    Canvas,
+    P,
+    Params,
+    design,
+    knob,
+)
 from walldye.geom import Affine
 
 CP_R = 350  # half-diagonal of the crease-pattern square
@@ -35,8 +48,12 @@ FACETS = (
 )
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the dimension along the pattern's edge")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     # Landscape: the crane perches on the right corner and flies clear of the pattern.
     # Portrait: it stands on the top corner, stacking crane over pattern.
     c = s.pick(landscape=(1030 / 1920, 570 / 1080), portrait=(0.53, 0.61))
@@ -53,18 +70,19 @@ def draw(s: Canvas) -> None:
     s.stroke(valley, BG_ALT, 1.4, dash=(8, 6))
     s.stroke(P().poly(sq.apply(CORNERS), closed=True), UI, 1.4)
 
-    # Drafting dimension outside the lower-left edge: local x runs along the edge from the left
-    # corner, local y points away from the pattern.
-    side = CP_R * math.sqrt(2)
-    dim = Affine.frame(sq((0, 1)), deg=45)
-    ext = P()
-    for x in (0, side):
-        ext.M(dim((x, DIM_GAP))).L(dim((x, DIM_OFF + DIM_OVER)))
-    ext.M(dim((0, DIM_OFF))).L(dim((side, DIM_OFF)))
-    heads = P().arrowhead(dim((0, DIM_OFF)), 14, deg=225, width=4.5)
-    heads.arrowhead(dim((side, DIM_OFF)), 14, deg=45, width=4.5)
-    s.stroke(ext, UI, 1.2)
-    s.fill(heads, UI)
+    if s.params.dimensions:
+        # Drafting dimension outside the lower-left edge: local x runs along the edge from the left
+        # corner, local y points away from the pattern.
+        side = CP_R * math.sqrt(2)
+        dim = Affine.frame(sq((0, 1)), deg=45)
+        ext = P()
+        for x in (0, side):
+            ext.M(dim((x, DIM_GAP))).L(dim((x, DIM_OFF + DIM_OVER)))
+        ext.M(dim((0, DIM_OFF))).L(dim((side, DIM_OFF)))
+        heads = P().arrowhead(dim((0, DIM_OFF)), 14, deg=225, width=4.5)
+        heads.arrowhead(dim((side, DIM_OFF)), 14, deg=45, width=4.5)
+        s.stroke(ext, UI, 1.2)
+        s.fill(heads, UI)
 
     crane = Affine.frame(sq((1, 0)) if s.landscape else sq((0, 0)), deg=0, scale=K)
     for tone, *pts in FACETS:

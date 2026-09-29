@@ -18,10 +18,12 @@ from walldye import (
     UI_HI,
     Canvas,
     P,
+    Params,
     Path,
     Point,
     Vec,
     design,
+    knob,
     polar,
 )
 from walldye.geom import Affine
@@ -146,8 +148,12 @@ def dim(lines: Path, heads: Path, a: Vec, b: Vec) -> None:
     heads.arrowhead(a, ARROW, rad=ang + math.pi, width=ARROW_W)
 
 
-@design()
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the width, height and thickness dimensions")
+
+
+@design(variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     t = Affine.frame((CX, CY), deg=0, scale=S)
     x0, y0 = t((-WD / 2, -HT / 2))
     x1, y1 = t((WD / 2, HT / 2))
@@ -187,19 +193,20 @@ def draw(s: Canvas) -> None:
     s.stroke(hidden, ACCENT_6, 1.2, dash=(8, 5))
     s.stroke(edges, ACCENT_4, 1.3)
 
-    # dimensions: overall width above, height and thickness to the right
     ext, dl, heads = P(), P(), P()
-    yd = y0 - 68
-    for x in (x0, x1):
-        ext.M(x, y0 - 10).V(yd - 12)
-    dim(dl, heads, Vec(x0, yd), Vec(x1, yd))
-    xd = x1 + 64
-    for y in (y0, y1, bt, bb):
-        ext.M(x1 + 10, y).H(xd + 12)
-    dim(dl, heads, Vec(xd, y0), Vec(xd, y1))
-    dl.M(xd, bt - 44).V(bt).M(xd, bb).V(bb + 44)
-    heads.arrowhead((xd, bt), ARROW, deg=90, width=ARROW_W)
-    heads.arrowhead((xd, bb), ARROW, deg=-90, width=ARROW_W)
+    if s.params.dimensions:
+        # dimensions: overall width above, height and thickness to the right
+        yd = y0 - 68
+        for x in (x0, x1):
+            ext.M(x, y0 - 10).V(yd - 12)
+        dim(dl, heads, Vec(x0, yd), Vec(x1, yd))
+        xd = x1 + 64
+        for y in (y0, y1, bt, bb):
+            ext.M(x1 + 10, y).H(xd + 12)
+        dim(dl, heads, Vec(xd, y0), Vec(xd, y1))
+        dl.M(xd, bt - 44).V(bt).M(xd, bb).V(bb + 44)
+        heads.arrowhead((xd, bt), ARROW, deg=90, width=ARROW_W)
+        heads.arrowhead((xd, bb), ARROW, deg=-90, width=ARROW_W)
 
     # detail view: the tape turning the corner roller, magnified off to the left
     dr = DETAIL_R * S * DETAIL_K

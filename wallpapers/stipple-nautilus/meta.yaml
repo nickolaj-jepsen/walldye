@@ -18,3 +18,8 @@ sources:
     url: https://en.wikipedia.org/wiki/Chambered_nautilus
 added: 2026-09-27
 model: claude-opus-5-5
+variants:
+  default:
+    label: With labels
+  unlabeled:
+    label: Without labels

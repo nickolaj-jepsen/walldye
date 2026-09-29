@@ -17,9 +17,11 @@ from walldye import (
     Canvas,
     Color,
     P,
+    Params,
     Path,
     Ref,
     design,
+    knob,
 )
 from walldye.geom import hatch
 
@@ -77,8 +79,12 @@ def fade(s: Canvas, stops: Sequence[tuple[float, Color, float]]) -> Ref:
     return s.linear_gradient([((x - x0) / (x1 - x0), c, a) for x, c, a in stops], (x0, 0), (x1, 0))
 
 
-@design()
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the focal-length dimensions")
+
+
+@design(variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     # objective: crown biconvex cemented to a flint plano-concave; eyepiece: a biconvex singlet
     front, cement = surface(XO - 28, HO, 18), surface(XO + 14, HO, -14)
     crown, flint = lens(front, cement), lens(cement, surface(XO + 20, HO, 0))
@@ -113,16 +119,17 @@ def draw(s: Canvas) -> None:
     s.stroke(star, fade(s, lit), 1.5)
     s.fill(heads, ACCENT_5)
 
-    # focal-length dimensions below the axis
-    dims, arrows = P(), P()
-    yd = AY + 200
-    for x, top in ((XO, AY + HO + 14), (XF, AY + 130), (XE, AY + HE + 14)):
-        dims.M(x, top).V(yd + 14)
-    for x0, x1 in ((XO, XF), (XF, XE)):
-        dims.M(x0, yd).H(x1)
-        arrows.arrowhead((x0, yd), 13, deg=180, width=4).arrowhead((x1, yd), 13, deg=0, width=4)
-    s.stroke(dims, UI, 1.2)
-    s.fill(arrows, UI_ALT)
+    if s.params.dimensions:
+        # focal-length dimensions below the axis
+        dims, arrows = P(), P()
+        yd = AY + 200
+        for x, top in ((XO, AY + HO + 14), (XF, AY + 130), (XE, AY + HE + 14)):
+            dims.M(x, top).V(yd + 14)
+        for x0, x1 in ((XO, XF), (XF, XE)):
+            dims.M(x0, yd).H(x1)
+            arrows.arrowhead((x0, yd), 13, deg=180, width=4).arrowhead((x1, yd), 13, deg=0, width=4)
+        s.stroke(dims, UI, 1.2)
+        s.fill(arrows, UI_ALT)
 
     outline = P().shape(unary_union([crown, flint])).poly(cement).shape(eye)
     s.stroke(outline, UI_HI, 1.6, join="round")

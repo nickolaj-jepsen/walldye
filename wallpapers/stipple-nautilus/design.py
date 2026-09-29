@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter
 from scipy.spatial import cKDTree
 
-from walldye import ACCENT, ACCENT_2, UI_ALT, UI_HI, Canvas, P, Rect, Vec, design
+from walldye import ACCENT, ACCENT_2, UI_ALT, UI_HI, Canvas, P, Params, Rect, Vec, design, knob
 from walldye.field import cells, gauss
 from walldye.pixel import glyphs
 
@@ -61,8 +61,12 @@ def shell(xs: Field, ys: Field) -> tuple[Field, Field]:
     return np.where(inside, tone, 0), np.where(inside, ts, -1)
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    furniture: bool = knob(default=True, doc="the figure number and the scale bar")
+
+
+@design(aspects="any", variants={"unlabeled": Drawing(furniture=False)})
+def draw(s: Canvas[Drawing]) -> None:
     # right of center on a landscape screen, the upper middle on a portrait one
     c = s.pick(landscape=(1240 / 1920, 520 / 1080), portrait=(0.5, 0.44))
     xs, ys = cells(Rect(-HALF, -HALF, 2 * HALF, 2 * HALF), CELL)
@@ -103,10 +107,11 @@ def draw(s: Canvas) -> None:
             for (x, y), i in zip(at[size == k], paint[size == k], strict=True):
                 dots[i].M(x, y).H(x)
 
-    # Plate furniture: a figure number above the shell and a 5 cm scale bar below it.
-    x0, y0, y1 = round(left + off.x), round(top + off.y), round(bottom + off.y)
-    bar = P().M(x0, y1 + 40).H(x0 + 120)
-    bar.M(x0, y1 + 36).V(y1 + 44).M(x0 + 120, y1 + 36).V(y1 + 44)
-    s.stroke(bar, UI_ALT, 1.5)
-    glyphs(s, "5 cm", UI_ALT, at=(x0 + 40, y1 + 52), font="5x8", px=2)
-    glyphs(s, "Fig. 3", UI_ALT, at=(x0, y0 - 16), font="5x8", px=2)
+    if s.params.furniture:
+        # Plate furniture: a figure number above the shell and a 5 cm scale bar below it.
+        x0, y0, y1 = round(left + off.x), round(top + off.y), round(bottom + off.y)
+        bar = P().M(x0, y1 + 40).H(x0 + 120)
+        bar.M(x0, y1 + 36).V(y1 + 44).M(x0 + 120, y1 + 36).V(y1 + 44)
+        s.stroke(bar, UI_ALT, 1.5)
+        glyphs(s, "5 cm", UI_ALT, at=(x0 + 40, y1 + 52), font="5x8", px=2)
+        glyphs(s, "Fig. 3", UI_ALT, at=(x0, y0 - 16), font="5x8", px=2)

@@ -7,7 +7,22 @@ import shapely
 from shapely import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 
-from walldye import ACCENT, ACCENT_1, BG, UI, UI_ALT, UI_HI, Canvas, P, Rect, Vec, design, polar
+from walldye import (
+    ACCENT,
+    ACCENT_1,
+    BG,
+    UI,
+    UI_ALT,
+    UI_HI,
+    Canvas,
+    P,
+    Params,
+    Rect,
+    Vec,
+    design,
+    knob,
+    polar,
+)
 from walldye.geom import Affine, bezier_points, hatch, poisson_disk
 
 # The figure is drawn with the bore axis at x = 0 in a 1080-tall box, then placed by one
@@ -46,8 +61,12 @@ def along(sgn: int, r: float, side: float = 0.0) -> Vec:
     return valve_axis(sgn)((side, -r))
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the stroke and head-width dimensions")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     # right of center on landscape screens; centered and larger on width-bound portrait ones
     at = s.pick(landscape=(0.6458, 0.5), portrait=(0.49, 0.53))
     k = 0.88 if s.landscape else 1.35
@@ -194,25 +213,26 @@ def draw(s: Canvas) -> None:
         s.path(wire, fill=UI, stroke=UI_HI, stroke_width=1.5)
         s.stroke(plug, UI_HI, 1.8)
 
-        # dimensions: stroke on the right, head width across the top
-        ext, dl, heads = P(), P(), P()
-        xd, bdc = 300, CROWN_TDC + 2 * THROW
-        for y in (CROWN_TDC, bdc):
-            ext.M(FIN + 14, y).H(xd + 14)
-        dl.M(xd, CROWN_TDC).V(bdc)
-        heads.arrowhead((xd, CROWN_TDC), 13, bearing=0, width=4.2)
-        heads.arrowhead((xd, bdc), 13, bearing=180, width=4.2)
-        yd = HEAD_TOP - 132
-        for sgn in (-1, 1):
-            ext.M(sgn * HEAD_W, HEAD_TOP - 12).V(yd - 14)
-            heads.arrowhead((sgn * HEAD_W, yd), 13, bearing=sgn * 90, width=4.2)
-        dl.M(-HEAD_W, yd).H(HEAD_W)
-        s.stroke(ext, UI, 1.3)
-        s.stroke(dl, UI_ALT, 1.3)
-        s.fill(heads, UI_ALT)
+        if s.params.dimensions:
+            # dimensions: stroke on the right, head width across the top
+            ext, dl, heads = P(), P(), P()
+            xd, bdc = 300, CROWN_TDC + 2 * THROW
+            for y in (CROWN_TDC, bdc):
+                ext.M(FIN + 14, y).H(xd + 14)
+            dl.M(xd, CROWN_TDC).V(bdc)
+            heads.arrowhead((xd, CROWN_TDC), 13, bearing=0, width=4.2)
+            heads.arrowhead((xd, bdc), 13, bearing=180, width=4.2)
+            yd = HEAD_TOP - 132
+            for sgn in (-1, 1):
+                ext.M(sgn * HEAD_W, HEAD_TOP - 12).V(yd - 14)
+                heads.arrowhead((sgn * HEAD_W, yd), 13, bearing=sgn * 90, width=4.2)
+            dl.M(-HEAD_W, yd).H(HEAD_W)
+            s.stroke(ext, UI, 1.3)
+            s.stroke(dl, UI_ALT, 1.3)
+            s.fill(heads, UI_ALT)
 
-        # BDC phantom of the crown, so the stroke dimension's lower extension lands on something
-        s.stroke(P().M(-BORE + 4, bdc).H(BORE - 4), UI_ALT, 1.5, dash=PHANTOM)
+            # BDC phantom of the crown, so the stroke dimension's lower extension lands on something
+            s.stroke(P().M(-BORE + 4, bdc).H(BORE - 4), UI_ALT, 1.5, dash=PHANTOM)
 
         # combustion chamber: one glow of stipple, dense at the plug tip and dying out at the
         # dome rim

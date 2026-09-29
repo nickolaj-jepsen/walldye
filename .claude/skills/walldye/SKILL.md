@@ -153,16 +153,14 @@ A variant is a named version of a piece (docs/architecture.md, Versions). Each o
 every aspect and regime, reviewed and kept, so the bar is high:
 
 - It changes what is depicted (a moon phase, a rule number, a reaction regime, the moment of a
-  sweep), not a value. A new seed is a variant only when the result shows something different;
-  seed ladders are for `sheet --seeds`, never for the site.
+  sweep), or leaves out a layer that a plainer wallpaper does without (a construction
+  drawing's dimensions, a chart's labels). It never just nudges a value. A new seed is a
+  variant only when the result shows something different; seed ladders are for
+  `sheet --seeds`, never for the site.
 - Propose at most 3, always as `draft: true`; the owner approves each one in review.
 - Every version reads as its subject as clearly as the default does.
-- `check` fails two versions whose thumbnails look alike (ink-map cosine 0.93 or more). A piece
-  with a large fixed structure fails with a detail-only change: radar-sweep's rings and
-  afterglow dominate its thumbnail, so a new coastline measures 0.98 against the default, and
-  only moving the arm passes (0.20). Passing is necessary, not sufficient: on a fine-textured
-  piece a 4% nudge of one value can measure 0.91 and pass, so judge by eye whether the subject
-  changed.
+- `check` does not compare versions, so judge by eye that each one differs: on a
+  fine-textured piece a 4% nudge of one value changes the file but not the picture.
 
 ## meta.yaml
 

@@ -33,3 +33,8 @@ sources:
     url: https://ing.dk/artikel/tvaerbjaelken-er-naeste-skridt-paa-oestbroen
 added: 2026-09-27
 model: claude-opus-5-5
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions

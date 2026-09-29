@@ -7,7 +7,7 @@ from shapely.affinity import scale
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import linemerge, unary_union
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design
+from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob
 from walldye.geom import parts
 
 G = 10  # the grid unit; the mark is 48 units wide and 48 tall
@@ -59,8 +59,12 @@ def strands(g: BaseGeometry) -> list[LineString]:
     return [q for q in parts(g) if isinstance(q, LineString) and q.length > 2]
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the dimensions, and the peak's radius and center")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.42))
 
     def at(x: float, y: float) -> Vec:
@@ -130,36 +134,37 @@ def draw(s: Canvas) -> None:
     cl = P().M(c.x, apex.y - 60).V(c.y + R + 60).M(e.x - ex - 30, e.y).H(e.x + ex + 30)
     s.stroke(cl.circle(c, R), UI, 1.2, dash=DASHDOT)
 
-    # the peak's arc: its center, and its radius to where it meets the right flank
-    ext, dl, heads = P(), P(), P()
-    ext.M(a0.x - 7, a0.y).H(a0.x + 7).M(a0.x, a0.y - 7).V(a0.y + 7)
-    end = max(outline(peak), key=lambda v: v.x)
-    u = (end - a0).unit()
-    dl.M(a0).L(end - u * ARROW)
-    heads.arrowhead(end, ARROW, rad=math.atan2(u.y, u.x), width=ARROW_W)
+    if s.params.dimensions:
+        # the peak's arc: its center, and its radius to where it meets the right flank
+        ext, dl, heads = P(), P(), P()
+        ext.M(a0.x - 7, a0.y).H(a0.x + 7).M(a0.x, a0.y - 7).V(a0.y + 7)
+        end = max(outline(peak), key=lambda v: v.x)
+        u = (end - a0).unit()
+        dl.M(a0).L(end - u * ARROW)
+        heads.arrowhead(end, ARROW, rad=math.atan2(u.y, u.x), width=ARROW_W)
 
-    # dimensions: the overall width below, the inner cut's width above it, the height at left
-    yd = c.y + R + 80
-    for x in (fl.x, fr.x):
-        ext.M(x, fl.y + 14).V(yd + 12)
-    dl.M(fl.x, yd).H(fr.x)
-    heads.arrowhead((fr.x, yd), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((fl.x, yd), ARROW, deg=180, width=ARROW_W)
-    x0, x1, yw = e.x - ex, e.x + ex, e.y
-    yc = yd - 36
-    for x in (x0, x1):
-        ext.M(x, yw + 12).V(yc + 12)
-    dl.M(x0 - 34, yc).H(x0).M(x1, yc).H(x1 + 34)
-    heads.arrowhead((x0, yc), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((x1, yc), ARROW, deg=180, width=ARROW_W)
-    xh = fl.x - 80
-    ext.M(apex.x - 14, apex.y).H(xh - 12).M(fl.x - 14, fl.y).H(xh - 12)
-    dl.M(xh, apex.y).V(fl.y)
-    heads.arrowhead((xh, apex.y), ARROW, deg=-90, width=ARROW_W)
-    heads.arrowhead((xh, fl.y), ARROW, deg=90, width=ARROW_W)
-    s.stroke(ext, UI, 1.2)
-    s.stroke(dl, UI_ALT, 1.2)
-    s.fill(heads, UI_ALT)
+        # dimensions: the overall width below, the inner cut's width above it, the height at left
+        yd = c.y + R + 80
+        for x in (fl.x, fr.x):
+            ext.M(x, fl.y + 14).V(yd + 12)
+        dl.M(fl.x, yd).H(fr.x)
+        heads.arrowhead((fr.x, yd), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((fl.x, yd), ARROW, deg=180, width=ARROW_W)
+        x0, x1, yw = e.x - ex, e.x + ex, e.y
+        yc = yd - 36
+        for x in (x0, x1):
+            ext.M(x, yw + 12).V(yc + 12)
+        dl.M(x0 - 34, yc).H(x0).M(x1, yc).H(x1 + 34)
+        heads.arrowhead((x0, yc), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((x1, yc), ARROW, deg=180, width=ARROW_W)
+        xh = fl.x - 80
+        ext.M(apex.x - 14, apex.y).H(xh - 12).M(fl.x - 14, fl.y).H(xh - 12)
+        dl.M(xh, apex.y).V(fl.y)
+        heads.arrowhead((xh, apex.y), ARROW, deg=-90, width=ARROW_W)
+        heads.arrowhead((xh, fl.y), ARROW, deg=90, width=ARROW_W)
+        s.stroke(ext, UI, 1.2)
+        s.stroke(dl, UI_ALT, 1.2)
+        s.fill(heads, UI_ALT)
 
     s.fill(P().shape(body), UI_ALT)
     s.fill(P().shape(peak), ACCENT)

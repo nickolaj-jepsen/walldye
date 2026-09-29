@@ -6,7 +6,7 @@ from shapely import LineString, Point, Polygon, make_valid
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design, polar
+from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob, polar
 from walldye.geom import Affine, bezier_points, parts
 
 S = 5.4  # canvas units per point of the official artwork
@@ -70,8 +70,12 @@ def strands(g: BaseGeometry) -> list[LineString]:
     return [q for q in parts(g) if isinstance(q, LineString) and q.length > 2]
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the picked-out arc's radius and angle")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     c = s.pick(landscape=(0.64, 0.47), portrait=(0.44, 0.42))
     mid = Vec((BOX[0] + BOX[2]) / 2, (BOX[1] + BOX[3]) / 2)
     m = Affine.translate(c.x, c.y) @ Affine.scale(S) @ Affine.translate(-mid.x, -mid.y)
@@ -135,21 +139,22 @@ def draw(s: Canvas) -> None:
         cl.M(lc).L(polar(lc, lr + 70, deg=deg))
     s.stroke(cl.circle(lc, lr), UI, 1.2, dash=DASHDOT)
 
-    # dimensions: the picked-out arc's radius, to the band's inner edge, and the angle it
-    # turns through, outside it
-    dl, heads = P(), P()
-    amid = (a0 + a1) / 2
-    leader = LineString([lc, polar(lc, lr, deg=amid)]).intersection(segs[LIT])
-    hits = [Vec(*q) for g in parts(leader) for q in g.coords]
-    tip = min(hits, key=lambda q: abs(q - lc))
-    dl.M(lc).L(tip)
-    heads.arrowhead(tip, ARROW, deg=amid, width=ARROW_W)
-    rd = lr + 45
-    dl.arc(lc, rd, deg=(a0, a1))
-    heads.arrowhead(polar(lc, rd, deg=a1), ARROW, deg=a1 + 90, width=ARROW_W)
-    heads.arrowhead(polar(lc, rd, deg=a0), ARROW, deg=a0 - 90, width=ARROW_W)
-    s.stroke(dl, UI_ALT, 1.2)
-    s.fill(heads, UI_ALT)
+    if s.params.dimensions:
+        # dimensions: the picked-out arc's radius, to the band's inner edge, and the angle it
+        # turns through, outside it
+        dl, heads = P(), P()
+        amid = (a0 + a1) / 2
+        leader = LineString([lc, polar(lc, lr, deg=amid)]).intersection(segs[LIT])
+        hits = [Vec(*q) for g in parts(leader) for q in g.coords]
+        tip = min(hits, key=lambda q: abs(q - lc))
+        dl.M(lc).L(tip)
+        heads.arrowhead(tip, ARROW, deg=amid, width=ARROW_W)
+        rd = lr + 45
+        dl.arc(lc, rd, deg=(a0, a1))
+        heads.arrowhead(polar(lc, rd, deg=a1), ARROW, deg=a1 + 90, width=ARROW_W)
+        heads.arrowhead(polar(lc, rd, deg=a0), ARROW, deg=a0 - 90, width=ARROW_W)
+        s.stroke(dl, UI_ALT, 1.2)
+        s.fill(heads, UI_ALT)
 
     # the picked-out arc carries the accent; the rest alternate UI and UI_ALT
     with s.buckets((ACCENT, UI, UI_ALT), "fill") as b:
