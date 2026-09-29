@@ -7,7 +7,7 @@ from shapely import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design, polar
+from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob, polar
 from walldye.geom import Affine, ngon, parts
 
 U = 52  # bar width, the lattice unit
@@ -66,8 +66,12 @@ def strands(g: BaseGeometry) -> list[LineString]:
     return [q for q in parts(g) if isinstance(q, LineString) and q.length > 2]
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the overall width and one bar's width")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.42))
     polys = [[Affine.frame(c, deg=60 * k, scale=U)(v) for v in LAMBDA] for k in range(6)]
     bars = unary_union([Polygon(p) for p in polys]).buffer(2.5, join_style="mitre")
@@ -103,25 +107,26 @@ def draw(s: Canvas) -> None:
         cl.M(polar(c, R + 60, deg=60 * k)).L(polar(c, R + 60, deg=60 * k + 180))
     s.stroke(cl.circle(c, R), UI, 1.2, dash=DASHDOT)
 
-    # dimensions: the overall width below, and the picked-out lambda's foot (one bar wide)
-    # above it, with the arrows outside
-    ext, dl, heads = P(), P(), P()
-    yd = c.y + R + 80
-    for x in (c.x - R, c.x + R):
-        ext.M(x, c.y + 14).V(yd + 12)
-    dl.M(c.x - R, yd).H(c.x + R)
-    heads.arrowhead((c.x + R, yd), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((c.x - R, yd), ARROW, deg=180, width=ARROW_W)
-    (x1, yf), x0 = polys[0][1], polys[0][2].x
-    yc = yd - 36
-    for x in (x0, x1):
-        ext.M(x, yf + 12).V(yc + 12)
-    dl.M(x0 - 34, yc).H(x0).M(x1, yc).H(x1 + 34)
-    heads.arrowhead((x0, yc), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((x1, yc), ARROW, deg=180, width=ARROW_W)
-    s.stroke(ext, UI, 1.2)
-    s.stroke(dl, UI_ALT, 1.2)
-    s.fill(heads, UI_ALT)
+    if s.params.dimensions:
+        # dimensions: the overall width below, and the picked-out lambda's foot (one bar wide)
+        # above it, with the arrows outside
+        ext, dl, heads = P(), P(), P()
+        yd = c.y + R + 80
+        for x in (c.x - R, c.x + R):
+            ext.M(x, c.y + 14).V(yd + 12)
+        dl.M(c.x - R, yd).H(c.x + R)
+        heads.arrowhead((c.x + R, yd), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((c.x - R, yd), ARROW, deg=180, width=ARROW_W)
+        (x1, yf), x0 = polys[0][1], polys[0][2].x
+        yc = yd - 36
+        for x in (x0, x1):
+            ext.M(x, yf + 12).V(yc + 12)
+        dl.M(x0 - 34, yc).H(x0).M(x1, yc).H(x1 + 34)
+        heads.arrowhead((x0, yc), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((x1, yc), ARROW, deg=180, width=ARROW_W)
+        s.stroke(ext, UI, 1.2)
+        s.stroke(dl, UI_ALT, 1.2)
+        s.fill(heads, UI_ALT)
 
     # the first lambda carries the accent; the rest alternate UI and UI_ALT
     with s.buckets((ACCENT, UI, UI_ALT), "fill") as b:

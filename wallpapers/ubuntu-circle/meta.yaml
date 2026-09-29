@@ -16,3 +16,9 @@ model: claude-opus-5-5
 franchise:
   title: Ubuntu
   owner: Canonical Limited
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions
+    draft: true

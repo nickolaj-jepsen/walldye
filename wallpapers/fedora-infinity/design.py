@@ -7,7 +7,7 @@ from shapely.affinity import affine_transform
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design, polar
+from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob, polar
 from walldye.geom import parts
 
 G = 4.5  # grid unit: an eighth of the stroke, a 48th of the bubble's radius
@@ -65,8 +65,12 @@ def strands(g: BaseGeometry) -> list[LineString]:
     return [q for q in parts(g) if isinstance(q, LineString) and q.length > 2]
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the dimensions and the scored radius")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.42))
 
     def canvas(g: BaseGeometry) -> BaseGeometry:
@@ -129,24 +133,25 @@ def draw(s: Canvas) -> None:
         cl.poly(q.coords)
     s.stroke(cl, UI, 1.2, dash=DASHDOT)
 
-    # dimensions: the bubble's width below, one stroke's width above on the stem's edges
-    ext, dl, heads = P(), P(), P()
-    yd = c.y + R + 80
-    for x in (c.x - R, c.x + R):
-        ext.M(x, c.y + R + 14).V(yd + 12)
-    dl.M(c.x - R, yd).H(c.x + R)
-    heads.arrowhead((c.x + R, yd), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((c.x - R, yd), ARROW, deg=180, width=ARROW_W)
-    x0, x1 = at(STEM_X - HALF, 0).x, at(STEM_X + HALF, 0).x
-    yt = c.y - R - 44
-    for x in (x0, x1):
-        ext.M(x, c.y - math.sqrt(R * R - (x - c.x) ** 2) - 12).V(yt - 12)
-    dl.M(x0 - 34, yt).H(x0).M(x1, yt).H(x1 + 34)
-    heads.arrowhead((x0, yt), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((x1, yt), ARROW, deg=180, width=ARROW_W)
-    s.stroke(ext, UI, 1.2)
-    s.stroke(dl, UI_ALT, 1.2)
-    s.fill(heads, UI_ALT)
+    if s.params.dimensions:
+        # dimensions: the bubble's width below, one stroke's width above on the stem's edges
+        ext, dl, heads = P(), P(), P()
+        yd = c.y + R + 80
+        for x in (c.x - R, c.x + R):
+            ext.M(x, c.y + R + 14).V(yd + 12)
+        dl.M(c.x - R, yd).H(c.x + R)
+        heads.arrowhead((c.x + R, yd), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((c.x - R, yd), ARROW, deg=180, width=ARROW_W)
+        x0, x1 = at(STEM_X - HALF, 0).x, at(STEM_X + HALF, 0).x
+        yt = c.y - R - 44
+        for x in (x0, x1):
+            ext.M(x, c.y - math.sqrt(R * R - (x - c.x) ** 2) - 12).V(yt - 12)
+        dl.M(x0 - 34, yt).H(x0).M(x1, yt).H(x1 + 34)
+        heads.arrowhead((x0, yt), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((x1, yt), ARROW, deg=180, width=ARROW_W)
+        s.stroke(ext, UI, 1.2)
+        s.stroke(dl, UI_ALT, 1.2)
+        s.fill(heads, UI_ALT)
 
     # the mark, scored with the circle it squares off, its center lines, one radius and the
     # centers of the hook and the loop
@@ -157,14 +162,16 @@ def draw(s: Canvas) -> None:
     for q in strands(unary_union([axes, circle]).intersection(bubble.buffer(-3)).difference(clear)):
         scored.poly(q.coords)
     s.stroke(scored, BG, 1.2, dash=DASHDOT)
-    marks, tips = P(), P()
+    marks, radius, tips = P(), P(), P()
     for x, y in (HOOK, LOOP):
         p = at(x, y)
         marks.M(p.x - 9, p.y).H(p.x + 9).M(p.x, p.y - 9).V(p.y + 9)
-    rim = polar(c, R, deg=RADIUS_DEG)
-    for q in strands(LineString([c, rim]).difference(clear)):
-        marks.poly(q.coords)
-    tips.arrowhead(rim, ARROW, deg=RADIUS_DEG, width=ARROW_W)
     s.stroke(marks, BG, 1.2)
-    s.fill(tips, BG)
+    if s.params.dimensions:
+        rim = polar(c, R, deg=RADIUS_DEG)
+        for q in strands(LineString([c, rim]).difference(clear)):
+            radius.poly(q.coords)
+        tips.arrowhead(rim, ARROW, deg=RADIUS_DEG, width=ARROW_W)
+        s.stroke(radius, BG, 1.2)
+        s.fill(tips, BG)
     s.fill(P().shape(loop), ACCENT)

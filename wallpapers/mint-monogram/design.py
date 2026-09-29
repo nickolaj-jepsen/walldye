@@ -4,7 +4,21 @@ from shapely import LineString, Point, Polygon, box
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, ACCENT_3, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design, polar
+from walldye import (
+    ACCENT,
+    ACCENT_3,
+    BG,
+    BG_ALT,
+    UI,
+    UI_ALT,
+    Canvas,
+    P,
+    Params,
+    Vec,
+    design,
+    knob,
+    polar,
+)
 from walldye.geom import parts
 
 H = 26  # half the stroke width, the grid unit
@@ -42,8 +56,12 @@ def strands(g: BaseGeometry) -> list[LineString]:
     return [q for q in parts(g) if isinstance(q, LineString) and q.length > 2]
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the dimensions and the radius leaders")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.42))
     o = c - SIZE * (H / 2)
 
@@ -93,35 +111,36 @@ def draw(s: Canvas) -> None:
         cl.poly(q.coords)
     s.stroke(cl.circle(c, ring), UI, 1.2, dash=DASHDOT)
 
-    # dimensions: the overall width below, one stroke width across the top of the l
-    ext, dl, heads = P(), P(), P()
-    x0, x1 = at(0, 0).x, at(14, 0).x
-    yd = at(0, 13).y + 64
-    for x in (x0, x1):
-        ext.M(x, at(0, 9).y + 14).V(yd + 12)
-    dl.M(x0, yd).H(x1)
-    heads.arrowhead((x1, yd), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((x0, yd), ARROW, deg=180, width=ARROW_W)
-    xa, xb, yt = at(0, 0).x, at(2, 0).x, o.y
-    yc = yt - 40
-    for x in (xa, xb):
-        ext.M(x, yt - 12).V(yc - 12)
-    dl.M(xa - 34, yc).H(xa).M(xb, yc).H(xb + 34)
-    heads.arrowhead((xa, yc), ARROW, deg=0, width=ARROW_W)
-    heads.arrowhead((xb, yc), ARROW, deg=180, width=ARROW_W)
-    # radii: a leader from the ring onto the outer edge of one arch and one corner, on the line
-    # through the arc's center
-    for (ctr, _, r1, _, _), deg in ((ARCS[2], -45.0), (ARCS[1], 45.0)):
-        a = at(*ctr)
-        d = polar(Vec(0, 0), 1, deg=deg)
-        b = d.dot(a - c)
-        t = -b + (b * b - (abs(a - c) ** 2 - ring * ring)) ** 0.5
-        tip = a + d * (r1 * H)
-        dl.M(tip + d * 6).L(a + d * (t - 18))
-        heads.arrowhead(tip, ARROW, deg=deg + 180, width=ARROW_W)
-    s.stroke(ext, UI, 1.2)
-    s.stroke(dl, UI_ALT, 1.2)
-    s.fill(heads, UI_ALT)
+    if s.params.dimensions:
+        # dimensions: the overall width below, one stroke width across the top of the l
+        ext, dl, heads = P(), P(), P()
+        x0, x1 = at(0, 0).x, at(14, 0).x
+        yd = at(0, 13).y + 64
+        for x in (x0, x1):
+            ext.M(x, at(0, 9).y + 14).V(yd + 12)
+        dl.M(x0, yd).H(x1)
+        heads.arrowhead((x1, yd), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((x0, yd), ARROW, deg=180, width=ARROW_W)
+        xa, xb, yt = at(0, 0).x, at(2, 0).x, o.y
+        yc = yt - 40
+        for x in (xa, xb):
+            ext.M(x, yt - 12).V(yc - 12)
+        dl.M(xa - 34, yc).H(xa).M(xb, yc).H(xb + 34)
+        heads.arrowhead((xa, yc), ARROW, deg=0, width=ARROW_W)
+        heads.arrowhead((xb, yc), ARROW, deg=180, width=ARROW_W)
+        # radii: a leader from the ring onto the outer edge of one arch and one corner, on the line
+        # through the arc's center
+        for (ctr, _, r1, _, _), deg in ((ARCS[2], -45.0), (ARCS[1], 45.0)):
+            a = at(*ctr)
+            d = polar(Vec(0, 0), 1, deg=deg)
+            b = d.dot(a - c)
+            t = -b + (b * b - (abs(a - c) ** 2 - ring * ring)) ** 0.5
+            tip = a + d * (r1 * H)
+            dl.M(tip + d * 6).L(a + d * (t - 18))
+            heads.arrowhead(tip, ARROW, deg=deg + 180, width=ARROW_W)
+        s.stroke(ext, UI, 1.2)
+        s.stroke(dl, UI_ALT, 1.2)
+        s.fill(heads, UI_ALT)
 
     # the mark: arcs in UI under the straight runs in UI_ALT, the l in ACCENT
     s.fill(P().shape(mark), UI)
