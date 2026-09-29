@@ -13,7 +13,8 @@ const entries = sortPieces(collection, sort);
 const groups = filterGroups(entries.map((e) => e.data));
 const total = entries.length;
 // The view orders need a recorded view to mean anything (none in local builds without stats/).
-const viewed = sort === 'popular';
+const viewed = collection.some((e) => e.data.views > 0);
+const featured = sort === 'featured';
 const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
 ---
 
@@ -29,6 +30,7 @@ const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
       <fieldset>
         <legend class="sc">Sort</legend>
         <div class="seg">
+          {featured && <label><input type="radio" name="sort" value="featured" checked /><span>featured</span></label>}
           <label><input type="radio" name="sort" value="newest" checked={sort === 'newest'} /><span>newest</span></label>
           {viewed && <label><input type="radio" name="sort" value="popular" checked={sort === 'popular'} /><span>popular</span></label>}
           {viewed && <label><input type="radio" name="sort" value="views" /><span>most viewed</span></label>}

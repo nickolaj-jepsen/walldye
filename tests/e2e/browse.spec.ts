@@ -1,5 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
-import { publishedPieces, templateUrl } from './helpers';
+import YAML from 'yaml';
+import { publishedPieces, readText, templateUrl } from './helpers';
 
 /**
  * Browsing aids: the index's shape and color row, the picker's theme import, and on detail pages
@@ -38,15 +39,18 @@ test.describe('index shape', () => {
     await expect(page.locator('#facets input[name=shape][value="9x19.5"]')).toBeChecked();
 
     await page.locator(`.grid > li[data-slug="${portrait}"]`).scrollIntoViewIfNeeded();
+    // A tall plate reads slots.json before its template, which can take a while under a full run.
+    const loads = { timeout: 15_000 };
     await expect(plateImg(page, portrait)).toHaveAttribute(
       'src',
       templateUrl(PORTRAIT!.versions[0].slots, '9:19.5'),
+      loads,
     );
     await expect(link(page, portrait)).toHaveAttribute('href', `/${portrait}?shape=9x19.5`);
 
     await page.locator(`.grid > li[data-slug="${cropped}"]`).scrollIntoViewIfNeeded();
     const img = plateImg(page, cropped);
-    await expect(img).toHaveAttribute('data-aspect', '16:9');
+    await expect(img).toHaveAttribute('data-aspect', '16:9', loads);
     expect(await img.evaluate((el) => getComputedStyle(el).objectFit)).toBe('cover');
     const box = await img.boundingBox();
     expect(box!.height / box!.width).toBeGreaterThan(2);
@@ -81,6 +85,25 @@ test.describe('index shape on a phone', () => {
     expect(new URL(page.url()).search).toBe('');
     const first = await page.locator('.grid > li').first().getAttribute('data-slug');
     await expect(link(page, first!)).toHaveAttribute('href', `/${first}`);
+  });
+});
+
+test.describe('index order', () => {
+  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+
+  test('the index opens on the featured pieces, in featured.yaml order', async ({ page }) => {
+    const published = new Set(PIECES.map((p) => p.slug));
+    const featured = (YAML.parse(readText('featured.yaml')) as string[]).filter((s) =>
+      published.has(s),
+    );
+    test.skip(featured.length === 0, 'nothing on featured.yaml is published');
+    await page.goto('/');
+    await expect(page.locator('#facets input[name=sort][value=featured]')).toBeChecked();
+    const order = await page
+      .locator('.grid > li')
+      .evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
+    expect(order.slice(0, featured.length)).toEqual(featured);
+    expect(new URL(page.url()).search).toBe('');
   });
 });
 

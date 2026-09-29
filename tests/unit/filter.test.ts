@@ -133,6 +133,15 @@ describe('ordered', () => {
     expect(ordered(ITEMS, 'title').map((it) => it.slug)).toEqual(['b', 'd', 'c', 'a']);
   });
 
+  it('sorts featured pieces first in their order, then the rest by recent views', () => {
+    const featured = ITEMS.map((it) =>
+      it.slug === 'a' ? { ...it, featured: 1 } : it.slug === 'c' ? { ...it, featured: 0 } : it,
+    );
+    expect(ordered(featured, 'featured').map((it) => it.slug)).toEqual(['c', 'a', 'd', 'b']);
+    // Without a featured piece it is the popular order.
+    expect(ordered(ITEMS, 'featured').map((it) => it.slug)).toEqual(['d', 'b', 'c', 'a']);
+  });
+
   it('sorts by recent or all views, ties by newest then slug', () => {
     expect(ordered(ITEMS, 'popular').map((it) => it.slug)).toEqual(['d', 'b', 'c', 'a']);
     expect(ordered(ITEMS, 'views').map((it) => it.slug)).toEqual(['a', 'd', 'b', 'c']);

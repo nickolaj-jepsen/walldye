@@ -730,10 +730,30 @@ def run(
     return 1 if "error" in result else 0
 
 
+def unfeature(slugs: Sequence[str]) -> list[str]:
+    """Remove the `- <slug>` lines of `slugs` from featured.yaml, keeping every other line;
+    returns the slugs that were on it."""
+    if not common.FEATURED.exists():
+        return []
+    lines = common.FEATURED.read_text().splitlines(keepends=True)
+    entry = re.compile(r"-\s+['\"]?([a-z0-9-]+)['\"]?\s*(?:#.*)?$")
+    kept: list[str] = []
+    gone: list[str] = []
+    for line in lines:
+        m = entry.match(line.strip())
+        if m is not None and m.group(1) in slugs:
+            gone.append(m.group(1))
+        else:
+            kept.append(line)
+    if len(gone) > 0:
+        common.FEATURED.write_text("".join(kept))
+    return gone
+
+
 def drop(slugs: Sequence[str], yes: bool) -> int:
     """Delete wallpapers/<slug>/ for each of `slugs` after a y/N prompt (skipped with `yes`),
-    then regenerate index.json and forget their review state. Returns 1 when the prompt is
-    declined."""
+    then take them off featured.yaml, regenerate index.json and forget their review state.
+    Returns 1 when the prompt is declined."""
     dirs = [common.piece_dir(s) for s in slugs]
     if not yes:
         try:
@@ -746,6 +766,8 @@ def drop(slugs: Sequence[str], yes: bool) -> int:
     for d in dirs:
         shutil.rmtree(d)
         print(f"removed {d}")
+    for slug in unfeature(slugs):
+        print(f"took {slug} off {common.FEATURED.name}")
     state = load_state()
     if any(s in state for s in slugs):
         save_state({k: v for k, v in state.items() if k not in slugs})

@@ -30,6 +30,7 @@ const items: Item[] = [...grid.querySelectorAll<HTMLLIElement>(':scope > li')].m
   added: li.dataset.added ?? '',
   views: Number(li.dataset.views ?? 0),
   recent: Number(li.dataset.recent ?? 0),
+  featured: li.dataset.featured === undefined ? undefined : Number(li.dataset.featured),
   facets: new Set((li.dataset.facets ?? '').split(' ').filter(Boolean)),
   search: li.dataset.search ?? '',
 }));

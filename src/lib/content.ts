@@ -140,11 +140,15 @@ export function filterGroups(pieces: Piece[]): FilterGroup[] {
 const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 
 /** The index's sort orders, in the order the form lists them. */
-export const SORT_ORDERS = ['newest', 'popular', 'views', 'title'] as const;
+export const SORT_ORDERS = ['featured', 'newest', 'popular', 'views', 'title'] as const;
 export type SortOrder = (typeof SORT_ORDERS)[number];
 
-/** The index's first order: `popular` once any piece has a recorded view, else `newest`. */
-export function defaultSort(pieces: readonly Pick<SortKey, 'views'>[]): SortOrder {
+/**
+ * The index's first order: `featured` when any piece is on featured.yaml, else `popular` once any
+ * piece has a recorded view, else `newest`.
+ */
+export function defaultSort(pieces: readonly Pick<SortKey, 'views' | 'featured'>[]): SortOrder {
+  if (pieces.some((p) => p.featured !== undefined)) return 'featured';
   return pieces.some((p) => p.views > 0) ? 'popular' : 'newest';
 }
 
@@ -162,19 +166,27 @@ export interface SortKey {
   views: number;
   /** Page views weighted towards the last few days. */
   recent: number;
+  /** Place on featured.yaml, from 0; undefined when the piece is not on it. */
+  featured?: number;
 }
 
 /**
- * Index order: newest first (added descending), by title, or most views first (`popular` by recent
- * views, `views` by all of them). Title ties go by slug; the others by newest, then slug.
+ * Index order: newest first (added descending), by title, most views first (`popular` by recent
+ * views, `views` by all of them), or `featured`: the featured pieces in their featured.yaml order,
+ * then the rest as `popular`. Title ties go by slug; the others by newest, then slug.
  */
 export function comparePieces(a: SortKey, b: SortKey, order: SortOrder = 'newest'): number {
   const newest = b.added.localeCompare(a.added);
+  const rank = (k: SortKey) => k.featured ?? Number.POSITIVE_INFINITY;
+  const featured = order === 'featured' ? rank(a) - rank(b) || 0 : 0;
+  const views =
+    order === 'popular' || order === 'featured'
+      ? b.recent - a.recent
+      : order === 'views'
+        ? b.views - a.views
+        : 0;
   const primary =
-    order === 'title'
-      ? collator.compare(a.title, b.title)
-      : (order === 'popular' ? b.recent - a.recent : order === 'views' ? b.views - a.views : 0) ||
-        newest;
+    order === 'title' ? collator.compare(a.title, b.title) : featured || views || newest;
   return primary || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
 }
 

@@ -47,6 +47,7 @@ _ROOT_ENV: Final = os.environ.get("WALLDYE_ROOT", "")
 ROOT: Final = Path(_ROOT_ENV) if _ROOT_ENV != "" else Path(__file__).resolve().parents[2]
 WALLPAPERS = ROOT / "wallpapers"
 TAXONOMY = ROOT / "taxonomy.yaml"
+FEATURED = ROOT / "featured.yaml"  # the site's featured pieces, one `- <slug>` line each
 DESIGN_PYREFLY: Final = ROOT / "wallpapers" / "pyrefly.toml"  # the level designs are checked at
 DESIGN_ERROR: Final = "design.py must define @design(...) def draw(s: Canvas[...]) -> None"
 FIREPROOF_BG: Final = PRESETS["fireproof"]["bg"]

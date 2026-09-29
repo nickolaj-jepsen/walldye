@@ -29,9 +29,10 @@ const piece = (
   }) as unknown as Piece;
 
 describe('defaultSort', () => {
-  it('is popular once any piece has a view, else newest', () => {
+  it('is featured when any piece is, else popular once any piece has a view, else newest', () => {
     expect(defaultSort([{ views: 0 }, { views: 0 }])).toBe('newest');
     expect(defaultSort([{ views: 0 }, { views: 3 }])).toBe('popular');
+    expect(defaultSort([{ views: 0 }, { views: 3, featured: 0 }])).toBe('featured');
     expect(defaultSort([])).toBe('newest');
   });
 });

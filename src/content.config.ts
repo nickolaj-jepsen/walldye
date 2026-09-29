@@ -29,6 +29,8 @@ const ROOT = resolve('.');
 const WALLPAPERS = join(ROOT, 'wallpapers');
 /** The `stats` branch's day files, checked out by CI; absent locally unless fetched. */
 const VIEWS = join(ROOT, 'stats', 'views');
+/** The index's featured pieces, in order. */
+const FEATURED = join(ROOT, 'featured.yaml');
 
 /** `path` relative to the project root, with forward slashes; the endpoints read files by it. */
 const rootPath = (path: string) => relative(ROOT, path).split(sep).join('/');
@@ -176,6 +178,8 @@ const wallpaper = z
     views: z.number().int().nonnegative(),
     /** Page views weighted by age, a day's halving every HALF_LIFE_DAYS (src/lib/views.ts); rounded to 0.01. */
     recent: z.number().nonnegative(),
+    /** Place on featured.yaml, from 0; absent when the piece is not on it. */
+    featured: z.number().int().nonnegative().optional(),
   })
   .strict()
   .superRefine((m, ctx) => {
@@ -337,6 +341,25 @@ function attach(
   };
 }
 
+/**
+ * Place by slug on featured.yaml, from 0; empty without the file. Throws when it is not a list of
+ * slugs, names one twice, or names a folder that is not among `slugs`.
+ */
+function loadFeatured(slugs: readonly string[]): Map<string, number> {
+  if (!existsSync(FEATURED)) return new Map();
+  const list: unknown = YAML.parse(readFileSync(FEATURED, 'utf8')) ?? [];
+  if (!Array.isArray(list) || !list.every((s) => typeof s === 'string'))
+    throw new Error('featured.yaml: must be a list of slugs');
+  const out = new Map<string, number>();
+  for (const [i, slug] of list.entries()) {
+    if (out.has(slug)) throw new Error(`featured.yaml: ${slug} is listed twice`);
+    if (!slugs.includes(slug))
+      throw new Error(`featured.yaml: ${slug} is not a folder in wallpapers/`);
+    out.set(slug, i);
+  }
+  return out;
+}
+
 /** Views by slug from VIEWS, renames in public/_redirects folded in; empty without VIEWS. Throws naming a malformed file. */
 function loadViews(): Map<string, Views> {
   if (!existsSync(VIEWS)) return new Map();
@@ -385,7 +408,7 @@ function typesetNotes(html: string): string {
 /**
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
  * templates and their content-hashed URLs, the same for each named variant, design.py, the
- * resolved license and the page views in stats/views/. Draft pieces and draft variants load only in
+ * resolved license, the page views in stats/views/ and the place on featured.yaml. Draft pieces and draft variants load only in
  * `astro dev`; notes Markdown is rendered into the entry (`render(entry)`), and the other visible
  * text gets typographer's quotes.
  */
@@ -403,6 +426,7 @@ function wallpapers(): Loader {
           .filter((d) => d.isDirectory() && existsSync(join(WALLPAPERS, d.name, 'meta.yaml')))
           .map((d) => d.name)
           .sort();
+        const featured = loadFeatured(slugs);
         for (const slug of slugs) {
           const filePath = rootPath(join(WALLPAPERS, slug, 'meta.yaml'));
           let meta: Record<string, unknown>;
@@ -432,9 +456,15 @@ function wallpapers(): Loader {
           }
           const v = views.get(slug);
           const counts = { views: v?.views ?? 0, recent: Math.round((v?.recent ?? 0) * 100) / 100 };
+          const rank = featured.get(slug);
           const data = await parseData<Record<string, unknown>>({
             id: slug,
-            data: { ...meta, ...attached, ...counts },
+            data: {
+              ...meta,
+              ...attached,
+              ...counts,
+              ...(rank === undefined ? {} : { featured: rank }),
+            },
             filePath,
           });
           const notes =
@@ -456,10 +486,11 @@ function wallpapers(): Loader {
       await sync();
 
       if (watcher) {
-        watcher.add(WALLPAPERS);
+        watcher.add([WALLPAPERS, FEATURED]);
         let timer: ReturnType<typeof setTimeout> | undefined;
         const onChange = (path: string) => {
-          if (!resolve(path).startsWith(WALLPAPERS)) return;
+          const at = resolve(path);
+          if (!at.startsWith(WALLPAPERS) && at !== FEATURED) return;
           clearTimeout(timer);
           // `walldye build` writes a dozen files in a burst; resync once it settles.
           timer = setTimeout(() => sync().catch((e: Error) => logger.error(e.message)), 150);

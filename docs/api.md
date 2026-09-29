@@ -376,7 +376,7 @@ Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that ta
 | `sheet [<slug>... \| --all]` | a contact sheet (§12.2). `--theme`, `--aspect`, `--variant`, `--set`, `--wedge k=SPEC`, `--seeds A..B`, `--cols`, `--thumb`, `-o PATH` |
 | `params <slug>` | the params, their ranges and each named variant's values and label; `--json` for scripts |
 | `list` | slug, title, description, draft, native aspects and named variants, tab-separated |
-| `drop <slug>...` | deletes the folder after a y/N prompt; `--yes` when the owner has already confirmed |
+| `drop <slug>...` | deletes the folder after a y/N prompt and takes the piece off `featured.yaml`; `--yes` when the owner has already confirmed |
 | `themes` | the presets; `--theme T` also prints that theme's 21 tokens |
 
 `--theme` takes a preset name or bg-fg-accent seeds (also `bg,fg,accent` and `bg=..,fg=..,accent=..`), defaulting to `$WALLDYE_THEME`, else fireproof. `--variant` takes `default` or a declared name.

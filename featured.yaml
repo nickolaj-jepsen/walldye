@@ -1,0 +1,19 @@
+# The index's first order: these pieces lead, in this order, then the rest by page views (newest
+# first without any). Each entry names a folder in wallpapers/; a draft one is left out of
+# production builds. `walldye drop` takes a dropped piece off this list.
+- dither-moon
+- retro-grid
+- brain-coral
+- arcs
+- ribbons
+- koi
+- isometric
+- pixel-cat
+- stipple-nautilus
+- metro
+- dither-wave
+- red-wedge
+- lighthouse
+- electron-cloud
+- vinyl
+- dragon-quartet

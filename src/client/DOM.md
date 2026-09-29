@@ -53,7 +53,7 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | `.filter > summary .state` | empty span | The active terms, e.g. `“moon”, dithering`. |
 | `#facets` | `form[action="/"][method=get][role=search]` | Stop `submit`. On `reset`, defer the re-apply by one task. |
 | `#q` | `input[type=search][name=q]` | Normalize with `normalizeSearch()` from `src/lib/content.ts` and match against `data-search`. |
-| `#facets input[name=sort]` | radios `newest`, `popular`, `views` and `title` | `popular` and `views` are there only when a piece has a recorded view, and then `popular` is checked, else `newest`. The checked one's `defaultChecked` is the build's first order. |
+| `#facets input[name=sort]` | radios `featured`, `newest`, `popular`, `views` and `title` | `featured` is there only when a piece is featured, and `popular` and `views` only when a piece has a recorded view. The server checks the build's first order (`defaultSort()`: featured, else popular, else newest), so the checked one's `defaultChecked` is it. |
 | `#facets input[name=shape]` | radios `16x9` (checked), `16x10`, `21x9`, `32x9`, `9x19.5`, `10x16` | Check the device's shape (`deviceAspect()` in `screen.ts`) when the address has none, and make it the reset value; "clear" keeps the checked one. |
 | `#facets input[type=checkbox][name=<facet>][value=<value>]` | inside `label.entry` | `<facet>` is `technique`, `subject`, `lineage` or `other`; `other` takes `references`, `any-screen`, `source-code`, `claude` or `human-made`. |
 | `label.entry .count` | `span.count` | Starts at the unfiltered count. Disable a box when its live count is 0 and it is not checked. |
@@ -69,7 +69,7 @@ The query string is the form's own GET serialization: `q=<text>`, `sort=<order>`
 
 ### Plates
 
-`section.plates[data-shape]` holds `ul.grid > li`, in the build's first order (popular or newest, ties as `comparePieces()`). The shape boot and `grid.ts` set `data-shape` to the shown shape (`16:9` until then), which site.css reads for the plate ratio and the column width.
+`section.plates[data-shape]` holds `ul.grid > li`, in the build's first order (featured, popular or newest, ties as `comparePieces()`). The shape boot and `grid.ts` set `data-shape` to the shown shape (`16:9` until then), which site.css reads for the plate ratio and the column width.
 
 | Attribute on `li` | Value |
 |---|---|
@@ -80,6 +80,7 @@ The query string is the form's own GET serialization: `q=<text>`, `sort=<order>`
 | `data-added` | `YYYY-MM-DD` |
 | `data-views` | page views, all of them |
 | `data-recent` | page views weighted towards the last few days, to 0.01 |
+| `data-featured` | place on featured.yaml from 0, only on featured pieces |
 | `data-facets` | space-separated `facet:value` pairs, the computed `other:*` included (`facetPairs()`) |
 | `data-search` | normalized title, description and source authors and titles (`searchText()`) |
 
