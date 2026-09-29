@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const port = Number(process.env.E2E_PORT ?? 4399);
-const PERF = '**/perf.spec.ts';
 
 /**
  * End-to-end tests against the built site (`astro build` + `astro preview`).
@@ -23,12 +22,9 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: PERF },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testIgnore: PERF },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] }, testIgnore: PERF },
-    // Timing runs alone, after the rest; `--project=perf --no-deps` runs it by itself. No trace: recording
-    // one snapshots the whole index in the page on every action, a long task the site does not make.
-    { name: 'perf', use: { ...devices['Desktop Chrome'], trace: 'off' }, testMatch: PERF, dependencies: ['chromium', 'firefox', 'webkit'] },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
     command: `${process.env.E2E_SKIP_BUILD ? '' : 'pnpm astro build && '}pnpm astro preview --ignore-lock --host 127.0.0.1 --port ${port}`,
