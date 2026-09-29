@@ -43,7 +43,7 @@ Any other shape is a crop of the 16:9 template. The crop spans the template's fu
 
 A version is a named variant that a visitor can switch to on the piece's page: another moon phase, or a later moment of a sweep. Its values are a `Params` instance in design.py, and its label, description and draft flag are in meta.yaml.
 
-- A version must change what is depicted, not nudge a value. `walldye check` sets a floor: every pair of versions needs an ink-map cosine below 0.93 on their 16:9 dark templates. Passing the gate does not prove the subject changed, so review still judges it.
+- A version changes what is depicted, or leaves out a layer such as a drawing's dimensions; it never just nudges a value. Review judges this; check does not compare versions.
 - A design has at most four named variants, so five versions with the default.
 - Each version is built for every shape and regime into its own `build/<variant>/`, and is drafted or published on its own.
 - A design has one page. The version shown is `?v=<name>`, and versions get no URL, social card or sitemap entry of their own.
@@ -60,8 +60,7 @@ Pieces whose scripts were lost are a `source.svg` plus a `palette.yaml` that map
 - draws every shape and regime twice in-process and once in a subprocess under another `PYTHONHASHSEED`, and requires identical output;
 - lets the light regime share the dark template when their skeletons (the SVG without its colors) match, and otherwise makes a light template;
 - runs the held-out check, and serializes under two probe themes built to break assumptions: all three seeds nearly equal, and hex values that sort opposite to fireproof's;
-- enforces the constant-slot rule and the limits: no text, filters or images, and at most 1 MB and 20,000 elements;
-- compares the versions' ink maps.
+- enforces the constant-slot rule and the limits: no text, filters or images, and at most 1 MB and 20,000 elements.
 
 `--similar` reports near-clones across pieces, and `--paranoid` redraws from a fresh import for every theme.
 

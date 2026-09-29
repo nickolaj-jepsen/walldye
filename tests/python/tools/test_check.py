@@ -1,6 +1,5 @@
 import json
 import os
-import shutil
 import subprocess
 import sys
 
@@ -30,10 +29,6 @@ def report(slug: str, **kw) -> check.Report:
     check.lint_source(t)
     for v in t.variants:
         t.report.add(check.check_variant(check.Task(str(common.WALLPAPERS), slug, v, **kw)))
-    if t.piece is not None:
-        check.siblings(
-            t.report, t.piece.variant_names(), {v: r.ink for v, r in t.report.results.items()}
-        )
     return t.report
 
 
@@ -77,7 +72,7 @@ def test_determinism_failure_stops_before_geometry(wallpapers):
     regen.install(wallpapers, "unseeded")
     result = check.check_variant(check.Task(str(wallpapers), "unseeded", "default"))
     assert result.errors and all("two draws differ" in e for e in result.errors)
-    assert result.templates == {} and result.entries == {} and result.ink is None
+    assert result.templates == {} and result.entries == {} and result.focus is None
 
 
 def test_legacy_backstops(wallpapers):
@@ -170,20 +165,8 @@ def test_paranoid_catches_leaked_module_state(wallpapers):
     assert errors[0].startswith("10:16 dark: a fresh import drawn for fireproof differs")
 
 
-def test_sibling_rule(wallpapers):
-    versions(wallpapers)
-    design = wallpapers / "versions/design.py"
-    design.write_text(
-        design.read_text().replace('"late": Clock(hour=8)', '"late": Clock(hour=2.05)')
-    )
-    errors = report("versions").errors
-    assert len(errors) == 1
-    assert errors[0].startswith("versions default and late look alike (ink-map cosine 0.9")
-    assert errors[0].endswith("must be below 0.93): a variant must change what is depicted")
-
-
 @pytest.mark.parametrize("bg", ["BG_DEEP", "MUTED"])
-def test_sibling_rule_measures_from_the_designs_own_background(wallpapers, bg):
+def test_focus_is_measured_from_the_designs_own_background(wallpapers, bg):
     versions(wallpapers)
     design = wallpapers / "versions/design.py"
     text = design.read_text().replace("import ACCENT,", f"import ACCENT, {bg},")
@@ -195,30 +178,12 @@ def test_sibling_rule_measures_from_the_designs_own_background(wallpapers, bg):
     assert fx > 0.6 and fy < 0.4
 
 
-def test_one_variant_is_compared_with_built_siblings(wallpapers, capsys):
+def test_one_variant_is_checked_alone(wallpapers):
     versions(wallpapers)
     r = report("versions", variant="late")
-    assert r.errors == [] and list(r.results) == ["late"]
-    assert r.notes == [
-        "default is not built yet, so the other versions were not compared with it",
-        "bare is not built yet, so the other versions were not compared with it",
-    ]
-    built(capsys, "versions")
-    design = wallpapers / "versions/design.py"
-    design.write_text(
-        design.read_text().replace('"late": Clock(hour=8)', '"late": Clock(hour=2.05)')
-    )
-    r = report("versions", variant="late")
-    assert r.notes == [] and len(r.errors) == 1 and "default and late look alike" in r.errors[0]
+    assert r.errors == [] and r.notes == [] and list(r.results) == ["late"]
     with pytest.raises(common.UsageError, match="has no variant 'early'"):
         check.prepare("versions", "early")
-    # an old clash between two other versions is not this variant's to fix
-    shutil.copy(common.build_dir("versions") / "16x9.svg", common.build_dir("versions", "bare"))
-    design.write_text(
-        design.read_text().replace('"late": Clock(hour=2.05)', '"late": Clock(hour=8)')
-    )
-    assert report("versions", variant="late").errors == []
-    assert report("versions").errors == []
 
 
 def test_variant_values_outside_soft_ranges_warn(wallpapers, capsys):
