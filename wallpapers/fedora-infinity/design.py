@@ -162,16 +162,15 @@ def draw(s: Canvas[Drawing]) -> None:
     for q in strands(unary_union([axes, circle]).intersection(bubble.buffer(-3)).difference(clear)):
         scored.poly(q.coords)
     s.stroke(scored, BG, 1.2, dash=DASHDOT)
-    marks, radius, tips = P(), P(), P()
+    marks, tips = P(), P()
     for x, y in (HOOK, LOOP):
         p = at(x, y)
         marks.M(p.x - 9, p.y).H(p.x + 9).M(p.x, p.y - 9).V(p.y + 9)
-    s.stroke(marks, BG, 1.2)
     if s.params.dimensions:
         rim = polar(c, R, deg=RADIUS_DEG)
         for q in strands(LineString([c, rim]).difference(clear)):
-            radius.poly(q.coords)
+            marks.poly(q.coords)
         tips.arrowhead(rim, ARROW, deg=RADIUS_DEG, width=ARROW_W)
-        s.stroke(radius, BG, 1.2)
-        s.fill(tips, BG)
+    s.stroke(marks, BG, 1.2)
+    s.fill(tips, BG)
     s.fill(P().shape(loop), ACCENT)

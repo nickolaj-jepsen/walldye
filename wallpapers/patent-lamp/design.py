@@ -17,9 +17,11 @@ from walldye import (
     UI_HI,
     Canvas,
     P,
+    Params,
     Path,
     Rect,
     design,
+    knob,
     ladder,
 )
 from walldye.geom import Affine, hatch, parts, poisson_disk, spline_points
@@ -115,8 +117,12 @@ def rule(d: Path, xs: list[float], y0: float, y1: float, region: BaseGeometry) -
         d.shape(LineString([(x, y0), (x, y1)]).intersection(region))
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    leaders: bool = knob(default=True, doc="the leaders from the parts to their ring markers")
+
+
+@design(aspects="any", variants={"no-leaders": Drawing(leaders=False)})
+def draw(s: Canvas[Drawing]) -> None:
     # 0.615 of a landscape canvas's width; centered and larger in portrait, which is width-bound
     at = s.pick(landscape=(0.615, 0.5), portrait=(0.5, 0.54))
     k = 1.0 if s.landscape else 1.35
@@ -189,11 +195,12 @@ def draw(s: Canvas) -> None:
 
     # leaders: one gentle bow from each part to its marker
     lead, markers = P(), P()
-    for (sx, sy), (ex, ey) in LEADERS:
-        dx, dy, bow = ex - sx, ey - sy, math.copysign(0.12, ex - sx)
-        tx = ex - math.copysign(MARK_R, dx)
-        lead.M(sx, sy).Q((sx + tx) / 2 - dy * bow, (sy + ey) / 2 + dx * bow * 0.5, tx, ey)
-        markers.circle((ex, ey), MARK_R)
+    if s.params.leaders:
+        for (sx, sy), (ex, ey) in LEADERS:
+            dx, dy, bow = ex - sx, ey - sy, math.copysign(0.12, ex - sx)
+            tx = ex - math.copysign(MARK_R, dx)
+            lead.M(sx, sy).Q((sx + tx) / 2 - dy * bow, (sy + ey) / 2 + dx * bow * 0.5, tx, ey)
+            markers.circle((ex, ey), MARK_R)
 
     loop = Polygon(spline_points(FILAMENT, 16))
     with s.group(transform=place):

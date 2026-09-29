@@ -3,7 +3,21 @@
 from dataclasses import dataclass
 from itertools import pairwise
 
-from walldye import ACCENT, ACCENT_3, BG, BG_ALT, UI, UI_ALT, UI_HI, Canvas, P, Vec, design
+from walldye import (
+    ACCENT,
+    ACCENT_3,
+    BG,
+    BG_ALT,
+    UI,
+    UI_ALT,
+    UI_HI,
+    Canvas,
+    P,
+    Params,
+    Vec,
+    design,
+    knob,
+)
 
 # Geometry in meters: x along the bridge from mid-span (east positive), z above sea level.
 MAIN, SIDE = 1624.0, 535.0
@@ -86,8 +100,12 @@ class Sheet:
         return self.wy - z * self.k
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the span, sag, clearance and height dimensions")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     if s.landscape:
         # the whole suspension bridge, cut mid-span on the approaches: wider screens show
         # more of them, stopping short of the west landfall
@@ -201,40 +219,43 @@ def draw(s: Canvas) -> None:
         centers.M(sh.p(px, PYLON_TOP + 30)).L(sh.p(px, caisson_top[px] - 28))
     s.stroke(centers, UI, 1.2, dash=DASHDOT)
 
-    # dimensions
-    dims, heads, ext = P(), P(), P()
-    head = 12 if big else 9
-    if s.landscape:
-        # span chain from bent to pylon to pylon to bent, and the sag at mid-span
-        yd = sh.y(PYLON_TOP + 70)
-        stops = [-BENT_X, -PYLON_X, PYLON_X, BENT_X]
-        dims.M(sh.x(stops[0]), yd).H(sh.x(stops[-1]))
-        for x in stops:
-            reach = PYLON_TOP + 14 if abs(x) == PYLON_X else 74
-            ext.M(sh.x(x), yd - 12).V(sh.y(reach))
-        for a, b in pairwise(stops):
-            heads.arrowhead((sh.x(a), yd), head, deg=180).arrowhead((sh.x(b), yd), head, deg=0)
-        # the sag below the chord between saddles, and the shipping clearance under the deck
-        chord = sh.y(SADDLE)
-        ext.M(sh.x(-PYLON_X) + 24, chord).H(sh.x(PYLON_X) - 24)
-        for top, foot in ((chord, sh.y(CABLE_LOW)), (sh.y(ROAD_TOP - GIRDER), sh.wy)):
-            dims.M(sh.x(0), top).V(foot)
-            heads.arrowhead((sh.x(0), top), head, deg=-90)
-            heads.arrowhead((sh.x(0), foot), head, deg=90)
-    else:
-        # pylon height beside the pylon, and the hanger gap across it
-        px = PYLON_X
-        xd = sh.x(px + 72)
-        ext.M(sh.x(px + LEG_TOP / 2 + 6), sh.y(PYLON_TOP)).H(xd + 14)
-        dims.M(xd, sh.y(PYLON_TOP)).V(sh.wy)
-        heads.arrowhead((xd, sh.y(PYLON_TOP)), head, deg=-90).arrowhead((xd, sh.wy), head, deg=90)
-        yd = sh.y(road(px) + 12)
-        a, b = sh.x(px - HANGER_GAP), sh.x(px + HANGER_GAP)
-        dims.M(a, yd).H(b)
-        heads.arrowhead((a, yd), head, deg=180).arrowhead((b, yd), head, deg=0)
-    s.stroke(ext, UI, 1.2)
-    s.stroke(dims, UI_ALT, 1.2)
-    s.fill(heads, UI_ALT)
+    if s.params.dimensions:
+        # dimensions
+        dims, heads, ext = P(), P(), P()
+        head = 12 if big else 9
+        if s.landscape:
+            # span chain from bent to pylon to pylon to bent, and the sag at mid-span
+            yd = sh.y(PYLON_TOP + 70)
+            stops = [-BENT_X, -PYLON_X, PYLON_X, BENT_X]
+            dims.M(sh.x(stops[0]), yd).H(sh.x(stops[-1]))
+            for x in stops:
+                reach = PYLON_TOP + 14 if abs(x) == PYLON_X else 74
+                ext.M(sh.x(x), yd - 12).V(sh.y(reach))
+            for a, b in pairwise(stops):
+                heads.arrowhead((sh.x(a), yd), head, deg=180).arrowhead((sh.x(b), yd), head, deg=0)
+            # the sag below the chord between saddles, and the shipping clearance under the deck
+            chord = sh.y(SADDLE)
+            ext.M(sh.x(-PYLON_X) + 24, chord).H(sh.x(PYLON_X) - 24)
+            for top, foot in ((chord, sh.y(CABLE_LOW)), (sh.y(ROAD_TOP - GIRDER), sh.wy)):
+                dims.M(sh.x(0), top).V(foot)
+                heads.arrowhead((sh.x(0), top), head, deg=-90)
+                heads.arrowhead((sh.x(0), foot), head, deg=90)
+        else:
+            # pylon height beside the pylon, and the hanger gap across it
+            px = PYLON_X
+            xd = sh.x(px + 72)
+            ext.M(sh.x(px + LEG_TOP / 2 + 6), sh.y(PYLON_TOP)).H(xd + 14)
+            dims.M(xd, sh.y(PYLON_TOP)).V(sh.wy)
+            heads.arrowhead((xd, sh.y(PYLON_TOP)), head, deg=-90).arrowhead(
+                (xd, sh.wy), head, deg=90
+            )
+            yd = sh.y(road(px) + 12)
+            a, b = sh.x(px - HANGER_GAP), sh.x(px + HANGER_GAP)
+            dims.M(a, yd).H(b)
+            heads.arrowhead((a, yd), head, deg=180).arrowhead((b, yd), head, deg=0)
+        s.stroke(ext, UI, 1.2)
+        s.stroke(dims, UI_ALT, 1.2)
+        s.fill(heads, UI_ALT)
 
     # the cable splaying down inside each anchor block to its anchor plate
     splay, plates = P(), P()

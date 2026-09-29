@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from shapely import LineString, Point, Polygon, unary_union
 
-from walldye import ACCENT, ACCENT_HI, UI, UI_ALT, UI_HI, Canvas, P, Path, Vec, design
+from walldye import ACCENT, ACCENT_HI, UI, UI_ALT, UI_HI, Canvas, P, Params, Path, Vec, design, knob
 from walldye.geom import Affine, bezier_points, hatch, spline_points
 from walldye.pixel import glyphs, text_width
 
@@ -186,8 +186,14 @@ def dimension(s: Canvas, d: Path, heads: Path, xa: float, xb: float, y: int, lab
     glyphs(s, label, UI_HI, at=(round(mid - w / 2), y - 8), font="8x16", px=1)
 
 
-@design(aspects=("16:9", "16:10", "21:9", "32:9"))
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the length, wheelbase and height dimensions")
+
+
+@design(
+    aspects=("16:9", "16:10", "21:9", "32:9"), variants={"undimensioned": Drawing(dimensions=False)}
+)
+def draw(s: Canvas[Drawing]) -> None:
     m = Affine.translate(X0, GY) @ Affine.scale(K, -K) @ Affine.translate(-NOSE_X, -GROUND)
 
     def curve(pts: ArrayLike, n: int = 14) -> NDArray[np.float64]:
@@ -263,16 +269,19 @@ def draw(s: Canvas) -> None:
         cross(fine, m(CG), 14)  # center of gravity
         fine.circle(m(CG), 5)
 
-        # dimensions: wheelbase and overall length, and height over the reference plane
         heads = P()
-        dimension(s, fine, heads, hubs[0].x, hubs[1].x, GY + 58, str(WB))
-        dimension(s, fine, heads, X0, m((TAIL_X, 0)).x, GY + 98, str(TAIL_X - NOSE_X))
-        hx, htop, yref = X0 - 60, m((0, TOP_Z)).y, m((0, 0)).y
-        mid = (yref + htop) / 2
-        fine.M(m((1799, 0)).x - 16, htop).H(hx - 8).M(X0 - 12, yref).H(hx - 8)
-        fine.M(hx, yref).V(mid + 22).M(hx, mid - 22).V(htop)
-        heads.arrowhead((hx, htop), 7, deg=-90, width=2.6)
-        heads.arrowhead((hx, yref), 7, deg=90, width=2.6)
+        labels: list[tuple[str, tuple[float, float]]] = []
+        if s.params.dimensions:
+            # dimensions: wheelbase and overall length, and height over the reference plane
+            dimension(s, fine, heads, hubs[0].x, hubs[1].x, GY + 58, str(WB))
+            dimension(s, fine, heads, X0, m((TAIL_X, 0)).x, GY + 98, str(TAIL_X - NOSE_X))
+            hx, htop, yref = X0 - 60, m((0, TOP_Z)).y, m((0, 0)).y
+            mid = (yref + htop) / 2
+            fine.M(m((1799, 0)).x - 16, htop).H(hx - 8).M(X0 - 12, yref).H(hx - 8)
+            fine.M(hx, yref).V(mid + 22).M(hx, mid - 22).V(htop)
+            heads.arrowhead((hx, htop), 7, deg=-90, width=2.6)
+            heads.arrowhead((hx, yref), 7, deg=90, width=2.6)
+            labels.append((str(TOP_Z), (hx - 12, round(mid) - 8)))
 
         # detail A: the rear wing enlarged, its flap drawn again at the straight-mode angle
         local = [naca(*q) for q in REAR_WING]
@@ -326,7 +335,7 @@ def draw(s: Canvas) -> None:
         s.stroke(ghost, UI_ALT, 1, dash=(7, 4))
         s.fill(heads, UI_HI)
         for text, at in (
-            (str(TOP_Z), (hx - 12, round(mid) - 8)),
+            *labels,
             ("FIG. 1", (X0, GY + 140)),
             ("A", (round(BUB.x + BR * 0.72) + 8, round(BUB.y - BR * 0.72) - 24)),
             ("A", (round(wc.x + 62 * 0.72) + 6, round(wc.y - 62 * 0.72) - 22)),

@@ -13,3 +13,9 @@ sources:
     url: https://patents.google.com/patent/US223898A/en
 added: 2026-09-27
 model: claude-opus-5-5
+variants:
+  default:
+    label: With leader lines
+  no-leaders:
+    label: Without leader lines
+    draft: true

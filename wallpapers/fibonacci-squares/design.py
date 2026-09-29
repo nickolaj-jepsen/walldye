@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design, mix, ramp
+from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob, mix, ramp
 from walldye.geom import Affine
 
 PHI = (1 + 5**0.5) / 2
@@ -69,8 +69,9 @@ def sheet(s: Canvas) -> None:
     s.stroke(marks, FAINT, 1.2)
 
 
-def construction(s: Canvas) -> None:
-    """The rectangle, its squares, construction lines, dimensions and spiral, in local units."""
+def construction(s: Canvas, dimensions: bool) -> None:
+    """The rectangle, its squares, construction lines, spiral and, when `dimensions`, its
+    dimensions, in local units."""
     for tint, c in zip(TINTS, CUTS, strict=True):
         s.fill(P().rect(c.corner.x, c.corner.y, c.side, c.side), tint)
     grid = P()
@@ -96,31 +97,36 @@ def construction(s: Canvas) -> None:
     pins = P().dots([foot, *(c.pivot for c in CUTS[:6])], 4)
     s.path(pins, fill=BG, stroke=UI_ALT, stroke_width=1.4)
 
-    # dimensions: 1 and 1/phi along the top, 1 down the left side
-    dims, heads = P(), P()
-    for x in (0, RH, RW):
-        dims.M(x, -12).V(-DIM - 12)
-    for xa, xb in ((0, RH), (RH, RW)):
-        dims.M(xa, -DIM).H(xb)
-        heads.arrowhead((xb, -DIM), 14, deg=0).arrowhead((xa, -DIM), 14, deg=180)
-    for y in (0, RH):
-        dims.M(-12, y).H(-DIM - 12)
-    dims.M(-DIM, 0).V(RH)
-    heads.arrowhead((-DIM, RH), 14, deg=90).arrowhead((-DIM, 0), 14, deg=-90)
-    s.stroke(dims, UI, 1.3)
-    s.fill(heads, UI_ALT)
+    if dimensions:
+        # dimensions: 1 and 1/phi along the top, 1 down the left side
+        dims, heads = P(), P()
+        for x in (0, RH, RW):
+            dims.M(x, -12).V(-DIM - 12)
+        for xa, xb in ((0, RH), (RH, RW)):
+            dims.M(xa, -DIM).H(xb)
+            heads.arrowhead((xb, -DIM), 14, deg=0).arrowhead((xa, -DIM), 14, deg=180)
+        for y in (0, RH):
+            dims.M(-12, y).H(-DIM - 12)
+        dims.M(-DIM, 0).V(RH)
+        heads.arrowhead((-DIM, RH), 14, deg=90).arrowhead((-DIM, 0), 14, deg=-90)
+        s.stroke(dims, UI, 1.3)
+        s.fill(heads, UI_ALT)
 
     for i, c in enumerate(CUTS):
         w = round(4.2 - 2.4 * i / (STEPS - 1), 2)
         s.stroke(P().M(c.start).A(c.side, c.side, 0, 0, 1, c.end), ACCENT, w, cap="round")
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the dimensions of the rectangle")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     sheet(s)
     # Landscape keeps the original's spot right of center. Portrait stands the rectangle upright
     # with a quarter turn anticlockwise: the first square at the bottom, dimensions left and below.
     c = s.pick(landscape=(37 / 64, 14 / 27), portrait=(0.53, 0.465))
     turn = 0 if s.landscape else -90
     with s.group(transform=Affine.frame(c, deg=turn) @ Affine.translate(-RW / 2, -RH / 2)):
-        construction(s)
+        construction(s, s.params.dimensions)

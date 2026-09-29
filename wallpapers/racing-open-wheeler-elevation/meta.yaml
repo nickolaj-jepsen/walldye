@@ -36,3 +36,10 @@ model: claude-opus-5-5
 franchise:
   title: Formula 1
   owner: Formula One Group
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions
+    description: A 2026 Formula 1 car in side elevation. An enlarged section of its rear wing shows the flap in both positions.
+    draft: true

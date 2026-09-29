@@ -15,8 +15,10 @@ from walldye import (
     UI_ALT,
     Canvas,
     P,
+    Params,
     Vec,
     design,
+    knob,
     ladder,
     mix,
     polar,
@@ -56,19 +58,24 @@ def pores(c: Vec) -> list[Pore]:
     return out
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(default=True, doc="the dimension across the shell")
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     # right of center on a landscape screen; centered across a portrait one, above the middle
     c = s.pick(landscape=(0.625, 0.486), portrait=(0.5, 0.4))
 
-    # specimen-plate construction: center lines and one dimension across the shell
+    # specimen-plate construction: center lines, and one dimension across the shell
     guide = P().M(c + (-R - 230, 0)).H(c.x + R + 230).M(c + (0, -R - 150)).V(c.y + R + 150)
     s.stroke(guide, UI, 1.2, dash=(36, 6, 4, 6))
-    y = c.y + DIM
-    dim = P().M(c.x - R, y).H(c.x + R)
-    for x in (c.x - R, c.x + R):
-        dim.M(x, c.y + 12).V(y + 14).M(x - 7, y + 7).L(x + 7, y - 7)
-    s.stroke(dim, UI, 1.2)
+    if s.params.dimensions:
+        y = c.y + DIM
+        dim = P().M(c.x - R, y).H(c.x + R)
+        for x in (c.x - R, c.x + R):
+            dim.M(x, c.y + 12).V(y + 14).M(x - 7, y + 7).L(x + 7, y - 7)
+        s.stroke(dim, UI, 1.2)
 
     # spines and bristles sit behind the shell
     spines, ribs, bristles = P(), P(), P()

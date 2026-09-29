@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from shapely import Polygon
 
-from walldye import ACCENT, BG, UI, UI_ALT, UI_HI, Canvas, P, Path, Vec, design
+from walldye import ACCENT, BG, UI, UI_ALT, UI_HI, Canvas, P, Params, Path, Vec, design, knob
 from walldye.geom import Affine, hatch, parts
 
 # Section coordinates in feet: x across the track towards the outside wall, z up, from the
@@ -66,8 +66,14 @@ def box(x0: float, z0: float, x1: float, z1: float) -> list[tuple[float, float]]
     return [(x0, z0), (x1, z0), (x1, z1), (x0, z1)]
 
 
-@design(aspects="any")
-def draw(s: Canvas) -> None:
+class Drawing(Params):
+    dimensions: bool = knob(
+        default=True, doc="the banking angle, width and fence height dimensions"
+    )
+
+
+@design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
+def draw(s: Canvas[Drawing]) -> None:
     if s.landscape:
         # key plan and section side by side on the line of action, shrunk to fit if need be
         scaled = (PLAN_X[1] - PLAN_X[0]) * KP + (X_OUT + 0.7 - X_IN) * 15
@@ -212,31 +218,32 @@ def draw(s: Canvas) -> None:
         s.stroke(stub, UI_ALT, 1.2, dash=DASHDOT)
     key_plan(s, s.data("tri-oval.json"), center, kp)
 
-    # dimensions: the banking angle at the top, the width up the slope, the fence height
-    ext, dims, arrows = P(), P(), P()
-    crest = at((RUN, RISE))
-    ext.M(at((RUN - 1.2, RISE))).L(at((RUN - ARC_R - 2.5, RISE)))
-    r = ARC_R * k
-    dims.arc(crest, r, deg=(149, 180))
-    for deg, turn in ((180, 90), (149, -90)):
-        end = crest + Vec(math.cos(math.radians(deg)), math.sin(math.radians(deg))) * r
-        arrows.arrowhead(end, 12, deg=deg + turn, width=3.6)
-    lo, hi = np.zeros(2), np.array([RUN, RISE])
-    for p in (lo, hi):
-        ext.M(at(p + N * 1.5)).L(at(p + N * (OFF + 1.5)))
-    da, db = at(lo + N * OFF), at(hi + N * OFF)
-    dims.M(da).L(db)
-    arrows.arrowhead(da, 12, deg=ang(db, da), width=3.6)
-    arrows.arrowhead(db, 12, deg=ang(da, db), width=3.6)
-    xf = fx + 4.5
-    for z in (f0, f1):
-        ext.M(at((fx + 1.2, z))).L(at((xf + 1.5, z)))
-    fa, fb = at((xf, f0)), at((xf, f1))
-    dims.M(fa).L(fb)
-    arrows.arrowhead(fa, 12, deg=90, width=3.6).arrowhead(fb, 12, deg=-90, width=3.6)
-    s.stroke(ext, UI, 1.2)
-    s.stroke(dims, UI_ALT, 1.2)
-    s.fill(arrows, UI_ALT)
+    if s.params.dimensions:
+        # dimensions: the banking angle at the top, the width up the slope, the fence height
+        ext, dims, arrows = P(), P(), P()
+        crest = at((RUN, RISE))
+        ext.M(at((RUN - 1.2, RISE))).L(at((RUN - ARC_R - 2.5, RISE)))
+        r = ARC_R * k
+        dims.arc(crest, r, deg=(149, 180))
+        for deg, turn in ((180, 90), (149, -90)):
+            end = crest + Vec(math.cos(math.radians(deg)), math.sin(math.radians(deg))) * r
+            arrows.arrowhead(end, 12, deg=deg + turn, width=3.6)
+        lo, hi = np.zeros(2), np.array([RUN, RISE])
+        for p in (lo, hi):
+            ext.M(at(p + N * 1.5)).L(at(p + N * (OFF + 1.5)))
+        da, db = at(lo + N * OFF), at(hi + N * OFF)
+        dims.M(da).L(db)
+        arrows.arrowhead(da, 12, deg=ang(db, da), width=3.6)
+        arrows.arrowhead(db, 12, deg=ang(da, db), width=3.6)
+        xf = fx + 4.5
+        for z in (f0, f1):
+            ext.M(at((fx + 1.2, z))).L(at((xf + 1.5, z)))
+        fa, fb = at((xf, f0)), at((xf, f1))
+        dims.M(fa).L(fb)
+        arrows.arrowhead(fa, 12, deg=90, width=3.6).arrowhead(fb, 12, deg=-90, width=3.6)
+        s.stroke(ext, UI, 1.2)
+        s.stroke(dims, UI_ALT, 1.2)
+        s.fill(arrows, UI_ALT)
 
 
 def key_plan(s: Canvas, loop: list[list[float]], center: Vec, kp: float) -> None:
