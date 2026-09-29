@@ -23,4 +23,3 @@ variants:
     label: With labels
   unlabeled:
     label: Without labels
-    draft: true

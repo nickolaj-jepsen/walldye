@@ -18,4 +18,3 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
-    draft: true

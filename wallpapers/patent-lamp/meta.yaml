@@ -18,4 +18,3 @@ variants:
     label: With leader lines
   no-leaders:
     label: Without leader lines
-    draft: true

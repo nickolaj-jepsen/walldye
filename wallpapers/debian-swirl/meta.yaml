@@ -20,4 +20,3 @@ variants:
   undimensioned:
     label: Without dimensions
     description: The Debian swirl split into ten compass arcs, each continued as a full circle, with the tail filled in.
-    draft: true
