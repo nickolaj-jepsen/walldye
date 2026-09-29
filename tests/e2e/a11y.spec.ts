@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 test.describe('structure', () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
@@ -9,7 +9,8 @@ test.describe('structure', () => {
       await expect(page.getByRole('banner')).toHaveCount(1);
       await expect(page.getByRole('main')).toHaveCount(1);
       await expect(page.locator('h1')).toHaveCount(1);
-      for (const nav of await page.getByRole('navigation').all()) expect(await nav.getAttribute('aria-label')).toBeTruthy();
+      for (const nav of await page.getByRole('navigation').all())
+        expect(await nav.getAttribute('aria-label')).toBeTruthy();
       await expect(page.getByRole('navigation', { name: 'Site' })).toBeVisible();
       await page.keyboard.press('Tab');
       await expect(page.locator('.skip')).toBeFocused();
@@ -19,7 +20,9 @@ test.describe('structure', () => {
     });
   }
 
-  test('the not-found page, served at every missing address, stays out of search results', async ({ page }) => {
+  test('the not-found page, served at every missing address, stays out of search results', async ({
+    page,
+  }) => {
     await page.goto('/no-such-wallpaper');
     await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex');
     await expect(page.locator('link[rel=canonical], meta[property="og:url"]')).toHaveCount(0);
@@ -31,7 +34,9 @@ test.describe('structure', () => {
   test('robots.txt lets every crawler in and names the sitemap', async ({ request }) => {
     const robots = await request.get('/robots.txt');
     expect(robots.status()).toBe(200);
-    expect(await robots.text()).toBe('User-agent: *\nAllow: /\n\nSitemap: https://walldye.com/sitemap-index.xml\n');
+    expect(await robots.text()).toBe(
+      'User-agent: *\nAllow: /\n\nSitemap: https://walldye.com/sitemap-index.xml\n',
+    );
   });
 });
 
@@ -55,16 +60,33 @@ async function tabStops(page: Page, limit = 80): Promise<Stop[]> {
       // Plate links draw their ring on the plate; segmented radios on the label text.
       const plate = el.querySelector('.plate');
       const ringOn = plate ? getComputedStyle(plate, '::after').boxShadow : '';
-      const seg = el.matches('.seg input') ? getComputedStyle(el.nextElementSibling as Element).outlineStyle : 'none';
-      const ring = (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2) || /2px/.test(ringOn) || seg !== 'none';
-      const labelledBy = el.getAttribute('aria-labelledby')?.split(/\s+/).map((id) => document.getElementById(id)?.innerText ?? '').join(' ');
-      const label = (labelledBy || el.getAttribute('aria-label') || el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 40);
-      const what = `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${el instanceof HTMLInputElement ? `[${el.name}=${el.value}]` : ''} ${label}`.trim();
+      const seg = el.matches('.seg input')
+        ? getComputedStyle(el.nextElementSibling as Element).outlineStyle
+        : 'none';
+      const ring =
+        (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2) ||
+        /2px/.test(ringOn) ||
+        seg !== 'none';
+      const labelledBy = el
+        .getAttribute('aria-labelledby')
+        ?.split(/\s+/)
+        .map((id) => document.getElementById(id)?.innerText ?? '')
+        .join(' ');
+      const label = (labelledBy || el.getAttribute('aria-label') || el.innerText || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .slice(0, 40);
+      const what =
+        `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${el instanceof HTMLInputElement ? `[${el.name}=${el.value}]` : ''} ${label}`.trim();
       const shown = r.width > 0 && r.height > 0 && cs.visibility !== 'hidden';
       return { what, visible: shown, ring };
     });
     // Past the last stop focus goes to the browser, wraps to the first, or (Firefox) stays put.
-    if (!stop || (stops.length && (stop.what === stops[0].what || stop.what === stops.at(-1)!.what))) break;
+    if (
+      !stop ||
+      (stops.length && (stop.what === stops[0].what || stop.what === stops.at(-1)!.what))
+    )
+      break;
     stops.push(stop);
   }
   return stops;
@@ -73,7 +95,9 @@ async function tabStops(page: Page, limit = 80): Promise<Stop[]> {
 test.describe('focus order', () => {
   test.use({ viewport: { width: 1440, height: 1000 }, colorScheme: 'dark' });
 
-  test('the index runs header, filter, then plates, each stop visible with a ring', async ({ page }) => {
+  test('the index runs header, filter, then plates, each stop visible with a ring', async ({
+    page,
+  }) => {
     await page.goto('/');
     const stops = await tabStops(page);
     const names = stops.map((s) => s.what);
@@ -85,7 +109,9 @@ test.describe('focus order', () => {
     expect(at(/^input\[sort=newest\]/)).toBeLessThan(at(/^input\[technique=/));
     // One stop per radio group, then the plates in grid order (as far as the walk goes).
     expect(names.filter((n) => n.startsWith('input[sort='))).toHaveLength(1);
-    const titles = await page.locator('.grid > li').evaluateAll((lis) => lis.map((li) => `a ${(li as HTMLElement).dataset.title}`.slice(0, 42)));
+    const titles = await page
+      .locator('.grid > li')
+      .evaluateAll((lis) => lis.map((li) => `a ${(li as HTMLElement).dataset.title}`.slice(0, 42)));
     const firstPlate = names.indexOf(titles[0]);
     expect(firstPlate).toBeGreaterThan(at(/^input\[(technique|subject|lineage|other)=/));
     const plates = names.slice(firstPlate);
@@ -97,7 +123,9 @@ test.describe('focus order', () => {
     }
   });
 
-  test('a detail page runs label, colours, export, notes, then the source code', async ({ page }) => {
+  test('a detail page runs label, colours, export, notes, then the source code', async ({
+    page,
+  }) => {
     await page.goto('/schotter');
     const stops = await tabStops(page);
     const names = stops.map((s) => s.what);
@@ -108,7 +136,21 @@ test.describe('focus order', () => {
     };
     // No neighbour links between the facts and the colours.
     expect(names.filter((n) => /^a (← Index|Previous:|Next:)/.test(n))).toEqual([]);
-    const order = [/^button#theme-button/, /^a#fnref1 Source 1/, /^a technical drawing/, /^button Change/, /^input\[fmt=png\]/, /^input\[asp=16:9\]/, /^input\[size=2560x1440\]/, /^button#download/, /^a Schotter$/, /^a Back to text/, /^button Copy$/, /^pre design\.py source/, /^pre Run command/];
+    const order = [
+      /^button#theme-button/,
+      /^a#fnref1 Source 1/,
+      /^a technical drawing/,
+      /^button Change/,
+      /^input\[fmt=png\]/,
+      /^input\[asp=16:9\]/,
+      /^input\[size=2560x1440\]/,
+      /^button#download/,
+      /^a Schotter$/,
+      /^a Back to text/,
+      /^button Copy$/,
+      /^pre design\.py source/,
+      /^pre Run command/,
+    ];
     const idx = order.map(at);
     expect(idx).toEqual([...idx].sort((a, b) => a - b));
     for (const s of stops.slice(1)) expect(s.ring, `${s.what} has no focus ring`).toBe(true);

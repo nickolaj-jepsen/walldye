@@ -4,7 +4,7 @@ export async function copyText(text: string): Promise<boolean> {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
-    // No async clipboard (insecure context, older engine): the selection-based fallback.
+    // No async clipboard (an insecure context, such as `astro dev --host` on a phone): select and copy.
   }
   const area = document.createElement('textarea');
   area.value = text;

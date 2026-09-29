@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
+import {
+  countFor,
+  type Filterable,
+  filterQuery,
+  filterState,
+  matches,
+  ordered,
+} from '../../src/client/index/filter';
 import { normaliseSearch } from '../../src/lib/content';
-import { countFor, matches, ordered, parseQuery, serialiseQuery, type Filterable } from '../../src/scripts/filter';
 
-const item = (slug: string, title: string, added: string, facets: string[], search = title.toLowerCase(), views = 0, recent = 0): Filterable => ({
+const item = (
+  slug: string,
+  title: string,
+  added: string,
+  facets: string[],
+  search = title.toLowerCase(),
+  views = 0,
+  recent = 0,
+): Filterable => ({
   slug,
   title,
   added,
@@ -14,65 +29,69 @@ const item = (slug: string, title: string, added: string, facets: string[], sear
 
 const ITEMS = [
   item('a', 'Zebra', '2026-01-01', ['technique:dither', 'subject:space'], 'zebra', 90, 1.5),
-  item('b', 'apple', '2026-03-01', ['technique:drafting', 'subject:maps', 'other:any-screen'], 'apple', 10, 6),
+  item(
+    'b',
+    'apple',
+    '2026-03-01',
+    ['technique:drafting', 'subject:maps', 'other:any-screen'],
+    'apple',
+    10,
+    6,
+  ),
   item('c', 'Mango', '2026-03-01', ['technique:dither', 'subject:maps'], 'mango', 10, 6),
   item('d', 'Éclair', '2026-02-01', ['technique:glyph'], 'eclair by georg nees', 40, 9.25),
 ];
 
-describe('parseQuery / serialiseQuery', () => {
-  it('reads the form serialisation and drops unknown values', () => {
-    const s = parseQuery(new URLSearchParams('q=moon&sort=title&technique=dither&technique=bogus&subject=maps&t=nord'), (_facet, v) => v !== 'bogus');
+describe('filterState / filterQuery', () => {
+  it('reads the form serialisation, every key but q and sort as a facet', () => {
+    const s = filterState(
+      new URLSearchParams('q=moon&sort=title&technique=dither&subject=maps&technique=drafting'),
+    );
     expect(s.q).toBe('moon');
     expect(s.sort).toBe('title');
-    expect([...s.facets.get('technique')!]).toEqual(['dither']);
-    expect([...s.facets.get('subject')!]).toEqual(['maps']);
-    expect(s.facets.has('t')).toBe(false);
+    expect([...(s.facets.get('technique') ?? [])]).toEqual(['dither', 'drafting']);
+    expect([...(s.facets.get('subject') ?? [])]).toEqual(['maps']);
+    expect(s.facets.has('q')).toBe(false);
   });
 
-  it('reads each sort order, and drops one the index has no radio for', () => {
+  it('reads each sort order and treats any other as newest', () => {
     for (const sort of ['popular', 'views', 'title'] as const) {
-      const s = parseQuery(new URLSearchParams({ sort }));
-      expect(s.sort).toBe(sort);
-      expect(serialiseQuery(s)).toBe(`sort=${sort}`);
+      expect(filterState(new URLSearchParams({ sort })).sort).toBe(sort);
     }
-    expect(parseQuery(new URLSearchParams('sort=popular'), (name, v) => !(name === 'sort' && v === 'popular')).sort).toBe('newest');
+    expect(filterState(new URLSearchParams('sort=oldest')).sort).toBe('newest');
+    expect(filterState(new URLSearchParams()).sort).toBe('newest');
   });
 
-  it('treats any other sort as newest and leaves defaults out', () => {
-    const s = parseQuery(new URLSearchParams('sort=oldest&q=%20%20'));
-    expect(s.sort).toBe('newest');
-    expect(serialiseQuery(s)).toBe('');
-  });
-
-  it('writes facet values in the order given', () => {
-    const s = parseQuery(new URLSearchParams('subject=maps&technique=drafting&technique=dither'));
-    expect(serialiseQuery(s)).toBe('technique=drafting&technique=dither&subject=maps');
-    expect(serialiseQuery(s, [['technique', 'dither'], ['technique', 'drafting'], ['subject', 'maps'], ['subject', 'space']])).toBe(
-      'technique=dither&technique=drafting&subject=maps',
-    );
+  it('leaves out a blank search and the default sort, and keeps the form order', () => {
+    expect(filterQuery(new URLSearchParams('q=%20%20&sort=newest'))).toBe('');
+    expect(
+      filterQuery(
+        new URLSearchParams('q=moon&sort=title&technique=drafting&technique=dither&subject=maps'),
+      ),
+    ).toBe('q=moon&sort=title&technique=drafting&technique=dither&subject=maps');
   });
 });
 
 describe('matches / countFor', () => {
   it('is OR within a facet and AND across facets', () => {
-    const s = parseQuery(new URLSearchParams('technique=dither&technique=drafting&subject=maps'));
+    const s = filterState(new URLSearchParams('technique=dither&technique=drafting&subject=maps'));
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['b', 'c']);
   });
 
   it('searches the normalised text', () => {
-    const s = parseQuery(new URLSearchParams('q=  GEORG   Nées '));
+    const s = filterState(new URLSearchParams('q=  GEORG   Nées '));
     expect(ITEMS.filter((it) => matches(it, s)).map((it) => it.slug)).toEqual(['d']);
   });
 
-  it('matches typewriter and typographer\'s apostrophes alike', () => {
+  it("matches typewriter and typographer's apostrophes alike", () => {
     const baldur = item('e', 'Baldur’s Gate', '2026-02-01', [], normaliseSearch('Baldur’s Gate'));
     for (const q of ["baldur's", 'Baldur’s gate']) {
-      expect(matches(baldur, parseQuery(new URLSearchParams({ q })))).toBe(true);
+      expect(matches(baldur, filterState(new URLSearchParams({ q })))).toBe(true);
     }
   });
 
   it('counts a box against the other facets only', () => {
-    const s = parseQuery(new URLSearchParams('technique=dither&subject=maps'));
+    const s = filterState(new URLSearchParams('technique=dither&subject=maps'));
     // Adding drafting to the technique group would show b; the subject group still applies.
     expect(countFor(ITEMS, s, 'technique', 'drafting')).toBe(1);
     expect(countFor(ITEMS, s, 'technique', 'glyph')).toBe(0);

@@ -10,7 +10,7 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 
 | Workflow | Runs | Does |
 |---|---|---|
-| `lint.yml` | on every change | `ruff format --check` (Markdown's ` ```python ` blocks included) and `ruff check`, with the standalone ruff binary |
+| `lint.yml` | on every change | `ruff format --check` (Markdown's ` ```python ` blocks included) and `ruff check`, with the standalone ruff binary, and `biome ci` for the TypeScript |
 | `python.yml` | when `walldye/`, `tests/python/`, a `design.py`, the skill examples, `wallpapers/pyrefly.toml`, `pyproject.toml`, `uv.lock` or `.python-version` changes | Pyrefly on the library at the strictest preset and on the designs and skill examples at the design level, then pytest |
 | `ci.yml` | unless the change touches only `docs/`, Markdown, `.claude/`, `infra/` or `LICENSES/` | the jobs below |
 
@@ -18,7 +18,7 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 
 | Job | Does |
 |---|---|
-| `build` | Checks out the `stats` branch as `stats/` (Page views, below; the step fails harmlessly while the branch does not exist), restores main's last build from the Actions cache, runs `walldye build --all --published` (105 minutes at most), saves the result back to the cache on `main` even when the render failed or ran out of time, lists the pieces whose templates changed, runs `regen.py`, `pnpm test` and `pnpm astro build`, then uploads `dist/` and the e2e inputs |
+| `build` | Checks out the `stats` branch as `stats/` (Page views, below; the step fails harmlessly while the branch does not exist), restores main's last build from the Actions cache, runs `walldye build --all --published` (105 minutes at most), saves the result back to the cache on `main` even when the render failed or ran out of time, lists the pieces whose templates changed, runs `regen.py`, `pnpm test`, `pnpm check` and `pnpm astro build`, then uploads `dist/` and the e2e inputs |
 | `e2e` | Playwright on Chromium against that `dist/` |
 | `deploy` | After `build` and `e2e` pass: a push to `main` goes to production, and a pull request from a branch in this repository goes to a preview at `https://<branch>.walldye.pages.dev`. A comment on the PR links it and lists the pieces that draw differently from main's last build; later pushes edit it. Each deploy is recorded in the GitHub environment `production` or `preview`. Pull requests from forks or Dependabot never deploy, since neither gets the secrets, and a manual run deploys only on `main` with `deploy` ticked |
 

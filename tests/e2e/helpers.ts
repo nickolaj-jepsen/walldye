@@ -3,7 +3,13 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page } from '@playwright/test';
 import { decode } from 'fast-png';
-import { DEFAULT_LICENSE, isDraft, licenseOf, namedVariants, smartQuotes } from '../../src/lib/meta';
+import {
+  DEFAULT_LICENSE,
+  isDraft,
+  licenseOf,
+  namedVariants,
+  smartQuotes,
+} from '../../src/lib/meta';
 import type { Slots, SlotsEntry } from '../../src/lib/recolour';
 import { findColours, skeleton } from '../../src/lib/tokenize';
 import { loadMeta, slugs } from '../catalogue';
@@ -15,10 +21,13 @@ export const readText = (rel: string): string => readFileSync(`${ROOT}${rel}`, '
 
 /** A version's build/slots.json (build/<variant>/ for a named one), as `walldye build` wrote it. */
 export const slotsOf = (slug: string, variant = 'default'): Slots =>
-  JSON.parse(readText(`wallpapers/${slug}/build/${variant === 'default' ? '' : `${variant}/`}slots.json`)) as Slots;
+  JSON.parse(
+    readText(`wallpapers/${slug}/build/${variant === 'default' ? '' : `${variant}/`}slots.json`),
+  ) as Slots;
 
 /** The served URL of a version's dark template at `aspect`, /t/<sha256[:12]>.svg. */
-export const templateUrl = (slots: Slots, aspect: string): string => `/t/${(slots[`${aspect}/dark`] as SlotsEntry).sha256.slice(0, 12)}.svg`;
+export const templateUrl = (slots: Slots, aspect: string): string =>
+  `/t/${(slots[`${aspect}/dark`] as SlotsEntry).sha256.slice(0, 12)}.svg`;
 
 export interface CatalogueVersion {
   name: string;
@@ -48,26 +57,54 @@ export function publishedPieces(): CataloguePiece[] {
     const description = smartQuotes(String(meta.description));
     const unnamed = (meta.variants as Record<string, { label?: string }> | undefined)?.default;
     const named = namedVariants(meta).filter((v) => !v.draft);
-    const versions = [{ name: 'default', label: unnamed?.label, description: undefined }, ...named].map((v) => {
+    const versions = [
+      { name: 'default', label: unnamed?.label, description: undefined },
+      ...named,
+    ].map((v) => {
       const slots = slotsOf(slug, v.name);
       return {
         name: v.name,
         label: smartQuotes(String(v.label ?? '')),
         description: typeof v.description === 'string' ? smartQuotes(v.description) : description,
         slots,
-        aspects: Object.keys(slots).filter((k) => k.endsWith('/dark')).map((k) => k.split('/')[0]),
+        aspects: Object.keys(slots)
+          .filter((k) => k.endsWith('/dark'))
+          .map((k) => k.split('/')[0]),
       };
     });
     const f = meta.franchise as CataloguePiece['franchise'];
     const franchise = f && { title: smartQuotes(f.title), owner: smartQuotes(f.owner) };
-    return [{ slug, description, license: String(licenseOf(meta) ?? DEFAULT_LICENSE), franchise, versions }];
+    return [
+      {
+        slug,
+        description,
+        license: String(licenseOf(meta) ?? DEFAULT_LICENSE),
+        franchise,
+        versions,
+      },
+    ];
   });
 }
 
 export interface Manifest {
   themes: string[];
-  renders: { slug: string; aspect: string; theme: string; entry: string; template: string; sha256: string; render: string }[];
-  resvg: { svg: string; png: string; width: number; height: number; background: string; resvg_py: string };
+  renders: {
+    slug: string;
+    aspect: string;
+    theme: string;
+    entry: string;
+    template: string;
+    sha256: string;
+    render: string;
+  }[];
+  resvg: {
+    svg: string;
+    png: string;
+    width: number;
+    height: number;
+    background: string;
+    resvg_py: string;
+  };
 }
 
 /** tests/fixtures/manifest.json: the Python reference renders and the resvg-py reference PNG. */
@@ -132,7 +169,11 @@ export function pixelHex(img: Rgb, x: number, y: number): string {
 /** Largest per-channel difference between two colours. */
 export function colourDistance(a: string, b: string): number {
   let worst = 0;
-  for (let k = 1; k < 7; k += 2) worst = Math.max(worst, Math.abs(parseInt(a.slice(k, k + 2), 16) - parseInt(b.slice(k, k + 2), 16)));
+  for (let k = 1; k < 7; k += 2)
+    worst = Math.max(
+      worst,
+      Math.abs(parseInt(a.slice(k, k + 2), 16) - parseInt(b.slice(k, k + 2), 16)),
+    );
   return worst;
 }
 
@@ -148,7 +189,9 @@ export function maxSlotError(a: string, b: string): number {
 /** Text of the SVG the index plate of `slug` shows, or null while it has no single loaded image. */
 export async function plateSvg(page: Page, slug: string): Promise<string | null> {
   return page.evaluate(async (s) => {
-    const imgs = document.querySelectorAll<HTMLImageElement>(`.grid > li[data-slug="${s}"] .plate > img`);
+    const imgs = document.querySelectorAll<HTMLImageElement>(
+      `.grid > li[data-slug="${s}"] .plate > img`,
+    );
     if (imgs.length !== 1 || !imgs[0].complete) return null;
     return (await fetch(imgs[0].src)).text();
   }, slug);
@@ -161,7 +204,12 @@ export async function plateSvg(page: Page, slug: string): Promise<string | null>
 export async function platesSettled(page: Page, svgs: Record<string, string>): Promise<void> {
   for (const [slug, svg] of Object.entries(svgs)) {
     await page.locator(`.grid > li[data-slug="${slug}"]`).scrollIntoViewIfNeeded();
-    await expect.poll(async () => (await plateSvg(page, slug)) === svg, { message: `the ${slug} plate shows its recolour`, timeout: 10_000 }).toBe(true);
+    await expect
+      .poll(async () => (await plateSvg(page, slug)) === svg, {
+        message: `the ${slug} plate shows its recolour`,
+        timeout: 10_000,
+      })
+      .toBe(true);
   }
 }
 
@@ -181,12 +229,14 @@ export async function horizontalOverflow(page: Page): Promise<string[]> {
       }
       return false;
     };
-    const name = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/).join('.')}` : ''}`;
+    const name = (el: Element) =>
+      `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/).join('.')}` : ''}`;
     for (const el of document.body.querySelectorAll('*')) {
       if (el.closest('noscript, template, .vh') || el.matches('script, style')) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
-      if ((r.right > vw + 0.5 || r.left < -0.5) && !clipped(el)) bad.push(`${name(el)} spans ${Math.round(r.left)}..${Math.round(r.right)} of ${vw}`);
+      if ((r.right > vw + 0.5 || r.left < -0.5) && !clipped(el))
+        bad.push(`${name(el)} spans ${Math.round(r.left)}..${Math.round(r.right)} of ${vw}`);
     }
     return bad;
   });

@@ -5,11 +5,18 @@
  * Colours are `#RRGGBB` strings; every function returns uppercase hex like the Python side.
  */
 
+declare const canonical: unique symbol;
+/** An uppercase `#RRGGBB` colour; only normaliseSeed() and rgbToHex() make one. */
+export type Hex = string & { readonly [canonical]: true };
 export type Seed = 'bg' | 'fg' | 'accent';
-export type Seeds = Record<Seed, string>;
+/** Seeds as normaliseSeeds() and parseToken() return them, so nothing downstream normalises again. */
+export type Seeds = Record<Seed, Hex>;
+/** Seeds as typed or stored: any form normaliseSeed() accepts. */
+export type RawSeeds = Record<Seed, string>;
 export type Regime = 'dark' | 'light';
 
 export const SEEDS: readonly Seed[] = ['bg', 'fg', 'accent'];
+// biome-ignore format: tokens in walldye/_theme.py order, a few per line
 export const TOKENS = [
   'black', 'bg_deep', 'bg', 'bg_alt', 'ui', 'ui_alt', 'ui_hi', 'muted', 'fg_alt', 'fg',
   'accent_hi', 'accent', 'accent_1', 'accent_2', 'accent_3', 'accent_4',
@@ -18,9 +25,11 @@ export const TOKENS = [
 export type Token = (typeof TOKENS)[number];
 export type Tokens = Record<Token, string>;
 
+// biome-ignore format: one table
 const GREY_T: readonly (readonly [Token, number])[] = [
   ['bg_alt', 0.063], ['ui', 0.126], ['ui_alt', 0.189], ['ui_hi', 0.31], ['muted', 0.563], ['fg_alt', 0.816],
 ];
+// biome-ignore format: one table
 const ACCENT_T: readonly (readonly [Token, number])[] = [
   ['accent_1', 0.17], ['accent_2', 0.26], ['accent_3', 0.5], ['accent_4', 0.56],
   ['accent_5', 0.68], ['accent_6', 0.8], ['accent_7', 0.9], ['accent_8', 0.955],
@@ -28,6 +37,7 @@ const ACCENT_T: readonly (readonly [Token, number])[] = [
 const WIDENED: ReadonlySet<Token> = new Set(['bg_alt', 'ui', 'ui_alt', 'ui_hi']);
 
 /** fireproof's hand-pinned tokens; its exact seeds resolve to this table, never to deriveTheme. */
+// biome-ignore format: the pinned table, laid out like walldye/_theme.py
 export const FIREPROOF: Readonly<Tokens> = {
   black: '#100F0F', bg_deep: '#181716', bg: '#1C1B1A', bg_alt: '#282726',
   ui: '#343331', ui_alt: '#403E3C', ui_hi: '#575653', muted: '#878580',
@@ -37,23 +47,42 @@ export const FIREPROOF: Readonly<Tokens> = {
   accent_7: '#2E1C19', accent_8: '#241B19', orange_dark: '#BC5215',
 };
 
+const SEED_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+/** `c` (3 or 6 hex digits, optional `#`, any case, surrounding whitespace ignored) as uppercase #RRGGBB, or null. */
+export function normaliseSeed(c: string): Hex | null {
+  const m = SEED_RE.exec(c.trim());
+  if (!m) return null;
+  const h = m[1];
+  return `#${(h.length === 6 ? h : h.replace(/./g, '$&$&')).toUpperCase()}` as Hex;
+}
+
+/** `seeds` with each seed normalised; throws naming the first invalid one. */
+export function normaliseSeeds(seeds: RawSeeds): Seeds {
+  const out = {} as Seeds;
+  for (const k of SEEDS) {
+    const v = normaliseSeed(seeds[k]);
+    if (v === null) throw new Error(`bad ${k} colour ${JSON.stringify(seeds[k])}`);
+    out[k] = v;
+  }
+  return out;
+}
+
 /** Preset seeds in walldye.PRESETS order (the picker's order; the first match names a theme). */
 export const PRESETS: Readonly<Record<string, Readonly<Seeds>>> = {
-  fireproof: { bg: FIREPROOF.bg, fg: FIREPROOF.fg, accent: FIREPROOF.accent },
-  'flexoki-light': { bg: '#FFFCF0', fg: '#100F0F', accent: '#BC5215' },
-  'gruvbox-dark': { bg: '#282828', fg: '#EBDBB2', accent: '#FE8019' },
-  nord: { bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' },
-  'catppuccin-mocha': { bg: '#1E1E2E', fg: '#CDD6F4', accent: '#CBA6F7' },
-  'tokyo-night': { bg: '#1A1B26', fg: '#C0CAF5', accent: '#7AA2F7' },
-  'rose-pine': { bg: '#191724', fg: '#E0DEF4', accent: '#EBBCBA' },
-  'everforest-dark': { bg: '#2D353B', fg: '#D3C6AA', accent: '#A7C080' },
-  'ayu-dark': { bg: '#0B0E14', fg: '#BFBDB6', accent: '#E6B450' },
-  dracula: { bg: '#282A36', fg: '#F8F8F2', accent: '#FF79C6' },
-  'solarized-light': { bg: '#FDF6E3', fg: '#586E75', accent: '#CB4B16' },
+  fireproof: normaliseSeeds(FIREPROOF),
+  'flexoki-light': normaliseSeeds({ bg: '#FFFCF0', fg: '#100F0F', accent: '#BC5215' }),
+  'gruvbox-dark': normaliseSeeds({ bg: '#282828', fg: '#EBDBB2', accent: '#FE8019' }),
+  nord: normaliseSeeds({ bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' }),
+  'catppuccin-mocha': normaliseSeeds({ bg: '#1E1E2E', fg: '#CDD6F4', accent: '#CBA6F7' }),
+  'tokyo-night': normaliseSeeds({ bg: '#1A1B26', fg: '#C0CAF5', accent: '#7AA2F7' }),
+  'rose-pine': normaliseSeeds({ bg: '#191724', fg: '#E0DEF4', accent: '#EBBCBA' }),
+  'everforest-dark': normaliseSeeds({ bg: '#2D353B', fg: '#D3C6AA', accent: '#A7C080' }),
+  'ayu-dark': normaliseSeeds({ bg: '#0B0E14', fg: '#BFBDB6', accent: '#E6B450' }),
+  dracula: normaliseSeeds({ bg: '#282A36', fg: '#F8F8F2', accent: '#FF79C6' }),
+  'solarized-light': normaliseSeeds({ bg: '#FDF6E3', fg: '#586E75', accent: '#CB4B16' }),
 };
 export const DEFAULT_THEME = 'fireproof';
-
-const SEED_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /** Python's round(): nearest integer, ties to even. */
 export function roundHalfEven(x: number): number {
@@ -72,10 +101,13 @@ export function hexToRgb(c: string): [number, number, number] {
 }
 
 /** Uppercase #RRGGBB; channels are rounded half to even, then clamped to 0..255. */
-export function rgbToHex(r: number, g: number, b: number): string {
+export function rgbToHex(r: number, g: number, b: number): Hex {
   let out = '#';
-  for (const v of [r, g, b]) out += Math.max(0, Math.min(255, roundHalfEven(v))).toString(16).padStart(2, '0');
-  return out.toUpperCase();
+  for (const v of [r, g, b]) {
+    const channel = Math.max(0, Math.min(255, roundHalfEven(v)));
+    out += channel.toString(16).padStart(2, '0');
+  }
+  return out.toUpperCase() as Hex;
 }
 
 /** Linear RGB blend from `a` (t=0) to `b` (t=1). */
@@ -112,7 +144,7 @@ export function isLight(bg: string, fg: string): boolean {
  * All 21 tokens from `seeds` (bg, fg, accent), with any other token in `seeds` as an override,
  * uppercased but not otherwise normalised. Throws on a missing seed or an unknown token name.
  */
-export function deriveTheme(seeds: Seeds & Partial<Tokens>): Tokens {
+export function deriveTheme(seeds: RawSeeds & Partial<Tokens>): Tokens {
   const missing = SEEDS.filter((k) => !(k in seeds));
   if (missing.length) throw new Error(`theme needs ${missing.sort().join(', ')}`);
   const unknown = Object.keys(seeds).filter((k) => !(TOKENS as readonly string[]).includes(k));
@@ -136,27 +168,13 @@ export function deriveTheme(seeds: Seeds & Partial<Tokens>): Tokens {
   return out;
 }
 
-/** `c` (3 or 6 hex digits, optional `#`, any case, surrounding whitespace ignored) as uppercase #RRGGBB, or null. */
-export function normaliseSeed(c: string): string | null {
-  const m = SEED_RE.exec(c.trim());
-  if (!m) return null;
-  const h = m[1];
-  return '#' + (h.length === 6 ? h : h.replace(/./g, '$&$&')).toUpperCase();
-}
-
-/** `seeds` with each seed normalised; throws naming the first invalid one. */
-export function normaliseSeeds(seeds: Seeds): Seeds {
-  const out = {} as Seeds;
-  for (const k of SEEDS) {
-    const v = normaliseSeed(seeds[k]);
-    if (v === null) throw new Error(`bad ${k} colour ${JSON.stringify(seeds[k])}`);
-    out[k] = v;
-  }
-  return out;
-}
-
 function sameSeeds(a: Seeds, b: Seeds): boolean {
   return a.bg === b.bg && a.fg === b.fg && a.accent === b.accent;
+}
+
+/** Whether `seeds` are fireproof's, the colours every template is drawn in. */
+export function isFireproof(seeds: Seeds): boolean {
+  return sameSeeds(seeds, PRESETS.fireproof);
 }
 
 /**
@@ -176,27 +194,24 @@ export function parseToken(spec: string | null | undefined): Seeds | null {
   return bg && fg && accent ? { bg, fg, accent } : null;
 }
 
-/** The preset whose seeds equal `seeds` (normalised first), or null. */
+/** The preset whose seeds equal `seeds`, or null. */
 export function presetOf(seeds: Seeds): string | null {
-  const s = normaliseSeeds(seeds);
-  for (const name in PRESETS) if (sameSeeds(s, PRESETS[name])) return name;
+  for (const name in PRESETS) if (sameSeeds(seeds, PRESETS[name])) return name;
   return null;
 }
 
 /** Canonical token for `seeds`: the preset name when they equal a preset's, else lowercase `bg-fg-accent` without `#`. */
 export function tokenOf(seeds: Seeds): string {
-  const s = normaliseSeeds(seeds);
-  return presetOf(s) ?? SEEDS.map((k) => s[k].slice(1).toLowerCase()).join('-');
+  return presetOf(seeds) ?? SEEDS.map((k) => seeds[k].slice(1).toLowerCase()).join('-');
 }
 
 export function regimeOf(seeds: Seeds): Regime {
   return isLight(seeds.bg, seeds.fg) ? 'light' : 'dark';
 }
 
-/** All 21 tokens: the pinned FIREPROOF table for fireproof's exact seeds, deriveTheme otherwise. Seeds are normalised first. */
+/** All 21 tokens: the pinned FIREPROOF table for fireproof's exact seeds, deriveTheme otherwise. */
 export function themeTokens(seeds: Seeds): Tokens {
-  const s = normaliseSeeds(seeds);
-  return sameSeeds(s, PRESETS.fireproof) ? { ...FIREPROOF } : deriveTheme(s);
+  return isFireproof(seeds) ? { ...FIREPROOF } : deriveTheme(seeds);
 }
 
 /**
@@ -218,7 +233,12 @@ export function guard(c: string, surface: string, min: number): string {
 }
 
 /** A contrast-guarded CSS role: [custom property, token, surface token, minimum ratio]. */
-export type GuardedRole = readonly [prop: string, token: Token, surface: 'bg' | 'bg_alt', min: number];
+export type GuardedRole = readonly [
+  prop: string,
+  token: Token,
+  surface: 'bg' | 'bg_alt',
+  min: number,
+];
 
 /** Every guarded role of site.css: text 4.5:1, controls and focus 3:1, listing tokens against bg_alt. */
 export const GUARDED: readonly GuardedRole[] = [
@@ -245,19 +265,18 @@ export const GUARDED: readonly GuardedRole[] = [
 export const DIM = 0.25;
 
 /**
- * Every colour custom property site.css reads, for `seeds` (normalised first; throws on an invalid seed):
+ * Every colour custom property site.css reads, for `seeds`:
  * the raw seeds, the tokens the stylesheet names, the unguarded roles (leader, rules, plate edge,
  * listing ground; rules step up one grey in the light regime), the GUARDED roles, and `--text-dim`,
  * the label of a disabled control: `--text-2` faded DIM towards bg, guarded back to 4.5:1 on bg.
  */
 export function cssVars(seeds: Seeds): Record<string, string> {
-  const s = normaliseSeeds(seeds);
-  const t = themeTokens(s);
-  const light = isLight(s.bg, s.fg);
+  const t = themeTokens(seeds);
+  const light = isLight(seeds.bg, seeds.fg);
   const vars: Record<string, string> = {
-    '--seed-bg': s.bg,
-    '--seed-fg': s.fg,
-    '--seed-accent': s.accent,
+    '--seed-bg': seeds.bg,
+    '--seed-fg': seeds.fg,
+    '--seed-accent': seeds.accent,
     '--bg': t.bg,
     '--bg-alt': t.bg_alt,
     '--ui': t.ui,
@@ -277,8 +296,8 @@ export function cssVars(seeds: Seeds): Record<string, string> {
   const memo = new Map<string, string>();
   for (const [prop, token, surface, min] of GUARDED) {
     const key = `${token} ${surface} ${min}`;
-    let v = memo.get(key);
-    if (v === undefined) memo.set(key, (v = guard(t[token], t[surface], min)));
+    const v = memo.get(key) ?? guard(t[token], t[surface], min);
+    memo.set(key, v);
     vars[prop] = v;
   }
   vars['--text-dim'] = guard(mix(vars['--text-2'], t.bg, DIM), t.bg, 4.5);

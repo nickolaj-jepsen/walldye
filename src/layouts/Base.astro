@@ -6,7 +6,7 @@
 import { Font } from 'astro:assets';
 import Masthead from '../components/Masthead.astro';
 import Picker from '../components/Picker.astro';
-import { themeBootScript } from '../lib/theme-boot-script';
+import { themeBootScript } from '../server/theme-boot-script';
 import '../styles/site.css';
 
 interface Props {
@@ -41,7 +41,7 @@ const themeBoot = await themeBootScript(!import.meta.env.DEV);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    {/* THEME BOOT (src/lib/theme-boot.ts): keep it the first script, ahead of every stylesheet, so it never waits on CSS. */}
+    {/* THEME BOOT (src/client/theme/boot.ts): keep it the first script, ahead of every stylesheet, so it never waits on CSS. */}
     <script is:inline set:html={themeBoot} />
     <title>{docTitle}</title>
     <meta name="description" content={description} />
@@ -72,7 +72,7 @@ const themeBoot = await themeBootScript(!import.meta.env.DEV);
       </main>
       <Picker />
       <script>
-        import '../scripts/site.ts';
+        import '../client/site.ts';
       </script>
       <slot name="after" />
     </div>

@@ -1,7 +1,7 @@
+import { getCollection } from 'astro:content';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { getCollection } from 'astro:content';
 import sharp from 'sharp';
 
 const W = 1200;
@@ -16,7 +16,10 @@ export const getStaticPaths = (async () =>
 
 export const GET: APIRoute = async ({ props }) => {
   const scaledH = Math.round((W * 1080) / 1920);
-  const top = Math.min(scaledH - H, Math.max(0, Math.round((props.focusY as number) * scaledH - H / 2)));
+  const top = Math.min(
+    scaledH - H,
+    Math.max(0, Math.round((props.focusY as number) * scaledH - H / 2)),
+  );
   const jpeg = await sharp(await readFile(resolve(props.path as string)))
     .resize(W, scaledH)
     .extract({ left: 0, top, width: W, height: H })

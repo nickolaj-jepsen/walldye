@@ -3,7 +3,7 @@
  * slots are set from the seeds through the per-occurrence coefficients in slots.json.
  */
 
-import { hexToRgb, isLight, normaliseSeeds, PRESETS, rgbToHex, type Regime, type Seeds } from './theme';
+import { hexToRgb, isFireproof, type Regime, regimeOf, rgbToHex, type Seeds } from './theme';
 import { findColours, joinSlots, splitSlots } from './tokenize';
 
 /** One slots.json template entry, keyed "<aspect>/<regime>". coefs rows are [a, b, c, dr, dg, db]; occ[i] is slot i's row. */
@@ -57,15 +57,12 @@ export function pickTemplate(slots: Slots, aspect: string, regime: Regime): Pick
 
 /** Python build.select(): the picked entry for `seeds`, in their regime. */
 export function select(slots: Slots, aspect: string, seeds: Seeds): Picked {
-  const s = normaliseSeeds(seeds);
-  return pickTemplate(slots, aspect, isLight(s.bg, s.fg) ? 'light' : 'dark');
+  return pickTemplate(slots, aspect, regimeOf(seeds));
 }
 
 export function prepareTemplate(svg: string): PreparedTemplate {
   return { svg, parts: splitSlots(svg, findColours(svg)) };
 }
-
-const FIREPROOF = PRESETS.fireproof;
 
 /**
  * `template` (the file `entry` names) recoloured for `seeds`. Slot i becomes coefs[occ[i]] =
@@ -73,19 +70,26 @@ const FIREPROOF = PRESETS.fireproof;
  * and clamped.
  *
  * Returns the template unchanged for exact fireproof seeds, and as the fallback when its slot count is
- * not `entry.n` or `entry.occ` does not index `entry.coefs` once per slot. Throws on an invalid seed.
+ * not `entry.n` or `entry.occ` does not index `entry.coefs` once per slot.
  */
-export function recolour(template: string | PreparedTemplate, entry: SlotsEntry, seeds: Seeds): string {
+export function recolour(
+  template: string | PreparedTemplate,
+  entry: SlotsEntry,
+  seeds: Seeds,
+): string {
   const prepared = typeof template === 'string' ? prepareTemplate(template) : template;
-  const s = normaliseSeeds(seeds);
   const n = prepared.parts.length - 1;
-  const fireproof = s.bg === FIREPROOF.bg && s.fg === FIREPROOF.fg && s.accent === FIREPROOF.accent;
-  if (fireproof || n !== entry.n || entry.occ.length !== n || entry.occ.some((o) => !Array.isArray(entry.coefs[o]))) {
+  if (
+    isFireproof(seeds) ||
+    n !== entry.n ||
+    entry.occ.length !== n ||
+    entry.occ.some((o) => !Array.isArray(entry.coefs[o]))
+  ) {
     return prepared.svg;
   }
-  const bg = hexToRgb(s.bg);
-  const fg = hexToRgb(s.fg);
-  const accent = hexToRgb(s.accent);
+  const bg = hexToRgb(seeds.bg);
+  const fg = hexToRgb(seeds.fg);
+  const accent = hexToRgb(seeds.accent);
   const rows = entry.coefs.map(([a, b, c, ...d]) => {
     const ch = (i: number) => a * bg[i] + b * fg[i] + c * accent[i] + d[i];
     return rgbToHex(ch(0), ch(1), ch(2));

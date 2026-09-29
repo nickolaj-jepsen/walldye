@@ -1,10 +1,10 @@
 /**
  * Main-thread side of the raster export: compiles resvg's wasm once (prefetched when the export panel
  * comes into view), runs each export in a fresh module Worker that is terminated afterwards, and
- * probes WebP support.
+ * probes WebP support. Needs OffscreenCanvas in workers (Safari 16.4).
  */
 import wasmUrl from '@resvg/resvg-wasm/index_bg.wasm?url';
-import type { ExportRequest, ExportResponse } from './export-worker';
+import type { ExportRequest, ExportResponse } from './worker';
 
 export type RasterFormat = ExportRequest['format'];
 
@@ -41,14 +41,9 @@ let webp: Promise<boolean> | null = null;
 export function canEncodeWebp(): Promise<boolean> {
   webp ??= (async () => {
     try {
-      if (typeof OffscreenCanvas !== 'undefined') {
-        const c = new OffscreenCanvas(1, 1);
-        c.getContext('2d')?.fillRect(0, 0, 1, 1);
-        return (await c.convertToBlob({ type: 'image/webp' })).type === 'image/webp';
-      }
-      const c = document.createElement('canvas');
-      c.width = c.height = 1;
-      return c.toDataURL('image/webp').startsWith('data:image/webp');
+      const c = new OffscreenCanvas(1, 1);
+      c.getContext('2d')?.fillRect(0, 0, 1, 1);
+      return (await c.convertToBlob({ type: 'image/webp' })).type === 'image/webp';
     } catch {
       return false;
     }
@@ -56,26 +51,17 @@ export function canEncodeWebp(): Promise<boolean> {
   return webp;
 }
 
-async function encodeOnPage(rgba: Uint8Array, width: number, height: number, format: RasterFormat): Promise<Blob> {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('no 2d canvas');
-  ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer as ArrayBuffer, rgba.byteOffset, rgba.byteLength), width, height), 0, 0);
-  const type = `image/${format}`;
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, QUALITY));
-  if (!blob || blob.type !== type) throw new Error(`no ${type} encoder`);
-  return blob;
-}
-
 /**
  * `svg` (already sized to the output pixels) rasterised over `background` and encoded as `format`.
  * Rejects when rendering or encoding fails.
  */
-export async function rasteriseSvg(svg: string, background: string, format: RasterFormat): Promise<Blob> {
+export async function rasteriseSvg(
+  svg: string,
+  background: string,
+  format: RasterFormat,
+): Promise<Blob> {
   const compiled = await module();
-  const worker = new Worker(new URL('./export-worker.ts', import.meta.url), { type: 'module' });
+  const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
   try {
     const res = await new Promise<ExportResponse>((resolve, reject) => {
       worker.onmessage = (e: MessageEvent<ExportResponse>) => resolve(e.data);
@@ -84,13 +70,13 @@ export async function rasteriseSvg(svg: string, background: string, format: Rast
       worker.postMessage(req);
     });
     if (!res.ok) throw new Error(res.error);
-    if ('blob' in res) return res.blob;
-    return await encodeOnPage(res.rgba, res.width, res.height, format);
+    return res.blob;
   } finally {
     worker.terminate();
   }
 }
 
+/** Downloads `blob` as a file called `name`. */
 export function save(blob: Blob, name: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

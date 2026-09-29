@@ -1,6 +1,6 @@
 # walldye site
 
-How walldye.com looks and what it says. `src/styles/site.css` holds the values; this file explains them, so a change stays inside the system. [architecture.md](architecture.md) (The site) covers routing, theming and export internals, and `src/scripts/DOM.md` the hooks the client code relies on.
+How walldye.com looks and what it says. `src/styles/site.css` holds the values; this file explains them, so a change stays inside the system. [architecture.md](architecture.md) (The site) covers routing, theming and export internals, and `src/client/DOM.md` the hooks the client code relies on.
 
 ## 1. Principles
 
@@ -15,7 +15,7 @@ How walldye.com looks and what it says. `src/styles/site.css` holds the values; 
 
 ## 2. Colour roles
 
-The theme boot writes these properties inline on `<html>` before first paint, with `data-regime="dark|light"`. `cssVars()` in `src/lib/theme.ts` computes them and `GUARDED` lists the guarded ones. site.css repeats the fireproof values in `:root`, and flexoki-light's under `prefers-color-scheme: light`, for visitors without JavaScript.
+The theme boot writes these properties inline on `<html>` before first paint, with `data-regime="dark|light"` and `data-theme="<token>"`. `cssVars()` in `src/lib/theme.ts` computes them and `GUARDED` lists the guarded ones. site.css repeats the fireproof values in `:root`, and flexoki-light's under `prefers-color-scheme: light`, for visitors without JavaScript.
 
 | Property | Token | Guard | fireproof | flexoki-light |
 |---|---|---|---|---|
@@ -187,7 +187,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 ### 6.10 Source code
 
-`src/components/SourceCode.astro` and `highlight.ts`.
+`src/components/SourceCode.astro` and `src/server/highlight.ts`.
 
 - An appendix under the "Source code" heading: the file path and line count with "Copy", the listing, then "Run it yourself": `git clone https://github.com/nickolaj-jepsen/walldye && cd walldye` and `uv run walldye render <slug> [--variant <name>] --theme <token> [--aspect A] [--crop x,y,w,h] -o <slug>[--<name>]-<token>-<aspect>.svg`, the token being the preset name when the seeds match one.
 - The listing is Shiki with a CSS-variables theme (§2): keywords in accent, strings in accent_hi, comments, punctuation, operators and line numbers in fg_alt, everything else in fg. To keep accent rare, `keyword.operator` takes the punctuation colour and `meta.function-call.arguments` the foreground.

@@ -1,7 +1,14 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { captionParts, type Source } from '../../src/lib/content';
-import { colourWords, licenseOf, lintCopy, sentences, smartQuotes, typesetMeta } from '../../src/lib/meta';
+import {
+  colourWords,
+  licenseOf,
+  lintCopy,
+  sentences,
+  smartQuotes,
+  typesetMeta,
+} from '../../src/lib/meta';
 import { loadMeta, slugs } from '../catalogue';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -15,7 +22,10 @@ describe('copy lint (h)', () => {
   });
 
   it('flags colour words but not token names', () => {
-    expect(colourWords('A terracotta disc on Grey ground, lit in ORANGE_DARK and BLUE.')).toEqual(['grey', 'terracotta']);
+    expect(colourWords('A terracotta disc on Grey ground, lit in ORANGE_DARK and BLUE.')).toEqual([
+      'grey',
+      'terracotta',
+    ]);
     expect(lintCopy({ title: 'Red moon' })).toEqual(['title: colour words red']);
     expect(lintCopy({ notes: 'Drawn in amber.' })).toEqual(['notes: colour words amber']);
     expect(colourWords('reddish Blueprint')).toEqual([]);
@@ -33,27 +43,52 @@ describe('copy lint (h)', () => {
   it('limits descriptions to 30 words and two sentences', () => {
     const long = Array.from({ length: 31 }, () => 'dot').join(' ');
     expect(lintCopy({ description: long })).toEqual(['description: 31 words, over 30']);
-    expect(lintCopy({ description: 'One line. Two lines. Three lines.' })).toEqual(['description: 3 sentences, over 2']);
-    expect(lintCopy({ description: 'A lamp drawn as Fig. 1 of a patent. Only the filament is lit.' })).toEqual([]);
-    expect([sentences('One. Two'), sentences('No stop'), sentences('Ends here.'), sentences('Ask? Yes!')]).toEqual([2, 1, 1, 2]);
+    expect(lintCopy({ description: 'One line. Two lines. Three lines.' })).toEqual([
+      'description: 3 sentences, over 2',
+    ]);
+    expect(
+      lintCopy({ description: 'A lamp drawn as Fig. 1 of a patent. Only the filament is lit.' }),
+    ).toEqual([]);
+    expect([
+      sentences('One. Two'),
+      sentences('No stop'),
+      sentences('Ends here.'),
+      sentences('Ask? Yes!'),
+    ]).toEqual([2, 1, 1, 2]);
   });
 
   it('flags evaluative adjectives, internal terms, licence names, machinery numbers and theme roles', () => {
-    expect(lintCopy({ description: 'A stunning, timeless grid.' })).toEqual(['description: evaluative adjective "stunning"']);
-    expect(lintCopy({ description: 'A grid that quietly delves into order.' })).toEqual(['description: stock phrase "quietly"']);
-    expect(lintCopy({ notes: 'Each seed picks a preset.' })).toEqual(['notes: internal term "seed"']);
+    expect(lintCopy({ description: 'A stunning, timeless grid.' })).toEqual([
+      'description: evaluative adjective "stunning"',
+    ]);
+    expect(lintCopy({ description: 'A grid that quietly delves into order.' })).toEqual([
+      'description: stock phrase "quietly"',
+    ]);
+    expect(lintCopy({ notes: 'Each seed picks a preset.' })).toEqual([
+      'notes: internal term "seed"',
+    ]);
     expect(lintCopy({ notes: 'Released under CC0.' })).toEqual(['notes: licence identifier "CC0"']);
-    expect(lintCopy({ notes: 'Within 2 RGB units.' })).toEqual(['notes: machinery number "RGB units"']);
-    expect(lintCopy({ description: 'Squares 12px wide.' })).toEqual(['description: machinery number "12px"']);
-    expect(lintCopy({ description: 'One square in the accent.' })).toEqual(['description: theme role as a noun "the accent"']);
+    expect(lintCopy({ notes: 'Within 2 RGB units.' })).toEqual([
+      'notes: machinery number "RGB units"',
+    ]);
+    expect(lintCopy({ description: 'Squares 12px wide.' })).toEqual([
+      'description: machinery number "12px"',
+    ]);
+    expect(lintCopy({ description: 'One square in the accent.' })).toEqual([
+      'description: theme role as a noun "the accent"',
+    ]);
     expect(lintCopy({ description: 'Square accent cells, one picked out.' })).toEqual([]);
   });
 });
 
-describe('typographer\'s quotes outside the notes', () => {
+describe("typographer's quotes outside the notes", () => {
   it('curls apostrophes and quotes, and leaves primes after figures', () => {
-    expect(smartQuotes("Pey'j's hovercraft on Jade's lighthouse")).toBe('Pey’j’s hovercraft on Jade’s lighthouse');
-    expect(smartQuotes("The players' 'best' lap, the \"W\", the '90s")).toBe('The players’ ‘best’ lap, the “W”, the ’90s');
+    expect(smartQuotes("Pey'j's hovercraft on Jade's lighthouse")).toBe(
+      'Pey’j’s hovercraft on Jade’s lighthouse',
+    );
+    expect(smartQuotes("The players' 'best' lap, the \"W\", the '90s")).toBe(
+      'The players’ ‘best’ lap, the “W”, the ’90s',
+    );
     expect(smartQuotes("Le Club de l'Ouest")).toBe('Le Club de l’Ouest');
     expect(smartQuotes("16½''' ETA 6497-1, 12\" wide")).toBe("16½''' ETA 6497-1, 12\" wide");
   });
@@ -65,7 +100,10 @@ describe('typographer\'s quotes outside the notes', () => {
       notes: "Markdown's own.",
       sources: [{ kind: 'inspiration', title: "Mirror's Edge", author: 'DICE', year: 2008 }],
       franchise: { title: "Baldur's Gate 3", owner: 'Larian Studios' },
-      variants: { default: { label: 'Harbour' }, night: { label: "Night's end", description: "The keep's lamps.", draft: true } },
+      variants: {
+        default: { label: 'Harbour' },
+        night: { label: "Night's end", description: "The keep's lamps.", draft: true },
+      },
     };
     expect(typesetMeta(meta)).toEqual({
       ...meta,
@@ -73,7 +111,10 @@ describe('typographer\'s quotes outside the notes', () => {
       description: 'Wyrm’s Rock at dusk.',
       sources: [{ kind: 'inspiration', title: 'Mirror’s Edge', author: 'DICE', year: 2008 }],
       franchise: { title: 'Baldur’s Gate 3', owner: 'Larian Studios' },
-      variants: { default: { label: 'Harbour' }, night: { label: 'Night’s end', description: 'The keep’s lamps.', draft: true } },
+      variants: {
+        default: { label: 'Harbour' },
+        night: { label: 'Night’s end', description: 'The keep’s lamps.', draft: true },
+      },
     });
     expect(meta.title).toBe("Baldur's Gate from the harbour");
   });
@@ -83,7 +124,13 @@ describe('caption attribution', () => {
   /** The caption as text, titles between asterisks where the page sets them in italics and topics bare. */
   const caption = (sources: Partial<Source>[]) => {
     const c = captionParts({ sources: sources as Source[] });
-    return c && c.lead + c.parts.map((p) => `${p.before}${p.title ? `*${p.title}*` : ''}${p.topic ?? ''}${p.after}`).join('');
+    return (
+      c &&
+      c.lead +
+        c.parts
+          .map((p) => `${p.before}${p.title ? `*${p.title}*` : ''}${p.topic ?? ''}${p.after}`)
+          .join('')
+    );
   };
 
   it('lists sources as "A, B and C", even when an author has an "and" of its own', () => {
@@ -93,7 +140,9 @@ describe('caption attribution', () => {
         { kind: 'inspiration', author: 'Michael Toy and Glenn Wichman', title: 'Rogue' },
         { kind: 'inspiration', author: 'Brian Walker', title: 'Brogue' },
       ]),
-    ).toBe('inspired by NetHack DevTeam, *NetHack*, Michael Toy and Glenn Wichman, *Rogue* and Brian Walker, *Brogue*');
+    ).toBe(
+      'inspired by NetHack DevTeam, *NetHack*, Michael Toy and Glenn Wichman, *Rogue* and Brian Walker, *Brogue*',
+    );
   });
 
   it('names an author once for consecutive works, and keeps years for recreations only', () => {
@@ -103,7 +152,9 @@ describe('caption attribution', () => {
         { kind: 'recreation', author: 'Mark Rothko', title: 'Seagram murals', year: 1958 },
       ]),
     ).toBe('after Mark Rothko, *No. 61*, 1953 and *Seagram murals*, 1958');
-    expect(caption([{ kind: 'inspiration', author: 'Georg Nees', title: 'Schotter', year: 1968 }])).toBe('inspired by Georg Nees, *Schotter*');
+    expect(
+      caption([{ kind: 'inspiration', author: 'Georg Nees', title: 'Schotter', year: 1968 }]),
+    ).toBe('inspired by Georg Nees, *Schotter*');
   });
 
   it('prefers recreations, drops missing fields and leaves out references and data', () => {
@@ -113,10 +164,18 @@ describe('caption attribution', () => {
         { kind: 'recreation', author: 'eBoy' },
       ]),
     ).toBe('after eBoy');
-    expect(caption([{ kind: 'inspiration', title: 'The Thames Tunnel' }, { kind: 'inspiration', author: 'ECM Records' }])).toBe(
-      'inspired by *The Thames Tunnel* and ECM Records',
-    );
-    expect(caption([{ kind: 'reference', topic: 'Synthwave' }, { kind: 'data', topic: 'd3-celestial' }])).toBeUndefined();
+    expect(
+      caption([
+        { kind: 'inspiration', title: 'The Thames Tunnel' },
+        { kind: 'inspiration', author: 'ECM Records' },
+      ]),
+    ).toBe('inspired by *The Thames Tunnel* and ECM Records');
+    expect(
+      caption([
+        { kind: 'reference', topic: 'Synthwave' },
+        { kind: 'data', topic: 'd3-celestial' },
+      ]),
+    ).toBeUndefined();
   });
 
   it('sets a topic upright where a title would stand', () => {
@@ -133,7 +192,9 @@ describe('licenseOf', () => {
   const made = { model: 'claude-opus-5-5' };
   it('reads license:, then franchise:, then the default for a piece a model made', () => {
     expect(licenseOf({ ...made, license: 'CC-BY-4.0' })).toBe('CC-BY-4.0');
-    expect(licenseOf({ ...made, franchise: { title: 'Outer Wilds', owner: 'Mobius Digital' } })).toBe('LicenseRef-fan-work');
+    expect(
+      licenseOf({ ...made, franchise: { title: 'Outer Wilds', owner: 'Mobius Digital' } }),
+    ).toBe('LicenseRef-fan-work');
     expect(licenseOf(made)).toBe('CC0-1.0');
   });
   it('resolves nothing for a recreation or a human-made piece without license:', () => {

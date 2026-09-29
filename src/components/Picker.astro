@@ -1,7 +1,7 @@
 ---
 /** The theme popover opened by the header's theme button; behaviour lives in the client. */
 import Chips from './Chips.astro';
-import { DEFAULT_PRESET, PRESETS } from './presets';
+import { DEFAULT_PRESET, PRESETS } from '../lib/presets';
 
 const fields = [
   { seed: 'bg', label: 'Background', value: DEFAULT_PRESET.bg },
@@ -18,7 +18,7 @@ const fields = [
       {
         PRESETS.map((p) => (
           <li>
-            <button type="button" data-preset={p.name} aria-pressed={p === DEFAULT_PRESET ? 'true' : 'false'}><span class="name">{p.name}</span><span class="leader" /><Chips colours={[p.bg, p.fg, p.accent]} /></button>
+            <button type="button" data-preset={p.name} aria-pressed={p.name === DEFAULT_PRESET.name ? 'true' : 'false'}><span class="name">{p.name}</span><span class="leader" /><Chips colours={[p.bg, p.fg, p.accent]} /></button>
           </li>
         ))
       }

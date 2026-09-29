@@ -3,7 +3,7 @@
  * The detail page's controls column, rendered for the default version, fireproof,
  * 16:9 and the default size and format; the client keeps it in step.
  */
-import { DEFAULT_PRESET } from './presets';
+import { DEFAULT_PRESET } from '../lib/presets';
 import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, DEFAULT_VARIANT, EXPORT_SIZES, FORMATS, SITE_ASPECTS, downloadName, type Piece } from '../lib/content';
 
 interface Props {
@@ -15,8 +15,9 @@ const seeds = [
   { seed: 'fg', value: DEFAULT_PRESET.fg, role: 'foreground' },
   { seed: 'accent', value: DEFAULT_PRESET.accent, role: 'accent' },
 ] as const;
-const sizes = EXPORT_SIZES['16:9'];
-const size = sizes[DEFAULT_SIZE_INDEX];
+// Every shape's sizes; the client shows the chosen shape's.
+const sizes = SITE_ASPECTS.flatMap((aspect) => EXPORT_SIZES[aspect].map((value) => ({ aspect, value })));
+const size = EXPORT_SIZES['16:9'][DEFAULT_SIZE_INDEX];
 const format = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!;
 const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, size, '16:9', false);
 ---
@@ -45,7 +46,7 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     <div class="row"><span class="k">Format</span><div class="seg" role="radiogroup" aria-label="Format">{FORMATS.map((f) => <label><input type="radio" name="fmt" value={f.value} data-ext={f.ext} checked={f === format} /><span>{f.label}</span></label>)}</div><span class="sub hint" id="format-hint" hidden>This browser can’t make WebP files.</span></div>
     <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint" hidden>cropped from <span class="mono">16:9</span></span></div>
     <div class="row center" id="crop-row" hidden><span class="k">Crop</span><input class="range" id="crop" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="Crop position" /></div>
-    <div class="row"><span class="k">Size</span><div class="seg" id="sizes" role="radiogroup" aria-label="Size">{sizes.map((s) => <label><input type="radio" name="size" value={s} checked={s === size} /><span><span class="mono">{s.replace('x', '×')}</span></span></label>)}<label><input type="radio" name="size" value="screen" /><span>your screen</span></label></div><span class="sub hint" id="size-limit" hidden>This browser can’t draw a file that large.</span><span class="sub hint lnum" id="cell-note" hidden></span></div>
+    <div class="row"><span class="k">Size</span><div class="seg" id="sizes" role="radiogroup" aria-label="Size">{sizes.map((s) => <label data-aspect={s.aspect} hidden={s.aspect !== '16:9'}><input type="radio" name="size" value={s.value} checked={s.value === size} disabled={s.aspect !== '16:9'} /><span><span class="mono">{s.value.replace('x', '×')}</span></span></label>)}<label><input type="radio" name="size" value="screen" /><span>your screen</span></label></div><span class="sub hint" id="size-limit" hidden>This browser can’t draw a file that large.</span><span class="sub hint lnum" id="cell-note" hidden></span></div>
     <button type="button" class="download row" id="download"><span class="k">Download</span><span class="file"><span class="mono" id="download-name">{file}</span></span></button>
     <p class="row" aria-live="polite"><span class="sub msg err" id="export-error"></span></p>
   </section>

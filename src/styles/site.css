@@ -1,5 +1,5 @@
 /*
- * Before first paint the theme boot (src/lib/theme-boot.ts) writes every custom property in the next
+ * Before first paint the theme boot (src/client/theme/boot.ts) writes every custom property in the next
  * block inline on <html>, which outranks these rules, so they apply only without JS.
  */
 
@@ -399,6 +399,8 @@ abbr {
 /* Before JS the plate is an empty box of the right shape. */
 .plate:empty { aspect-ratio: 16 / 9; }
 .plate img { width: 100%; aspect-ratio: 16 / 9; height: auto; }
+/* A new image fades in over the one it replaces, which goes once the fade ends. */
+.plate > img + img { position: absolute; top: 0; left: 0; }
 /* Round the box up to the 8px unit so captions stay on the grid; the image is never cropped, and the 0-7px strip is plate background. */
 @supports (height: round(up, 1px, 1px)) {
   .plate img {

@@ -9,7 +9,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `docs/api.md`: the design API, build files and CLI. The docstrings in `walldye/` hold the exact semantics; when the two disagree, fix one of them in the same change.
 - `docs/site.md`: the site's visual system, components and voice.
 - `docs/deploy.md`: CI, Cloudflare and the going-live checklist.
-- `src/scripts/DOM.md`: the hooks the server-rendered pages give the client modules.
+- `src/client/DOM.md`: the hooks the server-rendered pages give the client modules.
 
 ## Writing docs and comments
 
@@ -24,7 +24,7 @@ walldye is a catalogue of procedural SVG wallpapers. Each piece is a small Pytho
 - `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Everything outside `tools/` feeds the render-lib hash, so editing it makes the next build re-check every piece's probes.
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand; `build/` is generated and gitignored, with named variants in `build/<variant>/`. Legacy pieces have `source.svg` and `palette.yaml` instead of a script. `wallpapers/index.json` is generated and gitignored too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `taxonomy.yaml`: the allowed facet values for meta.yaml. Only `walldye review` adds to it.
-- `src/`: the site. `src/lib/` has the TypeScript ports of the theme, recolour and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`; `src/lib/labels.ts` has the words visitors see for facet values and licences.
+- `src/`: the site. `src/lib/` is the code the build and the browser share: the TypeScript ports of the theme, recolour and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for facet values and licences. `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time.
 - `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recolouring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.
@@ -42,11 +42,13 @@ uv run pytest
 uv run ruff format . && uv run ruff check --fix .   # formatting (line length 100) and import order
 uv run pyrefly check                  # the library at the strictest preset
 uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py   # designs, at the design level
-uv run prek install                   # once per clone: ruff and Pyrefly as a pre-commit hook
+uv run prek install                   # once per clone: ruff, Pyrefly and Biome as a pre-commit hook
 uv run python tests/python/fixtures/regen.py   # after a build, before pnpm test
 
 pnpm test                             # vitest
-pnpm check                            # astro check
+pnpm check                            # astro check: the site, client and tests, after a build
+pnpm lint                             # Biome: formatting (line length 100), lint and import order
+pnpm format                           # Biome, fixing what it can
 pnpm astro build
 pnpm e2e:nix                          # Playwright on NixOS, with nixpkgs' browsers; `pnpm e2e` elsewhere
 ```
@@ -59,6 +61,7 @@ On NixOS the Python wheels need `programs.nix-ld.enable`; there is no devShell.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no colour names, no theme roles as nouns, no internal terms, no evaluative adjectives.
 - Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.
 - All Python, including ` ```python ` blocks in Markdown, passes `ruff format` and `ruff check` (fix findings, no blanket `noqa`), and Pyrefly at its level: 0 errors in the library. The prek hook and CI run them; `walldye check` does not.
+- All TypeScript passes `pnpm lint` (Biome; fix findings, a `biome-ignore` only with its reason) and `pnpm check`. The prek hook runs Biome, CI both. `.astro` files are left to `astro check`: Biome does not format them.
 
 ## Dev server
 

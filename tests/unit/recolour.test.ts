@@ -2,8 +2,16 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { entries, pickTemplate, prepareTemplate, recolour, select, type Slots, type SlotsEntry } from '../../src/lib/recolour';
-import { parseToken, PRESETS, type Seeds } from '../../src/lib/theme';
+import {
+  entries,
+  pickTemplate,
+  prepareTemplate,
+  recolour,
+  type Slots,
+  type SlotsEntry,
+  select,
+} from '../../src/lib/recolour';
+import { normaliseSeeds, PRESETS, parseToken, type Seeds } from '../../src/lib/theme';
 import { findColours, skeleton } from '../../src/lib/tokenize';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -15,7 +23,15 @@ const sha256 = (text: string) => createHash('sha256').update(text).digest('hex')
 interface Manifest {
   themes: string[];
   pieces: Record<string, { design_sha: string }>;
-  renders: { slug: string; aspect: string; theme: string; entry: string; template: string; sha256: string; render: string }[];
+  renders: {
+    slug: string;
+    aspect: string;
+    theme: string;
+    entry: string;
+    template: string;
+    sha256: string;
+    render: string;
+  }[];
   resvg: { svg: string };
 }
 const MANIFEST = JSON.parse(read('tests/fixtures/manifest.json')) as Manifest;
@@ -28,42 +44,64 @@ function maxSlotError(a: string, b: string): number {
   expect(ca.length).toBe(cb.length);
   let worst = 0;
   ca.forEach((x, i) => {
-    for (let k = 1; k < 7; k += 2) worst = Math.max(worst, Math.abs(parseInt(x.slice(k, k + 2), 16) - parseInt(cb[i].slice(k, k + 2), 16)));
+    for (let k = 1; k < 7; k += 2)
+      worst = Math.max(
+        worst,
+        Math.abs(parseInt(x.slice(k, k + 2), 16) - parseInt(cb[i].slice(k, k + 2), 16)),
+      );
   });
   return worst;
 }
 
 describe('fireproof passthrough (a)', () => {
-  const templates = REFERENCE_PIECES.flatMap((slug) => entries(slotsOf(slug)).map(([key, entry]) => ({ slug, key, entry })));
+  const templates = REFERENCE_PIECES.flatMap((slug) =>
+    entries(slotsOf(slug)).map(([key, entry]) => ({ slug, key, entry })),
+  );
 
   it.each(templates)('$slug $key is returned byte for byte', ({ slug, entry }) => {
     const template = read(`wallpapers/${slug}/build/${entry.file}`);
     expect(recolour(template, entry, PRESETS.fireproof)).toBe(template);
-    expect(recolour(prepareTemplate(template), entry, { bg: '#1c1b1a', fg: 'DAD8CE', accent: 'cf6a4c' })).toBe(template);
+    expect(
+      recolour(
+        prepareTemplate(template),
+        entry,
+        normaliseSeeds({ bg: '#1c1b1a', fg: 'DAD8CE', accent: 'cf6a4c' }),
+      ),
+    ).toBe(template);
   });
 });
 
 describe('recolour matches the Python renders (b)', () => {
   it('uses fixtures made from the current builds', () => {
-    for (const slug of REFERENCE_PIECES) expect(slotsOf(slug).design_sha, `${slug}: rerun tests/python/fixtures/regen.py`).toBe(MANIFEST.pieces[slug].design_sha);
+    for (const slug of REFERENCE_PIECES)
+      expect(slotsOf(slug).design_sha, `${slug}: rerun tests/python/fixtures/regen.py`).toBe(
+        MANIFEST.pieces[slug].design_sha,
+      );
     expect(MANIFEST.themes).toHaveLength(4);
   });
 
-  it.each(MANIFEST.renders)('$slug $aspect under $theme', ({ slug, aspect, theme, entry: key, template: path, sha256: sha, render }) => {
-    const template = read(path);
-    expect(sha256(template), `${path} changed since the fixture was made`).toBe(sha);
-    const picked = select(slotsOf(slug), aspect, seeds(theme));
-    expect(picked.key).toBe(key);
-    const out = recolour(template, picked.entry, seeds(theme));
-    const want = read(render);
-    expect(skeleton(out)).toBe(skeleton(want));
-    expect(maxSlotError(out, want)).toBeLessThanOrEqual(2);
-  });
+  it.each(MANIFEST.renders)(
+    '$slug $aspect under $theme',
+    ({ slug, aspect, theme, entry: key, template: path, sha256: sha, render }) => {
+      const template = read(path);
+      expect(sha256(template), `${path} changed since the fixture was made`).toBe(sha);
+      const picked = select(slotsOf(slug), aspect, seeds(theme));
+      expect(picked.key).toBe(key);
+      const out = recolour(template, picked.entry, seeds(theme));
+      const want = read(render);
+      expect(skeleton(out)).toBe(skeleton(want));
+      expect(maxSlotError(out, want)).toBeLessThanOrEqual(2);
+    },
+  );
 
   it('is byte-equal to the Python reference recolour', () => {
     const [slug, aspect, theme] = ['schotter', '16:9', 'nord'];
     const picked = select(slotsOf(slug), aspect, seeds(theme));
-    const out = recolour(read(`wallpapers/${slug}/build/${picked.entry.file}`), picked.entry, seeds(theme));
+    const out = recolour(
+      read(`wallpapers/${slug}/build/${picked.entry.file}`),
+      picked.entry,
+      seeds(theme),
+    );
     expect(out).toBe(read(MANIFEST.resvg.svg));
   });
 });
@@ -91,15 +129,28 @@ describe('per-occurrence slots (f)', () => {
 
   it('misses by more than 2 units with one slot per fireproof hex', () => {
     const entry: SlotsEntry = { file: '16x9.svg', sha256: '', ...perHex };
-    const dark = Object.keys(renders).filter((t) => select(slots, '16:9', seeds(t)).key === '16:9/dark');
-    const worst = Math.max(...dark.map((t) => maxSlotError(recolour(template, entry, seeds(t)), renders[t])));
+    const dark = Object.keys(renders).filter(
+      (t) => select(slots, '16:9', seeds(t)).key === '16:9/dark',
+    );
+    const worst = Math.max(
+      ...dark.map((t) => maxSlotError(recolour(template, entry, seeds(t)), renders[t])),
+    );
     expect(worst).toBeGreaterThan(2);
   });
 });
 
 describe('template choice', () => {
-  const entry = (file: string, n = 1): SlotsEntry => ({ file, sha256: '', n, coefs: [[1, 0, 0, 0, 0, 0]], occ: [0] });
-  const both = { '16:9/dark': entry('16x9.svg'), '16:9/light': entry('16x9.light.svg') } as unknown as Slots;
+  const entry = (file: string, n = 1): SlotsEntry => ({
+    file,
+    sha256: '',
+    n,
+    coefs: [[1, 0, 0, 0, 0, 0]],
+    occ: [0],
+  });
+  const both = {
+    '16:9/dark': entry('16x9.svg'),
+    '16:9/light': entry('16x9.light.svg'),
+  } as unknown as Slots;
 
   it("picks the entry of the seeds' regime", () => {
     expect(pickTemplate(both, '16:9', 'light')).toMatchObject({ key: '16:9/light' });
@@ -107,22 +158,35 @@ describe('template choice', () => {
     expect(select(both, '16:9', PRESETS['flexoki-light']).key).toBe('16:9/light');
     expect(select(both, '16:9', PRESETS.nord).key).toBe('16:9/dark');
     expect(() => pickTemplate(both, '21:9', 'dark')).toThrow('no 21:9/dark entry');
-    expect(() => pickTemplate({ '16:9/dark': entry('16x9.svg') } as unknown as Slots, '16:9', 'light')).toThrow('no 16:9/light entry');
+    expect(() =>
+      pickTemplate({ '16:9/dark': entry('16x9.svg') } as unknown as Slots, '16:9', 'light'),
+    ).toThrow('no 16:9/light entry');
   });
 
   it('falls back to the template when the slot count does not match', () => {
     const template = '<svg><rect fill="#1C1B1A"/></svg>';
     expect(recolour(template, entry('16x9.svg', 2), PRESETS.nord)).toBe(template);
     expect(recolour(template, { ...entry('16x9.svg'), occ: [3] }, PRESETS.nord)).toBe(template);
-    expect(recolour(template, entry('16x9.svg'), PRESETS.nord)).toBe('<svg><rect fill="#2E3440"/></svg>');
+    expect(recolour(template, entry('16x9.svg'), PRESETS.nord)).toBe(
+      '<svg><rect fill="#2E3440"/></svg>',
+    );
   });
 
   it('rounds half to even and clamps', () => {
     const template = '<svg><rect fill="#000"/><rect fill="#000"/></svg>';
-    const e: SlotsEntry = { file: '', sha256: '', n: 2, coefs: [[0, 0, 0, 66.5, 67.5, -3], [2, 0, 0, 0, 0, 300]], occ: [0, 1] };
-    expect(recolour(template, e, { bg: '#808080', fg: '#000000', accent: '#000000' })).toBe(
-      '<svg><rect fill="#424400"/><rect fill="#FFFFFF"/></svg>',
-    );
+    const e: SlotsEntry = {
+      file: '',
+      sha256: '',
+      n: 2,
+      coefs: [
+        [0, 0, 0, 66.5, 67.5, -3],
+        [2, 0, 0, 0, 0, 300],
+      ],
+      occ: [0, 1],
+    };
+    expect(
+      recolour(template, e, normaliseSeeds({ bg: '#808080', fg: '#000000', accent: '#000000' })),
+    ).toBe('<svg><rect fill="#424400"/><rect fill="#FFFFFF"/></svg>');
   });
 });
 
@@ -130,7 +194,10 @@ describe("the reference pieces' templates", () => {
   it('have as many slots as slots.json says', () => {
     for (const slug of REFERENCE_PIECES) {
       for (const [key, e] of entries(slotsOf(slug))) {
-        expect(findColours(read(`wallpapers/${slug}/build/${e.file}`)).length, `${slug} ${key}`).toBe(e.n);
+        expect(
+          findColours(read(`wallpapers/${slug}/build/${e.file}`)).length,
+          `${slug} ${key}`,
+        ).toBe(e.n);
       }
     }
   });

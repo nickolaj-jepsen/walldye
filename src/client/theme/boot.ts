@@ -4,7 +4,7 @@
  * site.css's no-JS theme.
  */
 
-import { applyTheme, followChanges, resolveTheme, takeSharedParam } from './theme-store';
+import { applyTheme, followChanges, resolveTheme, takeSharedParam } from './store';
 
 try {
   takeSharedParam();

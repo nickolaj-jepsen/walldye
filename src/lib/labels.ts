@@ -95,6 +95,6 @@ export const TAKEDOWN_CONTACT = 'takedown@walldye.com';
 export const LICENCE_LINES: Record<string, string> = {
   // "Above" is the caption's "after …" line and the credit, which reuse under CC BY has to keep.
   'CC-BY-4.0': 'Free to use, with credit as given above.',
-  'CC-BY-SA-3.0': 'Free to use, with credit as given above; a changed version must be shared on the same terms.',
+  'CC-BY-SA-3.0':
+    'Free to use, with credit as given above; a changed version must be shared on the same terms.',
 };
-

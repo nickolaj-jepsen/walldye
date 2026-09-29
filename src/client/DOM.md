@@ -1,30 +1,30 @@
 # DOM contract for the client modules
 
-The hooks the server-rendered pages give the client code in `src/scripts/*.ts`. The pages render fireproof, the default sort, no filters, 16:9 and the default export choices, so the client changes only what the visitor changed. Behaviour and look are in `docs/site.md`.
+The hooks the server-rendered pages give the client code in `src/client/`. The pages render fireproof, the default sort, no filters, 16:9 and the default export choices, so the client changes only what the visitor changed. Behaviour and look are in `docs/site.md`. The client reads required hooks with `must()` from `dom.ts`, which throws when one is missing.
 
 ## Script hooks
 
 | File | Loaded by | Does |
 |---|---|---|
 | `site.ts` | `src/layouts/Base.astro`, after `<Picker />` | Theme button, shared-theme line, picker, "Copy link", the detail colour list |
-| `index.ts` | `src/pages/index.astro` | Filters, results line, lazily recoloured plates |
-| `detail.ts` | `src/pages/[slug].astro` | Versions, plate, crop window, export panel, run command, the `f` key, "Copy" |
+| `index/page.ts` | `src/pages/index.astro` | Filters, results line, lazily recoloured plates |
+| `detail/page.ts` | `src/pages/[slug].astro` | Versions, plate, crop window, export panel, run command, the `f` key, "Copy" |
 
-`Base.astro` inlines `src/lib/theme-boot.ts`, bundled by `src/lib/theme-boot-script.ts`, as the first script in `<head>`; a boot that does not build fails the build.
+`Base.astro` inlines `theme/boot.ts`, bundled by `src/server/theme-boot-script.ts`, as the first script in `<head>`; a boot that does not build fails the build.
 
 ## Every page
 
 ### Theme variables
 
-The theme boot sets every property from `cssVars()` in `src/lib/theme.ts` inline on `<html>`, plus `data-regime="dark|light"`. The swatches read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It applies the theme again, dispatching the theme event, when the system colour scheme changes and when the page returns from the back/forward cache.
+The theme boot sets every property from `cssVars()` in `src/lib/theme.ts` inline on `<html>`, plus `data-regime="dark|light"` and `data-theme`, the applied theme's token, which the page modules read the seeds from. The swatches read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It applies the theme again, dispatching the theme event, when the system colour scheme changes and when the page returns from the back/forward cache.
 
-When storage cannot be written, `src/lib/theme-store.ts` keeps the token on `<html>` as `data-theme-shared` or `data-theme-saved`, so it holds for the rest of the page in every bundle.
+When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as `data-theme-shared` or `data-theme-saved`, so it holds for the rest of the page in every bundle.
 
 ### Header (`src/components/Masthead.astro`)
 
 | Hook | Element | Client does |
 |---|---|---|
-| `#theme-button` | `button.seeds[popovertarget=picker]` | Set `aria-label` to `presetLabel()` from `src/components/presets.ts`, and `aria-expanded` from `#picker`'s `toggle` event. |
+| `#theme-button` | `button.seeds[popovertarget=picker]` | Set `aria-label` to `presetLabel()` from `src/lib/presets.ts`, and `aria-expanded` from `#picker`'s `toggle` event. |
 | `[data-theme-name]` | `span.name` inside `#theme-button` | Set the text to the preset name, or `custom`. |
 | `#shared` | `p.shared[hidden]` | Unhide it while the session theme from `?t=` differs from the saved one. |
 | `#shared [data-action=keep-shared]` | button "Keep it" | Save the session theme. |
@@ -58,7 +58,7 @@ When storage cannot be written, `src/lib/theme-store.ts` keeps the token on `<ht
 | `.results-line .clear` | `button[type=reset][form=facets][hidden]` | Show it while any box is checked or the search is not empty. |
 | `.plates .empty` | `p[hidden]` | Show it when nothing matches. |
 
-The query string is the form's own GET serialisation: `q=<text>`, `sort=<order>` (left out for `newest`) and repeated `<facet>=<value>` keys, e.g. `/?technique=drafting&technique=dither&other=any-screen`. Detail pages link their facts the same way. Ignore values that have no checkbox or radio.
+The query string is the form's own GET serialisation: `q=<text>`, `sort=<order>` (left out for `newest`) and repeated `<facet>=<value>` keys, e.g. `/?technique=drafting&technique=dither&other=any-screen`. Detail pages link their facts the same way. The client reads it back into the controls, ignoring values that have no checkbox or radio, and writes `FormData` of the form, so a new control is in the address without client changes.
 
 ### Plates
 
@@ -91,13 +91,14 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 - `data-templates` maps each slots.json key (`<aspect>/<regime>`) to a template URL: only the `16:9/*` keys on the index, every key on the detail page. The URL hash is `slots[key].sha256.slice(0, 12)`. Under the exact fireproof seeds, use the template URL itself as `img.src`.
 - `data-slots` is the piece's `build/slots.json`, byte for byte (`focus`, `cells`, and per key `{file, sha256, n, coefs, occ}`), fetched once per piece. If `n` does not match, show the untouched template.
 - `data-alt` is the description, for the `alt` of the inserted `<img>`.
-- `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. Switching versions copies an entry into the three attributes above, so everything reading the plate follows.
+- `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. The client reads these attributes once and never writes them.
 - Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; the CSS frames a non-16:9 template from `data-aspect`. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
-- When the template or slots.json fails to load, an empty plate gets the untouched template (`showTemplate()`), and the recolour is retried on the `RETRY_MS` schedule and on the `online` event.
+- While an image fades in over the one it replaces, `site.css` stacks the second `img` over the first.
+- When the template or slots.json fails to load, an empty plate gets the untouched template, and the recolour is retried on the `RETRY_MS` schedule and on the `online` event (`keepShowing()` in `plates.ts`).
 
 ## Detail (`src/pages/[slug].astro`)
 
-The page keeps its state in the query string, written with `history.replaceState` when the visitor changes it: `v=<variant>` (left out for the default), `shape=<w>x<h>` (left out for 16:9) and `crop=<0..1>` (cropped shapes only). The phone default for size is never written. A `v` that names no version on the page shows the default.
+The page keeps its state in the query string, written with `history.replaceState` when the visitor changes it: `v=<variant>` (left out for the default), `shape=<w>x<h>` (left out for 16:9) and `crop=<0..1>` (on a cropped shape, once the visitor placed it; an unplaced crop follows the version's focus, so the address needs no position). Nothing is written until the visitor changes something, so a phone's own shape stays out of the address. A `v` that names no version on the page shows the default. `detail/state.ts` has these rules.
 
 ### Spread and label
 
@@ -114,14 +115,14 @@ The page keeps its state in the query string, written with `history.replaceState
 | `#versions` | `div.seg.versions[role=radiogroup]` | Pieces with versions only. One `label > input[type=radio][name=v][value=<name>] + span` per version, the default (checked) first. On change: swap the plate data, set `#desc` and the alt, reload focus and cells from that version's slots.json (moving a crop the visitor has not placed), rename the download and the run command, write `v`. |
 | `.seedlist [data-seed=bg\|fg\|accent]` | `span.mono` | The uppercase `#RRGGBB` seed. |
 | `button[popovertarget=picker]` | "Change" | Native. |
-| `[data-action=copy-link]` | "Copy link" | As in the picker, plus `crop` when set. |
+| `[data-action=copy-link]` | "Copy link" | As in the picker, so with the page's `v`, `shape` and `crop`. |
 | `#export` | `section[data-license]` | Prefetch the rasteriser and probe WebP support when it scrolls into view. `data-license` goes into the SVG download's `<desc>`. |
 | `#format-hint` | `span.hint[hidden]` | Shown, with the WebP radio disabled, when the browser cannot encode WebP. |
 | `#export input[name=fmt]` | radios `svg`, `png` (checked), `webp`, `jpeg` | `data-ext` is the file extension. |
 | `#export input[name=asp]` | radios `16:9` (checked), `16:10`, `21:9`, `32:9`, `9:19.5`, `10:16` | `data-native` marks shapes with their own template; the rest crop 16:9. |
 | `#shape-hint` | `span.hint[hidden]` | Show it for cropped shapes. |
-| `#crop-row`, `#crop` | `div.row[hidden]` and `input[type=range]` 0 to 1 | Show for cropped shapes. The value is the position along the crop's travel (0 left or top). It starts centred on `focus` (clamped) or at `?crop=`, and is kept when the new shape crops along the same axis. |
-| `#sizes` | radiogroup | Rendered with the 16:9 sizes, 2560×1440 checked, `screen` last. On a shape change, re-render from `EXPORT_SIZES` (values `<w>x<h>`, labels `<span class="mono">w×h</span>`). Picking `screen` switches to the nearest shape; leaving that shape drops it for the default size. Phones (`(max-width: 60rem) and (pointer: coarse)`) start on it. |
+| `#crop-row`, `#crop` | `div.row[hidden]` and `input[type=range]` 0 to 1 | Show for cropped shapes. The value is the position along the crop's travel (0 left or top). It follows the version's `focus` (clamped) until the visitor places it (range, drag or `?crop=`); a placed crop is kept when the new shape crops along the same axis. |
+| `#sizes` | radiogroup | One `label[data-aspect=<aspect>]` per size of every shape in `EXPORT_SIZES` (value `<w>x<h>`, label `<span class="mono">w×h</span>`), then `screen`. Only the 16:9 ones are shown and enabled at first, 2560×1440 checked; the client shows and enables the chosen shape's. Picking `screen` switches to the nearest shape; leaving that shape drops it for the default size. Phones (`(max-width: 60rem) and (pointer: coarse)`) start on it. |
 | `#size-limit` | `span.hint[hidden]` | Shown while a size is disabled for the canvas limits; disabled radios point at it with `aria-describedby`. |
 | `#cell-note` | `span.hint.lnum[hidden]` | Pieces with `cells`, raster formats only: shown when cells land on uneven pixel widths. |
 | `#download` | `button.download` | Runs the export; its `.k` reads "Preparing…" with `aria-busy` meanwhile. |
@@ -140,4 +141,4 @@ Script-less pieces have `p.lost` instead, and none of these hooks.
 
 ## Shared helpers
 
-`src/lib/content.ts` has no Node or Astro runtime imports, so client code can import it: `SITE_ASPECTS`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `normaliseSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset). `src/lib/labels.ts` has the facet labels.
+`src/lib/` has no Node or Astro runtime imports, so client code can import it. `content.ts` has `SITE_ASPECTS`, `isAspect`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `normaliseSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset); `labels.ts` has the facet labels; `theme.ts` returns seeds already normalised (`Seeds`), so the client never normalises them again.

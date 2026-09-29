@@ -1,9 +1,20 @@
-import { expect, test, type Page } from '@playwright/test';
-import { countFor, matches, ordered, type Filterable, type FilterState } from '../../src/scripts/filter';
+import { expect, type Page, test } from '@playwright/test';
+import {
+  countFor,
+  type Filterable,
+  type FilterState,
+  matches,
+  ordered,
+} from '../../src/client/index/filter';
 
-const visibleSlugs = (page: Page) => page.locator('.grid > li:not([hidden])').evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
-const box = (page: Page, facet: string, value: string) => page.locator(`#facets input[name=${facet}][value="${value}"]`);
-const countOf = (page: Page, facet: string, value: string) => page.locator(`#facets label.entry:has(input[name=${facet}][value="${value}"]) .count`);
+const visibleSlugs = (page: Page) =>
+  page
+    .locator('.grid > li:not([hidden])')
+    .evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
+const box = (page: Page, facet: string, value: string) =>
+  page.locator(`#facets input[name=${facet}][value="${value}"]`);
+const countOf = (page: Page, facet: string, value: string) =>
+  page.locator(`#facets label.entry:has(input[name=${facet}][value="${value}"]) .count`);
 
 /** Every index plate as the filter reads it from the server-rendered list; the expectations below come from these and filter.ts, which the unit tests cover. */
 async function catalogue(page: Page): Promise<Filterable[]> {
@@ -24,20 +35,31 @@ async function catalogue(page: Page): Promise<Filterable[]> {
   return rows.map((r) => ({ ...r, facets: new Set(r.facets.split(' ').filter(Boolean)) }));
 }
 
-const state = (facets: Record<string, string[]>, q = '', sort: FilterState['sort'] = 'newest'): FilterState => ({
+const state = (
+  facets: Record<string, string[]>,
+  q = '',
+  sort: FilterState['sort'] = 'newest',
+): FilterState => ({
   q,
   sort,
   facets: new Map(Object.entries(facets).map(([f, vs]) => [f, new Set(vs)])),
 });
 /** The slugs `s` shows, in order. */
-const shown = (items: Filterable[], s: FilterState) => ordered(items.filter((it) => matches(it, s)), s.sort).map((it) => it.slug);
+const shown = (items: Filterable[], s: FilterState) =>
+  ordered(
+    items.filter((it) => matches(it, s)),
+    s.sort,
+  ).map((it) => it.slug);
 /** The results line for `n` of `total` plates. */
-const results = (n: number, total: number) => (n === total ? `${total} wallpapers` : `${n} of ${total} wallpapers`);
+const results = (n: number, total: number) =>
+  n === total ? `${total} wallpapers` : `${n} of ${total} wallpapers`;
 
 test.describe('index filters', () => {
   test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
 
-  test('facets combine OR within and AND across, with live counts and the query string', async ({ page }) => {
+  test('facets combine OR within and AND across, with live counts and the query string', async ({
+    page,
+  }) => {
     await page.goto('/');
     const items = await catalogue(page);
     const total = items.length;
@@ -57,29 +79,45 @@ test.describe('index filters', () => {
     expect(dither).toBeGreaterThan(0);
     await expect(countOf(page, 'technique', 'dither')).toHaveText(String(dither));
     const both = state({ technique: ['dither', 'drafting'] });
-    const subjects = await page.locator('#facets input[name=subject]').evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
-    const subject = subjects.find((v) => countFor(items, drafting, 'subject', v) === 0 && countFor(items, both, 'subject', v) > 0);
+    const subjects = await page
+      .locator('#facets input[name=subject]')
+      .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
+    const subject = subjects.find(
+      (v) =>
+        countFor(items, drafting, 'subject', v) === 0 && countFor(items, both, 'subject', v) > 0,
+    );
     expect(subject, 'a subject some dithered piece has and no drafting one').toBeDefined();
     await expect(box(page, 'subject', subject!)).toBeDisabled();
 
     await box(page, 'technique', 'dither').check();
-    await expect(page.locator('#result-count')).toHaveText(results(shown(items, both).length, total));
+    await expect(page.locator('#result-count')).toHaveText(
+      results(shown(items, both).length, total),
+    );
     expect(new URL(page.url()).search).toBe('?technique=dither&technique=drafting');
     await expect(box(page, 'subject', subject!)).toBeEnabled();
 
     await box(page, 'subject', subject!).check();
-    const narrowed = shown(items, state({ technique: ['dither', 'drafting'], subject: [subject!] }));
+    const narrowed = shown(
+      items,
+      state({ technique: ['dither', 'drafting'], subject: [subject!] }),
+    );
     expect(narrowed.length).toBeGreaterThan(0);
     expect(await visibleSlugs(page)).toEqual(narrowed);
 
     // A filter never changes where a plate leads (no `?from=`).
     const slug = narrowed[0];
-    await expect(page.locator(`.grid > li[data-slug="${slug}"] > a`)).toHaveAttribute('href', `/${slug}`);
+    await expect(page.locator(`.grid > li[data-slug="${slug}"] > a`)).toHaveAttribute(
+      'href',
+      `/${slug}`,
+    );
 
     await page.click('.results-line .clear');
     await expect(page.locator('#result-count')).toHaveText(results(total, total));
     expect(new URL(page.url()).search).toBe('');
-    await expect(page.locator(`.grid > li[data-slug="${slug}"] > a`)).toHaveAttribute('href', `/${slug}`);
+    await expect(page.locator(`.grid > li[data-slug="${slug}"] > a`)).toHaveAttribute(
+      'href',
+      `/${slug}`,
+    );
   });
 
   test('search, sort and the empty state', async ({ page }) => {
@@ -100,7 +138,9 @@ test.describe('index filters', () => {
     await page.fill('#q', '');
     await expect(page.locator('.plates .empty')).toBeHidden();
     await page.locator('#facets input[name=sort][value=title]').check({ force: true });
-    const order = await page.locator('.grid > li').evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
+    const order = await page
+      .locator('.grid > li')
+      .evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
     expect(order).toEqual(shown(items, state({}, '', 'title')));
     expect(order).not.toEqual(shown(items, state({})));
     expect(new URL(page.url()).search).toBe('?sort=title');
@@ -111,7 +151,10 @@ test.describe('index filters', () => {
     const popular = page.locator('#facets input[name=sort][value=popular]');
     test.skip((await popular.count()) === 0, 'no stats/views/ in this build');
     const items = await catalogue(page);
-    const order = () => page.locator('.grid > li').evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
+    const order = () =>
+      page
+        .locator('.grid > li')
+        .evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
     await expect(popular).toBeChecked();
     expect(await order()).toEqual(shown(items, state({}, '', 'popular')));
     await page.locator('#facets input[name=sort][value=views]').check({ force: true });
@@ -126,16 +169,30 @@ test.describe('index filters', () => {
       new MutationObserver((records) => {
         for (const r of records) {
           const el = r.target instanceof Element ? r.target : r.target.parentElement;
-          if (el?.id === 'result-count') seen.push(r.type === 'attributes' ? `role was ${r.oldValue ?? 'unset'}` : 'text');
+          if (el?.id === 'result-count')
+            seen.push(r.type === 'attributes' ? `role was ${r.oldValue ?? 'unset'}` : 'text');
         }
-      }).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['role'], attributeOldValue: true });
+      }).observe(document, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ['role'],
+        attributeOldValue: true,
+      });
     });
     await page.goto('/?technique=drafting');
     const items = await catalogue(page);
     await expect(page.locator('#result-count')).toHaveAttribute('role', 'status');
-    await expect(page.locator('#result-count')).toHaveText(results(shown(items, state({ technique: ['drafting'] })).length, items.length));
+    await expect(page.locator('#result-count')).toHaveText(
+      results(shown(items, state({ technique: ['drafting'] })).length, items.length),
+    );
     // The server's "N wallpapers", then the client's "n of N wallpapers", and only then the role.
-    expect(await page.evaluate(() => (window as unknown as { seen: string[] }).seen)).toEqual(['text', 'text', 'role was unset']);
+    expect(await page.evaluate(() => (window as unknown as { seen: string[] }).seen)).toEqual([
+      'text',
+      'text',
+      'role was unset',
+    ]);
   });
 
   test('the query string restores the filter and ignores unknown values', async ({ page }) => {
@@ -160,17 +217,29 @@ test.describe('index filters', () => {
 });
 
 test.describe('index plates', () => {
-  test('a plate whose recolour fails to load shows the template, then recolours on a retry', async ({ page }) => {
+  test('a plate whose recolour fails to load shows the template, then recolours on a retry', async ({
+    page,
+  }) => {
     await page.addInitScript(() => localStorage.setItem('walldye.theme', 'nord'));
     let failures = 0;
-    await page.route('**/*.slots.json', (route) => (failures++ < 3 ? route.fulfill({ status: 503, body: '' }) : route.continue()));
+    await page.route('**/*.slots.json', (route) =>
+      failures++ < 3 ? route.fulfill({ status: 503, body: '' }) : route.continue(),
+    );
     await page.goto('/');
-    const srcs = () => page.locator('.grid .plate > img').evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src') ?? ''));
+    const srcs = () =>
+      page
+        .locator('.grid .plate > img')
+        .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src') ?? ''));
     // The untouched template stands in, with the alt text, until the retry.
     await expect.poll(async () => (await srcs()).some((s) => s.startsWith('/t/'))).toBe(true);
-    await expect(page.locator('.grid .plate > img[src^="/t/"]').first()).toHaveAttribute('alt', /./);
+    await expect(page.locator('.grid .plate > img[src^="/t/"]').first()).toHaveAttribute(
+      'alt',
+      /./,
+    );
     expect(failures).toBeGreaterThanOrEqual(3);
-    await expect.poll(async () => (await srcs()).every((s) => s.startsWith('blob:')), { timeout: 10_000 }).toBe(true);
+    await expect
+      .poll(async () => (await srcs()).every((s) => s.startsWith('blob:')), { timeout: 10_000 })
+      .toBe(true);
   });
 
   test('every plate gets an image with the description as alt text', async ({ page }) => {

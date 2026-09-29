@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cssVars, PRESETS } from '../../src/lib/theme';
-import { themeBootScript } from '../../src/lib/theme-boot-script';
 import {
   applyTheme,
   clearShared,
@@ -8,12 +6,14 @@ import {
   ownTheme,
   PAGE_ATTR,
   resolveTheme,
+  STORAGE_KEY,
   saveTheme,
   sharedDiffers,
-  STORAGE_KEY,
-  takeSharedParam,
   THEME_EVENT,
-} from '../../src/lib/theme-store';
+  takeSharedParam,
+} from '../../src/client/theme/store';
+import { cssVars, normaliseSeeds, PRESETS } from '../../src/lib/theme';
+import { themeBootScript } from '../../src/server/theme-boot-script';
 
 class MemoryStorage {
   data = new Map<string, string>();
@@ -71,16 +71,24 @@ function stubBrowser(href: string, light = false): Env {
   vi.stubGlobal('sessionStorage', env.session);
   vi.stubGlobal('localStorage', env.local);
   vi.stubGlobal('location', { href });
-  vi.stubGlobal('history', { state: { kept: 1 }, replaceState: (_s: unknown, _t: string, url: string) => env.replaced.push(url) });
+  vi.stubGlobal('history', {
+    state: { kept: 1 },
+    replaceState: (_s: unknown, _t: string, url: string) => env.replaced.push(url),
+  });
   vi.stubGlobal('matchMedia', (query: string) => ({
     get matches() {
       return query === '(prefers-color-scheme: light)' && light;
     },
     addEventListener: (_type: string, fn: () => void) => env.schemeListeners.push(fn),
   }));
-  vi.stubGlobal('addEventListener', (type: string, fn: (e: Event) => void) => env.windowListeners.push([type, fn]));
+  vi.stubGlobal('addEventListener', (type: string, fn: (e: Event) => void) =>
+    env.windowListeners.push([type, fn]),
+  );
   vi.stubGlobal('document', {
-    documentElement: { style: { setProperty: (k: string, v: string) => env.props.set(k, v) }, dataset: env.dataset },
+    documentElement: {
+      style: { setProperty: (k: string, v: string) => env.props.set(k, v) },
+      dataset: env.dataset,
+    },
     dispatchEvent: (e: CustomEvent) => env.events.push(`${e.type} ${e.detail}`),
   });
   return env;
@@ -106,7 +114,11 @@ describe('resolution and persistence', () => {
     env.local.setItem(STORAGE_KEY, 'nord');
     expect(resolveTheme()).toMatchObject({ token: 'nord', source: 'saved' });
     env.session.setItem(STORAGE_KEY, 'ffffff-000000-ff8800');
-    expect(resolveTheme()).toMatchObject({ token: 'ffffff-000000-ff8800', source: 'shared', seeds: { accent: '#FF8800' } });
+    expect(resolveTheme()).toMatchObject({
+      token: 'ffffff-000000-ff8800',
+      source: 'shared',
+      seeds: { accent: '#FF8800' },
+    });
     expect(sharedDiffers()).toBe(true);
     env.session.setItem(STORAGE_KEY, 'nord');
     expect(sharedDiffers()).toBe(false);
@@ -126,7 +138,10 @@ describe('resolution and persistence', () => {
   });
 
   it('keeps a shared or saved theme on the page when storage cannot hold it', () => {
-    for (const store of [blocked, { ...new MemoryStorage(), getItem: () => null, setItem: blocked.setItem, removeItem() {} }]) {
+    for (const store of [
+      blocked,
+      { ...new MemoryStorage(), getItem: () => null, setItem: blocked.setItem, removeItem() {} },
+    ]) {
       env = stubBrowser('https://walldye.com/?t=nord');
       vi.stubGlobal('sessionStorage', store);
       vi.stubGlobal('localStorage', store);
@@ -173,15 +188,16 @@ describe('resolution and persistence', () => {
 
   it('saving keeps the theme and ends the shared one', () => {
     env.session.setItem(STORAGE_KEY, 'nord');
-    saveTheme({ bg: '#FFF', fg: '#000', accent: '#f80' });
+    saveTheme(normaliseSeeds({ bg: '#FFF', fg: '#000', accent: '#f80' }));
     expect(env.local.getItem(STORAGE_KEY)).toBe('ffffff-000000-ff8800');
     expect(env.session.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('applies every colour property, the regime and an event', () => {
+  it('applies every colour property, the regime, the token and an event', () => {
     applyTheme(PRESETS['solarized-light']);
     expect(Object.fromEntries(env.props)).toEqual(cssVars(PRESETS['solarized-light']));
     expect(env.dataset.regime).toBe('light');
+    expect(env.dataset.theme).toBe('solarized-light');
     expect(env.events).toEqual([`${THEME_EVENT} solarized-light`]);
   });
 
@@ -196,12 +212,18 @@ describe('resolution and persistence', () => {
     env.session.setItem(STORAGE_KEY, 'flexoki-light');
     env.setLight(true);
     expect(env.props.get('--bg')).toBe('#FFFCF0');
-    expect(env.events).toEqual([`${THEME_EVENT} flexoki-light`, `${THEME_EVENT} nord`, `${THEME_EVENT} flexoki-light`]);
+    expect(env.events).toEqual([
+      `${THEME_EVENT} flexoki-light`,
+      `${THEME_EVENT} nord`,
+      `${THEME_EVENT} flexoki-light`,
+    ]);
   });
 
   it('re-resolves a page restored from the back/forward cache', () => {
     followChanges();
-    const pageshow = env.windowListeners.filter(([type]) => type === 'pageshow').map(([, fn]) => fn);
+    const pageshow = env.windowListeners
+      .filter(([type]) => type === 'pageshow')
+      .map(([, fn]) => fn);
     expect(pageshow).toHaveLength(1);
     env.local.setItem(STORAGE_KEY, 'nord');
     pageshow[0]({ persisted: false } as unknown as Event);

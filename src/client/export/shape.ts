@@ -2,7 +2,14 @@
  * Pure geometry and SVG rewriting for the detail page's crop window and export. Boxes are in
  * template canvas units; a crop is always of the 16:9 canvas.
  */
-import { aspectLabel, CANVAS, DEFAULT_VARIANT, fileStem, SITE_ASPECTS, type Aspect } from '../lib/content';
+import {
+  type Aspect,
+  aspectLabel,
+  CANVAS,
+  DEFAULT_VARIANT,
+  fileStem,
+  SITE_ASPECTS,
+} from '../../lib/content';
 
 export interface Box {
   x: number;
@@ -81,7 +88,13 @@ function setAttr(tag: string, name: string, value: string): string {
  * `svg` with its root element's viewBox set to `box`, width and height to `width` and `height`, and
  * preserveAspectRatio to `preserve` when given. Returns `svg` unchanged when it has no root <svg> tag.
  */
-export function setRoot(svg: string, box: Box, width: number, height: number, preserve?: string): string {
+export function setRoot(
+  svg: string,
+  box: Box,
+  width: number,
+  height: number,
+  preserve?: string,
+): string {
   const m = /<svg\b[^>]*>/.exec(svg);
   if (!m) return svg;
   let tag = setAttr(m[0], 'viewBox', [box.x, box.y, box.w, box.h].map((v) => num(v)).join(' '));
@@ -94,7 +107,9 @@ export function setRoot(svg: string, box: Box, width: number, height: number, pr
 /** `svg` with `shape-rendering="crispEdges"` on every <path> whose class list has `px` and that sets no shape-rendering. */
 export function crispPixels(svg: string): string {
   return svg.replace(/<path\b[^>]*>/g, (tag) =>
-    /\sclass\s*=\s*"(?:[^"]*\s)?px(?:\s[^"]*)?"/.test(tag) && !/\sshape-rendering\s*=/.test(tag) ? `<path shape-rendering="crispEdges"${tag.slice(5)}` : tag,
+    /\sclass\s*=\s*"(?:[^"]*\s)?px(?:\s[^"]*)?"/.test(tag) && !/\sshape-rendering\s*=/.test(tag)
+      ? `<path shape-rendering="crispEdges"${tag.slice(5)}`
+      : tag,
   );
 }
 
@@ -140,7 +155,7 @@ export function cellWidths(cells: readonly number[], scale: number): [number, nu
 /** Everything that shapes one export's geometry. */
 export interface ExportShape {
   /** Selected shape, like "16:10". */
-  aspect: string;
+  aspect: Aspect;
   /** Whether the piece has its own template for `aspect`; otherwise it is a crop of 16:9. */
   native: boolean;
   /** Crop position, used only when not native. */
@@ -148,9 +163,9 @@ export interface ExportShape {
 }
 
 /** The template aspect an export reads and the box of that canvas it shows. */
-export function sourceBox(shape: ExportShape): { aspect: string; box: Box } {
+export function sourceBox(shape: ExportShape): { aspect: Aspect; box: Box } {
   if (shape.native) {
-    const [w, h] = CANVAS[shape.aspect as Aspect];
+    const [w, h] = CANVAS[shape.aspect];
     return { aspect: shape.aspect, box: { x: 0, y: 0, w, h } };
   }
   return { aspect: '16:9', box: cropBox(shape.aspect, shape.t) };
@@ -171,7 +186,12 @@ export function exportScale(shape: ExportShape, width: number, height: number): 
  * The recoloured SVG prepared for rasterising at exactly `width`×`height` (the viewBox is the largest
  * box of that ratio inside the shape's box, sliced to fill), and `scale`, pixels per canvas unit.
  */
-export function rasterSvg(svg: string, shape: ExportShape, width: number, height: number): { svg: string; scale: number } {
+export function rasterSvg(
+  svg: string,
+  shape: ExportShape,
+  width: number,
+  height: number,
+): { svg: string; scale: number } {
   const rect = fitRect(sourceBox(shape).box, width / height);
   return { svg: setRoot(svg, rect, width, height, 'xMidYMid slice'), scale: width / rect.w };
 }
@@ -181,7 +201,12 @@ export function rasterSvg(svg: string, shape: ExportShape, width: number, height
  * `--variant` only for a named variant. It draws the same picture as the SVG download; the file
  * differs in the crop's rounding (3 decimals here, 4 in the download) and has no `<title>`/`<desc>`.
  */
-export function renderCommand(slug: string, variant: string, token: string, shape: ExportShape): string {
+export function renderCommand(
+  slug: string,
+  variant: string,
+  token: string,
+  shape: ExportShape,
+): string {
   const parts = ['uv run walldye render', slug];
   if (variant !== DEFAULT_VARIANT) parts.push('--variant', variant);
   parts.push('--theme', token);
@@ -190,6 +215,9 @@ export function renderCommand(slug: string, variant: string, token: string, shap
     const b = cropBox(shape.aspect, shape.t);
     parts.push('--crop', [b.x, b.y, b.w, b.h].map((v) => num(v, 3)).join(','));
   }
-  parts.push('-o', `${fileStem(slug, variant)}-${token}-${aspectLabel(shape.aspect)}${shape.native ? '' : '-crop'}.svg`);
+  parts.push(
+    '-o',
+    `${fileStem(slug, variant)}-${token}-${aspectLabel(shape.aspect)}${shape.native ? '' : '-crop'}.svg`,
+  );
   return parts.join(' ');
 }
