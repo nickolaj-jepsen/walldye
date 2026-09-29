@@ -60,9 +60,11 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     column-gap: calc(2 * var(--u));
     row-gap: var(--u);
   }
+  /* Reversed so the name comes first to assistive tech; flex-end packs from the top, so a name that wraps leaves the pictures level. */
   .versions label {
     display: flex;
     flex-direction: column-reverse;
+    justify-content: flex-end;
   }
   .versions .thumb {
     margin-top: var(--u);
