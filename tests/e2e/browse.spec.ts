@@ -61,6 +61,15 @@ test.describe('index shape', () => {
     await expect(page.locator('section.plates')).toHaveAttribute('data-shape', '16:9');
   });
 
+  test('tall plates keep two to a row on the narrowest phones', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto('/?shape=9x19.5');
+    const tops = await page
+      .locator('.grid > li')
+      .evaluateAll((lis) => lis.slice(0, 2).map((li) => li.getBoundingClientRect().top));
+    expect(tops[0]).toBe(tops[1]);
+  });
+
   test('clear keeps the shape', async ({ page }) => {
     await page.goto('/?shape=21x9&q=a');
     await page.click('.results-line .clear');
@@ -85,6 +94,19 @@ test.describe('index shape on a phone', () => {
     expect(new URL(page.url()).search).toBe('');
     const first = await page.locator('.grid > li').first().getAttribute('data-slug');
     await expect(link(page, first!)).toHaveAttribute('href', `/${first}`);
+  });
+
+  test('the color row is one line that scrolls sideways', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'pointer: coarse follows hasTouch in Chromium only');
+    await page.goto('/');
+    const row = page.locator('.themes');
+    const [height, clipped] = await row.evaluate((el) => [
+      el.clientHeight,
+      el.scrollWidth > el.clientWidth,
+    ]);
+    // One 32px line inside its 4px focus-ring padding.
+    expect(height).toBe(40);
+    expect(clipped).toBe(true);
   });
 });
 

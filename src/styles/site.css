@@ -293,6 +293,7 @@ abbr {
 }
 
 .filter > summary { display: none; }
+.filter .show { display: none; }
 .facets fieldset, .facets .search { border: 0; padding: 0; min-width: 0; margin: 0 0 calc(4 * var(--u)); }
 .facets legend, .facets .label {
   float: left;
@@ -616,6 +617,9 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 .download .k { color: var(--text); }
 .download .file { color: var(--text-2); overflow-wrap: anywhere; }
 .download .file .mono { white-space: normal; }
+/* The export panel's Download, repeated under the title where the panel comes a screen or more below it. */
+.download.quick { display: none; margin-top: var(--u); }
+.download.quick .file .mono { white-space: nowrap; }
 
 /* see also */
 .related { margin-top: calc(10 * var(--u)); }
@@ -843,10 +847,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   /* Two columns only where an entry like "technical drawing" fits one; one on phones. */
   .filter .facets { padding-top: calc(2 * var(--u)); columns: 2 16rem; column-gap: calc(4 * var(--u)); }
   .filter .facets > * { break-inside: avoid; }
+  .filter .show { display: block; margin-bottom: calc(2 * var(--u)); }
 
   :root { --track: 100%; }
-  /* Tall plates two to a row. */
-  [data-shape="9:19.5"], [data-shape="10:16"] { --track: 9rem; }
+  /* Tall plates two to a row, down to 320px: a track never wider than half the row less half the gap. */
+  [data-shape="9:19.5"], [data-shape="10:16"] { --track: min(9rem, calc(50% - var(--u))); }
   .grid { row-gap: calc(5 * var(--u)); }
   [data-shape="9:19.5"] > .grid, [data-shape="10:16"] > .grid { column-gap: calc(2 * var(--u)); }
 
@@ -857,6 +862,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
     row-gap: calc(5 * var(--u));
     margin-top: calc(3 * var(--u));
   }
+  .download.quick { display: block; }
   .controls { padding-top: var(--u); background: linear-gradient(var(--rule), var(--rule)) top / 100% 1px no-repeat; }
   .below > .label-more > .sect:first-child { margin-top: 0; }
   .facts { grid-template-columns: 7rem 1fr; }
@@ -885,13 +891,27 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   .hexfield input[data-seed] { font-size: 16px; }
 }
 
+/* On touch phones the color row is one line that scrolls sideways; 4px of padding keeps focus rings inside the scroll box. */
+@media (max-width: 60rem) and (pointer: coarse) {
+  .themes {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px;
+    margin: -4px -4px calc(var(--u) - 4px);
+  }
+  .themes::-webkit-scrollbar { display: none; }
+  .themes > * { flex: none; }
+  .themes .textbtn { white-space: nowrap; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .plate img { transition: opacity 0.2s; }
 }
 
 /* Without JS nothing can change the theme, filter the index or export, so those controls stay out of the way. */
 @media (scripting: none) {
-  .seeds, .filter, .controls, .themes, [data-action="copy-source"] { display: none; }
+  .seeds, .filter, .controls, .themes, .download.quick, [data-action="copy-source"] { display: none; }
   .index > .plates { grid-column: 2; }
   /* The <noscript> image is always the fireproof template, whatever colors the page falls back to. */
   .plate { background: #1C1B1A; }

@@ -46,6 +46,7 @@ const clear = must('.results-line .clear');
 const empty = must('.plates .empty');
 const summary = must('.filter > summary .state');
 const details = must<HTMLDetailsElement>('details.filter');
+const showResults = must<HTMLButtonElement>('#show-results', details);
 const noun = items.length === 1 ? 'wallpaper' : 'wallpapers';
 // The server checks the build's first order.
 const firstSort = sorts.find((r) => r.defaultChecked)?.value;
@@ -85,6 +86,7 @@ function apply(): void {
   const text = shown === total ? `${total} ${noun}` : `${shown} of ${total} ${noun}`;
   // Rewriting an unchanged live region can re-announce it.
   if (status.textContent !== text) status.textContent = text;
+  showResults.textContent = `Show ${shown} ${shown === 1 ? 'wallpaper' : 'wallpapers'}`;
   empty.hidden = shown > 0;
   const needle = s.q.trim();
   const checked = boxes.filter((b) => b.checked);
@@ -121,6 +123,14 @@ form.addEventListener('reset', () => {
     if (shape) shape.checked = true;
     apply();
   });
+});
+
+// Phones: close the filter and bring its summary, the color row and the grid into view.
+showResults.addEventListener('click', () => {
+  details.open = false;
+  const toggle = must('summary', details);
+  toggle.focus({ preventScroll: true });
+  toggle.scrollIntoView({ block: 'start' });
 });
 
 const wide = matchMedia('(min-width: 60.0625rem)');

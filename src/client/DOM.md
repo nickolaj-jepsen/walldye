@@ -10,7 +10,7 @@ The hooks the server-rendered pages give the client code in `src/client/`. The p
 | `index/page.ts` | `src/pages/index.astro` | Filters, shape, results line, the plate grid |
 | `detail/page.ts` | `src/pages/[slug].astro` | Versions and their pictures, plate, crop window, export panel, run command, the `f` key, "Copy", the "See also" grid |
 
-Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>`, and `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`. A boot that does not build fails the build.
+Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>`, `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`, and `[slug].astro` inlines `detail/shape-boot.ts` as the first child of `.spread`. A boot that does not build fails the build.
 
 ## Every page
 
@@ -59,6 +59,7 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | `#facets input[type=checkbox][name=<facet>][value=<value>]` | inside `label.entry` | `<facet>` is `technique`, `subject`, `lineage` or `other`; `other` takes `references`, `any-screen`, `source-code`, `claude` or `human-made`. |
 | `label.entry .count` | `span.count` | Starts at the unfiltered count. Disable a box when its live count is 0 and it is not checked. |
 | `#result-count` | `span`, the one live region | Starts as "N wallpapers". Add `role=status` after the first render from the query string, so a filtered load is not announced; then write it only when the text changes. |
+| `#show-results` | `button.show` after `#facets`, inside the disclosure | "Show N wallpapers", N as in `#result-count`; not a live region. On click, close the disclosure and focus and scroll to its summary. site.css shows it on phones only. |
 | `.results-line .clear` | `button[type=reset][form=facets][hidden]` | Show it while any box is checked or the search is not empty. |
 | `.plates .empty` | `p[hidden]` | Show it when nothing matches. |
 
@@ -115,8 +116,11 @@ The page keeps its state in the query string, written with `history.replaceState
 
 | Hook | Element | Notes |
 |---|---|---|
-| `.spread .plate` | Plate box with every aspect | |
+| `.spread` | `figure` | Set `data-aspect` to the Shape, which the page's CSS reads to set a tall shape in the plate on phones. The shape boot sets the first one before first paint (`exportAspect()` in `screen.ts` unless the address has `shape`); the page module starts on the same. |
+| `.spread .plate` | Plate box with every aspect | Set `--pos`, the `object-position` of the crop, for that view; there a sideways drag on a cropped 16:9 picture moves the crop. |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
+| `#quick-download` | `button.download.quick` after the attribution | Phones only (site.css). Runs the export as `#download` does, sharing its "Preparing…" and `aria-busy`. |
+| `#quick-format`, `#quick-size` | spans inside `#quick-download` | The format's label, and the size as `w×h`, or the shape for SVG. |
 | `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].alt`). |
 
 ### Versions, colors and export (`src/components/Controls.astro`)
@@ -133,6 +137,7 @@ The page keeps its state in the query string, written with `history.replaceState
 | `#export input[name=asp]` | radios `16:9` (checked), `16:10`, `21:9`, `32:9`, `9:19.5`, `10:16` | `data-native` marks shapes with their own template; the rest crop 16:9. |
 | `#shape-hint` | `span.hint[hidden]` | Show it for cropped shapes. |
 | `#crop-row`, `#crop` | `div.row[hidden]` and `input[type=range]` 0 to 1 | Show for cropped shapes. The value is the position along the crop's travel (0 left or top). It follows the version's `focus` (clamped) until the visitor places it (range, drag or `?crop=`); a placed crop is kept when the new shape crops along the same axis. |
+| `.crop-map` | `span.plate[aria-hidden]` above `#crop`, holding a `.crop` like the spread's | While the plate shows a tall crop itself (phones), show the 16:9 template in the current version and theme, and place and drag its window as the spread's. site.css shows it in that view only. |
 | `#sizes` | radiogroup | One `label[data-aspect=<aspect>]` per size of every shape in `EXPORT_SIZES` (value `<w>x<h>`, label `<span class="mono">w×h</span>`), then `screen`. Only the 16:9 ones are shown and enabled at first, 2560×1440 checked; the client shows and enables the chosen shape's. Picking `screen` switches to the nearest shape; leaving that shape drops it for the default size. Phones (`(max-width: 60rem) and (pointer: coarse)`) start on it. |
 | `#size-limit` | `span.hint[hidden]` | Shown while a size is disabled for the canvas limits; disabled radios point at it with `aria-describedby`. |
 | `#cell-note` | `span.hint.lnum[hidden]` | Pieces with `cells`, raster formats only: shown when cells land on uneven pixel widths. |

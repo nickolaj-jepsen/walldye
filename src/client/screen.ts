@@ -1,6 +1,6 @@
 /** The visitor's screen: its size at device resolution and the shape plates start in. */
 import type { Aspect } from '../lib/content';
-import { nearestAspect } from './export/shape';
+import { nearestAspect, withinLimits } from './export/shape';
 
 /** Phones and small tablets, which start on their own screen's shape. */
 export const PHONE_QUERY = '(max-width: 60rem) and (pointer: coarse)';
@@ -18,4 +18,9 @@ export function screenPx(): [number, number] {
 /** The shape a page shows before the visitor picks one: the screen's nearest on a phone, else 16:9. */
 export function deviceAspect(): Aspect {
   return isPhone() ? nearestAspect(...screenPx()) : '16:9';
+}
+
+/** The detail page's first shape: deviceAspect(), unless the screen is too large to draw at its size. */
+export function exportAspect(): Aspect {
+  return withinLimits(...screenPx()) ? deviceAspect() : '16:9';
 }

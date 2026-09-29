@@ -1,10 +1,19 @@
 /**
- * The detail page: versions and their pictures, plate, crop window, export panel, run command, the
- * `f` key, "Copy" and the "See also" plates, shown in the page's shape.
+ * The detail page: versions and their pictures, plate, crop window, export panel and the Download
+ * under the title, run command, the `f` key, "Copy" and the "See also" plates, shown in the page's
+ * shape. On narrow screens a tall cropped shape shows the crop in the plate itself, with the crop
+ * window on a small 16:9 map in the export panel.
  * A visitor's change goes through update(), which renders the whole page from the state and writes
  * the address; render() is cheap enough to run on every crop drag.
  */
-import { type Aspect, DEFAULT_VARIANT, downloadName, FORMATS, isAspect } from '../../lib/content';
+import {
+  type Aspect,
+  CANVAS,
+  DEFAULT_VARIANT,
+  downloadName,
+  FORMATS,
+  isAspect,
+} from '../../lib/content';
 import { tokenOf } from '../../lib/theme';
 import { copyText, flash } from '../clipboard';
 import { must, readJson, replaceAddress } from '../dom';
@@ -31,12 +40,15 @@ import {
 import { plateGrid } from '../grid';
 import { getSlots, keepShowing, type PlateData, plateData, recolored } from '../plates';
 import { retrying } from '../retry';
-import { isPhone, screenPx } from '../screen';
+import { exportAspect, isPhone, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
 import { type DetailState, keptCrop, readAddress, shapeOf, sizeFor, writeAddress } from './state';
 
-const plate = must('.spread .plate');
+const spread = must('.spread');
+const plate = must('.plate', spread);
 const cropWindow = must(':scope > .crop', plate);
+const cropMap = must('.crop-map');
+const mapWindow = must(':scope > .crop', cropMap);
 const panel = must('#export');
 const range = must<HTMLInputElement>('#crop');
 const cropRow = must('#crop-row');
@@ -49,8 +61,11 @@ const sizeLimit = must('#size-limit');
 const cellNote = must('#cell-note');
 const formatHint = must('#format-hint');
 const downloadBtn = must<HTMLButtonElement>('#download');
-const downloadKey = must('.k', downloadBtn);
+const quickBtn = must<HTMLButtonElement>('#quick-download');
+const downloadBtns = [downloadBtn, quickBtn];
 const fileName = must('#download-name');
+const quickFormat = must('#quick-format');
+const quickSize = must('#quick-size');
 const exportError = must('#export-error');
 const desc = must('#desc');
 const aspectRadios = [...panel.querySelectorAll<HTMLInputElement>('input[name=asp]')];
@@ -71,6 +86,14 @@ const native = new Set(
 );
 const phone = isPhone();
 const screenAspect = nearestAspect(...screenPx());
+// Keep in step with site.css's phone query.
+const narrow = matchMedia('(max-width: 60rem)');
+
+/** Whether the plate shows `shape`'s crop itself: narrow screens, tall shapes cropped from 16:9 (the page's CSS). */
+function cropsInPlace(shape: ExportShape): boolean {
+  const [w, h] = CANVAS[shape.aspect];
+  return narrow.matches && !shape.native && w < h;
+}
 
 /** Output pixels of a size radio's value. */
 function sizePx(size: string): [number, number] {
@@ -97,7 +120,8 @@ const state: DetailState = (() => {
   // An unknown version, or a draft one outside `astro dev`, is not in `versions`: the default stays.
   const variant =
     asked.variant && Object.hasOwn(versions, asked.variant) ? asked.variant : DEFAULT_VARIANT;
-  const aspect = asked.aspect ?? (phone && allowed('screen') ? screenAspect : '16:9');
+  // As the shape boot chose, so the plate keeps its size.
+  const aspect = asked.aspect ?? exportAspect();
   const keep = phone && aspect === screenAspect ? 'screen' : '';
   return { variant, aspect, crop: asked.crop ?? null, size: sizeFor(aspect, keep, allowed) };
 })();
@@ -131,24 +155,29 @@ function render(): void {
   shapeHint.hidden = shape.native;
   cropRow.hidden = shape.native;
   range.value = String(shape.t);
-  placeCrop(shape);
+  spread.dataset.aspect = state.aspect;
+  const t = `${shape.t * 100}%`;
+  plate.style.setProperty('--pos', cropAxis(shape.aspect) === 'x' ? `${t} 0%` : `0% ${t}`);
+  for (const win of [cropWindow, mapWindow]) placeCrop(win, shape);
   renderSizes();
   renderNames(shape);
   renderPlate();
+  if (cropsInPlace(shape)) renderMap();
   seeAlso?.setShape(state.aspect);
 }
 
-function placeCrop(shape: ExportShape): void {
-  cropWindow.hidden = shape.native;
+/** Frames `shape`'s crop with `win`, a `.crop` inside a plate showing the 16:9 picture. */
+function placeCrop(win: HTMLElement, shape: ExportShape): void {
+  win.hidden = shape.native;
   if (shape.native) return;
   const span = cropSpan(shape.aspect);
   const offset = shape.t * (1 - span);
   const axis = cropAxis(shape.aspect);
-  cropWindow.dataset.axis = axis;
+  win.dataset.axis = axis;
   // Heights are fractions of the picture's (site.css .plate::after), not the plate's, which ends in a 0-7px rounding strip.
   const tall = (f: number) => `calc(${f} * 100cqw / var(--ratio))`;
   Object.assign(
-    cropWindow.style,
+    win.style,
     axis === 'x'
       ? { left: `${offset * 100}%`, width: `${span * 100}%`, top: '0', height: tall(1) }
       : { left: '0', width: '100%', top: tall(offset), height: tall(span) },
@@ -187,6 +216,9 @@ function renderNames(shape: ExportShape): void {
     state.aspect,
     !shape.native,
   );
+  quickFormat.textContent = f.label;
+  // An SVG has a shape but no pixel size.
+  quickSize.textContent = f.value === 'svg' ? state.aspect : `${w}×${h}`;
   if (runRender) runRender.textContent = renderCommand(slug, state.variant, token, shape);
   const widths =
     f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(shape, w, h));
@@ -227,6 +259,18 @@ function renderThumbs(): void {
   );
 }
 
+let mapKey = '';
+let stopMap = () => {};
+/** The crop map's 16:9 picture in the current version and theme. */
+function renderMap(): void {
+  const seeds = currentSeeds();
+  const key = `${state.variant} ${tokenOf(seeds)}`;
+  if (key === mapKey) return;
+  mapKey = key;
+  stopMap();
+  stopMap = keepShowing(cropMap, dataOf(state.variant), '16:9', seeds);
+}
+
 let stopSlots = () => {};
 /** Reads the shown version's focus and cells from its slots.json, retrying a failed fetch. */
 function loadSlots(): void {
@@ -252,6 +296,7 @@ onThemeChange(() => {
   render();
   renderThumbs();
 });
+narrow.addEventListener('change', render);
 
 // ---- panel events ----
 
@@ -276,28 +321,50 @@ panel.addEventListener('change', (e) => {
 
 range.addEventListener('input', () => update({ crop: Number(range.value) }));
 
-cropWindow.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0) return;
-  e.preventDefault();
+/**
+ * Moves the crop with the drag `e` starts on `el`: the position changes by 1 / `travel` per pixel
+ * moved, along the crop's axis, against the pointer when `reverse`.
+ */
+function dragCrop(el: HTMLElement, e: PointerEvent, travel: number, reverse = false): void {
   const x = cropAxis(state.aspect) === 'x';
-  const picture = x ? plate.clientWidth : (plate.querySelector('img')?.clientHeight ?? 0);
-  const travel = picture * (1 - cropSpan(state.aspect));
   const start = x ? e.clientX : e.clientY;
   const from = shapeOf(state, native, focus).t;
-  cropWindow.setPointerCapture(e.pointerId);
+  el.setPointerCapture(e.pointerId);
   const move = (ev: PointerEvent) => {
-    const d = (x ? ev.clientX : ev.clientY) - start;
+    const d = ((x ? ev.clientX : ev.clientY) - start) * (reverse ? -1 : 1);
     const next = Math.min(1, Math.max(0, from + (travel > 0 ? d / travel : 0)));
     update({ crop: Math.round(next * 1000) / 1000 });
   };
   const end = () => {
-    cropWindow.removeEventListener('pointermove', move);
-    cropWindow.removeEventListener('pointerup', end);
-    cropWindow.removeEventListener('pointercancel', end);
+    el.removeEventListener('pointermove', move);
+    el.removeEventListener('pointerup', end);
+    el.removeEventListener('pointercancel', end);
   };
-  cropWindow.addEventListener('pointermove', move);
-  cropWindow.addEventListener('pointerup', end);
-  cropWindow.addEventListener('pointercancel', end);
+  el.addEventListener('pointermove', move);
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+}
+
+// The crop window, on the plate or the map, travels over the rest of the 16:9 picture.
+for (const [win, box] of [
+  [cropWindow, plate],
+  [mapWindow, cropMap],
+] as const) {
+  win.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const x = cropAxis(state.aspect) === 'x';
+    const picture = x ? box.clientWidth : (box.querySelector('img')?.clientHeight ?? 0);
+    dragCrop(win, e, picture * (1 - cropSpan(state.aspect)));
+  });
+}
+
+// A plate showing the crop itself moves the picture under it, so the crop runs against the drag.
+plate.addEventListener('pointerdown', (e) => {
+  const img = plate.querySelector<HTMLImageElement>(':scope > img[data-aspect="16:9"]');
+  if (e.button !== 0 || !img || !cropsInPlace(shapeOf(state, native, focus))) return;
+  e.preventDefault();
+  dragCrop(plate, e, (img.clientHeight * 16) / 9 - img.clientWidth, true);
 });
 
 // ---- export ----
@@ -316,11 +383,20 @@ const piece = {
 
 let busy = false;
 
-async function runExport(): Promise<void> {
+/** Sets both Download buttons' word and busy state. */
+function preparing(on: boolean): void {
+  for (const btn of downloadBtns) {
+    if (on) btn.setAttribute('aria-busy', 'true');
+    else btn.removeAttribute('aria-busy');
+    must('.k', btn).textContent = on ? 'Preparing…' : 'Download';
+  }
+}
+
+/** Makes and saves the file; a failure writes `#export-error` and, from `from` outside the panel, scrolls it into view. */
+async function runExport(from: HTMLElement): Promise<void> {
   if (busy) return;
   busy = true;
-  downloadBtn.setAttribute('aria-busy', 'true');
-  downloadKey.textContent = 'Preparing…';
+  preparing(true);
   exportError.textContent = '';
   try {
     const f = format();
@@ -352,14 +428,14 @@ async function runExport(): Promise<void> {
     }
   } catch {
     exportError.textContent = 'The file could not be made.';
+    if (!panel.contains(from)) exportError.scrollIntoView({ block: 'center' });
   } finally {
     busy = false;
-    downloadBtn.removeAttribute('aria-busy');
-    downloadKey.textContent = 'Download';
+    preparing(false);
   }
 }
 
-downloadBtn.addEventListener('click', () => void runExport());
+for (const btn of downloadBtns) btn.addEventListener('click', () => void runExport(btn));
 
 const seen = new IntersectionObserver((entries) => {
   if (!entries.some((e) => e.isIntersecting)) return;
@@ -378,6 +454,7 @@ const seen = new IntersectionObserver((entries) => {
   });
 });
 seen.observe(panel);
+seen.observe(quickBtn);
 
 // ---- keys ----
 

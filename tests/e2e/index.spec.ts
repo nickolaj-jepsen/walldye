@@ -211,6 +211,22 @@ test.describe('index filters', () => {
     expect(new URL(page.url()).search).toBe('?q=radar&sort=title&technique=instrument');
   });
 
+  test('on a phone, Show closes the filter on its summary', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    const items = await catalog(page);
+    await page.click('.filter > summary');
+    const show = page.locator('#show-results');
+    await expect(show).toHaveText(`Show ${items.length} wallpapers`);
+    await box(page, 'other', 'any-screen').check({ force: true });
+    const want = shown(items, state({ other: ['any-screen'] }));
+    await expect(show).toHaveText(`Show ${want.length} wallpapers`);
+    await show.click();
+    await expect(page.locator('details.filter')).not.toHaveAttribute('open');
+    await expect(page.locator('.filter > summary')).toBeFocused();
+    await expect(page.locator('#result-count')).toBeInViewport();
+  });
+
   test('the phone filter summary lists the active terms', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/?q=moon&other=any-screen');

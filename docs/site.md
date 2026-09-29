@@ -84,12 +84,13 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 - The page is at most 110rem wide, with a side gutter of `clamp(1rem, 4vw, 3.5rem)` and no footer.
 - The masthead, the index and About share one `18rem | 1fr` column pair, so the nav, the plate grid and About's prose share a left edge.
 - Grid columns are at least 18rem (`--track`): two from about 1045px, three from about 1390 and four from about 1710. A grid in another shape (§6.4) sets `--ratio` and `--track`: 26rem for 21:9, 40rem for 32:9 and 12rem for the tall shapes, which take two columns on phones.
-- On the detail page the plate spans the content width, capped so the plate and the first two lines of the label fit one screen. Below it, the label (at most 42rem) sits left and the controls (30rem) right, starting 2u lower so their rows share baselines with the label's.
+- On the detail page the plate spans the content width, capped so the plate and the first two lines of the label fit one screen. On phones a tall shape takes the plate's shape instead, capped so the title, attribution and Download fit under it (§6.6). Below it, the label (at most 42rem) sits left and the controls (30rem) right, starting 2u lower so their rows share baselines with the label's.
 
 | Query | Changes |
 |---|---|
 | `max-width: 84rem` | The shared-theme line moves under the nav. |
-| `max-width: 60rem` | Phones and small tablets: the theme button shows only its swatches, with a 44px target; the filter becomes a disclosure; one plate column; the detail page stacks label, controls and notes; prose 21px, title 34px. |
+| `max-width: 60rem` | Phones and small tablets: the theme button shows only its swatches, with a 44px target; the filter becomes a disclosure; one plate column, two for tall shapes down to 320px; the detail page stacks label, controls and notes, shows a tall shape in the plate and repeats Download under the title; prose 21px, title 34px. |
+| `max-width: 60rem` and `pointer: coarse` | The index's color row is one line that scrolls sideways. |
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
 | `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recolored. |
@@ -148,7 +149,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - Shape (16:9, 16:10, 21:9, 32:9, 9:19.5, 10:16, in mono) shows every plate in that shape: a piece's own template when it composes for it, else its 16:9 template cropped around its focus, as the export would crop it. Plate links then open the piece in that shape. Phones start on their screen's nearest shape, and "clear" keeps the shape.
 - Above the results line, "Colors" lists the families as swatch buttons (the family name is the accessible name and the tooltip), each showing the preset it would pick under the system scheme, then "Your own", which opens the picker. A click chooses the family, as its name does in the picker.
 - The results line is the page's one live region: "234 wallpapers" or "4 of 234 wallpapers", with "Try fewer filters or a shorter search." under it when nothing matches. "clear" shows while anything is checked or searched.
-- On phones the filter is a closed disclosure whose summary shows "Filter" and the active terms; the color row stays above the grid. There is a skip link.
+- On phones the filter is a closed disclosure whose summary shows "Filter" and the active terms. It ends in "Show 25 wallpapers", which closes it and scrolls to its summary. The color row stays above the grid, one line that scrolls sideways on touch screens. There is a skip link.
 
 ### 6.5 Plate and caption
 
@@ -165,11 +166,12 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - Source order is label, controls, notes, so on a phone the export panel comes straight after the label.
 - A shape the piece composes for shows its own template, centered in the 16:9 box inside a 1px `--text` frame.
 - Any other shape is cropped from 16:9 and shows the crop window: a 1px `--text` frame, everything outside it dimmed by 55% `--bg`. It spans the full height and moves sideways for shapes narrower than 16:9, or the full width and moves up and down for wider ones, starting centered on the piece's focus. Dragging it moves the range input, which stays the keyboard control.
+- On phones a tall shape (9:19.5, 10:16) sets the plate in that shape, centered. A cropped one shows the crop itself, which a sideways drag on the plate moves, and the crop window moves to a 16:9 map over the Crop range.
 - `f` toggles fullscreen, showing the wallpaper alone. It ignores fields, sliders, focused code, editable content and modified keys.
 
 ### 6.7 Label
 
-- In order: the title, the attribution with its footnote markers, the description at 22px, the credit, a license line when there is one, the facts, then the notes as Markdown. Every row after the title is a whole 32px line, so the label shares baselines with the controls.
+- In order: the title, the attribution with its footnote markers, on phones the Download line (§6.10), the description at 22px, the credit, a license line when there is one, the facts, then the notes as Markdown. Every row after the title is a whole 32px line, so the label shares baselines with the controls.
 - The attribution: a recreation reads "after {author}, *{title}*, {year}"; an inspiration, when there is no recreation, "inspired by {author}, *{title}*". References and data appear only as footnotes. Several are joined "A, B and C", a work by the same author as the one before leaves the name out ("Mark Rothko, *No. 61* and *Seagram murals*"), and missing fields are dropped.
 - The credit is "Made with Claude Opus 5.5", from `MODEL_NAMES` for meta.yaml's `model`, or "Made by {author}".
 - A CC0 piece shows no license. A fan work shows the fan-work disclaimer (wallpapers.md, Licensing); any other license shows its plain-words line from `LICENSE_LINES` in `src/lib/labels.ts`.
@@ -193,6 +195,7 @@ After the label, notes and sources, "See also" (a small-caps head over a `.hair-
 - Export: Format (SVG, PNG, WebP, JPEG), Shape, Crop (for a cropped shape only, with "cropped from 16:9" under Shape) and Size, then Download. The sizes per shape come from `EXPORT_SIZES` in `src/lib/content.ts`, with "your screen" last: the screen size times the device pixel ratio, at the nearest shape by |log ratio|. Phones start on it.
 - Hints under a row, in `--text-2`: "This browser can't make WebP files.", "This browser can't draw a file that large." (over 16,777,216 pixels or 32,767 px a side), and for pixel pieces whose squares miss whole pixels, "At this size the squares come out 3 or 4 pixels wide." Choices the browser cannot make fade to `--text-dim`.
 - Download is a row of text: the underlined word, then the file name. Raster files are `<slug>[--<variant>]-<token>-<w>x<h>.<ext>`, SVG files `<slug>[--<variant>]-<token>-<aspect>[-crop].svg` with `<title>` and `<desc>` "walldye.com/<slug>[?v=<variant>] · <license> · theme <token>". Slugs and variant names never contain `--`, so a name splits back. Errors go to a polite live region below.
+- On phones a second Download sits under the attribution: the underlined word, then the format and the size ("PNG, 1170×2532", or an SVG's shape). It runs the same export, and a failure scrolls to the panel's error.
 
 ### 6.11 Source code
 
@@ -219,7 +222,7 @@ Forced-colors mode drops the backgrounds and box-shadows that draw the rules, th
 
 ### 6.15 Without JavaScript
 
-`@media (scripting: none)` hides the theme button, the filter, the index's color row, the colors and export column, and the source "Copy". Plates take fireproof's ground, because the `<noscript>` image is always the fireproof template.
+`@media (scripting: none)` hides the theme button, the filter, the index's color row, the colors and export column, the Download under the title, and the source "Copy". Plates take fireproof's ground, because the `<noscript>` image is always the fireproof template.
 
 ## 7. Voice
 

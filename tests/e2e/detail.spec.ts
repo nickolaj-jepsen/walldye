@@ -36,6 +36,8 @@ test.describe('detail', () => {
     await expect(page.locator('.spread .plate > img')).toHaveAttribute('src', /^\/t\//);
     await expect(page.locator('.spread .crop')).toBeHidden();
     await expect(page.locator('#crop-row')).toBeHidden();
+    // The export panel is beside the label, so there is no second Download.
+    await expect(page.locator('#quick-download')).toBeHidden();
 
     await pick(page, 'asp', '16:10');
     await expect(page.locator('.spread .crop')).toBeVisible();
@@ -266,9 +268,61 @@ test.describe('detail on a phone', () => {
     await expect(page.locator('#export input[name=asp][value="9:19.5"]')).toBeChecked();
     await expect(page.locator('#export input[name=size][value=screen]')).toBeChecked();
     await expect(page.locator('#download-name')).toHaveText('schotter-flexoki-light-1170x2532.png');
-    await expect(page.locator('.spread .crop')).toBeVisible();
     // The phone default is not written to the address.
     expect(new URL(page.url()).search).toBe('');
+  });
+
+  test('the plate takes its tall shape before the page module loads', async ({ page }) => {
+    // Without the module only the inline shape boot runs, so the plate size cannot change later.
+    await page.route('**/_astro/*.js', (route) => route.abort());
+    await page.goto('/schotter');
+    await expect(page.locator('.spread')).toHaveAttribute('data-aspect', '9:19.5');
+    const box = await page.locator('.spread .plate').boundingBox();
+    expect(box!.height / box!.width).toBeGreaterThan(2);
+  });
+
+  test('a tall shape shows the crop in the plate, moved by a drag, with the window on a map', async ({
+    page,
+  }) => {
+    await page.goto('/schotter');
+    const plate = page.locator('.spread .plate');
+    await expect(plate.locator('> img')).toHaveAttribute('data-aspect', '16:9');
+    const box = await plate.boundingBox();
+    expect(box!.height / box!.width).toBeGreaterThan(2);
+    await expect(plate.locator('> .crop')).toBeHidden();
+    await expect(page.locator('.crop-map .crop')).toBeVisible();
+    // The plate, title, attribution and Download share the first screen.
+    await expect(page.locator('#quick-download')).toBeInViewport();
+
+    // Dragging the picture left shows more of its right side.
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + box!.width / 2 - 2000, box!.y + box!.height / 2, { steps: 4 });
+    await page.mouse.up();
+    await expect(page.locator('#crop')).toHaveValue('1');
+    await expect(plate).toHaveCSS('--pos', '100% 0%');
+    expect(new URL(page.url()).searchParams.get('crop')).toBe('1');
+
+    // A shape wider than the screen keeps 16:9 with the crop window.
+    await pick(page, 'asp', '16:10');
+    await expect(plate.locator('> .crop')).toBeVisible();
+    await expect(page.locator('.crop-map')).toBeHidden();
+  });
+
+  test('the Download under the title follows the export panel and saves its file', async ({
+    page,
+  }) => {
+    await page.goto('/schotter');
+    const quick = page.locator('#quick-download');
+    await expect(quick).toHaveText('Download PNG, 1170×2532');
+    await pick(page, 'fmt', 'svg');
+    await expect(quick).toHaveText('Download SVG, 9:19.5');
+    await pick(page, 'fmt', 'jpeg');
+    const [dl] = await Promise.all([
+      page.waitForEvent('download', { timeout: 90_000 }),
+      quick.click(),
+    ]);
+    expect(dl.suggestedFilename()).toBe(await page.locator('#download-name').textContent());
   });
 });
 

@@ -54,6 +54,7 @@ const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
         ))
       }
     </form>
+    <button type="button" class="textbtn show" id="show-results">Show {total} {total === 1 ? 'wallpaper' : 'wallpapers'}</button>
   </details>
   {/* Phones start with the filter closed; decided before first paint so the grid does not jump. */}
   <script is:inline>document.currentScript.previousElementSibling.open = matchMedia('(min-width: 60.0625rem)').matches;</script>
