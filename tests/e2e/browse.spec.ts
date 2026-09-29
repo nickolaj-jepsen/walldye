@@ -60,7 +60,8 @@ test.describe('index shape', () => {
   test('clear keeps the shape', async ({ page }) => {
     await page.goto('/?shape=21x9&q=a');
     await page.click('.results-line .clear');
-    expect(new URL(page.url()).search).toBe('?shape=21x9');
+    // The reset applies a task later, so wait for the address rather than read it at once.
+    await expect.poll(() => new URL(page.url()).search).toBe('?shape=21x9');
   });
 });
 
