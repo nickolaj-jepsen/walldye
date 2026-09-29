@@ -116,7 +116,7 @@ Class names match site.css.
 
 ### 6.1 Header
 
-`src/components/Masthead.astro`: the brand, the nav (Index, About), the shared-theme line and the theme button. There is no themes page.
+`src/components/Masthead.astro`: the brand, the nav (Index, About, GitHub), the shared-theme line and the theme button. There is no themes page.
 
 - The theme button shows the preset name, or "custom" when the colours match none, next to three swatches, and opens the picker. Its accessible name starts with the same word and spells out the colours: "fireproof theme: background #1C1B1A, foreground #DAD8CE, accent #CF6A4C" (WCAG 2.5.3). On phones only the swatches show.
 - The shared-theme line reads "You're looking at a shared theme." then "Keep it · Back to yours". It sits beside the theme button on wide screens, under the nav below 84rem, and full width on phones.
