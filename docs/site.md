@@ -58,7 +58,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | Prose: notes, About, the detail description | Garamond | 22px (21 on phones), 32 | `--text` |
 | Detail title | Garamond, lining figures | 40px (34), 48 | `--text` |
 | "Source code" heading | Garamond | 28px (22), 40 | `--text` |
-| Masthead "Walldye" | Garamond +100, small caps | 28px (22; 20 at 320px), 32 | `--text` |
+| Masthead "Walldye" | Garamond +100, small caps | 28px (22 on phones), 32 | `--text` |
 | UI text, the default: facet entries, search, sort, results line, controls, attribution, picker | Garamond | 20px, 32 | `--text-2`; hovered, checked or current `--text` |
 | Small-caps heads: legends, section heads, nav, picker heads | Garamond all-small-caps | 19px, 32 | `--text-2`; current nav `--text` |
 | Secondary lines: captions, facts, credit, footnotes, listing head | Garamond | 19px, 24 in captions and footnotes, 32 elsewhere | `--text-2`; fact values `--text` |
@@ -90,7 +90,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 |---|---|
 | `max-width: 84rem` | The shared-theme line moves under the nav. |
 | `max-width: 60rem` | Phones and small tablets: the theme button shows only its swatches, with a 44px target; the filter becomes a disclosure; one plate column; the detail page stacks label, controls and notes; prose 21px, title 34px. |
-| `max-width: 22rem` | 320px screens: a 20px brand and tighter gaps keep the header on one row. |
+| `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
 | `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recoloured. |
 | `scripting: none` | §6.13. |
@@ -120,6 +120,7 @@ Class names match site.css.
 
 - The theme button shows the preset name, or "custom" when the colours match none, next to three swatches, and opens the picker. Its accessible name starts with the same word and spells out the colours: "fireproof theme: background #1C1B1A, foreground #DAD8CE, accent #CF6A4C" (WCAG 2.5.3). On phones only the swatches show.
 - The shared-theme line reads "You're looking at a shared theme." then "Keep it · Back to yours". It sits beside the theme button on wide screens, under the nav below 84rem, and full width on phones.
+- On narrow phones (28rem) the nav moves to its own row under the brand and the swatches.
 
 ### 6.2 Swatches
 

@@ -803,12 +803,12 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   .picker { left: var(--gutter); right: var(--gutter); width: auto; }
 }
 
-/* 320px screens: the header row keeps brand, nav and swatches on one line. */
-@media (max-width: 22rem) {
-  .masthead { column-gap: calc(2 * var(--u)); }
-  .brand { font-size: var(--fs-ui); }
-  .nav { gap: calc(1.5 * var(--u)); }
-  .nav a { letter-spacing: 0.04em; }
+/* Below this brand, nav and swatches no longer fit one row: the nav takes a row of its own. */
+@media (max-width: 28rem) {
+  :root { --masthead-h: calc(14 * var(--u)); }
+  :root:has(.masthead .shared:not([hidden])) { --masthead-h: calc(22 * var(--u)); }
+  .nav { grid-column: 1 / -1; grid-row: 2; }
+  .shared { grid-row: 3; }
 }
 
 /* iOS zooms the page when a focused input is under 16px, which throws the fixed popover off screen. */
