@@ -409,7 +409,7 @@ function typesetNotes(html: string): string {
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
  * templates and their content-hashed URLs, the same for each named variant, design.py, the
  * resolved license, the page views in stats/views/ and the place on featured.yaml. Draft pieces and draft variants load only in
- * `astro dev`; notes Markdown is rendered into the entry (`render(entry)`), and the other visible
+ * `astro dev` or with WALLDYE_DRAFTS=1; notes Markdown is rendered into the entry (`render(entry)`), and the other visible
  * text gets typographer's quotes.
  */
 function wallpapers(): Loader {
@@ -417,7 +417,8 @@ function wallpapers(): Loader {
     name: 'walldye-wallpapers',
     async load(context: LoaderContext) {
       const { store, parseData, generateDigest, renderMarkdown, watcher, logger } = context;
-      const dev = import.meta.env.DEV;
+      // Only the PR preview sets WALLDYE_DRAFTS; the dist e2e tests and production serves never does.
+      const dev = import.meta.env.DEV || process.env.WALLDYE_DRAFTS === '1';
 
       const sync = async () => {
         const seen = new Set<string>();

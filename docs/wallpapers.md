@@ -87,7 +87,7 @@ A piece is released as CC0 only when everything in it is ours to give away. The 
 
 ## Drafts and review
 
-- Drafts live on main. A new piece or version starts as `draft: true`; it is built and reviewed locally and hidden from the production site (`astro dev` shows it).
+- Drafts live on main. A new piece or version starts as `draft: true`; it is built and reviewed locally and hidden from the production site (`astro dev` and a pull request's preview show it).
 - Agents propose at most three versions per piece, always as drafts.
 - `walldye review` opens a local page that goes through the versions one at a time. Accepting a draft removes `draft:`. Sending one back for an edit keeps it as a draft, with a note. Removing a published version sets it back to draft. The page also edits the piece's words and facets. api.md (CLI) has the details.
 - A rejected piece is deleted with `walldye drop`, after the owner confirms.

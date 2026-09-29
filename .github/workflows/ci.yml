@@ -1,6 +1,7 @@
 name: CI
 
-# build renders the published pieces, then makes the one dist that e2e tests and deploy uploads.
+# build renders the pieces, then makes the one dist that e2e tests and deploy uploads; a pull
+# request with drafts deploys a second dist that also shows them.
 # Doc-only changes skip it; lint.yml and python.yml cover the rest.
 on:
   push:
@@ -38,6 +39,8 @@ jobs:
     outputs:
       changed: ${{ steps.compare.outputs.changed }}
       cold: ${{ steps.compare.outputs.cold }}
+      drafts: ${{ steps.list-drafts.outputs.drafts }}
+      drafts-failed: ${{ steps.drafts.outcome == 'failure' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -77,6 +80,12 @@ jobs:
       - id: render
         run: uv run walldye build --all --published
         timeout-minutes: 105
+      # Drafts are cached and previewed but never fail the run: one that doesn't build is left out.
+      - id: drafts
+        if: steps.render.outcome == 'success'
+        continue-on-error: true
+        run: uv run walldye build --all
+        timeout-minutes: 10
       # Saved even after a failed or timed-out render: build re-hashes every template it keeps.
       - if: >-
           always() && steps.render.outcome != 'skipped'
@@ -95,6 +104,25 @@ jobs:
           echo "cold=$COLD" >> "$GITHUB_OUTPUT"
           { echo 'changed<<EOF'; [ -z "$changed" ] || printf '%s\n' "$changed"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
           printf 'Changed pieces: %s\n' "$(tr '\n' ' ' <<< "$changed")" >> "$GITHUB_STEP_SUMMARY"
+      - id: list-drafts
+        name: List the drafts the preview shows
+        if: github.event_name == 'pull_request'
+        shell: uv run python {0}
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          # A path under the site and its title, one per built draft piece or draft version.
+          lines = []
+          for slug, p in json.loads(Path("wallpapers/index.json").read_text()).items():
+              if p["draft"]:
+                  lines.append(f"{slug}\t{p['title']}")
+              for name, v in p["variants"].items():
+                  if v["draft"] and Path(f"wallpapers/{slug}/build/{name}/slots.json").exists():
+                      lines.append(f"{slug}?v={name}\t{p['title']}: {v['label']}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("drafts<<EOF\n" + "".join(f"{line}\n" for line in lines) + "EOF\n")
       - run: uv run python tests/python/fixtures/regen.py
 
       - run: pnpm test
@@ -105,6 +133,17 @@ jobs:
         with:
           name: dist
           path: dist
+          if-no-files-found: error
+          retention-days: 1
+      - if: steps.list-drafts.outputs.drafts != ''
+        run: pnpm astro build --outDir preview
+        env:
+          WALLDYE_DRAFTS: '1'
+      - if: steps.list-drafts.outputs.drafts != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: preview
+          path: preview
           if-no-files-found: error
           retention-days: 1
       # What the Playwright specs read from the repo besides dist: slots.json, the reference
@@ -187,9 +226,10 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      # A pull request with drafts deploys the dist that shows them; e2e tested the one without.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: dist
+          name: ${{ needs.build.outputs.drafts != '' && 'preview' || 'dist' }}
           path: dist
       # No checkout here, so wrangler can't read git and gets the commit explicitly.
       - id: deploy
@@ -214,6 +254,8 @@ jobs:
           ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
           CHANGED: ${{ needs.build.outputs.changed }}
           COLD: ${{ needs.build.outputs.cold }}
+          DRAFTS: ${{ needs.build.outputs.drafts }}
+          DRAFTS_FAILED: ${{ needs.build.outputs.drafts-failed }}
         run: |
           # Fallback when wrangler reports no alias, named the way Pages names them.
           alias=$(printf '%s' "$HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | cut -c1-28 | sed 's/-*$//')
@@ -228,6 +270,15 @@ jobs:
             list=$(printf '%s\n' "$CHANGED" | head -n 30 | sed "s|.*|- [&]($url/&)|")
             more=$([ "$n" -le 30 ] || echo "- and $((n - 30)) more")
             changes=$(printf 'Draws differently from the last build of main (%s):\n%s\n%s' "$n" "$list" "$more")
+          fi
+          if [ -n "$DRAFTS" ]; then
+            n=$(printf '%s\n' "$DRAFTS" | wc -l)
+            list=$(printf '%s\n' "$DRAFTS" | head -n 30 | awk -F'\t' -v u="$url" '{printf "- [%s](%s/%s)\n", $2, u, $1}')
+            more=$([ "$n" -le 30 ] || echo "- and $((n - 30)) more")
+            changes=$(printf '%s\n\nDrafts in this preview (%s):\n%s\n%s' "$changes" "$n" "$list" "$more")
+          fi
+          if [ "$DRAFTS_FAILED" = true ]; then
+            changes=$(printf '%s\n\nSome drafts failed to build and are left out; the build log names them.' "$changes")
           fi
           body=$(printf '%s\nPreview of %s: %s\n\n%s' "$marker" "${HEAD_SHA:0:7}" "$url" "$changes")
 

@@ -320,7 +320,8 @@ export function lineCount(text: string): number {
 
 /**
  * The versions the detail page offers, the default included, and how many of them are drafts. The
- * loader keeps draft variants only in `astro dev`, so a production build counts published ones.
+ * loader keeps draft variants only in `astro dev` and the PR preview, so production counts
+ * published ones.
  */
 export function versionCount(p: Piece): { versions: number; drafts: number } {
   return {
