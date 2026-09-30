@@ -57,14 +57,6 @@ test('a plate carries to its page and back to the index', async ({ page }) => {
   expect(await revealed(page)).toBe(slug);
 });
 
-test('a plate shown in another shape than its page shows is not carried', async ({ page }) => {
-  await page.goto('/?shape=9x19.5');
-  const slug = await firstSlug(page);
-  await page.locator(`.grid > li[data-slug="${slug}"] figure`).click();
-  await page.waitForURL(`**/${slug}?shape=9x19.5`);
-  expect(await revealed(page)).toBe('skipped');
-});
-
 test('a link without a plate changes the page at once', async ({ page }) => {
   await page.goto('/');
   await page.locator('.nav a[href="/about"]').click();

@@ -22,7 +22,7 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 
 ### Plate transition
 
-`transition/move.ts` sets `view-transition-name: plate` inline on one `.plate` for the length of a view transition, and clears it when the transition ends or the page returns from the back/forward cache. In a grid that is `.grid > li[data-slug] .plate`, on the detail page `.spread .plate[data-plate]`; it reads the slug from `data-plate` and the shape from the plate's computed `--ratio`. Nothing else sets a view-transition-name. Detail pages hold their first render until `#quick-download` is parsed (`<link rel=expect blocking=render>`), so the spread's plate exists when `pagereveal` fires.
+`transition/boot.ts` sets `view-transition-name: plate` inline on one `.plate` for the length of a view transition: `.spread .plate[data-plate=<slug>]` on the detail page, `.grid > li[data-slug=<slug>] .plate` in a grid. Nothing else sets a view-transition-name. Detail pages hold their first render until `#quick-download` is parsed (`<link rel=expect blocking=render>`), so the spread's plate exists when `pagereveal` fires.
 
 ### Header (`src/components/Masthead.astro`)
 
