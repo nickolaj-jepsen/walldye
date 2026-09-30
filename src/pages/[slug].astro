@@ -54,6 +54,8 @@ const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
 ---
 
 <Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.description} ogType="article" mainClass="detail">
+  {/* The first render waits for the plate, which a plate carried from a grid lands on (src/client/transition/). */}
+  <link slot="head" rel="expect" href="#quick-download" blocking="render" />
   <figure class="spread">
     {/* SHAPE BOOT (src/client/detail/shape-boot.ts): sets this figure's data-aspect before first paint. */}
     <script is:inline set:html={shapeBoot} />

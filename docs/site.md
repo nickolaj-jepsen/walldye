@@ -93,7 +93,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | `max-width: 60rem` and `pointer: coarse` | The index's color row is one line that scrolls sideways. |
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
-| `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recolored. |
+| `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recolored, and the plate carried between a grid and its page (§6.6). |
 | `scripting: none` | §6.15. |
 | `forced-colors: active` | §6.14. |
 
@@ -168,6 +168,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - Any other shape is cropped from 16:9 and shows the crop window: a 1px `--text` frame, everything outside it dimmed by 55% `--bg`. It spans the full height and moves sideways for shapes narrower than 16:9, or the full width and moves up and down for wider ones, starting centered on the piece's focus. Dragging it moves the range input, which stays the keyboard control.
 - On phones a tall shape (9:19.5, 10:16) sets the plate in that shape, centered. A cropped one shows the crop itself, which a sideways drag on the plate moves, and the crop window moves to a 16:9 map over the Crop range.
 - `f` toggles fullscreen, showing the wallpaper alone. It ignores fields, sliders, focused code, editable content and modified keys.
+- Opening a piece from a grid (the index or "See also") carries its plate onto the spread in 0.3s while the page crossfades, and going back to the index carries it to its place in the grid. The picture being carried stays whole, and the arriving one fades in over it once its colors are drawn. This happens only when both show the plate in the same shape and it is on screen; otherwise, and for every other link, the page changes at once.
 
 ### 6.7 Label
 

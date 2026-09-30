@@ -10,7 +10,7 @@ The hooks the server-rendered pages give the client code in `src/client/`. The p
 | `index/page.ts` | `src/pages/index.astro` | Filters, shape, results line, the plate grid |
 | `detail/page.ts` | `src/pages/[slug].astro` | Versions and their pictures, plate, crop window, export panel, run command, the `f` key, "Copy", the "See also" grid |
 
-Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>`, `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`, and `[slug].astro` inlines `detail/shape-boot.ts` as the first child of `.spread`. A boot that does not build fails the build.
+Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>` and `transition/boot.ts` after it, `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`, and `[slug].astro` inlines `detail/shape-boot.ts` as the first child of `.spread`. A boot that does not build fails the build.
 
 ## Every page
 
@@ -19,6 +19,10 @@ Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/se
 The theme boot sets every property from `cssVars()` in `src/lib/theme.ts` inline on `<html>`, plus `data-regime="dark|light"` and `data-theme`, the applied theme's token, which the page modules read the seeds from. The swatches read `--seed-bg`, `--seed-fg` and `--seed-accent`, so they follow on their own. It points `link#favicon`, which comes before the boot script in `<head>`, at a `data:` URL of the icon in the applied seeds. It applies the theme again, dispatching the theme event, when the system color scheme changes and when the page returns from the back/forward cache.
 
 When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as `data-theme-shared` or `data-theme-saved`, so it holds for the rest of the page in every bundle.
+
+### Plate transition
+
+`transition/move.ts` sets `view-transition-name: plate` inline on one `.plate` for the length of a view transition, and clears it when the transition ends or the page returns from the back/forward cache. In a grid that is `.grid > li[data-slug] .plate`, on the detail page `.spread .plate[data-plate]`; it reads the slug from `data-plate` and the shape from the plate's computed `--ratio`. Nothing else sets a view-transition-name. Detail pages hold their first render until `#quick-download` is parsed (`<link rel=expect blocking=render>`), so the spread's plate exists when `pagereveal` fires.
 
 ### Header (`src/components/Masthead.astro`)
 

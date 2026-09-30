@@ -34,6 +34,7 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') 
 const canonical = noindex ? undefined : new URL(path, Astro.site).href;
 const imageUrl = image ? new URL(image, Astro.site).href : undefined;
 const themeBoot = await inlineScript('theme', !import.meta.env.DEV);
+const transitionBoot = await inlineScript('transition', !import.meta.env.DEV);
 ---
 
 <!doctype html>
@@ -45,6 +46,8 @@ const themeBoot = await inlineScript('theme', !import.meta.env.DEV);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" id="favicon" />
     {/* THEME BOOT (src/client/theme/boot.ts): keep it the first script, ahead of every stylesheet, so it never waits on CSS. */}
     <script is:inline set:html={themeBoot} />
+    {/* TRANSITION BOOT (src/client/transition/boot.ts): pagereveal fires at the first render, before the page modules run. */}
+    <script is:inline set:html={transitionBoot} />
     <title>{docTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
