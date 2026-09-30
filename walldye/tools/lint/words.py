@@ -1,5 +1,6 @@
-"""Words visitors read: the copy rules for meta.yaml's title, description, notes and version
-labels and descriptions, and the color words design.py's comments may not use either."""
+"""Words visitors read: the copy rules for meta.yaml's title, description, alt text, notes and
+version labels, descriptions and alt texts, and what design.py's docstring and comments may not
+say either."""
 
 import re
 from collections.abc import Mapping
@@ -20,8 +21,8 @@ INTERNAL_TERMS: Final = frozenset({
     "regime", "seed", "token", "native", "hand-tuned", "light-ready", "preset", "variant",
     "param", "slot", "template", "derived", "guard",
 })  # fmt: skip
-MAX_DESCRIPTION_WORDS: Final = 30
-MAX_DESCRIPTION_SENTENCES: Final = 2
+# field kind: (words, sentences) at most
+LIMITS: Final = {"description": (20, 1), "alt": (25, 1)}
 _WORDS: Final = re.IGNORECASE | re.ASCII
 # Phrases visible copy never uses, each with the reason copy() gives; matched as whole words.
 BANNED: Final = (
@@ -34,6 +35,10 @@ BANNED: Final = (
         "stock phrase",
     ),
     (
+        re.compile(r"\b(a take on|nods? to|nodding to|love letter|homage|evok(e|es|ed|ing)|in the spirit of|invit(e|es|ing)|meditation|ode to|reminiscent of|pays? tribute)\b", _WORDS),
+        "gesture phrase",
+    ),
+    (
         re.compile(r"\b(regimes?|seeds?|tokens?|native|hand-tuned|light-ready|presets?|variants?|params?|slots?|templates?|derived|guards?|has script|AI-generated|generator lost|appendix)\b", _WORDS),
         "internal term",
     ),
@@ -41,6 +46,17 @@ BANNED: Final = (
     (re.compile(r"\bRGB units?\b|\b\d+(\.\d+)?:1\b|\b\d+\s?px\b", _WORDS), "machinery number"),
     (re.compile(r"\bthe accent\b|\baccent colou?r\b|\b(bg|fg)(_alt)?\b", _WORDS), "theme role as a noun"),
 )  # fmt: skip
+
+
+# Only in a description: the highlight is the alt text's to describe.
+HIGHLIGHT: Final = re.compile(
+    r"\b(lit|picked out|filled in|stands? out|highlighted|singled out)\b", _WORDS
+)
+# Only in a title: imagery words stand in for the subject's name.
+IMAGERY: Final = re.compile(
+    r"\b(veils?|whirl(s|ing)?|struck|danc(e|es|ing)|whispers?|symphony|reverie|dreams?|ballet|lullaby|requiem)\b",
+    _WORDS,
+)
 
 
 def color_words(text: str) -> set[str]:
@@ -71,25 +87,26 @@ def sentences(text: str) -> int:
 
 
 def copy(meta: Mapping[str, object]) -> list[str]:
-    """Copy problems in the title, description and notes of `meta` and in each version's label
-    and description, each as "<field>: <problem>" (a version field as
-    `variants.<name>.label`): color words and BANNED phrases in any of them, and a description
-    over MAX_DESCRIPTION_WORDS words or MAX_DESCRIPTION_SENTENCES sentences. [] when the copy
-    follows the rules."""
-    fields: list[tuple[str, object, bool]] = [
-        ("title", meta.get("title"), False),
-        ("description", meta.get("description"), True),
-        ("notes", meta.get("notes"), False),
+    """Copy problems in the title, description, alt text and notes of `meta` and in each
+    version's label, description and alt text, each as "<field>: <problem>" (a version field as
+    `variants.<name>.label`): color words and BANNED phrases in any of them, IMAGERY in the
+    title, HIGHLIGHT in a description, and a description or alt text over its LIMITS. [] when
+    the copy follows the rules."""
+    fields: list[tuple[str, object, str]] = [
+        ("title", meta.get("title"), "title"),
+        ("description", meta.get("description"), "description"),
+        ("alt", meta.get("alt"), "alt"),
+        ("notes", meta.get("notes"), "notes"),
     ]
     variants = metadata.as_dict(meta.get("variants"))
     for name, value in (dict[str, object]() if variants is None else variants).items():
         if (e := metadata.as_dict(value)) is not None:
             fields += [
-                (f"variants.{name}.label", e.get("label"), False),
-                (f"variants.{name}.description", e.get("description"), True),
+                (f"variants.{name}.{key}", e.get(key), key)
+                for key in ("label", "description", "alt")
             ]
     out: list[str] = []
-    for field, value, is_description in fields:
+    for field, value, kind in fields:
         text = "" if value is None or value is False or value == "" else str(value)
         if text == "":
             continue
@@ -98,9 +115,22 @@ def copy(meta: Mapping[str, object]) -> list[str]:
         for pattern, why in BANNED:
             if (m := pattern.search(text)) is not None:
                 out.append(f'{field}: {why} "{m[0]}"')
-        if is_description:
-            if (n := len(text.split())) > MAX_DESCRIPTION_WORDS:
-                out.append(f"{field}: {n} words, over {MAX_DESCRIPTION_WORDS}")
-            if (s := sentences(text)) > MAX_DESCRIPTION_SENTENCES:
-                out.append(f"{field}: {s} sentences, over {MAX_DESCRIPTION_SENTENCES}")
+        if kind == "title" and (m := IMAGERY.search(text)) is not None:
+            out.append(f'{field}: imagery "{m[0]}" (name the subject)')
+        if kind == "description" and (m := HIGHLIGHT.search(text)) is not None:
+            out.append(f'{field}: describes the picture "{m[0]}" (the alt text does)')
+        if kind in LIMITS:
+            most_words, most_sentences = LIMITS[kind]
+            if (n := len(text.split())) > most_words:
+                out.append(f"{field}: {n} words, over {most_words}")
+            if (n := sentences(text)) > most_sentences:
+                out.append(f"{field}: {n} sentences, over {most_sentences}")
+    return out
+
+
+def docstring(text: str) -> list[str]:
+    """Copy problems in a design.py module docstring: more than one line, and BANNED phrases."""
+    out = [f'{why} "{m[0]}"' for pattern, why in BANNED if (m := pattern.search(text)) is not None]
+    if len(text.strip().splitlines()) > 1:
+        out.insert(0, "more than one line (the subject and the technique)")
     return out

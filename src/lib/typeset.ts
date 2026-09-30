@@ -21,8 +21,8 @@ export function smartQuotes(text: string): string {
 }
 
 /**
- * A copy of `meta` with smartQuotes applied to what visitors read outside the notes: the title and
- * description, each variant's label and description, each source's title, topic and author, and the
+ * A copy of `meta` with smartQuotes applied to what visitors read outside the notes: the title,
+ * description and alt text, each variant's label, description and alt text, each source's title, topic and author, and the
  * franchise. Values that are not strings are left for the schema to report.
  */
 export function typesetMeta(meta: Meta): Meta {
@@ -31,13 +31,16 @@ export function typesetMeta(meta: Meta): Meta {
     isMapping(v)
       ? { ...v, ...Object.fromEntries(keys.filter((k) => k in v).map((k) => [k, q(v[k])])) }
       : v;
-  const out = pick(meta, ['title', 'description']) as Meta;
+  const out = pick(meta, ['title', 'description', 'alt']) as Meta;
   if (Array.isArray(meta.sources))
     out.sources = meta.sources.map((s) => pick(s, ['title', 'topic', 'author']));
   if ('franchise' in meta) out.franchise = pick(meta.franchise, ['title', 'owner']);
   if (isMapping(meta.variants)) {
     out.variants = Object.fromEntries(
-      Object.entries(meta.variants).map(([name, e]) => [name, pick(e, ['label', 'description'])]),
+      Object.entries(meta.variants).map(([name, e]) => [
+        name,
+        pick(e, ['label', 'description', 'alt']),
+      ]),
     );
   }
   return out;

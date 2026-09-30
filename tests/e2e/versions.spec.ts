@@ -77,7 +77,7 @@ test.describe('versions', () => {
     await choose(page, other.label);
     expect(new URL(page.url()).search).toBe(`?v=${other.name}`);
     await expect(plateImg(page)).toHaveAttribute('src', templateUrl(other.slots, '16:9'));
-    await expect(plateImg(page)).toHaveAttribute('alt', other.description);
+    await expect(plateImg(page)).toHaveAttribute('alt', other.alt);
     await expect(page.locator('#desc')).toHaveText(other.description);
     await expect(page.locator('#download')).toHaveAttribute(
       'title',
@@ -101,7 +101,7 @@ test.describe('versions', () => {
     );
     await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
       'content',
-      base.description,
+      base.alt,
     );
 
     await page.reload();

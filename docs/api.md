@@ -269,7 +269,7 @@ def design[Pm: Params](
 It decorates the one `draw(s: Canvas[Pm]) -> None` and replaces it with a `Design`.
 
 - `aspects`: `"any"` for every aspect in `SITE_ASPECTS`, or a tuple of them. 16:9 is always native, because the site's plates and social cards need it; a design that composes only for 16:9 leaves `aspects` out.
-- `variants`: at most 4 named variants, so 5 versions with the default. Each is an instance of exactly `draw`'s params class and differs from `Pm()` and from the others. Names match `[a-z0-9]+(-[a-z0-9]+)*`, are at most 24 characters and are not `default`. Labels, descriptions and draft flags live in meta.yaml (wallpapers.md, meta.yaml).
+- `variants`: at most 4 named variants, so 5 versions with the default. Each is an instance of exactly `draw`'s params class and differs from `Pm()` and from the others. Names match `[a-z0-9]+(-[a-z0-9]+)*`, are at most 24 characters and are not `default`. Labels, alt texts, descriptions and draft flags live in meta.yaml (wallpapers.md, meta.yaml).
 - `bg`: the color of the full-canvas rectangle drawn before `draw` runs; a `by_regime` color is fine.
 - The params class comes from `draw`'s annotation, `Canvas[X]`, so annotate it when there are variants.
 

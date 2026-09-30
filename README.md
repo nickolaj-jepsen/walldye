@@ -68,7 +68,7 @@ A shape the piece wasn't drawn for is cut from its 16:9 version around the busie
 
 ## Adding a wallpaper
 
-Each wallpaper is a folder `wallpapers/<slug>/`: `design.py`, one `@design` function that draws on a canvas; `meta.yaml`, with the title, description, facets, sources and license; and `build/`, which only `walldye build` writes and git ignores.
+Each wallpaper is a folder `wallpapers/<slug>/`: `design.py`, one `@design` function that draws on a canvas; `meta.yaml`, with the title, description, alt text, facets, sources and license; and `build/`, which only `walldye build` writes and git ignores.
 
 With [Claude Code](https://claude.com/claude-code) in this repository, ask for a wallpaper: the walldye skill in `.claude/skills/walldye/` takes each subject you name from idea to review, and the wallpaper-batch workflow researches and builds a batch of new ones. By hand:
 

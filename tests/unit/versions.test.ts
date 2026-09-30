@@ -45,14 +45,15 @@ describe('meta.yaml variants in the content schema', () => {
     expect(named('a'.repeat(24))).toEqual([]);
   });
 
-  it('keeps description and draft to named variants', () => {
+  it('keeps description, alt and draft to named variants', () => {
     expect(
       problems({
-        default: { label: 'Early', description: 'Early.', draft: true },
+        default: { label: 'Early', description: 'Early.', alt: 'A dot.', draft: true },
         late: { label: 'Late' },
       }),
     ).toEqual([
       'default.description: the default version shows the piece description',
+      'default.alt: the default version shows the piece alt text',
       'default.draft: the default version is a draft only with the piece',
     ]);
   });

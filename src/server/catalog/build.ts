@@ -71,7 +71,9 @@ export function attach(
   if (unlit)
     throw new Error(`${main.slotsPath} has no ${unlit}/light template: run walldye build ${slug}`);
 
-  const description = typeof meta.description === 'string' ? meta.description.trim() : '';
+  const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+  const description = text(meta.description);
+  const alt = text(meta.alt);
   const versions: z.infer<typeof version>[] = [];
   // A malformed variants: is the schema's to report; the versions would only repeat it.
   if (variantsMeta.safeParse(meta.variants).success) {
@@ -91,11 +93,11 @@ export function attach(
         warn(`skipping draft variant ${slug} ${v.name}: ${(e as Error).message}`);
         continue;
       }
-      const own = typeof v.description === 'string' ? v.description.trim() : '';
       versions.push({
         name: v.name,
         label: String(v.label).trim(),
-        description: own || description,
+        description: text(v.description) || description,
+        alt: text(v.alt) || alt,
         draft: v.draft,
         ...named,
       });
@@ -106,6 +108,7 @@ export function attach(
         name: DEFAULT_VARIANT,
         label: label.trim(),
         description,
+        alt,
         draft: false,
         ...main,
       });

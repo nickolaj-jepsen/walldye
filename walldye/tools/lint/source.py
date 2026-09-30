@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Final
 
 from walldye.tools.lint.templates import Lints
-from walldye.tools.lint.words import color_words
+from walldye.tools.lint.words import color_words, docstring
 
 STDLIB: Final = frozenset({
     "math", "cmath", "itertools", "functools", "collections", "heapq", "bisect", "operator",
@@ -598,4 +598,6 @@ def design(path: Path) -> Lints:
         warnings.append(
             f"color words in docstrings or comments: {', '.join(sorted(words))} (name tokens or roles, never hues)"
         )
+    if (module_doc := ast.get_docstring(d.tree)) is not None:
+        warnings += [f"docstring: {w}" for w in docstring(module_doc)]
     return errors, warnings

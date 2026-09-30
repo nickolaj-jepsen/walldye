@@ -541,7 +541,7 @@ Look at ${REFS} first. For each design (${names(done)}):
 Judge: does it read instantly; is the composition deliberate; is the accent a restrained event; are the grays quiet enough behind windows; is it clean at 4K (no artifacts, jaggies, awkward clipping, muddy tone steps); does it feel like a sibling of the reference set? Faint is the common failure, more than loud: call it out when the idea only shows up zoomed in.
 Light: does the flexoki-light render hold up (tone steps visible, the event still reads, no shadow that turned into a glare) and does the event survive nord's cool accent by shape and size? Is the light ladder step (SKILL.md step 5) the lowest that works? light_verdict is ok or fix; put light fixes in fixes, prefixed "light:".
 Variants: judge each proposed variant against VARIANTS. Does it change what is depicted, is it as strong as the default, and does it look different at thumbnail size? A variant that passes check can still be a nudge of one value: drop it if the subject did not change. Return one verdict per variant in variants (keep false with the reason drops it); [] when the design has none.
-Copy: check title, description, notes, variant labels and descriptions, and the docstring against the COPY RULES. Each copy_fixes entry quotes the replacement text.
+Copy: check title, description, alt text, notes, variant labels, descriptions and alt texts, and the docstring against the COPY RULES, asking of each: is its fact checkable, does anything but the alt text describe the picture, and would a person say it out loud? Each copy_fixes entry quotes the replacement text.
 Score 1-10 by the scoring in principles.md. verdict keep only for 8+ with no meaningful fixes; fix for fixable issues; rework if the approach fails. Fixes must be concrete (positions, sizes, tones, density), most important first.
 Builder notes: ${json(done.map(s => b[s.name]))}
 SPECS:
@@ -734,11 +734,11 @@ if (unsourced.length) log(`No sources result for ${unsourced.join(', ')}; their 
 phase('Copy')
 const copy = await agent(`You are the copy editor for a batch of new wallpapers. Load the avoid-ai-tropes skill first.
 Pieces: ${survivors.join(' ')}
-For each, read wallpapers/<slug>/meta.yaml (title, description, notes) and the one-line module docstring of wallpapers/<slug>/design.py. Then read all the descriptions side by side.
+For each, read wallpapers/<slug>/meta.yaml (title, description, alt, notes and each version's description and alt) and the one-line module docstring of wallpapers/<slug>/design.py. Then read all the descriptions side by side.
 ${COPY_RULES}
-- Across the set: vary sentence shape and length, don't open two descriptions the same way, and drop any stock phrase that repeats from piece to piece. Two short sentences often read better than one long comma chain.
-- Each description stays true to the piece: preview one when unsure (\`uv run walldye preview <slug>\`, Read the PNG). The preview output also flags color words in the docstring and meta.yaml copy.
-Edit in place: only title, description and notes in meta.yaml, and the module docstring in design.py (never code, facets or sources). Only these pieces' folders. Never run \`walldye build\`.
+- Across the set: don't open two descriptions the same way, and drop any phrase that repeats from piece to piece.
+- Each description's fact checks out against the piece's sources; each alt text matches the picture: preview when unsure (\`uv run walldye preview <slug>\`, Read the PNG). The preview output also flags copy problems in the docstring and meta.yaml.
+Edit in place: only title, description, alt and notes in meta.yaml (and each version's description and alt), and the module docstring in design.py (never code, facets or sources). Only these pieces' folders. Never run \`walldye build\`.
 Return every change as {slug, field, before, after}.`, { label: 'copy', phase: 'Copy', schema: COPY })
 if (!copy) log('The copy agent returned nothing; the builders\' copy stands')
 

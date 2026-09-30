@@ -218,7 +218,10 @@ def test_variant_builds_touch_only_their_variant(wallpapers, capsys):
     design.write_text(design.read_text().replace(', "bare": Clock(hour=5, ring=False, seed=3)', ""))
     meta = wallpapers / "versions/meta.yaml"
     meta.write_text(
-        meta.read_text().replace("  bare:\n    label: Five, no ring\n    draft: true\n", "")
+        meta.read_text().replace(
+            "  bare:\n    label: Five, no ring\n    alt: A bare clock at five.\n    draft: true\n",
+            "",
+        )
     )
     out = built(capsys, "versions")
     assert "removed build/bare/" in out and not paths.build_dir("versions", "bare").exists()

@@ -97,8 +97,8 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 ```html
 <div class="plate" data-plate="dither-moon"
      data-templates='{"16:9/dark":"/t/9c3c8499b388.svg","16:9/light":"/t/e26df4754421.svg"}'
-     data-slots="/t/a1422a6b6f79.slots.json" data-alt="…description…"
-     [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…"},"late":{…}}']>
+     data-slots="/t/a1422a6b6f79.slots.json" data-alt="…alt text…"
+     [data-variants='{"default":{"templates":{…},"slots":"…","alt":"…","description":"…"},"late":{…}}']>
   <noscript><img src="/t/9c3c8499b388.svg" alt="…" width="1920" height="1080" …></noscript>
   <!-- detail only: <div class="crop" data-axis="x" hidden><span class="handle"></span></div> -->
 </div>
@@ -106,8 +106,8 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 
 - `data-templates` maps each slots.json key (`<aspect>/<regime>`) to a template URL: only the `16:9/*` keys in grids, every key on the detail spread. The URL is `servedUrl()` of the template's hash, so a key left out comes from slots.json (`templateUrl()` in `src/lib/recolor.ts`). Under the exact fireproof seeds, use the template URL itself as `img.src`.
 - `data-slots` is the piece's `build/slots.json`, byte for byte (`focus`, `cells`, and per key `{file, sha256, n, coefs, occ}`), fetched once per piece. If `n` does not match, show the untouched template.
-- `data-alt` is the description, for the `alt` of the inserted `<img>`.
-- `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. The client reads these attributes once and never writes them.
+- `data-alt` is the piece's alt text, for the `alt` of the inserted `<img>`.
+- `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots`, `alt` and `description`. The client reads these attributes once and never writes them.
 - Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; set the plate's `--shape` to their ratio, which the CSS frames a non-16:9 template with. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
 - While an image fades in over the one it replaces, `site.css` stacks the second `img` over the first.
 - When the template or slots.json fails to load, an empty plate gets the untouched template, and the recolor is retried on the `RETRY_MS` schedule and on the `online` event (`keepShowing()` in `plates.ts`).
@@ -125,7 +125,7 @@ The page keeps its state in the query string, written with `history.replaceState
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
 | `#quick-download` | `button.download.quick` after the attribution | Runs the export as `#download` does, sharing its "Preparing…", `aria-busy`, summary and `title`. |
 | `[data-part=format\|size\|yours]` | spans inside both Download buttons (`DownloadSummary.astro`) | The format's label; the size as `w×h`, or the shape for SVG; " for your screen", which site.css shows for a raster at the `screen` size. The panel boot sets them, with the Shape and Size rows, for the start state before first paint (`renderPanel()` in `detail/panel.ts`, which the page module renders with too). |
-| `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].alt`). |
+| `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].description`). |
 
 ### Versions, export and colors (`src/components/Controls.astro`)
 

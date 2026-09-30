@@ -4,6 +4,8 @@
 
 const { steps: STEPS, pieces: PIECES, taxonomy: TAXONOMY, labels: LABELS } = CFG;
 const { themes: THEMES, canvas: CANVAS, facets: FACETS, text: TEXT } = CFG;
+/** A named version's own text fields: [key, label, rows]. */
+const VERSION_TEXT = TEXT.filter(([key]) => key === 'description' || key === 'alt');
 // Actual pixels means a 16:9 piece 2560 device pixels wide; other shapes scale alike.
 const ZOOM_WIDTH = 2560;
 
@@ -455,17 +457,17 @@ function wordsSection(s) {
       ),
     );
     if (s.variant !== 'default') {
-      const desc = versionText(s.slug, s.variant, 'description');
-      sec.append(
-        field(
-          'Description',
-          desc,
-          v.description,
-          3,
-          (x) => setVersionText(s.slug, s.variant, 'description', x),
-          "Empty: the piece's description is used",
-        ),
-      );
+      for (const [key, label, rows] of VERSION_TEXT)
+        sec.append(
+          field(
+            label,
+            versionText(s.slug, s.variant, key),
+            v[key],
+            rows,
+            (x) => setVersionText(s.slug, s.variant, key, x),
+            `Empty: the piece's ${label.toLowerCase()} is used`,
+          ),
+        );
     }
   }
   return sec;
@@ -762,13 +764,11 @@ function changes(slug) {
     if (!sameList(now, p[f])) rows.push([label, words(f, p[f]), words(f, now)]);
   }
   for (const [name, v] of Object.entries(p.versions)) {
-    for (const [key, label] of [
-      ['label', 'name'],
-      ['description', 'description'],
-    ]) {
-      if (name === 'default' && key === 'description') continue;
+    for (const [key, label] of [['label', 'name'], ...VERSION_TEXT]) {
+      if (name === 'default' && key !== 'label') continue;
       const now = versionText(slug, name, key);
-      if (now !== v[key]) rows.push([`Version “${v.label || name}”, ${label}`, v[key], now]);
+      if (now !== v[key])
+        rows.push([`Version “${v.label || name}”, ${label.toLowerCase()}`, v[key], now]);
     }
   }
   return rows;

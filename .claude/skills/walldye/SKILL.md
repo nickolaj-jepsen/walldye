@@ -137,8 +137,10 @@ subagent with the Agent tool as the critic, and give it no conversation history,
   `uv run walldye preview` for more views and read design.py and meta.yaml. Score the piece 1
   to 10 by principles.md's scoring, and list concrete fixes (positions, sizes, tones, density),
   most important first. Judge each variant against the Variant policy in
-  .claude/skills/walldye/SKILL.md: keep or drop, with the reason. Check the copy against Copy
-  in docs/wallpapers.md, quoting any replacement text."
+  .claude/skills/walldye/SKILL.md: keep or drop, with the reason. Then score the copy 1 to 10
+  on its own against Copy in docs/wallpapers.md, asking of each field: is its fact checkable,
+  does anything but the alt text describe the picture, and would a person say it out loud?
+  Quote any replacement text."
 
 Apply the fixes, run step 8 again, and start a second fresh critic. If the piece still scores
 under 8, stop before build: tell the owner the score and the critic's reasons, and ask whether
@@ -187,8 +189,10 @@ docs/wallpapers.md, meta.yaml, has every field and rule. On top of it:
 docs/wallpapers.md, Copy, has the rules for everything a visitor reads, including design.py's
 docstring and comments. On top of them:
 
-- A title is short and plain, in sentence case, like "Radar sweep" or "One-bit moon".
-- Vary the description's shape from the last few pieces (`walldye list` shows them).
+- A title is short and plain, in sentence case, like "Radar sweep" or "One-bit moon", and the
+  slug follows it.
+- Write the alt text from the preview, and the description's fact from the sources; don't
+  open a description the way the last few pieces do (`walldye list` shows them).
 - Run the avoid-ai-tropes skill on every draft.
 - The color-word lint is a plain word list that also matches plurals, so "golden section",
   "black" and "grays" trip it. It does not know temperatures ("warm", "cool"); avoid those by

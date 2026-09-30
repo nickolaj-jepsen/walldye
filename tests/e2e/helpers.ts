@@ -30,6 +30,8 @@ export interface CatalogVersion {
   label: string;
   /** The version's own description, else the piece's, quotes curled. */
   description: string;
+  /** The version's own alt text, else the piece's, quotes curled. */
+  alt: string;
   slots: Slots;
   /** The aspects with templates of their own; any other shape is a crop of 16:9. */
   aspects: string[];
@@ -38,6 +40,7 @@ export interface CatalogVersion {
 export interface CatalogPiece {
   slug: string;
   description: string;
+  alt: string;
   license: string;
   franchise?: { title: string; owner: string };
   /** The published versions, default first. */
@@ -50,10 +53,11 @@ export function publishedPieces(): CatalogPiece[] {
     const meta = loadMeta(ROOT, slug);
     if (isDraft(meta)) return [];
     const description = smartQuotes(String(meta.description));
+    const alt = smartQuotes(String(meta.alt));
     const unnamed = (meta.variants as Record<string, { label?: string }> | undefined)?.default;
     const named = namedVariants(meta).filter((v) => !v.draft);
     const versions = [
-      { name: 'default', label: unnamed?.label, description: undefined },
+      { name: 'default', label: unnamed?.label, description: undefined, alt: undefined },
       ...named,
     ].map((v) => {
       const slots = slotsOf(slug, v.name);
@@ -61,6 +65,7 @@ export function publishedPieces(): CatalogPiece[] {
         name: v.name,
         label: smartQuotes(String(v.label ?? '')),
         description: typeof v.description === 'string' ? smartQuotes(v.description) : description,
+        alt: typeof v.alt === 'string' ? smartQuotes(v.alt) : alt,
         slots,
         aspects: Object.keys(slots)
           .filter((k) => k.endsWith('/dark'))
@@ -73,6 +78,7 @@ export function publishedPieces(): CatalogPiece[] {
       {
         slug,
         description,
+        alt,
         license: String(licenseOf(meta) ?? DEFAULT_LICENSE),
         franchise,
         versions,
