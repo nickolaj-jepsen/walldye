@@ -1,4 +1,4 @@
-"""An invented metro map on an octilinear grid: shared corridors split into parallel lanes, bends are rounded, interchanges are capsules, and one line is picked out."""
+"""An invented metro map in drafted octilinear lines."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass

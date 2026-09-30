@@ -1,4 +1,4 @@
-"""Flat walls after Luis Barragán stand at the edge of a still pool, mirrored below in horizontal ripple strips that widen and waver towards the viewer."""
+"""Flat walls from Barragán's Cuadra San Cristóbal above a pool reflected in horizontal strips."""
 
 import math
 

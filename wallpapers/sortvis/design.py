@@ -1,4 +1,4 @@
-"""A sort drawn as wires: each number is a line at its place in the list, crossing the wire it swaps with, one path picked out."""
+"""A sort drawn as wires: each number is a line at its place in the list, crossing the wire it swaps with."""
 
 from typing import Literal
 

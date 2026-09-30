@@ -1,4 +1,4 @@
-"""A lunar crater field under a low sun, drawn as flat crescents of shade and light, with one fresh crater throwing tapered ejecta rays."""
+"""A lunar crater field under a low sun, in flat crescents of shade and light."""
 
 import math
 

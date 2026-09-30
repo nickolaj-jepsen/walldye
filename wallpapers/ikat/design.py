@@ -1,4 +1,4 @@
-"""Warp ikat: a stepped double lozenge dyed into vertical threads, its edges slipping and bleeding bundle by bundle."""
+"""Warp ikat: a stepped double diamond with bleeding dye edges."""
 
 import numpy as np
 from shapely.affinity import affine_transform

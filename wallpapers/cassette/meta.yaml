@@ -1,7 +1,8 @@
 title: Compact Cassette
-description: A Compact Cassette in two scale views, one roller magnified in a circle. Its tape runs lit from spool to spool.
+description: A Compact Cassette passes tape from spool to spool, and the heads reach it through openings in the shell.
+alt: Front and bottom views of a cassette with dimension lines, and a circled close-up of one corner roller; the tape runs between the spools.
 notes: |
-  The front view is drawn as if the shell were clear, so the tape wound on both spools shows through the label area. Below it, the bottom edge shows the tape through its three openings, with dashed lines tracing it behind the shell.
+  The front view is drawn as if the shell were clear. Below it, the bottom edge shows the tape through its three openings, with dashed lines tracing it behind the shell.
 technique: [drafting]
 subject: [machines, music]
 lineage: []
@@ -18,3 +19,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: Front and bottom views of a cassette and a circled close-up of a corner roller, without dimension lines; the tape runs between the spools.

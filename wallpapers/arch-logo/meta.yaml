@@ -1,7 +1,8 @@
 title: Arch logo
-description: Arch Linux's A, drafted to fit a square. Its flanks and arcs run on past the corners as guide lines, and the peak above the notch is filled in.
+description: The Arch Linux logo is an A with slightly curved sides, an arched base and a notch in each leg.
+alt: The Arch Linux A inside a dash-dot circle, with dimension lines beside it and guide lines past its corners; the peak is solid.
 notes: |
-  The letter is as tall as it is wide, and its apex and both feet lie on the dash-dot circle. Its corners and the centers of its arcs sit on a grid of 48 squares across the base, measured off the official artwork. The flanks curve in very slightly: each is an arc eight to ten times the letter's width in radius. The base is a pointed arch of two arcs, each drawn from a center on the far side of the axis, 61 squares below the letter. Each notch is cut between two arcs that meet at its tip. The upper arc of the left notch, continued across the letter, marks off the peak, and its radius is drawn from its center. The opening is an ellipse 11 squares wide and 18 tall. Carried on through the letter, the left base arc comes out at the notch on the right.
+  The letter's corners and arc centers sit on a grid of 48 squares across the base, measured off the official artwork. The flanks curve in very slightly: each is an arc eight to ten times the letter's width in radius. The base is a pointed arch of two arcs, each drawn from a center on the far side of the axis, 61 squares below the letter. Each notch is cut between two arcs that meet at its tip. The upper arc of the left notch, continued across the letter, marks off the peak. The opening is an ellipse 11 squares wide and 18 tall. Carried on through the letter, the left base arc comes out at the notch on the right.
 technique: [drafting]
 subject: [computing]
 lineage: []
@@ -21,3 +22,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: Guide lines fade out past the corners of the Arch Linux A, inside a dash-dot circle with no dimension lines; the peak is solid.

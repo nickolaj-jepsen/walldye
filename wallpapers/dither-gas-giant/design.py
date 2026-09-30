@@ -1,4 +1,4 @@
-"""A gas giant rising from the corner, its belts, turbulence and one storm oval quantized by serpentine Stucki error diffusion."""
+"""A gas giant with a storm oval in serpentine Stucki error diffusion."""
 
 import numpy as np
 from numpy.typing import NDArray

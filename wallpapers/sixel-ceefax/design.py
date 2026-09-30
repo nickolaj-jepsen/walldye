@@ -1,4 +1,4 @@
-"""A teletext page in separated-graphics sixels: two hill ridges, a dashed sea and a half-sunk sun."""
+"""A teletext sunset in separated-graphics blocks."""
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,4 +1,4 @@
-"""A torus at a three-quarter tilt, z-buffered onto a character grid and shaded with a twelve-step ASCII luminance ramp."""
+"""A torus at a three-quarter tilt, drawn on a character grid with an ASCII luminance ramp."""
 
 import math
 

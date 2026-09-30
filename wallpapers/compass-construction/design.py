@@ -1,4 +1,4 @@
-"""Richmond's ruler-and-compass pentagon, with every compass arc and ruled line left on the sheet."""
+"""Richmond's ruler-and-compass pentagon with every compass arc and ruled line kept."""
 
 import math
 from dataclasses import dataclass

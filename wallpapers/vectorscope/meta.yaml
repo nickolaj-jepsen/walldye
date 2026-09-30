@@ -1,7 +1,8 @@
 title: Vectorscope
-description: A broadcast vectorscope reads color bars as a hexagon through six target boxes, with a cluster on the skin-tone line.
+description: A vectorscope plots the color of video as angle for hue and distance from the center for saturation.
+alt: A circular scale with a six-sided trace touching small boxes at its corners and a cluster of dots along a line toward the upper left.
 notes: |
-  A vectorscope plots the color of a video signal around a circle: the angle gives the hue and the distance from the center gives the saturation. Standard color bars land in the six labeled boxes, and skin of every complexion falls close to one line, which camera operators use to check faces.
+  Standard color bars land in the six labeled boxes, and skin of every complexion falls close to one line, which camera operators use to check faces.
 technique: [instrument]
 subject: []
 lineage: []

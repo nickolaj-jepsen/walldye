@@ -1,6 +1,8 @@
 title: Pixel planet
-description: A ringed planet in square pixels, backlit to a thin crescent. Bands and the ring's shadow cross its night side.
-notes: The planet is shaded in five flat steps with no dithering, and the ring tilts at an exact one-in-four slope, so its long edges step in even runs.
+description: A ringed planet in pixel art, its ring tilted one pixel in four so the edges step in even runs.
+alt: A banded planet with a tilted ring sits among small stars, lit only along a thin crescent on its upper left edge.
+notes: |
+  The planet is shaded in five flat steps with no dithering. Deep-Fold's Pixel Planet Generator is the inspiration.
 technique: [pixel]
 subject: [space]
 lineage: []

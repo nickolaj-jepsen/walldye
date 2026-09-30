@@ -1,7 +1,8 @@
 title: Girih rosette
-description: A girih star pattern fades out around one filled twelve-pointed star and its two rings of tiles.
+description: Girih, the strapwork of Islamic architecture, can be drawn by running lines from the midpoints of a tiling's edges.
+alt: Lines forming stars and polygons cover the screen, and right of center a twelve-pointed star sits inside two rings of solid tiles.
 notes: |
-  E. H. Hankin showed in 1925 how such patterns can be drawn from polygons in contact. Rays leave the midpoint of every edge of a tiling at a fixed angle, and each one stops where it meets its partner from another edge. Here the tiling is dodecagons and triangles, the angle is 60 degrees, and each dodecagon holds a twelve-pointed star.
+  E. H. Hankin described the method in 1925. Rays leave the midpoint of every edge of a tiling at a fixed angle, and each one stops where it meets its partner from another edge. Here the tiling is dodecagons and triangles, the angle is 60 degrees, and each dodecagon holds a twelve-pointed star.
 technique: [tiling]
 subject: [maths]
 lineage: []

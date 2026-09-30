@@ -1,4 +1,4 @@
-"""A woven runner of half-square triangles in chevron bands, fringed at both ends, crossed by a zigzag road of triangles lit more strongly as it goes."""
+"""A woven runner of half-square triangles in chevron bands, crossed by a zigzag road of triangles."""
 
 from shapely.geometry import Polygon
 from shapely.ops import unary_union

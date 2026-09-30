@@ -1,4 +1,4 @@
-"""The Lorenz attractor as one integrated trajectory in faint overlapping strokes, with a single switch between its wings picked out."""
+"""The Lorenz attractor as one integrated trajectory in faint overlapping strokes."""
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,4 +1,4 @@
-"""A carbon brake disc in three-quarter view on a pixel grid: rows of holes round the rim, the caliper, and heat leaving it in ordered dither."""
+"""A carbon brake disc and caliper in three-quarter view on a pixel grid, heat in ordered dither."""
 
 import math
 

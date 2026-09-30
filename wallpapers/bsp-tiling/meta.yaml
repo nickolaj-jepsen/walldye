@@ -1,7 +1,8 @@
 title: Tiled windows
-description: Window outlines spiral inward with even gaps, each cut taking one side of what is left, down to a focused window holding a few lines of code.
+description: Tiling window managers divide the screen without overlap, opening each new window by splitting the focused one.
+alt: Outlined windows shrink as they wind inward from a tall one at the left, ending in a small window holding a few bars of text.
 notes: |
-  The layout follows a tiling window manager's spiral scheme: each new window splits the focused one from the next side in turn, so the windows wind in on themselves. The text in the focused window is made up, drawn as bars.
+  The layout is a spiral scheme: each new window splits the focused one from the next side in turn, so the windows wind in on themselves. The text in the focused window is made up, drawn as bars.
 technique: [flat]
 subject: [computing]
 lineage: []

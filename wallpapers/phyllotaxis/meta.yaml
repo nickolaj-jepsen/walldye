@@ -1,9 +1,8 @@
 title: Sunflower head
-description: Dots on Vogel's spiral build a sunflower head in the lower right. Five rosettes are lit along one Fibonacci ray.
+description: Placing each sunflower floret 137.5 degrees round from the last produces the head's crossing spirals.
+alt: Dots fill the lower right in a spiral pattern, with five seven-dot rosettes along one diagonal, each smaller than the last.
 notes: |
-  Each floret sits at a distance from the center proportional to the square root of its number, turned 137.5 degrees from the one before: a full turn divided by φ². At that angle the florets numbered 377, 610, 987, 1,597 and 2,584, all Fibonacci numbers, land close to one straight ray. Each of them is picked out with its six nearest neighbors.
-
-  The center sits just off the screen, so the smallest florets are cut off, and the rim fades out in four steps.
+  Each floret sits at a distance from the center proportional to the square root of its number, as in Helmut Vogel's model. The angle is a full turn divided by φ². At that angle the florets numbered 377, 610, 987, 1,597 and 2,584, all Fibonacci numbers, land close to one straight ray. Each of them is picked out with its six nearest neighbors.
 technique: [stipple]
 subject: [flora-fauna, maths]
 lineage: []

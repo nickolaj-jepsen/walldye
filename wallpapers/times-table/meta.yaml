@@ -1,7 +1,8 @@
 title: Times table
-description: Two hundred nails on a ring, each strung to double its number. The strings trace a cardioid, lit at its cusp.
+description: Joining each point on a circle to the point at twice its number traces a heart-shaped curve, a cardioid.
+alt: Fine straight lines between points on a ring outline a heart-shaped curve with its point left of center, where the lines crowd together.
 notes: |
-  Number the nails 0 to 199 and run a string from each nail n to nail 2n, counting past 199 round from 0 again. Every string touches the cardioid at one point and is drawn brightest there, so the curve shows where the strings crowd together.
+  Number the nails 0 to 199 and run a string from each nail n to nail 2n, counting past 199 round from 0 again. Every string touches the cardioid at one point, so the curve appears where the strings crowd together.
 technique: [line]
 subject: [maths]
 lineage: []

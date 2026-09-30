@@ -1,5 +1,6 @@
 title: ASCII Mandelbrot
-description: The Mandelbrot set as a 1980s text printout, edged in at-signs, with bands of asterisks and dashes thinning outward.
+description: The Mandelbrot set is the complex numbers c for which repeating z squared plus c from zero stays bounded.
+alt: 'Text characters draw the Mandelbrot set''s large body and a smaller round lobe at its left, outlined in dense glyphs.'
 notes: |
   Each character stands for a small patch of the plane, and an estimate of that patch's distance from the set chooses it. Printouts of the time counted escape steps instead, so their bands spread unevenly around the edge.
 technique: [glyph]

@@ -1,7 +1,8 @@
 title: Oscilloscope
-description: A three-to-two Lissajous figure on an oscilloscope graticule, lit more strongly wherever the beam slows.
+description: An oscilloscope in XY mode turns two sine waves in a whole-number ratio into a closed Lissajous figure.
+alt: A looping curve with rounded lobes at four corners crosses itself on a gridded screen beside three knobs and a small light.
 notes: |
-  In XY mode an oscilloscope steers its beam with two signals, one side to side and one up and down. Two sine waves at a whole-number frequency ratio close into a Lissajous figure. The trace is cut into four tones by how far the beam moves between samples, and a faint copy just off it stands in for the afterglow of the phosphor.
+  In XY mode the beam moves sideways with one signal and up and down with the other. The default ratio is three to two and the other version's is five to four. The trace is cut into four tones by how far the beam moves between samples, and a second copy just off it stands in for the afterglow of the screen's phosphor.
 technique: [instrument]
 subject: [physics]
 lineage: []
@@ -16,4 +17,4 @@ variants:
     label: Three to two
   five-four:
     label: Five to four
-    description: At five to four, an oscilloscope beam knots a dense Lissajous figure.
+    alt: A denser tangle of looping curves crosses itself many times on the same gridded screen, beside three knobs and a small light.

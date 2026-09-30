@@ -1,11 +1,12 @@
 title: Hat tiling
-description: Hat tiles cover the screen without repeating. In one filled cluster of 25, the three mirror-image hats are solid.
+description: A single 13-sided tile, the hat, covers the plane in patterns that never repeat.
+alt: Outlined tiles of one jagged shape cover the screen, and a shaded cluster at upper left holds three solid tiles, the mirrored ones.
 notes: |
-  The hat, published in 2023 by David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman-Strauss, is a single shape that tiles the plane, but only in patterns that never repeat. Every tiling by the hat needs some hats flipped over, about one in eight here; near the filled cluster those are shaded.
+  David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman-Strauss published the hat in 2023. Every tiling by it needs some hats flipped over, about one in eight here.
 
-  The pattern is grown by swapping each cluster of hats for a larger cluster, five times over, following hatviz, the code published with the paper. The filled cluster is one of the clusters from the first round.
+  The pattern is grown by swapping each cluster of hats for a larger cluster, five times over, following hatviz, the code published with the paper. The shaded cluster is one of the clusters from the first round.
 
-  The spectre version uses the same authors' second tile, drawn here with straight edges. It covers the plane without any flipped copies; instead about one spectre in nine is turned 30 degrees against the rest, and those are the ones filled and shaded.
+  The spectre version uses the same authors' second tile, drawn here with straight edges. It covers the plane without any flipped copies; instead about one spectre in nine is turned 30 degrees against the rest.
 technique: [tiling]
 subject: [maths]
 lineage: []
@@ -30,4 +31,5 @@ variants:
     label: Hats
   spectre:
     label: Spectres
-    description: Spectre tiles cover the screen without repeating. In one filled cluster of nine, the one turned against the rest is solid.
+    alt: Outlined many-sided tiles cover the screen, and a small shaded cluster near the upper left holds one solid tile turned against its neighbors.
+    description: The spectre, a tile that covers the plane without repeating, never needs a flipped copy.

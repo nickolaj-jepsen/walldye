@@ -1,4 +1,4 @@
-"""A brain-coral boulder on an empty seabed: a reaction-diffusion labyrinth wrapped over a lit dome and cut into tone bands."""
+"""A brain-coral dome on a bare seabed: a reaction-diffusion labyrinth shaded in tone bands."""
 
 import math
 

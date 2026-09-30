@@ -1,9 +1,10 @@
 title: Telescope ray diagram
-description: A Keplerian telescope in section. One star's rays are lit between the lenses, while tilted rays from two others fade.
+description: A Keplerian telescope's two lenses share a focus, which inverts the image and magnifies it by their focal-length ratio.
+alt: Rays from a large lens cross at one point and leave a smaller lens parallel, with dimension lines for the two focal lengths below.
 notes: |
-  The objective is a cemented achromatic doublet: a biconvex crown lens, hatched coarsely, against a plano-concave flint lens hatched finer the other way. The eyepiece is a single biconvex lens.
+  The objective is a cemented achromatic doublet: a biconvex crown lens against a plano-concave flint lens. The eyepiece is a single biconvex lens.
 
-  Rays are traced paraxially, so each lens bends them once. Light from a star straight ahead crosses at the shared focus, inside a field stop, and leaves the eyepiece parallel again. Two stars about two degrees off the axis send bundles that cross beside the focus and overlap again at the exit pupil, marked by the tall tick, where the eye would be. They leave nearly three times as steep and tilted the other way, because the image is magnified and upside down. The dimension lines below mark the two focal lengths.
+  Rays are traced paraxially, so each lens bends them once. Light from a star straight ahead crosses at the shared focus, inside a field stop, and leaves the eyepiece parallel again. Two stars about two degrees off the axis send bundles that cross beside the focus and overlap again at the exit pupil, where the eye would be. They leave nearly three times as steep and tilted the other way, because the image is magnified and upside down.
 technique: [drafting]
 subject: [physics, space]
 lineage: [scientific-illustration]
@@ -21,3 +22,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: Rays from a large lens cross at one point and leave a smaller lens parallel, with two tilted sets of rays drawn lightly beside them.

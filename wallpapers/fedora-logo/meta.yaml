@@ -1,0 +1,25 @@
+title: Fedora logo
+description: Every curve in the Fedora logo is a circular arc, so it can be drawn from centers and radii.
+alt: A circle with one squared corner holds an f with a solid loop at its foot, with guide lines and dimension arrows around it.
+notes: |
+  Each part is snapped from the official artwork to a grid whose step is an eighth of the stroke's width. The bubble is a circle 48 steps in radius with its lower-left quarter squared off; the hook and the loop are arcs of 11 and 14 steps, measured to the middle of the stroke. The loop stops half a stroke short of the stem, where the two strands of the infinity cross.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: recreation
+    topic: Fedora logo
+    author: Máirín Duffy and the Fedora Design Team
+    year: 2021
+    url: https://gitlab.com/fedora/design/team/logos/fedora-project-logos
+added: 2026-09-28
+model: claude-opus-5-5
+franchise:
+  title: Fedora
+  owner: Red Hat, Inc.
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions
+    alt: An f with a solid loop at its foot sits in a circle with one squared corner, crossed by guide lines but no measurements.

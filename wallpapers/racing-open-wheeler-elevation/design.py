@@ -1,4 +1,4 @@
-"""A 2026 Formula 1 car as a patent-sheet side elevation in hairlines; detail A hatches the three-element rear wing and dashes its flap at the low-drag angle."""
+"""A 2026 Formula 1 car in side elevation as a patent-sheet drawing, with the rear wing flap in two positions."""
 
 import math
 

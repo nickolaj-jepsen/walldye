@@ -1,0 +1,19 @@
+title: Ferrofluid spikes
+description: Ferrofluid in a strong magnetic field rises from a flat pool into a regular pattern of spikes.
+alt: A low solid dome with tapering spikes rising from it, tallest near the middle, each edged with a thin line of light on its right.
+notes: |
+  Above a critical field strength the flat surface is unstable and settles into peaks and valleys, known as the Rosensweig or normal-field instability. Here the peaks stand on a hexagonal lattice, tallest at the middle of the puddle.
+technique: [flat]
+subject: [physics]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Protrude, Flow
+    author: Sachiko Kodama and Minako Takeno
+    year: 2000
+    url: https://en.wikipedia.org/wiki/Sachiko_Kodama
+  - kind: reference
+    topic: Ferrofluid
+    url: https://en.wikipedia.org/wiki/Ferrofluid
+added: 2026-09-27
+model: claude-opus-5-5

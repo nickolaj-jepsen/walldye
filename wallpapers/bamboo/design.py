@@ -1,4 +1,4 @@
-"""A sumi-e bamboo grove on the left edge: culms and tapered leaves as filled ribbons in three depth steps, one culm lit."""
+"""A bamboo grove in flat shapes after sumi-e ink painting."""
 
 import math
 from typing import NamedTuple

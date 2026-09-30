@@ -1,4 +1,4 @@
-"""A Penrose tribar assembled from depth-sorted isometric cubes and flat-shaded by face, its outer edges run on as construction lines over a dot lattice."""
+"""A Penrose tribar built from depth-sorted isometric cubes and flat-shaded by face."""
 
 import math
 from itertools import pairwise

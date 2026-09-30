@@ -63,10 +63,18 @@ IMAGERY: Final = re.compile(
 )
 
 
+# Names that contain a color word but name no color.
+_NOT_COLORS: Final = re.compile(
+    r"\bgolden (ratio|rectangle|section|angle|mean|spiral)s?\b", re.IGNORECASE
+)
+
+
 def color_words(text: str) -> set[str]:
     """Color words in `text` as written, lowercased, plurals included ("greys" matches via
-    "grey"); ALL-CAPS words (token names like ACCENT_HI) are not prose."""
+    "grey"); ALL-CAPS words (token names like ACCENT_HI) are not prose, and neither are names
+    like "golden ratio"."""
     found: set[str] = set()
+    text = _NOT_COLORS.sub("", text)
     words: list[str] = re.findall(r"(?<!\w)[A-Za-z]+(?!\w)", text)
     for w in words:
         lower = w.lower()

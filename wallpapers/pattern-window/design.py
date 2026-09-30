@@ -1,4 +1,4 @@
-"""A room in MacPaint-style 8x8 fill patterns: a tall window and the slanted patch of light it throws on the floor."""
+"""A window and its patch of light in MacPaint-style fill patterns."""
 
 import numpy as np
 from numpy.typing import NDArray

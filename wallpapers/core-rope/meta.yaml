@@ -1,7 +1,8 @@
 title: Core rope
-description: Fifty-two wires thread through eight ring cores or loop around them. The lit one passes through four.
+description: Core rope memory stores a bit by whether a wire passes through a ferrite core or around it.
+alt: A row of eight rings with many thin wires looping through and around them, and one wire traced across all eight, passing through four.
 notes: |
-  Core rope memory held the fixed program of the Apollo Guidance Computer. A sense wire threaded through a core stores a 1, and one routed around it stores a 0; read along the picked-out wire, these eight cores hold 10110010.
+  Core rope memory held the fixed program of the Apollo Guidance Computer. Fifty-two wires run through these eight cores. Read along the traced wire, the eight cores hold 10110010.
 technique: [line]
 subject: [computing]
 lineage: []

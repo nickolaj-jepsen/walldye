@@ -1,0 +1,18 @@
+title: B+-tree lookup
+description: 'Finding a key in a B+-tree reads one node per level, from the root to a leaf.'
+alt: A tree of numbered boxes in three rows, with a line from the top box through one middle box to the solid box holding 417.
+notes: |
+  In a B+-tree every key sits in a leaf, and the leaves are linked in order so a range scan can walk along them. The nodes above hold only separating keys, which tell a search which pointer to follow at each level. The two-character codes under the leaves stand for the records the keys point to.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: reference
+    title: Organization and Maintenance of Large Ordered Indexes
+    author: Rudolf Bayer and Edward McCreight
+    year: 1972
+  - kind: reference
+    topic: B+ tree
+    url: https://en.wikipedia.org/wiki/B%2B_tree
+added: 2026-09-27
+model: claude-opus-5-5

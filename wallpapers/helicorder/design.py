@@ -1,4 +1,4 @@
-"""A helicorder drum record: ruled seismograph traces broken at each minute, one catching an earthquake whose coda runs on into the next line."""
+"""A helicorder record of seismograph traces with one earthquake."""
 
 import numpy as np
 import shapely

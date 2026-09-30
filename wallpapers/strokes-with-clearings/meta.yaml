@@ -1,0 +1,16 @@
+title: Strokes with clearings
+description: Randomly turned strokes fill a grid, but beside each empty clearing they turn to lie along its rim.
+alt: Short strokes at random angles fill a grid around five empty clearings; the largest holds a small block of parallel strokes.
+notes: |
+  Vera Molnár's *Interruptions* (1968) starts from a grid of equal lines, each turned at random, with patches left empty. Here the clearings pull on their surroundings: a stroke at a rim lies along it, and the pull fades over the next row or two. Inside the largest clearing, a small block of strokes lies parallel.
+technique: [line]
+subject: []
+lineage: [early-computer-art]
+sources:
+  - kind: inspiration
+    title: Interruptions
+    author: Vera Molnár
+    year: 1968
+    url: https://dam.org/museum/artists_ui/artists/molnar-vera/interruptions/
+added: 2026-09-27
+model: claude-opus-5-5

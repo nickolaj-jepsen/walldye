@@ -1,4 +1,4 @@
-"""A radar scope mid-rotation: stepped wedges trail the sweep arm as an afterglow over noise-masked arc grains of coastline."""
+"""A radar plan position indicator mid-sweep, with a stippled coastline."""
 
 from walldye import (
     ACCENT,

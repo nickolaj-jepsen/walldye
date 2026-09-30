@@ -1,5 +1,6 @@
 title: Mulsanne at night
-description: Mulsanne corner at Le Mans by night, from above the woods. A braking car trails light up the right fork.
+description: Le Mans cars reach top speed on the Mulsanne Straight, then brake hard for the right-hand corner at its end.
+alt: A road forks in a V through woods, seen from above; two long light trails from a braking car run up the right branch.
 notes: |
   The circuit and the public road are traced from OpenStreetMap. At Mulsanne the track turns right off the D338, which carries straight on as the escape road. The scene is projected onto square cells: road and verges are dithered, and the woods are cut into flat crowns.
 technique: [dither, flat]

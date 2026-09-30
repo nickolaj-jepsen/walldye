@@ -1,4 +1,4 @@
-"""Vogel's sunflower spiral of dots rising from a corner, with the Fibonacci florets along one ray and their neighbors picked out."""
+"""Vogel's sunflower spiral of dots with the Fibonacci florets along one ray."""
 
 import math
 

@@ -1,7 +1,8 @@
 title: Plaster still life
-description: Plaster cube, cone, sphere and cylinder on a table, ray-cast and dithered under light from the left.
+description: Art students begin by drawing plaster casts of cubes, spheres and cones, which hold still under a steady light.
+alt: A cube, cone, sphere and cylinder stand in a row on a table, lit from the left, with shadows falling to the right.
 notes: |
-  The look follows Lucas Pope's *Return of the Obra Dinn*, which draws its 3D scenes in a dithered one-bit style after early Macintosh games. The solids use an ordered screen over five tone steps, so the light turns across them in even bands, while the table and wall get a finer, irregular grain. On light screens the drawing inks the shadows instead, like a pencil study of plaster casts.
+  The look follows Lucas Pope's *Return of the Obra Dinn*, which draws its 3D scenes in a dithered one-bit style after early Macintosh games. The solids use an ordered screen over five tone steps, so the light turns across them in even bands, while the table and wall get a finer, irregular grain. On light screens the drawing inks the shadows instead.
 technique: [dither]
 subject: []
 lineage: [vintage-computers]

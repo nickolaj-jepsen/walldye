@@ -1,4 +1,4 @@
-"""Synoptic chart: noise-bent isobars traced round a low, its fronts marked with pennants and domes."""
+"""A synoptic chart: noise-bent isobars round a low, with fronts marked by pennants and domes."""
 
 import math
 

@@ -1,5 +1,6 @@
 title: Dithered sphere
-description: Ordered dither shades a sphere lit from the upper left in four steps, thinning to a sparse checker at the rim.
+description: A matte sphere dims with the cosine of the angle between its surface and the light.
+alt: A sphere right of center, lit from the upper left, shaded in four tones with dot patterns where the tones meet.
 technique: [dither]
 subject: [space]
 lineage: []

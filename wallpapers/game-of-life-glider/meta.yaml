@@ -1,0 +1,20 @@
+title: Game of Life glider
+description: A glider in Conway's Game of Life moves one cell diagonally every four generations.
+alt: Clusters of square cells fill the left half, and at the upper right one five-cell shape has three fainter copies behind it.
+notes: |
+  A random soup of cells ran for 1,500 generations of Conway's rules. Anything still changing was then cleared, which leaves still lifes and blinkers, and only the largest cluster was kept. The glider's echoes show where it was 12, 24 and 36 generations earlier.
+technique: [simulation, pixel]
+subject: [maths]
+lineage: []
+sources:
+  - kind: reference
+    topic: Conway's Game of Life
+    author: John Horton Conway
+    year: 1970
+    url: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+  - kind: inspiration
+    topic: Hacker emblem
+    author: Eric S. Raymond
+    url: https://en.wikipedia.org/wiki/Glider_(Conway%27s_Game_of_Life)
+added: 2026-09-27
+model: claude-opus-5-5

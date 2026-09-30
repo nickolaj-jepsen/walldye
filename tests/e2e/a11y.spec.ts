@@ -4,7 +4,7 @@ import { expect, test } from './test';
 test.describe('structure', () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
 
-  for (const path of ['/', '/schotter', '/about', '/no-such-wallpaper']) {
+  for (const path of ['/', '/loose-squares', '/about', '/no-such-wallpaper']) {
     test(`${path} has one banner, one main, named navs and a skip link`, async ({ page }) => {
       await page.goto(path);
       await expect(page.getByRole('banner')).toHaveCount(1);
@@ -27,8 +27,8 @@ test.describe('structure', () => {
     await page.goto('/no-such-wallpaper');
     await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex');
     await expect(page.locator('link[rel=canonical], meta[property="og:url"]')).toHaveCount(0);
-    await page.goto('/schotter');
-    await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', /\/schotter$/);
+    await page.goto('/loose-squares');
+    await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', /\/loose-squares$/);
     await expect(page.locator('meta[name=robots]')).toHaveCount(0);
   });
 
@@ -137,7 +137,7 @@ test.describe('focus order', () => {
   test('a detail page runs label, versions, export, colors, notes, see also, then the source code', async ({
     page,
   }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     const stops = await tabStops(page);
     const names = stops.map((s) => s.what);
     const at = (re: RegExp) => {

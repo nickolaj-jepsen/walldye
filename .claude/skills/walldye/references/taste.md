@@ -14,8 +14,8 @@ Liked:
 - crisp patent and technical drawings of one object: patent-lamp, engine-section, airfoil,
   ray-diagram, watch-movement;
 - nautical charts, schematics and early RFC diagrams, with more wanted;
-- logos drawn as construction drawings: nix-snowflake and debian-swirl, which are openly
-  licensed; fedora-infinity, ubuntu-circle, mint-monogram and arch-logo, which the owner asked
+- logos drawn as construction drawings: nixos-logo and debian-swirl, which are openly
+  licensed; fedora-logo, ubuntu-logo, linux-mint-logo and arch-logo, which the owner asked
   for as fan work;
 - real, named subjects drawn to their real figures: the Great Belt Bridge in bridge-elevation,
   a historic Go game in shusaku.

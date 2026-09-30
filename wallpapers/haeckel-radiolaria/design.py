@@ -1,4 +1,4 @@
-"""A radiolarian after Haeckel's plates in fine line work: three nested geodesic lattice shells with an eighth cut away to show the smallest."""
+"""A radiolarian in fine line work: three nested geodesic lattice shells with an eighth cut away."""
 
 import math
 

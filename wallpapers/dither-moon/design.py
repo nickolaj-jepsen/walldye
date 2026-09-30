@@ -1,4 +1,4 @@
-"""A moon in 1-bit void-and-cluster dither: a shaded tone field of maria and ray craters quantized to square cells."""
+"""A moon in one-bit void-and-cluster dither."""
 
 import math
 

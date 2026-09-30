@@ -1,4 +1,4 @@
-"""Pong paused mid-rally: the ball's dotted flight off the top wall, its bounce angles marked like a patent figure."""
+"""Pong paused mid-rally in flat shapes, with the bounce drawn as a diagram."""
 
 import math
 

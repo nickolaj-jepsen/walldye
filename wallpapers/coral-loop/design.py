@@ -1,4 +1,4 @@
-"""Differential growth: a closed line folds into a coral outline inside two smoothed offsets."""
+"""Differential growth of a closed line, drawn with two smoothed offset outlines."""
 
 import math
 

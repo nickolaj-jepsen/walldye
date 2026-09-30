@@ -1,7 +1,8 @@
 title: Penrose tiling
-description: Thin and thick rhombs tile the screen without repeating, filled in three fading rings around one five-rhomb star.
+description: Penrose tiling covers the plane with two rhombs, in a pattern that never repeats and has five-fold symmetry.
+alt: Thin and thick rhombs tile the screen, with a five-pointed star of rhombs right of center surrounded by rings of solid tiles.
 notes: |
-  Roger Penrose found these tile sets in the 1970s: pairs of shapes that cover the plane, but only in patterns that never repeat. Here the rhombs are grown by cutting a wheel of triangles into smaller triangles again and again, then joining the halves back into rhombs, following Jeff Preshing's walkthrough.
+  Roger Penrose found these tile sets in the 1970s. Here the rhombs are grown by cutting a wheel of triangles into smaller triangles again and again, then joining the halves back into rhombs, following Jeff Preshing's walkthrough.
 
   The kites and darts version cuts the same triangles once more and joins them along different sides, which turns the rhombs into Penrose's other tile set.
 technique: [tiling]
@@ -23,4 +24,5 @@ variants:
     label: Thin and thick rhombs
   kites:
     label: Kites and darts
-    description: Kites and darts tile the screen without repeating, filled in around a five-dart star and fading to outline.
+    alt: Kite and dart tiles cover the screen, and right of center a small five-pointed star sits inside rings of solid tiles.
+    description: Kites and darts, Penrose's other pair of tiles, also cover the plane without ever repeating.

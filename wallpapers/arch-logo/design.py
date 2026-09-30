@@ -1,4 +1,4 @@
-"""The Arch Linux logo as a construction drawing: flanks and arcs snapped to a grid, run on as fading guide lines, the peak picked out."""
+"""The Arch Linux logo as a construction drawing, with guide lines run on past the corners."""
 
 import math
 

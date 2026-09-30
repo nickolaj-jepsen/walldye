@@ -1,4 +1,4 @@
-"""A Rubik's cube with its top layer mid-turn, drawn as a patent figure: outlined cubies, rounded stickers, ruled shade lines and a turn arrow, one sticker lit."""
+"""A Rubik's cube mid-turn, drawn as a patent figure with ruled shading."""
 
 import math
 

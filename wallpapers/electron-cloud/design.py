@@ -1,4 +1,4 @@
-"""A hydrogen orbital in stipple: points sampled from its probability density, thinned apart, then packed closer and stepped up in tone where the cloud behind them runs deepest."""
+"""A hydrogen orbital in stipple, sampled from its probability density."""
 
 import math
 from typing import Literal

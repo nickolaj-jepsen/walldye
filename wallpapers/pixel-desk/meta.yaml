@@ -1,7 +1,8 @@
 title: Desk at night
-description: An isometric pixel-art room at night. Only the monitor is on, its light falling across the desk in two dithered steps.
+description: A night room in isometric pixel art, where edges run two pixels across for every one down.
+alt: A corner room with a four-pane window in the left wall and, at the right, a desk with a monitor showing text and a mug.
 notes: |
-  Every edge follows the stair step common in isometric pixel art, two cells across for each cell down, so diagonals stay even. The pool of light is worked out on the plane of the desk top, which keeps it flat in the same projection.
+  The monitor's light is worked out on the plane of the desk top, which keeps it flat in the same projection.
 technique: [pixel]
 subject: [computing, architecture]
 lineage: []

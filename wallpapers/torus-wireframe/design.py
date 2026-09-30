@@ -1,4 +1,4 @@
-"""A wireframe torus rising from the bottom-left corner, its hidden lines found by ray marching."""
+"""A wireframe torus with hidden lines removed by ray marching."""
 
 import math
 from collections.abc import Callable

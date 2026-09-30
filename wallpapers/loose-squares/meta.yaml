@@ -1,0 +1,14 @@
+title: Loose squares
+description: In Georg Nees's Schotter, German for gravel, random variables turn rows of orderly squares into disorder.
+alt: Square outlines, aligned at the left, tilt and scatter toward the right, where a trail of strays ends at one shaded square.
+technique: [drafting]
+subject: []
+lineage: [early-computer-art]
+sources:
+  - kind: inspiration
+    title: Schotter
+    author: Georg Nees
+    year: 1968
+    url: https://collections.vam.ac.uk/item/O221321/
+added: 2026-09-27
+model: claude-opus-5-5

@@ -1,0 +1,27 @@
+title: Golden rectangle
+description: A golden rectangle, with sides in ratio 1 to 1.618, leaves another when a square is cut from it.
+alt: A spiral of quarter circles ends in the lower right of a rectangle crossed by diagonals, with dimension lines above and beside it.
+notes: |
+  The long side comes from the compass construction left on the sheet as a dashed arc: a radius from the midpoint of the first square's base to its far top corner swings down to the base line. The squares close in on the point where the dash-dot diagonals cross.
+
+  The spiral is one quarter circle per square, so it only approximates the logarithmic spiral through the same corners. The dimension lines split the long side into 1 and 0.618 and give the short side as 1.
+technique: [drafting]
+subject: [maths]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Le Modulor
+    author: Le Corbusier
+    year: 1948
+    url: https://en.wikipedia.org/wiki/Modulor
+  - kind: reference
+    topic: Golden rectangle
+    url: https://en.wikipedia.org/wiki/Golden_rectangle
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions
+    alt: A rectangle crossed by dashed diagonals holds a spiral of quarter circles that shrinks toward its lower right, with no dimension lines.

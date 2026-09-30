@@ -1,4 +1,4 @@
-"""Hankin's polygons-in-contact star pattern on a 3.12.12 tiling, with one 12-fold star and two rings of faces around it inlaid."""
+"""Hankin's polygons-in-contact star pattern on a 3.12.12 tiling."""
 
 import math
 from collections.abc import Iterator

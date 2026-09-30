@@ -1,9 +1,10 @@
 title: Reaction-diffusion
-description: A reaction-diffusion labyrinth frays into empty space and breaks into spots toward one corner, the nearest lit.
+description: In reaction-diffusion, two chemicals that react and spread at different speeds can form spots and stripes.
+alt: A maze of winding shapes fills the right half, with round spots at the lower right corner and the left side empty.
 notes: |
-  Two chemicals spread over a grid at different speeds. One is fed in everywhere, the other feeds on it and drains away, and those two rates decide what grows, as John Pearson mapped in 1993.
+  One chemical is fed in everywhere, and the other feeds on it and drains away; those two rates decide what grows, as John Pearson mapped in 1993.
 
-  Here the rates drift across the screen: a labyrinth of worms in one part, single spots towards the corner, and nothing past a ragged edge, where the shapes thin out at random. Each outline is traced where the second chemical reaches a fixed level. The other version moves the corner to rates where the labyrinth closes into a mesh of holes instead.
+  Here the feed and drain rates change across the screen, and each outline is traced where the second chemical reaches a fixed level. The other version uses rates where the labyrinth closes into a mesh of holes.
 technique: [simulation]
 subject: [maths]
 lineage: []
@@ -29,4 +30,4 @@ variants:
     label: Worms into spots
   holes:
     label: Worms into holes
-    description: Reaction-diffusion worms fray into empty space on one side and close into a mesh of holes at a corner.
+    alt: Winding shapes fill the right half, with a mesh of rounded holes at the lower right corner and the left side empty.

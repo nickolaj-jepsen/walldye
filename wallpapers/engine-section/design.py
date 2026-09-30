@@ -1,4 +1,4 @@
-"""A single-cylinder engine in drafted section at top dead center: ruled hatching on the cut parts, a stippled burn in the combustion chamber."""
+"""A single-cylinder engine in drafted section at top dead center, with a stippled combustion chamber."""
 
 import math
 

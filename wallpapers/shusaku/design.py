@@ -1,4 +1,4 @@
-"""Shusaku vs Gennan (1846) replayed to move 127 on a Go board, with that move picked out."""
+"""Shusaku vs Gennan (1846) replayed to move 127 on a Go board."""
 
 from walldye import ACCENT, ACCENT_3, BG, BG_ALT, UI, UI_ALT, Canvas, P, Vec, design
 

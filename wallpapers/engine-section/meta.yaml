@@ -1,7 +1,8 @@
 title: Engine section
-description: A single-cylinder engine in hatched section at top dead center. A spray of dots lights the chamber under the spark plug.
+description: A four-stroke cylinder at top dead center, where the charge is squeezed into its smallest volume.
+alt: A cut-open engine in thin lines, with dimension arrows at the top and side and a scatter of dots in the chamber above the piston.
 notes: |
-  Drawn to drafting conventions: surfaces the cut passes through are hatched, hidden edges such as the head studs and the main journal are dashed, and axes are dash-dotted. The valves, connecting rod and crank web lie behind the cut and are left unhatched. A phantom line marks where the piston crown sits at the bottom of its stroke, closing the stroke dimension.
+  Drawn to ISO 128 drafting conventions: surfaces the cut passes through are hatched, hidden edges such as the head studs and the main journal are dashed, and axes are dash-dotted. The valves, connecting rod and crank web lie behind the cut and are left unhatched. A phantom line marks where the piston crown sits at the bottom of its stroke, closing the stroke dimension.
 technique: [drafting, stipple]
 subject: [machines]
 lineage: []
@@ -16,3 +17,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: In thin lines, a cut-open engine shows valves, a piston and rod, and dots in the chamber above the piston, with no dimension arrows.

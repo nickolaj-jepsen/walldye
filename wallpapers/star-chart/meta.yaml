@@ -1,7 +1,8 @@
 title: Star chart
-description: Cassiopeia's W on a stereographic atlas page, Schedar circled, grid lines curving round the unseen pole.
+description: On a stereographic star chart, circles on the sky stay circles, so each coordinate line is an arc.
+alt: Faint curved grid lines cross scattered small stars, and five larger stars joined in a W include Schedar, ringed at the W's fourth point.
 notes: |
-  Star positions and magnitudes, down to magnitude 7.3, come from XHIP, an extended Hipparcos compilation, as packaged by d3-celestial. A stereographic projection keeps every circle on the sky a circle on the page, so each coordinate line is a circular arc.
+  Star positions and magnitudes (brightness, where larger numbers are fainter), down to magnitude 7.3, come from XHIP, an extended Hipparcos compilation, as packaged by d3-celestial.
 technique: [drafting]
 subject: [space, maps]
 lineage: [scientific-illustration]
@@ -30,4 +31,5 @@ variants:
     label: Cassiopeia
   orion:
     label: Orion
-    description: Orion's hourglass traced on an atlas page near the celestial equator, with Betelgeuse circled.
+    description: A chart of Orion, whose four bright corner stars and three belt stars make an hourglass.
+    alt: Eight larger stars joined in an hourglass stand among small stars and faint curved grid lines, with Betelgeuse, at the upper left, ringed.

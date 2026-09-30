@@ -1,4 +1,4 @@
-"""A dune crest under a low sun, its lit face dithered in square cells with a void-and-cluster mask."""
+"""A dune crest under a low sun, dithered in square cells with a void-and-cluster mask."""
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,0 +1,17 @@
+title: Zen garden
+description: In a karesansui, gravel raked into lines and ripples stands in for water around the rocks.
+alt: Faint horizontal lines bend into rings around a pair of stones at the right and one stone at the left in a different tone.
+notes: |
+  Each stone has its own rings, spaced like the rake's tines, and one more ring wraps the pair. The straight lines keep that spacing and end at the outermost ring; the few that would only graze it bow over or under instead, then ease back to straight. In the waist between the pair, short lines follow the shared ring and stop against the inner ones.
+technique: [line]
+subject: [landscape]
+lineage: [japanese-art]
+sources:
+  - kind: reference
+    topic: Ryōan-ji rock garden
+    url: https://en.wikipedia.org/wiki/Ry%C5%8Dan-ji
+  - kind: reference
+    topic: Japanese rock garden
+    url: https://en.wikipedia.org/wiki/Japanese_rock_garden
+added: 2026-09-27
+model: claude-opus-5-5

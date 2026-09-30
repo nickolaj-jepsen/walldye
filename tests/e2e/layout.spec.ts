@@ -16,10 +16,10 @@ const STATES: { name: string; path: string; act?: (page: Page) => Promise<void> 
   { name: 'index with nothing found', path: '/?q=zebra' },
   { name: 'index with the picker open', path: '/', act: (page) => openPicker(page) },
   { name: 'picker with both messages', path: '/', act: (page) => invalidPicker(page) },
-  { name: 'schotter', path: '/schotter' },
+  { name: 'loose-squares', path: '/loose-squares' },
   {
-    name: 'schotter cropped to 32:9, shared theme',
-    path: '/schotter?shape=32x9&crop=1&t=catppuccin-mocha',
+    name: 'loose-squares cropped to 32:9, shared theme',
+    path: '/loose-squares?shape=32x9&crop=1&t=catppuccin-mocha',
   },
   { name: 'dither-moon at 9:19.5', path: '/dither-moon?shape=9x19.5' },
   { name: 'radar-sweep under light colors', path: '/radar-sweep?t=flexoki-light' },

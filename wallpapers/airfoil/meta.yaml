@@ -1,5 +1,6 @@
 title: Airfoil
-description: Streamlines part around a wing section tilted six degrees into the flow. Ticks along its top plot the suction.
+description: Air speeds up over the top of a tilted wing section, and the pressure there falls.
+alt: Flow lines bend up and over a wing section tilted nose-up, with short ticks standing along its top surface.
 notes: |
   The profile is a Joukowsky airfoil, a circle mapped onto a wing shape about 12% thick with 2% camber. The flow around it has no viscosity, and its circulation is set by the Kutta condition, so the dividing streamline meets the nose at the stagnation point and leaves from the trailing edge.
 

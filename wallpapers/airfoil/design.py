@@ -1,4 +1,4 @@
-"""Potential-flow streamlines round a cambered Joukowsky airfoil at 6°; ticks plot its suction."""
+"""Potential-flow streamlines round a cambered Joukowsky airfoil at 6°, with ticks plotting its suction."""
 
 import math
 

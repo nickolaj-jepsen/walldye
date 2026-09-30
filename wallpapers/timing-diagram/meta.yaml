@@ -1,5 +1,6 @@
 title: Timing diagram
-description: 'One SPI read as a datasheet timing figure: sixteen clock pulses shift an address out and a byte back.'
+description: A timing diagram of an SPI read, where each clock pulse shifts one bit out and one bit in.
+alt: 'Six labeled signal lines: sixteen clock pulses, an address, then a data byte, and a short interval marked 5 ns beneath the clock.'
 notes: |
   The bus runs in SPI mode 0: the clock idles low, each data line changes on a falling edge and is read on the next rising edge. Setup time is how long a bit must stay steady before that rising edge, and hold time how long it must stay after it.
 

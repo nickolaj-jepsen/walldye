@@ -1,7 +1,8 @@
 title: Sand spline
-description: Five strands of sand grains wander across the screen, one fraying into a wide belly right of center.
+description: Strands of dashes drawn along wandering curves pile up into bands of fine grain.
+alt: Five wide ribbons of grainy dots run across the screen from left to right; the middle one swells into a broad arch right of center.
 notes: |
-  After Anders Hoff's *Sand Spline*. Each strand is a smooth curve through a handful of nodes. Every pass nudges the nodes a little further on a random walk, most strongly right of center, and redraws the curve as a broken line of dashes, so the passes settle into grainy bands.
+  After Anders Hoff's *Sand Spline*. Each strand is a smooth curve through a handful of nodes, and the walk pushes hardest right of center.
 technique: [stipple]
 subject: []
 lineage: [creative-coding]

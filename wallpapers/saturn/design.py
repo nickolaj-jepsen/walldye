@@ -1,4 +1,4 @@
-"""Saturn cropped by a corner: its rings as fine elliptical arcs and its globe as latitude hatching, shaded by the sun and by the shadows each casts on the other."""
+"""Saturn cropped by a corner: rings as elliptical arcs, globe as latitude hatching."""
 
 import math
 

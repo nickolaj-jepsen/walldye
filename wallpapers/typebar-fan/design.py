@@ -1,4 +1,4 @@
-"""A typewriter's typebar basket in flat shapes: bars fanned in an arc below the platen, one swung up mid-strike through the type guide."""
+"""A typewriter's typebar basket in flat shapes, with one bar swung up mid-strike."""
 
 from numpy.typing import NDArray
 

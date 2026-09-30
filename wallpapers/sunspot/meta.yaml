@@ -1,7 +1,8 @@
 title: Sunspot
-description: Tapered filaments radiate from a lobed umbra split by a thin bridge, among granules that fade toward the limb.
+description: Sunspots are patches of the Sun's surface cooler than their surroundings, so they give off less light.
+alt: A ragged patch split by a thin bridge, ringed by radiating streaks, on a mesh of small cells that narrows toward the right edge.
 notes: |
-  The granule centers are a Poisson-disc sample. Around the spot the cells are stretched outward along its radius, and towards the limb they are squeezed as if drawn on a sphere turning away, then faded into the lanes between them.
+  The granule centers are a Poisson-disc sample, random points kept a minimum distance apart. Around the spot the cells are stretched outward along its radius, and towards the limb, the Sun's edge, they are squeezed as if drawn on a sphere turning away, then faded into the lanes between them.
 technique: [flat, line]
 subject: [space]
 lineage: []

@@ -1,4 +1,4 @@
-"""A wall of 24 two-handed clocks whose hand bars turn along the diagonals into one wave, while one clock breaks ranks to tell the time."""
+"""A wall of 24 two-handed clocks in a diagonal wave."""
 
 import math
 

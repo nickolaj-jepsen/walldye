@@ -1,5 +1,6 @@
 title: Pixel campfire
-description: A pixel-art campfire under sparse stars throws a wide pool of dithered light on the ground.
+description: A pixel-art campfire, whose flame glows because hot soot particles in it give off light.
+alt: A small flame over crossed logs sits at bottom center under a sky of sparse stars, with a few sparks rising above it.
 technique: [pixel, dither]
 subject: [landscape]
 lineage: []

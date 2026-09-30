@@ -1,4 +1,4 @@
-"""A geodesic moon of flat triangular facets, lit from behind so only a crescent of facets catches the light."""
+"""A geodesic moon of flat triangular facets, lit from behind."""
 
 import math
 

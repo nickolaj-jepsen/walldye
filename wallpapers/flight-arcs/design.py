@@ -1,4 +1,4 @@
-"""Copenhagen's direct routes as great-circle hairlines on a cylindrical map of dotted land, the longest picked out."""
+"""Copenhagen's direct routes as great-circle lines over a dotted map."""
 
 import math
 from typing import TypedDict

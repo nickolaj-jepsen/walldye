@@ -3,18 +3,18 @@
 # production builds. `walldye drop` takes a dropped piece off this list.
 - dither-moon
 - attribute-clash
-- nix-snowflake
+- nixos-logo
 - dither-wave
 - brain-coral
 - pulsar-map
-- blinkenlights
-- wefax-cyclone
+- pdp-11-70-front-panel
+- weather-satellite-picture
 - chladni
 - stipple-nautilus
 - metro
 - racing-spa-minisectors
-- red-wedge
+- lissitzkys-wedge
 - lighthouse
 - electron-cloud
-- glyph-sun
+- ascii-eclipse
 - dragon-quartet

@@ -1,5 +1,6 @@
 title: Halftone disc
-description: Halftone dots shrink from a disc's center to pinpricks at its rim, cropped at the lower right.
+description: Halftone printing gets every tone from one ink by varying the size of dots on a grid.
+alt: Round dots on a regular grid form a disc cropped at the lower right, large at its center and tiny at its rim.
 technique: [stipple]
 subject: []
 lineage: []

@@ -1,7 +1,8 @@
 title: Origami crane
-description: A paper crane balances on one corner of the square it came from, whose creases show as dashed mountain and valley folds.
+description: The traditional origami crane is folded from a square creased into the bird base.
+alt: A paper crane of flat triangular faces stands on one corner of a square of dashed crease lines, with a dimension line along one side.
 notes: |
-  The crease pattern is the bird base, from which the traditional crane is folded. Valley folds are dashed and mountain folds dash-dotted, as in folding diagrams, and a dimension line marks one side of the square. On tall screens the crane stands on the top corner instead.
+  Valley folds are dashed and mountain folds dash-dotted, the usual convention in folding diagrams. On tall screens the crane stands on the top corner instead.
 technique: [flat, drafting]
 subject: []
 lineage: [japanese-art]
@@ -20,3 +21,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: A paper crane of flat triangular faces stands on one corner of a square of dashed crease lines, with no dimension line.

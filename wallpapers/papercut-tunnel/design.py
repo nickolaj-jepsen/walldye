@@ -1,4 +1,4 @@
-"""A tunnel book: flat paper sheets with hand-cut holes stepping back to a lit backing, each casting an offset shadow on the sheet behind."""
+"""A tunnel book of flat paper sheets with hand-cut holes, each casting an offset shadow on the sheet behind."""
 
 import math
 from collections.abc import Callable

@@ -1,4 +1,4 @@
-"""Four Heighway dragons pinwheel out of one point as unions of square cells: three outlined, one filled with a radial gradient."""
+"""Four Heighway dragons around one point, built from square cells."""
 
 import numpy as np
 import shapely

@@ -1,7 +1,8 @@
 title: Digital rain
-description: Falling hex digits fade toward their tails. One stream is led by a block with its digit cut out.
+description: The code rain in *The Matrix* used mirrored kana, letters and numerals, and this one uses hexadecimal digits.
+alt: Columns of hexadecimal digits fall down the screen, thinning toward their tails, and one is headed by a solid block with its digit cut out.
 notes: |
-  The falling code in *The Matrix* was set in a custom typeface of mirrored half-width kana, Latin letters and numerals. This rain keeps to hexadecimal digits, with about one in eight drawn back to front.
+  About one digit in eight is drawn back to front, as the film's characters were.
 technique: [glyph]
 subject: [computing]
 lineage: []

@@ -1,4 +1,4 @@
-"""A graphic score after Cardew's Treatise in thin line work: shapes hung on one lifeline, one note filled in."""
+"""A graphic score in thin line work: shapes hung on one line, as in Cardew's Treatise."""
 
 from walldye import ACCENT, ACCENT_3, UI_ALT, UI_HI, Canvas, P, Vec, design, mix, polar
 from walldye.geom import Affine

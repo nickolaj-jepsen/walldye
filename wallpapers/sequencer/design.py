@@ -1,4 +1,4 @@
-"""A 16-step drum sequencer grid of rounded pads, its playhead column lit; tall screens get a tracker's layout."""
+"""A 16-step drum sequencer grid of rounded pads; tall screens get a tracker's layout."""
 
 from walldye import ACCENT, ACCENT_5, UI, UI_ALT, UI_HI, Canvas, P, Vec, design
 

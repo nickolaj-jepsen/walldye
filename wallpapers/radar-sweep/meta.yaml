@@ -1,5 +1,6 @@
 title: Radar sweep
-description: A radar scope mid-rotation. Its sweep arm trails a stepped afterglow across range rings, a stippled coastline and three contacts.
+description: A radar plan position indicator puts the antenna at the center and sweeps a line round as it turns.
+alt: A circular scope with range rings has a line from its center toward the upper right and a fading wedge behind it over three dots.
 technique: [instrument]
 subject: []
 lineage: []
@@ -14,4 +15,4 @@ variants:
     label: Early in the turn
   late:
     label: Late in the turn
-    description: Later in the turn, the radar arm has passed the coastline, leaving most of it under a long, fading afterglow.
+    alt: 'The scope''s line points to the lower left, and the wedge behind it covers the dashed coastline and three dots.'

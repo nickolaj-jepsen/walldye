@@ -75,7 +75,7 @@ test.describe('index filters', () => {
     const drafting = state({ technique: ['drafting'] });
     await box(page, 'technique', 'drafting').check();
     const onlyDrafting = shown(items, drafting);
-    expect(onlyDrafting).toContain('schotter');
+    expect(onlyDrafting).toContain('loose-squares');
     await expect(page.locator('#result-count')).toHaveText(results(onlyDrafting.length, total));
     expect(await visibleSlugs(page)).toEqual(onlyDrafting);
     await expect(page.locator('.results-line .clear')).toBeVisible();
@@ -132,7 +132,7 @@ test.describe('index filters', () => {
     const total = items.length;
     await page.fill('#q', 'NEES');
     const nees = shown(items, state({}, 'NEES'));
-    expect(nees).toContain('schotter');
+    expect(nees).toContain('loose-squares');
     await expect(page.locator('#result-count')).toHaveText(results(nees.length, total));
     expect(await visibleSlugs(page)).toEqual(nees);
     expect(new URL(page.url()).searchParams.get('q')).toBe('NEES');
@@ -267,9 +267,9 @@ test.describe('index plates', () => {
   test('every plate gets an image with its alt text', async ({ page }) => {
     await page.goto('/');
     // Plates load as they come near the view.
-    await page.locator('.grid > li[data-slug=schotter]').scrollIntoViewIfNeeded();
-    const img = page.locator('.grid > li[data-slug=schotter] .plate > img');
-    await expect(img).toHaveAttribute('alt', /^Twenty-nine columns/);
+    await page.locator('.grid > li[data-slug=loose-squares]').scrollIntoViewIfNeeded();
+    const img = page.locator('.grid > li[data-slug=loose-squares] .plate > img');
+    await expect(img).toHaveAttribute('alt', /^Square outlines, aligned/);
     await expect(img).toHaveAttribute('width', '1920');
   });
 });

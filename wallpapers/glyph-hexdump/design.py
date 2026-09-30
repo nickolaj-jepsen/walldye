@@ -1,4 +1,4 @@
-"""An xxd dump of an ELF binary in bitmap glyphs, fading at top and bottom, one string selected."""
+"""An xxd dump of an ELF binary in bitmap glyphs."""
 
 from walldye import (
     ACCENT,

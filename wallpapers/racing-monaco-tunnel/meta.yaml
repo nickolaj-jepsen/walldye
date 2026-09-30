@@ -1,9 +1,10 @@
 title: Monaco tunnel
-description: Monaco's buildings as flat blocks round the harbor, the Circuit de Monaco traced through its streets. Where it tunnels under the Fairmont hotel, the blocks above are lit.
+description: The Monaco Grand Prix circuit runs through a tunnel under a hotel built partly into the coast.
+alt: Flat building blocks fill the hillside above Monaco's harbor, crossed by a thin road line that turns dashed where it runs under a few blocks.
 notes: |
   Giambattista Nolli's 1748 plan of Rome shades its buildings as solid mass and leaves the streets open, along with public interiors such as the Pantheon. This plan of Monaco draws its buildings the same way. Buildings, coastline and circuit are traced from OpenStreetMap; neighboring buildings are merged into blocks, and scattered houses on the western hillsides are left out.
 
-  The Circuit de Monaco is 3.337 km of public streets, closed off for motor racing. From the harbor it climbs Avenue d'Ostende to the casino, drops to the hairpin and comes back along the sea through a tunnel under the Fairmont hotel, which is built partly into the coast. Wherever the tunnel passes beneath a building, that block is lit from below.
+  The Circuit de Monaco is 3.337 km of public streets, closed off for motor racing. From the harbor it climbs Avenue d'Ostende to the casino, drops to the hairpin and comes back along the sea through a tunnel under the Fairmont hotel, which is built partly into the coast.
 technique: [flat]
 subject: [maps, sport]
 lineage: []

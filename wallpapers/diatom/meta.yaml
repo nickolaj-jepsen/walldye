@@ -1,7 +1,8 @@
 title: Radiolarian
-description: A spined radiolarian shell on center lines. The pores over its central capsule are lit in steps toward the middle.
+description: 'Radiolarians are single-celled plankton with silica skeletons that are spined shells pierced with holes.'
+alt: A round spined shell covered in a net of pores, with a central patch of graded tones and measuring lines below and beside it.
 notes: |
-  The pores are the cells of a Voronoi diagram on a sphere, built around evenly spread points, so most of them come out six-sided.
+  The pores are the cells of a Voronoi diagram on a sphere, built around evenly spread points, so most of them come out six-sided. Laying one shell on a plate follows the radiolarian plates in Haeckel's *Kunstformen der Natur*.
 technique: [line]
 subject: [flora-fauna]
 lineage: [scientific-illustration]
@@ -21,3 +22,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: A round spined shell covered in a net of pores, with a central patch of graded tones, on a horizontal axis line.

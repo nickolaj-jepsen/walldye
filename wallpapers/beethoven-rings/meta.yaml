@@ -1,0 +1,18 @@
+title: Beethoven rings
+description: Beethoven's Fifth begins with three short notes and a long one, the rhythm each ring repeats.
+alt: Concentric rings of short and long arcs surround a solid dot right of center, leaving an empty wedge at the left.
+notes: |
+  The segmented rings come from Josef Müller-Brockmann's 1955 poster for a Beethoven concert at the Zurich Town Hall.
+
+  A ring covers three-quarters of a turn, so the rests, offset a beat from ring to ring, wind outward instead of lining up.
+technique: [flat]
+subject: [music]
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: Beethoven
+    author: Josef Müller-Brockmann
+    year: 1955
+    url: https://peoplesgdarchive.org/item/5754/beethoven-poster-for-the-zurich-town-hall
+added: 2026-09-27
+model: claude-opus-5-5

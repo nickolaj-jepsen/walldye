@@ -1,7 +1,8 @@
 title: Spectrogram
-description: A whistled tune as a dithered spectrogram with two faint overtones. The last phrase cuts off at the playhead.
+description: A whistled tune on a spectrogram is a single line, since a whistle is nearly a pure tone.
+alt: A heavy wavy line of grainy dots with two thinner copies above it, broken into three phrases, the last cut off at a vertical marker.
 notes: |
-  A spectrogram runs time from left to right and pitch upward, and louder sound is drawn heavier. A whistled note is close to a pure tone, so it shows as one line, with fainter overtones at whole multiples of its pitch.
+  A spectrogram runs time from left to right and pitch upward, and louder sound is drawn heavier. The fainter lines are overtones, at whole multiples of the whistled pitch.
 technique: [dither, instrument]
 subject: [music]
 lineage: []

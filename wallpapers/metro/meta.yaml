@@ -1,7 +1,8 @@
 title: Metro map
-description: An invented metro map of horizontals, verticals and 45-degree diagonals over a winding river, one line picked out.
+description: Metro maps ignore true distance and show only the order of stops and where lines connect.
+alt: Straight lines with rounded bends cross a river, with stations as ticks, rings and capsules and one line running from lower left to upper right.
 notes: |
-  Like Harry Beck's London Underground diagram of 1933, the map keeps every line to horizontals, verticals and 45-degree diagonals and marks ordinary stations with short ticks. Interchanges here are hollow capsules spanning every lane, and lines that share a stretch run side by side, stepping across on a short diagonal where their lane changes.
+  Harry Beck's London Underground diagram of 1933 keeps every line to horizontals, verticals and 45-degree diagonals and marks ordinary stations with short ticks, and this map does the same. Interchanges are hollow capsules spanning every lane, and lines that share a stretch run side by side, stepping across on a short diagonal where their lane changes.
 technique: [drafting]
 subject: [maps]
 lineage: []

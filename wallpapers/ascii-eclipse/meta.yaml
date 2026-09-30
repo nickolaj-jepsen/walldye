@@ -1,0 +1,21 @@
+title: ASCII eclipse
+description: In a total eclipse the Moon covers the Sun's disk, and only the faint corona shows.
+alt: A large ring of at-signs around an empty center, with streaks of hashes, plus signs and dots stretching left and right and fading out.
+notes: |
+  AAlib and libcaca turn images into text by choosing a character for each cell from its brightness. Here a hand-made 5x7 glyph ramp does that, sparse to dense, and the at-sign is kept for the ring at the Moon's edge.
+technique: [glyph]
+subject: [space]
+lineage: [vintage-computers]
+sources:
+  - kind: inspiration
+    topic: AAlib
+    author: Jan Hubicka
+    year: 1997
+    url: https://aa-project.sourceforge.net/aalib/
+  - kind: inspiration
+    topic: libcaca
+    author: Sam Hocevar and Jean-Yves Lamoureux
+    year: 2003
+    url: https://en.wikipedia.org/wiki/Libcaca
+added: 2026-09-27
+model: claude-opus-5-5

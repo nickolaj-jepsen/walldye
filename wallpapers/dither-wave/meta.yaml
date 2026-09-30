@@ -1,7 +1,8 @@
 title: Breaking wave
-description: A swell curls over a hollow barrel in Jarvis-Judice-Ninke error diffusion. Its foaming lip and spray are lit.
+description: In a plunging breaker the crest steepens, curls over and drops onto the trough.
+alt: A wave rises from the left and curls forward over a hollow, with spray flying off its lip above a flat sea.
 notes: |
-  After the curling wave in Hokusai's *The Great Wave off Kanagawa*, without the boats or the mountain.
+  The curl comes from Hokusai's *The Great Wave off Kanagawa*, without the boats or the mountain. The dither is Jarvis-Judice-Ninke error diffusion, which passes each pixel's rounding error on to twelve neighbors.
 technique: [dither]
 subject: [landscape]
 lineage: [japanese-art]

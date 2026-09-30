@@ -1,4 +1,4 @@
-"""The Great Belt's East Bridge drawn to scale as an engineering elevation, its main cable picked out."""
+"""The Great Belt East Bridge as a scaled engineering elevation."""
 
 from dataclasses import dataclass
 from itertools import pairwise

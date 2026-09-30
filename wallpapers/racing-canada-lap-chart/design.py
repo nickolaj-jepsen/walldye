@@ -1,4 +1,4 @@
-"""The 2011 Canadian Grand Prix as a lap chart: one line per car stepping between positions over 70 laps, the winner's climb from last place lit."""
+"""The 2011 Canadian Grand Prix as a lap chart: one line per car stepping between positions over 70 laps."""
 
 from typing import TypedDict
 

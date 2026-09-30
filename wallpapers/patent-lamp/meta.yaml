@@ -1,7 +1,8 @@
 title: Patent lamp
-description: An incandescent lamp as a patent figure, ruled in shadow and stippled along its rim. Only the filament is lit.
+description: An incandescent lamp lights when current heats its filament, which Edison's patent made of carbon.
+alt: A light bulb with a screw base and a looped filament, ruled shading down its right side and four leader lines ending in small circles.
 notes: |
-  Shaded the way patent drawings are: the vertical ruling closes up towards the side in shadow, the lower right edge of the glass carries a heavier shade line, and the insulator under the screw thread is ruled solid. The glow round the filament is three offset outlines, each stopping higher than the one inside it and breaking into dashes at its ends.
+  Patent drawings shade with ruled lines instead of tone. The ruling closes up toward the side in shadow, a heavier shade line runs along the lower right edge of the glass, and the insulator under the screw thread is ruled solid. The glow round the filament is three offset outlines, each stopping higher than the one inside it and breaking into dashes at its ends.
 technique: [drafting, stipple]
 subject: [machines]
 lineage: [patent-drawings]
@@ -18,3 +19,4 @@ variants:
     label: With leader lines
   no-leaders:
     label: Without leader lines
+    alt: The bulb stands alone, with no leader lines, ruled shading on its right, stipple on its left and arcs round the looped filament.

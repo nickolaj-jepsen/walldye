@@ -1,0 +1,16 @@
+title: Planet with moon
+description: Lines of latitude are circles, so near a planet's edge they flatten into shallow arcs that crowd together.
+alt: A planet's curved edge crosses the lower half, lined with concentric arcs and a hazy rim, with a small crescent moon at upper left.
+notes: |
+  Earthrise, taken by William Anders from lunar orbit in 1968, shows a planet above a horizon. Here the planet is the horizon, with a small moon above it.
+technique: [line]
+subject: [space]
+lineage: []
+sources:
+  - kind: inspiration
+    title: Earthrise
+    author: William Anders
+    year: 1968
+    url: https://en.wikipedia.org/wiki/Earthrise
+added: 2026-09-27
+model: claude-opus-5-5

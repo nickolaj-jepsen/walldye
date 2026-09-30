@@ -1,4 +1,4 @@
-"""A dandelion clock of foreshortened hairline rays on a Fibonacci sphere, with six seeds drifting off its bald side."""
+"""A dandelion clock of foreshortened hairline rays on a Fibonacci sphere, with six parachutes drifting off."""
 
 import math
 

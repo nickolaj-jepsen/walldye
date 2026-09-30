@@ -1,4 +1,4 @@
-"""An aperiodic monotile grown by substitution; one supertile is inlaid, its odd tiles solid."""
+"""An aperiodic monotile tiling grown by substitution, in hat and spectre forms."""
 
 import math
 from collections.abc import Iterator

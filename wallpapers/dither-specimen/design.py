@@ -1,4 +1,4 @@
-"""A dither specimen plate: one tone ramp in 1-bit through eight algorithms, crossed by a probe."""
+"""A dither specimen plate: one tone ramp in one-bit through eight algorithms."""
 
 from typing import Literal
 

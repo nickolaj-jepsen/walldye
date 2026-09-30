@@ -1,5 +1,6 @@
 title: Electron cloud
-description: 'Hydrogen''s 3d orbital as sampled points: a lobe above the nucleus, one below, and a ring between.'
+description: Dots in a hydrogen 3d orbital are denser where the electron is more likely to be found.
+alt: Dots form two tall lobes above and below a central dot and two small lobes at its sides, on thin crossed axes with ticks.
 notes: |
   Each dot is a random point, drawn more often where the electron is more likely to be found, then thinned so that no two sit too close. The dots pack closer and step up in tone where more of the cloud lies behind them.
 
@@ -21,4 +22,5 @@ variants:
     label: 3d orbital
   4f:
     label: 4f orbital
-    description: Hydrogen's 4f orbital in sampled stipple, six lobes set evenly around the nucleus.
+    alt: Six oval lobes of dots sit evenly around a central dot on thin crossed axes, each dense at its middle and sparse at its edge.
+    description: Hydrogen's 4f orbital carries one more unit of angular momentum than 3d, so its cloud splits into more lobes.

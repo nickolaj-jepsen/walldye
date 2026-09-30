@@ -1,9 +1,8 @@
 title: Wireframe torus
-description: A wire-mesh torus rises from the bottom-left corner, hidden lines removed. One loop round its tube is picked out.
+description: A torus is the surface of a ring, here drawn as a wireframe with its hidden lines removed.
+alt: A wire-mesh ring seen from above fills the lower left, with one loop round its tube beside the hole.
 notes: |
   The mesh has 30 loops round the tube and 18 round the ring. Each point on them is tested by stepping along the line of sight towards the viewer to see whether it passes through the torus. Where a line slips out of view, bisection finds the exact crossing, so every visible stretch stops on the surface's own edge. The outline is traced separately, along the curve where the surface turns edge-on.
-
-  Hidden-line removal was one of the early open problems of computer graphics: Ivan Sutherland put it seventh on his 1966 list of ten unsolved problems.
 technique: [line]
 subject: [maths]
 lineage: []

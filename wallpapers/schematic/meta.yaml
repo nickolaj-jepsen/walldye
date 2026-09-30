@@ -1,5 +1,6 @@
 title: Op-amp schematic
-description: An unlabeled op-amp filter schematic on a dotted grid, its signal path lit from input to output.
+description: Two resistor-capacitor stages ahead of an op-amp pass low frequencies and cut high ones.
+alt: A signal line runs left to right through two resistors, each followed by a capacitor to ground, into an op-amp, and out past two diodes.
 notes: |
   The input passes through a two-pole RC low-pass filter into the non-inverting input of an op-amp. A resistor and capacitor in parallel feed the output back to the inverting input, and a second resistor to ground sets the gain. On the output, a series resistor and capacitor to ground form a Zobel network, and two diodes clamp the signal to the supply rails.
 technique: [drafting]
@@ -31,10 +32,13 @@ variants:
     label: Low-pass filter
   wien-bridge:
     label: Wien-bridge oscillator
-    description: A Wien-bridge oscillator on a dotted grid. A resistor and capacitor carry the output back to the input, and that lit loop keeps a sine wave going.
+    alt: One op-amp with a loop from its output back to its input through a resistor and capacitor, plus a resistor and capacitor to ground.
+    description: A Wien-bridge oscillator generates a sine wave, feeding its output back through resistor-capacitor networks.
   instrumentation:
     label: Instrumentation amplifier
-    description: Three op-amps on a dotted grid form an instrumentation amplifier. Two lit inputs pass through buffers and meet at a third op-amp, which amplifies their difference.
+    alt: Two op-amps stacked at left each take one input and feed a third op-amp at right, which has the single output.
+    description: An instrumentation amplifier amplifies the difference between two inputs while rejecting what they share, using three op-amps.
   triangle-wave:
     label: Triangle-wave generator
-    description: Two op-amps in a lit loop on a dotted grid. One ramps up and down, the other flips at each end, and the pair makes triangle and square waves.
+    alt: Two op-amps side by side, the right one's output wired around the bottom back to the left one's input, a capacitor over the left one.
+    description: 'A triangle-wave generator: one op-amp ramps up and down while a second flips at each end.'

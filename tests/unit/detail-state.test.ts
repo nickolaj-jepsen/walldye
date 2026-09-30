@@ -37,7 +37,7 @@ describe('readAddress', () => {
 });
 
 describe('writeAddress', () => {
-  const url = new URL('https://walldye.com/schotter?t=nord&crop=0.3');
+  const url = new URL('https://walldye.com/loose-squares?t=nord&crop=0.3');
 
   it('leaves every default out', () => {
     expect(writeAddress(url, state(), NATIVE).search).toBe('?t=nord');

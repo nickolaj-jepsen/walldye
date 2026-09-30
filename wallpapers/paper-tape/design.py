@@ -1,4 +1,4 @@
-"""Eight-hole paper tape punched with ASCII and even parity loops once across the screen; one short burst of rows is lit."""
+"""Eight-hole paper tape punched with ASCII and even parity."""
 
 import numpy as np
 from numpy.typing import NDArray

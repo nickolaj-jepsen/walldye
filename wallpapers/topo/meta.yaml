@@ -1,5 +1,6 @@
 title: Contour map
-description: Contours of an invented terrain run edge to edge, every fifth one picked out as an index contour.
+description: A contour line joins points of equal height, and lines packed close together mark a steep slope.
+alt: Winding contour lines cover the screen, crowded close on some slopes and spread wide on others, every fifth line in a different tone.
 technique: [field]
 subject: [maps]
 lineage: []

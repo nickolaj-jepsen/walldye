@@ -1,4 +1,4 @@
-"""Spa-Francorchamps as a dot-matrix live-timing map: 24 mini-sectors in three sectors, Eau Rouge to Les Combes lit as the fastest run."""
+"""Spa-Francorchamps as a dot-matrix live-timing map in 24 mini-sectors."""
 
 import bisect
 import math

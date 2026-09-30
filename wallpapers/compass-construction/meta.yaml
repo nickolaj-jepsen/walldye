@@ -1,5 +1,6 @@
 title: Compass construction
-description: Richmond's 1893 pentagon with every ruler-and-compass line left in. A dot marks the first vertex found.
+description: A regular pentagon can be built with compass and straightedge alone, because its proportions involve only square roots.
+alt: A pentagon inscribed in a circle, with compass arcs and ruled lines crossing it, and a dot at its upper right corner.
 notes: |
   Herbert Richmond published this construction in 1893, in a two-page note on the seventeen-sided polygon. The left radius is halved and its midpoint joined to the top of the circle. The line bisecting the angle at the midpoint crosses the upright radius at the height of the first vertex, and the compass, opened to one side, steps off the other four.
 technique: [drafting]

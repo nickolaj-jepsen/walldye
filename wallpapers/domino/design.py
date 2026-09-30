@@ -1,4 +1,4 @@
-"""A chain of dominoes curving away in perspective as a wave topples it: flat-shaded boxes in painter's order, with the first piece and one mid-fall picked out."""
+"""A chain of dominoes toppling in perspective, drawn as flat-shaded boxes in painter's order."""
 
 import math
 from dataclasses import dataclass

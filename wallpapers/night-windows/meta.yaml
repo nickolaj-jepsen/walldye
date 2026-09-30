@@ -1,7 +1,8 @@
 title: Night windows
-description: 'A pixel-art tower at night: a cat and a lamp in dim rooms, and someone coding in the one lit window.'
+description: A pixel-art apartment tower at night, its rooms seen from outside as in Edward Hopper's Night Windows.
+alt: A tower of seven floors of unlit windows, a few showing a cat, a plant or lamps, and one a person at a computer.
 notes: |
-  The weathering on the wall is a two-level Riemersma dither of a noise field, which carries each cell's error along a Hilbert curve instead of row by row.
+  The view of lit rooms from outside comes from Edward Hopper's *Night Windows* (1928), and the pixel style from waneella's Pixelscapes. The weathering on the wall is a two-level Riemersma dither of a noise field, which carries each cell's error along a Hilbert curve instead of row by row.
 technique: [pixel]
 subject: [architecture]
 lineage: []

@@ -1,4 +1,4 @@
-"""Core rope memory: spline-drawn sense wires thread through or loop around a row of ferrite cores, and one wire's path spells a byte."""
+"""Core rope memory: sense wires through or around ferrite cores, one wire spelling a byte."""
 
 from collections.abc import Sequence
 

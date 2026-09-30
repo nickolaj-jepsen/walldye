@@ -1,4 +1,4 @@
-"""Sparse digital rain of hex digits in 5x8 pixel glyphs; one lit stream falls behind an inverse head."""
+"""Falling hexadecimal digits in pixel glyphs."""
 
 from walldye import (
     ACCENT,

@@ -1,7 +1,6 @@
 title: Clock wall
-description: A wave crosses a wall of 24 clocks as their hands turn in step. One clock breaks ranks to tell 11:22.
-notes: |
-  After *ClockClock 24* by Humans since 1982, a wall of 24 clocks that shows the time once a minute and runs choreographies of its hands in between. Here the wall is mid-wave, and one clock has already arrived at the time.
+description: ClockClock 24 shows the time on 24 clocks once a minute and moves its hands in patterns in between.
+alt: Three rows of eight round clocks have hands slanting along shared diagonals, except one clock that reads 11:22.
 technique: [instrument]
 subject: [machines]
 lineage: []

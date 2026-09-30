@@ -1,9 +1,10 @@
 title: Crater field
-description: Craters pock a lunar plain lit low from the left. One young crater throws broken rays across the rest.
+description: Craters accumulate on the Moon's surface, so the more a plain has, the older it is.
+alt: Round craters, each with a crescent of shade on one side, scatter over a plain; streaks radiate from one crater at upper right.
 notes: |
   Crater sizes follow a power law: each time the size doubles, a quarter as many craters are at least that big. The larger ones are drawn one at a time, so a younger crater cuts through the rim of an older one it lands on. One plain away from the young crater keeps only a scatter of small ones, like a mare flooded by lava.
 
-  The rays are modeled on those around Tycho. They bunch in a few directions, vary in length and break into separate streaks further out.
+  The rays are modeled on those around Tycho: they bunch in a few directions and break into separate streaks further out.
 technique: [flat]
 subject: [space]
 lineage: []

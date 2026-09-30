@@ -1,4 +1,4 @@
-"""A Lissajous trace on an oscilloscope graticule, lit more strongly in steps where the beam slows."""
+"""A Lissajous figure on an oscilloscope screen."""
 
 import math
 

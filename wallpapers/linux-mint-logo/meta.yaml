@@ -1,0 +1,24 @@
+title: Linux Mint logo
+description: The Linux Mint logo is one stroke width throughout, with arc centers and straight runs on a half-stroke grid.
+alt: The letters l and m in thick strokes inside a dash-dot circle crossed by guide lines, the l solid, the m in a second tone.
+notes: |
+  The project's own source file draws the logo as one stroked line, and its straight runs and arc centers all fall on a grid at half the stroke width. The drawing keeps that grid and adds the center line of the stroke, with the ring of the round badge as the dash-dot circle. Guide lines stop at the mark, so the spaces inside the letters stay clear.
+technique: [drafting]
+subject: [computing]
+lineage: []
+sources:
+  - kind: recreation
+    topic: Linux Mint logo
+    author: Linux Mint
+    url: https://github.com/linuxmint/brand-logo
+added: 2026-09-28
+model: claude-opus-5-5
+franchise:
+  title: Linux Mint
+  owner: Linux Mint
+variants:
+  default:
+    label: With dimensions
+  undimensioned:
+    label: Without dimensions
+    alt: An l and an m of thick strokes sit in a dash-dot circle crossed by guide lines, with no dimension marks; the l is solid.

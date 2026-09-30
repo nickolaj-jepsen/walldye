@@ -1,4 +1,4 @@
-"""A datasheet SPI read timing diagram: slanted edges, hatched buses, one setup time picked out."""
+"""An SPI read as a datasheet timing diagram, drawn in ruled lines."""
 
 from typing import Literal
 

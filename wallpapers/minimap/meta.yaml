@@ -1,7 +1,8 @@
 title: Minimap
-description: A code editor's minimap, blown up so each word is a rounded bar. The identifier under the caret is highlighted.
+description: A code editor's minimap shrinks a whole file into a narrow strip, so its shape can guide navigation.
+alt: Indented rows of short bars, like shrunken code, fill a column at the right, with a text cursor beside one bar inside a wider band.
 notes: |
-  The code is made up: Python-like imports, classes and nested blocks, each bar as long as the name or string it stands for. Outside the band the bars fade out towards the top and bottom of the screen.
+  The code is made up: Python-like imports, classes and nested blocks, each bar as long as the name or string it stands for.
 technique: [pixel]
 subject: [computing]
 lineage: []

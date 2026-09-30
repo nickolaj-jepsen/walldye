@@ -1,4 +1,4 @@
-"""A Chladni figure: sand grains stippled along the nodal lines of a vibrating square plate, the loop around its center picked out."""
+"""A Chladni figure: sand stippled along the nodal lines of a vibrating square plate."""
 
 import numpy as np
 import shapely

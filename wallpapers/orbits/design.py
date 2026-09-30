@@ -1,4 +1,4 @@
-"""Seven concentric orbits in one tilted plane round a filled sun, a planet on each, drawn as ellipses of one line weight."""
+"""Seven tilted planetary orbits round a sun, drawn as ellipses."""
 
 import math
 

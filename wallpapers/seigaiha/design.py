@@ -1,4 +1,4 @@
-"""Seigaiha wave scales laid bottom-up in painter's order, shedding rings towards a noise-ragged surf line, with one pyramid of three scales lit."""
+"""Seigaiha wave scales laid bottom-up in painter's order, shedding rings toward a noise-ragged edge."""
 
 from walldye import (
     ACCENT,

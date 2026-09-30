@@ -1,4 +1,4 @@
-"""A `git log --graph` at transit-map scale: ringed commits on lanes that fork and merge, with one feature branch picked out."""
+"""A `git log --graph` at transit-map scale: ringed commits on lanes that fork and merge."""
 
 import math
 from typing import NamedTuple

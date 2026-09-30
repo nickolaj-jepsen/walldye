@@ -1,11 +1,10 @@
 title: Great Belt Bridge
-description: 'The Great Belt''s East Bridge drawn to scale in elevation: two pylons 1,624 meters apart, anchor blocks, and approach spans running off both edges. The main cable is picked out.'
+description: The Great Belt East Bridge drawn side-on at true scale, so its 254-meter pylons look small against a 1,624-meter span.
+alt: A long, low suspension bridge with two pylons, a sagging main cable and approach spans running off both edges, with dimension lines above.
 notes: |
-  Drawn from published figures for Østbroen, the suspension bridge between Sprogø and Zealand that opened in 1998. The main span is 1,624 m and each side span 535 m, the concrete pylons stand 254 m high, and the cable sags a ninth of the main span. Hangers are 24 m apart, with a 56 m gap across each pylon, and the approach spans are 193 m long, on 7 piers to the west and 12 to the east. Heights and lengths share one scale, so the bridge lies almost flat.
+  Drawn from published figures for Østbroen, the suspension bridge between Sprogø and Zealand that opened in 1998. The main span is 1,624 m and each side span 535 m, the concrete pylons stand 254 m high, and the cable sags a ninth of the main span. Hangers are 24 m apart, with a 56 m gap across each pylon, and the approach spans are 193 m long, on 7 piers to the west and 12 to the east.
 
-  As on a civil-engineering sheet, hidden foundations are dashed, pylon center lines are dash-dotted and the water is a waterline over staggered dashes. The dimension chain above runs from anchor block to pylon to pylon to anchor block and carries no figures. At mid-span one arrow measures the sag, and another below the deck the 65 m clearance for shipping.
-
-  On a tall screen the drawing closes in on the east pylon. The cross beams tying its two legs, one about 130 m up and one near the top, show dashed behind the near leg. The sea bed and the outline of the anchor blocks are simplified.
+  As on a civil-engineering sheet, hidden foundations are dashed, pylon center lines are dash-dotted and the water is a waterline over staggered dashes. One arrow at mid-span measures the sag, another below the deck the 65 m clearance for shipping. On a tall screen the drawing closes in on the east pylon and the cross beams tying its two legs, which show dashed behind the near leg. The sea bed and the outline of the anchor blocks are simplified.
 technique: [drafting]
 subject: [architecture]
 lineage: []
@@ -38,3 +37,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
+    alt: Two pylons carry a sagging main cable over a long, low bridge whose approach spans run off both edges.

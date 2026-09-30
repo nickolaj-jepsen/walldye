@@ -1,5 +1,6 @@
 title: Apollonian gasket
-description: Hairline circles pack a circle down to specks. Five filled discs shrink into one cusp, fading as they go.
+description: Each new circle in an Apollonian gasket touches three others, and Descartes' theorem gives its size.
+alt: A large circle packed with ever smaller tangent circles, with a chain of shrinking solid discs running along its lower right edge.
 technique: [line]
 subject: [maths]
 lineage: []
@@ -17,4 +18,5 @@ variants:
     label: Uneven split
   integral:
     label: Even split
-    description: 'Whole-number curvatures throughout: an Apollonian gasket split into two equal halves, with five filled circles shrinking into one cusp.'
+    alt: A circle split by two equal circles, the gaps packed with smaller ones, and a chain of solid discs shrinking along the lower right.
+    description: A gasket whose circles all have whole-number curvature, starting from an outer circle split by two equal ones.

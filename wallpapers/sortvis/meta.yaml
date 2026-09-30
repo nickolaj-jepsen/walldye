@@ -1,7 +1,8 @@
 title: Sorting wires
-description: Thirty-two wires trade places, one swap at a time, until they lie in order from thin to thick. One wire's long climb is picked out.
+description: Insertion sort swaps only neighbors, so a value far from its place takes many swaps.
+alt: Thirty-two wires cross one another in short steps, and one wire runs flat along the bottom before climbing diagonally to the top right.
 notes: |
-  Each wire is one number, drawn at its current place in the list and weighted by its value, so the finished end runs from thin to thick. Insertion sort swaps neighbors only, and swaps that don't share a place are drawn side by side, which turns the run into a wedge of crossings. In the network version a bitonic sorting network makes the swaps, some of them sixteen places long.
+  Each wire is one number, drawn at its current place in the list and weighted by its value, so the finished end runs from thin to thick. Swaps that don't share a place are drawn side by side, which turns the run into a wedge of crossings. In the network version a bitonic sorting network makes the swaps, some of them sixteen places long.
 technique: [line]
 subject: [computing]
 lineage: [creative-coding]
@@ -24,4 +25,5 @@ variants:
     label: Insertion sort
   network:
     label: Sorting network
-    description: Thirty-two wires cross in long bundles as a sorting network swaps them, sixteen places at the widest. One wire's zigzag path is picked out.
+    alt: Wires cross in long bundles at several points, and one wire dips, rises through the widest crossing and ends near the top edge at right.
+    description: Sorting networks fix their comparisons in advance, whatever the values turn out to be.

@@ -1,9 +1,10 @@
 title: Montreal lap chart
-description: The 2011 Canadian Grand Prix as a lap chart, broken where rain halted the race for two hours. Jenson Button's fall to last and climb to the win are lit.
+description: A lap chart of the 2011 Canadian Grand Prix, which rain stopped for over two hours.
+alt: One line per car steps between positions across a chart split by a gap; a single line falls to last, then climbs to first.
 notes: |
-  Each line is one car, stepping between race positions at the end of every lap, from the grid on the left to the flag on the right. The race started behind the safety car on a wet track and was stopped for over two hours in heavy rain; the chart breaks there, and the dotted rows are the positions held through the stoppage. The bars under the lap axis mark the laps run behind the safety car, a dot on a line marks a pit stop or a drive-through, and a line that ends in a dot is a car that retired. A line that stops a lap short is a car that finished a lap down.
+  Each line is one car's race position at the end of every lap. The race started behind the safety car on a wet track and was stopped for over two hours in heavy rain, and positions are held through the stoppage.
 
-  Button made five pit stops and served a drive-through for speeding behind the safety car. On lap 37 he touched Fernando Alonso at turn 3, pitted with a puncture and fell to 21st and last. Button's line is drawn faintly until then and lit from there. Sebastian Vettel was leading on the final lap when he ran wide at turn 6, and Button went by to win. The positions come from jolpica-f1, a community-run archive of Formula 1 results that carries on the Ergast database.
+  Button made five pit stops and served a drive-through for speeding behind the safety car. On lap 37 he touched Fernando Alonso at turn 3, pitted with a puncture and fell to 21st and last. Sebastian Vettel was leading on the final lap when he ran wide at turn 6, and Button went by to win. The positions come from jolpica-f1, a community-run archive of Formula 1 results that carries on the Ergast database.
 technique: [line, instrument]
 subject: [sport]
 lineage: []

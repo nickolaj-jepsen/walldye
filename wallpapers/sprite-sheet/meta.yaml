@@ -1,7 +1,8 @@
 title: Sprite sheet
-description: A PICO-8 sprite editor with a campfire enlarged on its grid, the only lit sprite on a half-filled sheet.
+description: A PICO-8 game keeps all its sprites on one sheet of 256.
+alt: A sprite editor shows a campfire enlarged on a grid, beside a sheet of small sprites where the campfire's tile has an outline.
 notes: |
-  Past the hand-drawn tiles and items, the gaps fill with random mirrored creatures that thin out towards the lower right, like a sheet still being worked on. The eight squares in the bar under it are the sprite's flags, as in PICO-8's own editor.
+  Past the hand-drawn tiles and items, the gaps fill with random mirrored creatures that thin out towards the lower right. The eight squares in the bar under it are the sprite's flags, as in PICO-8's own editor.
 technique: [pixel, instrument]
 subject: [games, computing]
 lineage: []

@@ -1,4 +1,4 @@
-"""A reaction-diffusion labyrinth that a feed gradient breaks into spots towards one corner, simulated on a grid and traced as smoothed filled contours."""
+"""A reaction-diffusion labyrinth under a feed gradient, simulated on a grid and traced as smoothed contours."""
 
 import math
 

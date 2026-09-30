@@ -1,4 +1,4 @@
-"""Pine-forest ridges receding into fog, a sun sinking behind the farthest hill, in flat noise-cut layers."""
+"""Pine-forest ridges receding into fog, in flat noise-cut layers."""
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,4 +1,4 @@
-"""Circumpolar star trails: 38-degree arcs around an off-canvas pole, three of them lit, over a ridge of unioned conifer polygons."""
+"""Circumpolar star trails over a row of spruces, drawn as line arcs around an off-canvas pole."""
 
 import math
 

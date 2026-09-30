@@ -1,9 +1,10 @@
 title: Great comet
-description: A hundred curved lines, one per dust grain size, peel away from a comet's straight ion tail.
+description: A comet's dust tail curves because sunlight pushes small grains harder than large ones.
+alt: A small point at upper right trails a thin straight line to the left and a fan of fine curves sweeping down and left.
 notes: |
   Each curved line is a syndyne: the positions, at one moment, of all the grains of one size that the nucleus has shed since it passed closest to the Sun. The lines come from integrating 110 grain sizes along a parabolic orbit, following Finson and Probstein's model of dust tails.
 
-  Sunlight pushes the smallest grains hardest, so their lines run furthest, close beside the ion tail before curving away; the largest grains barely leave the nucleus and form the short inner arcs. The ion tail, gas the solar wind blows away from the Sun, is a single straight line. The fanned tail recalls Comet McNaught, the great comet of 2007.
+  The smallest grains' lines run furthest, close beside the ion tail before curving away; the largest grains barely leave the nucleus and form the short inner arcs. The ion tail, gas the solar wind blows away from the Sun, is a single straight line. The wide fan is modeled on Comet McNaught, the great comet of 2007.
 technique: [line, simulation]
 subject: [space]
 lineage: []

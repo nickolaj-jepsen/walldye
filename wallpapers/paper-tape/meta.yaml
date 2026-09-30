@@ -1,7 +1,8 @@
 title: Paper tape
-description: Eight-hole paper tape rises across the screen and loops once. Fourteen punched rows are lit just before the loop.
+description: A row of holes on eight-channel paper tape is one ASCII character, seven data bits and a parity bit.
+alt: Paper tape with punched holes runs from the lower left and loops once, with a stretch just before the loop reading NIXOSNIXOS between full rows.
 notes: |
-  The holes are ASCII as a Teletype Model 33 punched it: seven data bits and an even parity bit across eight channels, with the small feed holes between the third and fourth. The lit rows read NIXOSNIXOS between pairs of rubouts, the character that punches every hole. The rows around them spell a NixOS rebuild command, and the long ends carry feed holes only, like a tape's leader and trailer.
+  The holes follow a Teletype Model 33, which punched the small feed holes between the third and fourth channels. A rubout is the character that punches every hole. The rows around the NIXOSNIXOS stretch spell a NixOS rebuild command, and the long ends carry feed holes only, like a tape's leader and trailer.
 technique: [flat]
 subject: [computing]
 lineage: [vintage-computers]

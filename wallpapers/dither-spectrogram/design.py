@@ -1,4 +1,4 @@
-"""Spectrogram of a whistled tune cut off at a playhead, with dithered falloff."""
+"""A spectrogram of a whistled tune in dithered dots."""
 
 import numpy as np
 from numpy.typing import NDArray

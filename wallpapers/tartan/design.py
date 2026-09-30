@@ -1,4 +1,4 @@
-"""A 2/2 twill tartan woven from a mirrored threadcount, its one thin overcheck picked out."""
+"""A 2/2 twill tartan woven from a mirrored threadcount, with one thin overcheck."""
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,4 +1,4 @@
-"""A NetHack level in bitmap glyphs: BSP rooms, cheapest-path corridors, remembered parts dim and the @'s torch lighting rings of floor."""
+"""A NetHack-style level in bitmap glyphs: BSP rooms, cheapest-path corridors and an @ carrying a torch."""
 
 import heapq
 import math

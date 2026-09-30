@@ -1,4 +1,4 @@
-"""The Pioneer plaque's pulsar map as line drawing: fourteen rays from the Sun ending in binary period ticks, and one long line to the galactic center."""
+"""The Pioneer plaque's pulsar map as a line drawing: rays from the Sun with binary period ticks."""
 
 from walldye import ACCENT, UI, UI_ALT, Canvas, P, Vec, design
 
