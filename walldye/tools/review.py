@@ -22,7 +22,7 @@ from walldye.tools import metadata, paths
 from walldye.tools.errors import UsageError
 from walldye.tools.metadata import dump_yaml, write_meta
 from walldye.tools.paths import aspect_label, template_name
-from walldye.tools.sheet import themed
+from walldye.tools.recolor import themed
 from walldye.tools.themes import PRESETS, parse_seeds
 
 STATE_FILE = paths.ROOT / ".walldye-review.json"

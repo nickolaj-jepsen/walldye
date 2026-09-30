@@ -8,7 +8,18 @@ from tools_support import assert_recolors, built, legacy, seeds, versions
 
 from walldye._aspect import SITE_ASPECTS, canvas_size
 from walldye._theme import SEEDS
-from walldye.tools import build, coefs, hashing, listing, loader, paths, review, themes
+from walldye.tools import (
+    build,
+    coefs,
+    hashing,
+    listing,
+    loader,
+    paths,
+    recolor,
+    review,
+    slotfile,
+    themes,
+)
 from walldye.tools.errors import UsageError
 from walldye.tools.paths import template_name
 from walldye.tools.themes import PRESETS
@@ -19,9 +30,9 @@ ALL_HELD_OUT = themes.HELD_OUT["dark"] + themes.HELD_OUT["light"]
 
 
 def slots(slug: str, variant: str = "default") -> dict[str, object]:
-    s = build.load_slots(slug, variant)
+    s = slotfile.load(slug, variant)
     assert s is not None
-    return s
+    return s.to_dict()
 
 
 # --- build output -----------------------------------------------------------------
@@ -46,7 +57,7 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
         "16:9/light",
     ]
     assert s["design_sha"] == hashing.design_sha("collision")
-    assert s["checked"] == build.version() == "0.2.0"
+    assert s["checked"] == slotfile.version() == "0.2.0"
     assert s["render_lib"] == hashing.render_lib_sha()
     assert s["cells"] == [] and s["focus"] == [0.5, 0.5]
     assert s["probes"] == {
@@ -56,7 +67,7 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
             for r in ("dark", "light")
         },
     }
-    table = build.entries(s)
+    table = slotfile.parse(s).entries
     for regime in ("dark", "light"):
         entry = table[f"16:9/{regime}"]
         assert list(entry) == ["file", "sha256", "n", "coefs", "occ"]
@@ -64,8 +75,8 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
         assert entry["n"] == len(entry["occ"]) == len(find_colors(template)) == 3
     for theme in pieces.RECOLOR_THEMES + ALL_HELD_OUT:
         assert_recolors("collision", theme)
-    assert build.recolor(template, table["16:9/dark"], FIREPROOF) == template
-    assert build.recolor(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
+    assert recolor.recolor(template, table["16:9/dark"], FIREPROOF) == template
+    assert recolor.recolor(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
 
 
 def test_recolor_evaluates_like_predict():
@@ -76,7 +87,7 @@ def test_recolor_evaluates_like_predict():
         for _ in range(40)
     ]
     template = "".join(f'<rect fill="#{i:06X}"/>' for i in range(40))
-    entry: build.SlotsEntry = {
+    entry: slotfile.Entry = {
         "file": "",
         "sha256": "",
         "n": 40,
@@ -85,34 +96,34 @@ def test_recolor_evaluates_like_predict():
     }
     for _ in range(20):
         theme = tuple(f"#{r.getrandbits(24):06X}" for _ in range(3))
-        got = build.recolor(template, entry, dict(zip(SEEDS, theme, strict=True)))
+        got = recolor.recolor(template, entry, dict(zip(SEEDS, theme, strict=True)))
         assert (coefs.colors(got) == coefs.predict(np.array(rows), theme)).all()
 
 
 def test_select():
     both = {"16:9/dark": {}, "16:9/light": {}}
-    assert build.select(both, "16:9", seeds("nord")) == "16:9/dark"
-    assert build.select(both, "16:9", seeds("flexoki-light")) == "16:9/light"
+    assert recolor.select(both, "16:9", seeds("nord")) == "16:9/dark"
+    assert recolor.select(both, "16:9", seeds("flexoki-light")) == "16:9/light"
     with pytest.raises(KeyError):
-        build.select(both, "21:9", seeds("nord"))
+        recolor.select(both, "21:9", seeds("nord"))
     with pytest.raises(KeyError):
-        build.select({"16:9/dark": {}}, "16:9", seeds("flexoki-light"))
+        recolor.select({"16:9/dark": {}}, "16:9", seeds("flexoki-light"))
 
 
 def test_entries_are_validated():
     good = {"file": "16x9.svg", "sha256": "0", "n": 1, "coefs": [[1, 0, 0, 0, 0, 0]], "occ": [0]}
-    assert build.entries({"design_sha": "x", "16:9/dark": good})["16:9/dark"]["coefs"] == [
+    assert slotfile.parse({"design_sha": "x", "16:9/dark": good}).entries["16:9/dark"]["coefs"] == [
         [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ]
     for bad in ({**good, "occ": [1]}, {**good, "coefs": [[1, 2]]}, {**good, "n": "1"}, []):
         with pytest.raises(ValueError):
-            build.entries({"16:9/dark": bad})
+            slotfile.parse({"16:9/dark": bad})
 
 
 def test_light_branch_gets_its_own_template(wallpapers, capsys):
     pieces.install(wallpapers, "light-branch")
     built(capsys, "light-branch")
-    table = build.entries(slots("light-branch"))
+    table = slotfile.parse(slots("light-branch")).entries
     assert table["16:9/dark"]["file"] == "16x9.svg"
     assert table["16:9/light"]["file"] == "16x9.light.svg"
     light = (paths.build_dir("light-branch") / "16x9.light.svg").read_text()
@@ -129,7 +140,7 @@ def test_any_aspect_pixel_design(wallpapers, capsys):
     b = paths.build_dir("pixels")
     assert sorted(p.name for p in b.glob("*.svg")) == sorted(template_name(a) for a in SITE_ASPECTS)
     s = slots("pixels")
-    table = build.entries(s)
+    table = slotfile.parse(s).entries
     assert s["cells"] == [3]
     for aspect in SITE_ASPECTS:
         w, h = canvas_size(aspect)
@@ -177,7 +188,7 @@ def test_variant_layout(wallpapers, capsys):
         s = slots("versions", name)
         assert list(s)[:3] == ["design_sha", "variant", "focus"]
         assert s["variant"] == name and s["design_sha"] == hashing.design_sha("versions", name)
-        assert build.entries(s)["16:9/dark"]["file"] == "16x9.svg"
+        assert slotfile.parse(s).entries["16:9/dark"]["file"] == "16x9.svg"
         assert_recolors("versions", "nord", "10:16", name)
     assert "variant" not in slots("versions")
     assert (b / "late/16x9.svg").read_text() == loader.render(
@@ -243,7 +254,7 @@ def old_render_lib(slug: str, **changes: object) -> None:
     """Make `slug`'s slots.json look built under other render inputs, with `changes`."""
     s = slots(slug)
     (paths.build_dir(slug) / "slots.json").write_text(
-        build.dump_slots({**s, "render_lib": "0" * 64, **changes})
+        slotfile.dump({**s, "render_lib": "0" * 64, **changes})
     )
 
 
@@ -270,7 +281,7 @@ def test_skip_restamp_and_rebuild(wallpapers, capsys):
     assert "collision: wrote" in built(capsys, "collision")
     s = slots("collision")
     (paths.build_dir("collision") / "slots.json").write_text(
-        build.dump_slots({**s, "checked": "0.1.0"})
+        slotfile.dump({**s, "checked": "0.1.0"})
     )
     assert "collision: wrote" in built(capsys, "collision")
     assert "collision: up to date" in built(capsys, "collision")

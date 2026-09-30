@@ -4,7 +4,7 @@ import pytest
 from PIL import Image
 from tools_support import FLAT, built, piece, versions
 
-from walldye.tools import cli, loader, paths, sheet
+from walldye.tools import cli, loader, paths, recolor, sheet
 from walldye.tools.themes import parse_seeds
 
 
@@ -63,11 +63,11 @@ def test_themed_matches_a_render(wallpapers, capsys):
     piece(wallpapers, "tiny")
     built(capsys, "tiny")
     template = (paths.build_dir("tiny") / "16x9.svg").read_text()
-    assert sheet.themed("tiny", parse_seeds("1C1B1A-DAD8CE-CF6A4C")) == template
+    assert recolor.themed("tiny", parse_seeds("1C1B1A-DAD8CE-CF6A4C")) == template
     light = parse_seeds("flexoki-light")
-    assert sheet.themed("tiny", light) == loader.render("tiny", "flexoki-light")
+    assert recolor.themed("tiny", light) == loader.render("tiny", "flexoki-light")
     with pytest.raises(KeyError):
-        sheet.themed("tiny", parse_seeds("nord"), aspect="4:3")
+        recolor.themed("tiny", parse_seeds("nord"), aspect="4:3")
 
 
 def test_sheet_default_path(wallpapers, tmp_path, monkeypatch, capsys):

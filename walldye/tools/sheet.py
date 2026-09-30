@@ -10,31 +10,13 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from walldye._design import RenderSpec
-from walldye.tools import knobs, loader, metadata, paths, raster, themes
+from walldye.tools import knobs, loader, metadata, raster, recolor, themes
 from walldye.tools.errors import UsageError
 from walldye.tools.paths import aspect_label
 from walldye.tools.preview import preview_dir
 from walldye.tools.themes import theme_token
 
 PAD, LABEL = 8, 22
-
-
-def themed(slug: str, seeds: dict[str, str], variant: str = "default", aspect: str = "16:9") -> str:
-    """A variant's built template at `aspect` recolored to `seeds` the way the site does
-    it: build.select picks the slots.json entry and build.recolor applies it; fireproof's
-    exact seeds return the dark template untouched. KeyError if slots.json lacks the entry,
-    FileNotFoundError when not built."""
-    from walldye.tools.build import entries, load_slots, recolor, select
-
-    slots = load_slots(slug, variant)
-    if slots is None:
-        raise FileNotFoundError(f"{paths.build_dir(slug, variant)} has no slots.json")
-    table = entries(slots)
-    d = paths.build_dir(slug, variant)
-    if theme_token(seeds) == "fireproof":
-        return (d / table[f"{aspect}/dark"]["file"]).read_text()
-    k = select(slots, aspect, seeds)
-    return recolor((d / table[k]["file"]).read_text(), table[k], seeds)
 
 
 def _grid(cells: Sequence[tuple[str, Image.Image]], cols: int, thumb: int) -> Image.Image:
@@ -75,7 +57,7 @@ def run(
     thumbs: list[tuple[str, Image.Image]] = []
     for slug in slugs:
         try:
-            svg = themed(slug, seeds, variant, aspect)
+            svg = recolor.themed(slug, seeds, variant, aspect)
         except FileNotFoundError:
             if variant != "default" and variant not in _declared(slug):
                 print(f"skip {slug}: no variant {variant}", file=sys.stderr)

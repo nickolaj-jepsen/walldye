@@ -8,7 +8,7 @@ import urllib.request
 import pytest
 from tools_support import VERSION_LABELS, built, versions
 
-from walldye.tools import cli, metadata, paths, review, sheet
+from walldye.tools import cli, metadata, paths, recolor, review
 from walldye.tools.errors import UsageError
 from walldye.tools.review import Step
 from walldye.tools.themes import parse_seeds
@@ -402,7 +402,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     template = (paths.build_dir("c", "late") / "16x9.svg").read_bytes()
     assert http(url + "img/c/late/16x9/fireproof.svg") == template
     # The default of a queued version, for comparing, though it is not a step itself.
-    assert http(url + "img/c/default/10x16/nord.svg").decode() == sheet.themed(
+    assert http(url + "img/c/default/10x16/nord.svg").decode() == recolor.themed(
         "c", parse_seeds("nord"), aspect="10:16"
     )
     for missing in (

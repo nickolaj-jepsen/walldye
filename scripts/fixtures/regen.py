@@ -21,7 +21,7 @@ from PIL import Image
 
 from walldye import _design, _theme
 from walldye._aspect import SITE_ASPECTS, canvas_size
-from walldye.tools import build, hashing, lint, loader, paths, raster
+from walldye.tools import build, hashing, lint, loader, paths, raster, recolor, slotfile
 from walldye.tools import themes as check_themes
 from walldye.tools.paths import aspect_label
 from walldye.tools.themes import parse_seeds
@@ -99,9 +99,9 @@ def crops() -> list[dict[str, object]]:
 def per_hex(slug: str) -> dict[str, object]:
     """The built dark 16:9 slot table of `slug` keyed by fireproof hex instead of by
     occurrence: each distinct template hex takes the coefficients of its first slot."""
-    slots = build.load_slots(slug)
+    slots = slotfile.load(slug)
     assert slots is not None, f"{slug} is not built"
-    entry = build.entries(slots)["16:9/dark"]
+    entry = slots.entries["16:9/dark"]
     template = [c for _, _, c in find_colors((paths.build_dir(slug) / entry["file"]).read_text())]
     first: dict[str, int] = {}
     for i, c in enumerate(template):
@@ -164,12 +164,8 @@ def references_current() -> bool:
     references() can be made."""
     lib_sha = hashing.render_lib_sha()
     for slug in REFERENCE_PIECES:
-        slots = build.load_slots(slug)
-        if (
-            slots is None
-            or slots.get("design_sha") != hashing.design_sha(slug)
-            or slots.get("render_lib") != lib_sha
-        ):
+        slots = slotfile.load(slug)
+        if slots is None or not slots.current(hashing.design_sha(slug), lib_sha):
             return False
     return True
 
@@ -185,14 +181,14 @@ def references() -> dict[str, str | bytes]:
     renders = []
     pieces = {}
     for slug in REFERENCE_PIECES:
-        slots = build.load_slots(slug)
+        slots = slotfile.load(slug)
         assert slots is not None, f"{slug} is not built"
-        table = build.entries(slots)
-        pieces[slug] = {"design_sha": slots["design_sha"]}
+        table = slots.entries
+        pieces[slug] = {"design_sha": slots.fields["design_sha"]}
         for aspect in dict.fromkeys(k.split("/")[0] for k in table):
             for theme in RECOLOR_THEMES:
                 seeds = parse_seeds(theme)
-                key = build.select(slots, aspect, seeds)
+                key = recolor.select(table, aspect, seeds)
                 rel = f"{slug}/{aspect_label(aspect)}.{theme}.svg"
                 out[rel] = loader.render(slug, seeds, aspect)
                 renders.append({
@@ -201,12 +197,14 @@ def references() -> dict[str, str | bytes]:
                     "render": _rel(REFERENCE / rel),
                 })  # fmt: skip
     slug, aspect, theme, width = RESVG
-    slots = build.load_slots(slug)
+    slots = slotfile.load(slug)
     assert slots is not None, f"{slug} is not built"
-    table = build.entries(slots)
+    table = slots.entries
     seeds = parse_seeds(theme)
-    key = build.select(slots, aspect, seeds)
-    svg = build.recolor((paths.build_dir(slug) / table[key]["file"]).read_text(), table[key], seeds)
+    key = recolor.select(table, aspect, seeds)
+    svg = recolor.recolor(
+        (paths.build_dir(slug) / table[key]["file"]).read_text(), table[key], seeds
+    )
     w, h = canvas_size(aspect)
     height = round(width * h / w)
     name = f"resvg/{slug}.{aspect_label(aspect)}.{theme}"
