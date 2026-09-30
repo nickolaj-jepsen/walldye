@@ -19,7 +19,7 @@ const token = DEFAULT_PRESET.name;
       <p class="lost">The script for this wallpaper has been lost.</p>
     ) : (
       <Fragment>
-        <p class="listing-head"><span><span class="mono">{`wallpapers/${p.slug}/design.py`}</span>, <span class="nowrap">{lineCount(p.script)} lines</span></span><button type="button" class="textbtn" data-action="copy-source">Copy</button></p>
+        <p class="listing-head"><span><span class="mono path">wallpapers/<wbr />{p.slug}/<wbr />design.py</span>, <span class="nowrap">{lineCount(p.script)} lines</span></span><button type="button" class="textbtn" data-action="copy-source">Copy</button></p>
         <div class="listing">
           <Fragment set:html={listing} />
           <template id="raw-source">{p.script}</template>

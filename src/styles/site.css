@@ -659,6 +659,9 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   color: var(--text-2);
 }
 .listing-head .textbtn { margin-left: auto; }
+/* A long slug breaks the path after a slash, and inside the slug if it must, at 320px. */
+.listing-head > span { min-width: 0; }
+.listing-head .path { white-space: normal; overflow-wrap: anywhere; }
 .listing pre {
   overflow-x: auto;
   padding: calc(3 * var(--u)) var(--l);
