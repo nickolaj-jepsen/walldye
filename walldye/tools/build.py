@@ -1,14 +1,12 @@
 """walldye build: check pieces, then write each variant's build/ templates and slots.json;
 also wallpapers/index.json."""
 
-import json
 import shutil
 import sys
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 
-from walldye._aspect import SITE_ASPECTS
-from walldye.tools import check, hashing, lint, metadata, paths, slotfile
+from walldye.tools import check, hashing, index, metadata, paths, slotfile
 from walldye.tools.paths import TEMPLATE_NAME
 
 
@@ -161,7 +159,7 @@ def run(
     tasks = [task for p in plans for task in p.tasks]
     results = check.run_tasks(check.check_variant, tasks, check.workers(jobs, len(tasks)))
     failed = [p.target.slug for p in plans if not _finish(p, results, variant)]
-    write_index()
+    index.write()
     return 1 if len(failed) > 0 else 0
 
 
@@ -190,38 +188,3 @@ def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -
     if variant is None:
         _prune(t.slug, t.piece.variant_names())
     return True
-
-
-def write_index() -> None:
-    """Regenerate wallpapers/index.json without importing designs; license
-    is null when meta.yaml breaks the license rules. A piece whose meta.yaml or slots.json cannot
-    be read is left out, with a note on stderr."""
-    index: dict[str, object] = {}
-    for slug in paths.slugs():
-        try:
-            slots = slotfile.load(slug)
-            if slots is None:
-                continue
-            m = metadata.load_meta(slug)
-            keys = slots.entries
-        except (OSError, ValueError) as e:
-            print(f"index.json: left out {slug}: {e}", file=sys.stderr)
-            continue
-        variants: dict[str, object] = {}
-        for name, entry in metadata.meta_variants(m).items():
-            if name != "default":
-                label = entry.get("label")
-                variants[name] = {
-                    "draft": entry.get("draft") is True,
-                    "label": label if isinstance(label, str) else "",
-                }
-        index[slug] = {
-            "aspects": [a for a in SITE_ASPECTS if any(k.startswith(f"{a}/") for k in keys)],
-            "draft": metadata.is_draft(m),
-            "license": lint.license_of(m),
-            "title": m.get("title"),
-            "variants": variants,
-        }
-    (paths.WALLPAPERS / "index.json").write_text(
-        json.dumps(index, indent=2, ensure_ascii=False, default=str) + "\n"
-    )

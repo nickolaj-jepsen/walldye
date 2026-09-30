@@ -12,6 +12,7 @@ from walldye.tools import (
     build,
     coefs,
     hashing,
+    index,
     listing,
     loader,
     paths,
@@ -355,7 +356,7 @@ def test_unreadable_siblings_are_left_out(wallpapers, capsys):
         ["syntax", "error"],
     ]
     assert captured.err.startswith("list: left out bad-yaml: ")
-    assert review.drafts() == ["collision", "syntax"]
+    assert review.state.drafts() == ["collision", "syntax"]
     assert capsys.readouterr().err.startswith("review: skipped bad-yaml: ")
 
 
@@ -403,7 +404,7 @@ def test_write_index(wallpapers, capsys):
     meta.write_text(meta.read_text().replace("license: CC0-1.0\n", ""))
     (wallpapers / "bad-meta/meta.yaml").write_text("title: [x\n")
     (paths.build_dir("bad-slots") / "slots.json").write_text("[]\n")
-    build.write_index()
+    index.write()
     bad_meta = wallpapers / "bad-meta/meta.yaml"
     bad_slots = paths.build_dir("bad-slots") / "slots.json"
     yaml_error = "expected ',' or ']', but got '<stream end>'"

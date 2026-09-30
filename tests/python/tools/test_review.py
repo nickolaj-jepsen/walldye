@@ -10,7 +10,7 @@ from tools_support import VERSION_LABELS, built, versions
 
 from walldye.tools import cli, metadata, paths, recolor, review
 from walldye.tools.errors import UsageError
-from walldye.tools.review import Step
+from walldye.tools.review.state import Step
 from walldye.tools.themes import parse_seeds
 
 RING = '''"""A ring round a dot."""
@@ -59,7 +59,7 @@ def meta(slug):
 
 def vocabulary():
     paths.TAXONOMY.write_text(TAXONOMY)
-    review.LABELS.write_text(LABELS_TS)
+    review.state.LABELS.write_text(LABELS_TS)
 
 
 # --- the queue and the words -----------------------------------------------------------------
@@ -70,37 +70,37 @@ def test_queue_orders_versions(wallpapers, capsys):
     versions(wallpapers, "b", draft=False)
     piece(wallpapers, "c", draft=False)
     drafts = [Step("a", "default", False), Step("b", "late", False), Step("b", "bare", False)]
-    assert review.queue([]) == drafts
-    assert review.queue([], everything=True) == [
+    assert review.state.queue([]) == drafts
+    assert review.state.queue([], everything=True) == [
         *drafts,
         Step("b", "default", True),
         Step("c", "default", True),
     ]
-    assert review.queue(["c", "b"]) == [
+    assert review.state.queue(["c", "b"]) == [
         Step("c", "default", True),
         Step("b", "default", True),
         Step("b", "late", False),
         Step("b", "bare", False),
     ]
-    assert review.drafts() == ["a", "b"]
+    assert review.state.drafts() == ["a", "b"]
 
 
 def test_facet_labels_read_and_extend_labels_ts():
-    real = review.facet_labels((paths.ROOT / "src/lib/labels.ts").read_text())
+    real = review.state.facet_labels((paths.ROOT / "src/lib/labels.ts").read_text())
     assert real["technique"]["dither"] == "dithering"
     assert real["lineage"]["early-computer-art"] == "early computer art"
-    text = review.add_labels(
+    text = review.state.add_labels(
         LABELS_TS, {"lineage": {"op-art": "op art"}, "technique": {"weave": "the weaver's grid"}}
     )
     assert "    weave: 'the weaver\\'s grid',\n  },\n  subject: {\n" in text
     assert "  lineage: {\n    'op-art': 'op art',\n  },\n" in text
-    assert review.facet_labels(text) == {
+    assert review.state.facet_labels(text) == {
         "technique": {"drafting": "technical drawing", "weave": "the weaver's grid"},
         "subject": {"flora-fauna": "plants and animals"},
         "lineage": {"op-art": "op art"},
     }
     with pytest.raises(ValueError, match="no moods block"):
-        review.add_labels(LABELS_TS, {"moods": {"calm": "calm"}})
+        review.state.add_labels(LABELS_TS, {"moods": {"calm": "calm"}})
 
 
 def test_edited_applies_words_facets_and_versions():
@@ -126,7 +126,7 @@ def test_edited_applies_words_facets_and_versions():
         },
         "facets": {"technique": {"weave": "accept", "stipple": "decline"}},
     }  # fmt: skip
-    m = review.edited(before, entry)
+    m = review.state.edited(before, entry)
     assert list(m) == [
         "title",
         "description",
@@ -146,7 +146,7 @@ def test_edited_applies_words_facets_and_versions():
         "bare": {"label": "Five", "draft": True},
     }
     assert before["variants"]["bare"]["description"] == "No ring." and "notes" not in before
-    assert "notes" not in review.edited(m, {"edits": {"notes": "  "}})
+    assert "notes" not in review.state.edited(m, {"edits": {"notes": "  "}})
 
 
 # --- apply --------------------------------------------------------------------------------------
@@ -169,18 +169,18 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
         },
         "c": {"versions": {"default": {"status": "keep"}}},
     }  # fmt: skip
-    result = review.apply(review.queue([]), state)
+    result = review.state.apply(review.state.queue([]), state)
     assert result["refused"] == [
         {"slug": "b", "reason": "subject: moon needs the words visitors see"}
     ]
     assert result["published"] == ["c"] and result["new_facets"] == []
     assert meta("b")["draft"] is True and paths.TAXONOMY.read_text() == TAXONOMY
-    assert review.LABELS.read_text() == LABELS_TS
-    assert "facets" in review.load_state()["b"]
+    assert review.state.LABELS.read_text() == LABELS_TS
+    assert "facets" in review.state.load_state()["b"]
 
     # A label typed on any piece serves every piece.
     state["c"]["labels"] = {"subject": {"moon": "the moon"}}
-    result = review.apply([Step("b", "default", False)], state)
+    result = review.state.apply([Step("b", "default", False)], state)
     assert result == {
         "published": ["b"],
         "published_variants": [],
@@ -201,9 +201,9 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
     assert paths.TAXONOMY.read_text() == (
         "# Facet vocabulary.\ntechnique:\n  - drafting\n  - weave\nsubject:\n  - flora-fauna\n  - moon\nlineage: []\n"
     )
-    labels = review.facet_labels(review.LABELS.read_text())
+    labels = review.state.facet_labels(review.state.LABELS.read_text())
     assert (labels["technique"]["weave"], labels["subject"]["moon"]) == ("woven grids", "the moon")
-    assert review.load_state() == {
+    assert review.state.load_state() == {
         "b": {"versions": {"default": {"status": "keep", "note": "calm"}}},
         "c": {"versions": {"default": {"status": "keep"}}, "labels": {"subject": {"moon": "the moon"}}},
     }  # fmt: skip
@@ -219,7 +219,7 @@ def test_apply_unpublishes_and_asks_again(wallpapers, review_files):
         "v": {"versions": {"default": {"status": "keep"}, "late": {"status": "drop", "note": "too dark"}, "bare": {"status": "keep"}}},
         "p": {"versions": {"default": {"status": "drop"}}},
     }  # fmt: skip
-    result = review.apply(review.queue(["v", "p"]), state)
+    result = review.state.apply(review.state.queue(["v", "p"]), state)
     assert result["unpublished"] == [
         {"slug": "v", "variant": "late"},
         {"slug": "p", "variant": "default"},
@@ -232,18 +232,18 @@ def test_apply_unpublishes_and_asks_again(wallpapers, review_files):
     assert v["draft"] is False and v["variants"]["late"]["draft"] is True
     assert "draft" not in v["variants"]["bare"] and meta("p")["draft"] is True
     assert list(meta("p"))[-2:] == ["model", "draft"]
-    assert review.load_state() == {
+    assert review.state.load_state() == {
         "v": {"versions": {"default": {"status": "keep"}, "late": {"note": "too dark"}, "bare": {"status": "keep"}}}
     }  # fmt: skip
-    assert review.queue([]) == [Step("p", "default", False), Step("v", "late", False)]
+    assert review.state.queue([]) == [Step("p", "default", False), Step("v", "late", False)]
 
 
 def test_apply_leaves_the_versions_of_a_dropped_piece(wallpapers, review_files):
     versions(wallpapers)
     state = {"versions": {"versions": {"default": {"status": "drop"}, "late": {"status": "keep"}}}}
-    result = review.apply(review.queue([]), state)
+    result = review.state.apply(review.state.queue([]), state)
     assert result["published_variants"] == [] and meta("versions")["variants"] == VERSION_LABELS
-    assert review.summarize(review.queue([]), state) == {
+    assert review.state.summarize(review.state.queue([]), state) == {
         "approved": [],
         "rejected": [{"slug": "versions", "note": ""}],
         "undecided": [],
@@ -260,8 +260,8 @@ def test_apply_sends_edits_back_and_asks_again(wallpapers, review_files):
         "v": {"versions": {"default": {"status": "edit", "note": "thinner rings"}, "late": {"status": "edit"}, "bare": {"status": "keep", "note": "more like this"}}},
         "a": {"versions": {"default": {"status": "edit", "note": "less dense"}}, "edits": {"title": "Ring"}},
     }  # fmt: skip
-    steps = review.queue(["v", "a"])
-    assert review.summarize(steps, state) == {
+    steps = review.state.queue(["v", "a"])
+    assert review.state.summarize(steps, state) == {
         "approved": [],
         "rejected": [],
         "undecided": [],
@@ -277,7 +277,7 @@ def test_apply_sends_edits_back_and_asks_again(wallpapers, review_files):
         ],
         "variants": {"approved": [{"slug": "v", "variant": "bare"}], "rejected": [], "undecided": []},
     }  # fmt: skip
-    result = review.apply(steps, state)
+    result = review.state.apply(steps, state)
     assert (result["published"], result["published_variants"], result["unpublished"]) == (
         [],
         [{"slug": "v", "variant": "bare"}],
@@ -285,21 +285,21 @@ def test_apply_sends_edits_back_and_asks_again(wallpapers, review_files):
     )
     assert meta("v")["draft"] is False and meta("v")["variants"]["late"]["draft"] is True
     assert meta("a")["draft"] is True and meta("a")["title"] == "Ring"
-    assert review.load_state() == {
+    assert review.state.load_state() == {
         "v": {"versions": {"bare": {"status": "keep", "note": "more like this"}}}
     }
-    assert review.queue([]) == [Step("a", "default", False), Step("v", "late", False)]
+    assert review.state.queue([]) == [Step("a", "default", False), Step("v", "late", False)]
 
 
 def test_apply_refuses_edits_that_break_the_lint(wallpapers, review_files):
     piece(wallpapers, "a")
     before = (wallpapers / "a/meta.yaml").read_text()
     state = {"a": {"versions": {"default": {"status": "keep"}}, "edits": {"title": " "}}}
-    result = review.apply(review.queue(["a"]), state)
+    result = review.state.apply(review.state.queue(["a"]), state)
     assert result["refused"] == [{"slug": "a", "reason": "meta.yaml needs a title"}]
     assert result["published"] == [] and (wallpapers / "a/meta.yaml").read_text() == before
-    assert review.load_state() == state
-    assert review.check_entry("a", state["a"], {})["fresh"] == ["meta.yaml needs a title"]
+    assert review.state.load_state() == state
+    assert review.state.check_entry("a", state["a"], {})["fresh"] == ["meta.yaml needs a title"]
 
 
 def test_summarize_lists_notes_and_versions():
@@ -308,7 +308,7 @@ def test_summarize_lists_notes_and_versions():
         "a": {"versions": {"default": {"note": "look again"}}},
         "b": {"versions": {"default": {"status": "keep", "note": "fine"}, "x": {"status": "drop", "note": "a nudge"}}},
     }  # fmt: skip
-    assert review.summarize(steps, state) == {
+    assert review.state.summarize(steps, state) == {
         "approved": [],
         "rejected": [],
         "undecided": ["a"],
@@ -332,9 +332,9 @@ def test_summarize_lists_notes_and_versions():
 def serve(monkeypatch, capsys, slugs, timeout=60):
     """Run review.run in a thread; returns (base url, finish() -> printed JSON)."""
     urls: queue.Queue[str] = queue.Queue()
-    monkeypatch.setattr(review.webbrowser, "open", urls.put)
+    monkeypatch.setattr(review.server.webbrowser, "open", urls.put)
     codes = []
-    t = threading.Thread(target=lambda: codes.append(review.run(slugs, timeout, 0, True)))
+    t = threading.Thread(target=lambda: codes.append(review.server.run(slugs, timeout, 0, True)))
     t.start()
     url = urls.get(timeout=10)
 
@@ -367,7 +367,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     piece(wallpapers, "published", draft=False)
     built(capsys, "a", "c", "published")
     other = {"other": {"versions": {"default": {"status": "drop"}}}}
-    review.save_state(other)
+    review.state.save_state(other)
 
     url, finish = serve(monkeypatch, capsys, [])  # the drafts: a, and c's two versions
     page = http(url).decode()
@@ -428,7 +428,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
         "c": {"versions": {"late": {"status": "keep"}, "bare": {"status": "drop", "note": "empty"}}},
     }  # fmt: skip
     assert http(url + "state", state) == b"ok"
-    assert review.load_state() == {**state, **other}
+    assert review.state.load_state() == {**state, **other}
     done = json.loads(http(url + "apply", {}))
     printed = finish()
     assert printed == done
@@ -461,7 +461,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     assert meta("c")["variants"]["bare"]["draft"] is True
     index = json.loads((wallpapers / "index.json").read_text())
     assert index["c"]["variants"]["late"] == {"draft": False, "label": "Eight o'clock"}
-    assert review.load_state() == {
+    assert review.state.load_state() == {
         "a": {"versions": {"default": {"status": "keep", "note": "keep"}}},
         "c": state["c"],
         **other,
@@ -472,7 +472,7 @@ def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, ca
     piece(wallpapers, "a")
     built(capsys, "a")
     paths.TAXONOMY.write_text("technique: {drafting: a mapping, not a list}\n")
-    review.save_state({"a": {"versions": {"default": {"status": "keep"}}}})
+    review.state.save_state({"a": {"versions": {"default": {"status": "keep"}}}})
     url, finish = serve(monkeypatch, capsys, ["a"])
     with pytest.raises(urllib.error.HTTPError) as e:
         http(url + "apply", {})
@@ -489,7 +489,7 @@ def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, ca
 def test_review_timeout_applies_nothing(wallpapers, review_files, monkeypatch, capsys):
     piece(wallpapers, "a")
     built(capsys, "a")
-    review.save_state({"a": {"versions": {"default": {"status": "keep"}}}})
+    review.state.save_state({"a": {"versions": {"default": {"status": "keep"}}}})
     _, finish = serve(monkeypatch, capsys, ["a"], timeout=0.2)
     out = finish()
     assert out["finished"] is False and out["approved"] == ["a"] and out["published"] == []
@@ -506,12 +506,12 @@ def test_review_refuses_unbuilt_and_empty(wallpapers, review_files, capsys):
         SystemExit,
         match=r"not built: versions, versions \(bare\), raw \(run walldye build versions raw\)",
     ):
-        review.run(["a", "versions", "raw"], 1, 0, False)
+        review.server.run(["a", "versions", "raw"], 1, 0, False)
     for slug in ("raw", "versions"):
         (wallpapers / slug / "meta.yaml").unlink()
     metadata.write_meta("a", {**meta("a"), "draft": False})
     with pytest.raises(UsageError, match="no drafts"):
-        review.run([], 1, 0, False)
+        review.server.run([], 1, 0, False)
     with pytest.raises(SystemExit) as e:
         cli.main(["review", "a", "--all"])
     assert e.value.code == 2
