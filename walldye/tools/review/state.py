@@ -98,7 +98,7 @@ def queue(slugs: Sequence[str], everything: bool = False) -> list[Step]:
 
 
 def _license(meta: metadata.Meta) -> str:
-    from walldye.tools.lint import license_of
+    from walldye.tools.lint.piece import license_of
 
     license = license_of(meta)
     if license is None:
@@ -295,7 +295,7 @@ def _problems(
     known: Mapping[str, Sequence[str]],
     labels: Labels,
 ) -> tuple[list[str], list[str], list[str]]:
-    """(errors, warnings, fresh) from lint.meta for `after`, the meta.yaml of `slug` as edited
+    """(errors, warnings, fresh) from lint.piece.meta for `after`, the meta.yaml of `slug` as edited
     from `before`, with the new facet values counted as known. fresh holds the errors `before`
     lacks, plus one for each new value that is malformed or has no label in `labels`."""
     from walldye.tools import lint
@@ -305,8 +305,8 @@ def _problems(
         f: {*known.get(f, ()), *(v for g, v, _ in new if g == f)} for f in {*known, *FACETS}
     }
     names = ["default", *variants(before)]
-    old, _ = lint.meta(slug, before, taxonomy, names)
-    errors, warnings = lint.meta(slug, after, taxonomy, names)
+    old, _ = lint.piece.meta(slug, before, taxonomy, names)
+    errors, warnings = lint.piece.meta(slug, after, taxonomy, names)
     fresh = [e for e in errors if e not in old]
     for f, v, label in new:
         if FACET_VALUE.fullmatch(v) is None:

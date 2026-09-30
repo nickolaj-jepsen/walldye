@@ -26,7 +26,7 @@ def run(slug: str, model: str) -> int:
         d = paths.piece_dir(slug)
     except ValueError as e:
         raise UsageError(str(e)) from None
-    if lint.reserved(slug):
+    if lint.piece.reserved(slug):
         raise UsageError(f"{slug!r} is reserved for a site route")
     if d.exists():
         raise UsageError(f"{d} already exists")

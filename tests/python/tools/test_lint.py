@@ -11,7 +11,7 @@ DRAW = "\n\n@design()\ndef draw(s: Canvas) -> None:\n    s.fill(P().circle(s.cen
 def errors(tmp_path, body: str = "", draw: str = DRAW, head: str = HEAD) -> list[str]:
     path = tmp_path / "design.py"
     path.write_text(head + textwrap.dedent(body) + draw)
-    return lint.design(path)[0]
+    return lint.source.design(path)[0]
 
 
 def test_a_plain_design_passes(tmp_path):
@@ -232,14 +232,14 @@ def test_errors_name_their_lines_in_order(tmp_path):
 def test_color_words_warn(tmp_path):
     path = tmp_path / "design.py"
     path.write_text('"""A terracotta sun."""\n\n# ACCENT rim, a warm orange glow\n')
-    assert lint.design(path)[1] == [
+    assert lint.source.design(path)[1] == [
         "color words in docstrings or comments: orange, terracotta (name tokens or roles, never hues)"
     ]
 
 
 def test_color_words_match_plurals_but_not_tokens():
     text = "Greys and whites under the ambers; GREYS, BLUES, reddish, Blueprint, crimsons"
-    assert lint.color_words(text) == {"greys", "whites", "ambers", "crimsons"}
+    assert lint.words.color_words(text) == {"greys", "whites", "ambers", "crimsons"}
 
 
 def test_data_rules(wallpapers):
@@ -248,32 +248,34 @@ def test_data_rules(wallpapers):
     for name in ("points.json", "names.txt", "grid.npy", ".hidden.json", "x.csv", "late.json\n"):
         (d / name).write_text("")
     (d / "nested").mkdir()
-    assert lint.data("piece") == [
+    assert lint.piece.data("piece") == [
         "data/.hidden.json: data files are .json, .txt or .npy with a plain name",
         "data/late.json\n: data files are .json, .txt or .npy with a plain name",
         "data/nested/: data/ holds files only, no subdirectories",
         "data/x.csv: data files are .json, .txt or .npy with a plain name",
     ]
-    assert lint.data("other") == []
+    assert lint.piece.data("other") == []
 
 
 def test_svg_limits():
     head = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
-    assert lint.svg(head + "</svg>") == ([], [])
-    assert lint.svg(head + '<image href="x.png"/></svg>')[0] == [
+    assert lint.templates.svg(head + "</svg>") == ([], [])
+    assert lint.templates.svg(head + '<image href="x.png"/></svg>')[0] == [
         "<image> is not allowed: templates are self-contained vectors"
     ]
-    errors_, warnings = lint.svg(head + "<g/>" * 16_000 + "</svg>")
+    errors_, warnings = lint.templates.svg(head + "<g/>" * 16_000 + "</svg>")
     assert errors_ == [] and warnings == [
         "16001 elements is heavy (over 15,000); merge shapes into one <path> per color"
     ]
-    assert lint.svg(head + "<g/>" * 20_000 + "</svg>")[0] == [
+    assert lint.templates.svg(head + "<g/>" * 20_000 + "</svg>")[0] == [
         "20001 elements is over the limit of 20,000; merge shapes into one <path> per color"
     ]
-    errors_, warnings = lint.svg(head + f'<path d="{"M0 0" * 160_000}"/></svg>')
+    errors_, warnings = lint.templates.svg(head + f'<path d="{"M0 0" * 160_000}"/></svg>')
     assert errors_ == [] and warnings[0].startswith("640,")
-    assert lint.svg(head + f'<path d="{"M0 0" * 260_000}"/></svg>')[0][0].startswith("1,040,")
-    assert lint.svg("<svg>")[0][0].startswith("invalid XML")
+    assert lint.templates.svg(head + f'<path d="{"M0 0" * 260_000}"/></svg>')[0][0].startswith(
+        "1,040,"
+    )
+    assert lint.templates.svg("<svg>")[0][0].startswith("invalid XML")
 
 
 TAXONOMY = {"technique": {"drafting", "dither"}, "subject": {"space"}}
@@ -374,10 +376,10 @@ LABELS = {"default": {"label": "Early"}, "late": {"label": "Late in the turn", "
     ],
 )
 def test_meta_rules(slug, meta, names, error, tmp_path, monkeypatch):
-    monkeypatch.setattr(lint, "LICENSES", tmp_path)
+    monkeypatch.setattr(lint.piece, "LICENSES", tmp_path)
     for name in ("CC0-1.0", "LicenseRef-fan-work"):
         (tmp_path / f"{name}.txt").write_text("license text\n")
-    found, _ = lint.meta(slug, meta, TAXONOMY, names or ("default",))
+    found, _ = lint.piece.meta(slug, meta, TAXONOMY, names or ("default",))
     if error is None:
         assert found == []
     else:
@@ -386,18 +388,18 @@ def test_meta_rules(slug, meta, names, error, tmp_path, monkeypatch):
 
 def test_meta_wants_a_source_for_data(wallpapers):
     (wallpapers / "ok/data").mkdir(parents=True)
-    assert "data/ needs a kind: data source" in " ".join(lint.meta("ok", GOOD, TAXONOMY)[0])
+    assert "data/ needs a kind: data source" in " ".join(lint.piece.meta("ok", GOOD, TAXONOMY)[0])
     for source in ({"kind": "data", "topic": "Star positions"}, WORK):
-        found, _ = lint.meta("ok", {**GOOD, **FAN, "sources": [source]}, TAXONOMY)
+        found, _ = lint.piece.meta("ok", {**GOOD, **FAN, "sources": [source]}, TAXONOMY)
         assert found == []
 
 
 def test_license_of():
-    assert lint.license_of(GOOD) == "CC0-1.0"
-    assert lint.license_of({**GOOD, **FAN}) == "LicenseRef-fan-work"
-    assert lint.license_of({**GOOD, "sources": [WORK]}) is None
-    assert lint.license_of(HUMAN) is None
-    assert lint.license_of({**HUMAN, "license": "CC-BY-4.0"}) == "CC-BY-4.0"
+    assert lint.piece.license_of(GOOD) == "CC0-1.0"
+    assert lint.piece.license_of({**GOOD, **FAN}) == "LicenseRef-fan-work"
+    assert lint.piece.license_of({**GOOD, "sources": [WORK]}) is None
+    assert lint.piece.license_of(HUMAN) is None
+    assert lint.piece.license_of({**HUMAN, "license": "CC-BY-4.0"}) == "CC-BY-4.0"
 
 
 def test_meta_warnings():
@@ -406,7 +408,7 @@ def test_meta_warnings():
         "default": {"label": "Early"},
         "late": {"label": "Red dusk", "description": "A blue sea."},
     }
-    _, warnings = lint.meta("ok", meta, None, NAMES)
+    _, warnings = lint.piece.meta("ok", meta, None, NAMES)
     assert any("black, terracotta" in w for w in warnings)
     assert any("taxonomy.yaml not found" in w for w in warnings)
     assert (
@@ -416,7 +418,7 @@ def test_meta_warnings():
 
 
 def test_fan_work_license_text_is_committed():
-    text = (lint.LICENSES / "LicenseRef-fan-work.txt").read_text()
+    text = (lint.piece.LICENSES / "LicenseRef-fan-work.txt").read_text()
     for phrase in (
         "No license is granted",
         "unofficial fan tribute",
@@ -428,7 +430,7 @@ def test_fan_work_license_text_is_committed():
 
 
 def test_pixel_origins():
-    assert lint.pixel_origins([(3, 0, 6), (3, 0.5, 6), (2, 1, 1.25), (3, 0.5, 6)]) == [
+    assert lint.templates.pixel_origins([(3, 0, 6), (3, 0.5, 6), (2, 1, 1.25), (3, 0.5, 6)]) == [
         "pixel grid origin (0.5, 6) is not a whole unit; snap it to the 3-unit cell grid",
         "pixel grid origin (1, 1.25) is not a whole unit; snap it to the 2-unit cell grid",
     ]

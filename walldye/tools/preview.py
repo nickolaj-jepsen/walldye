@@ -46,17 +46,15 @@ def lint(
     """(errors, warnings) for one render of `slug` at `aspect`: the per-render part of
     `walldye check` (viewBox, the template limits, the design lint, color words in the
     meta.yaml copy, whole-unit origins of `grids`, the document's pixel grids)."""
-    errors, warnings = lints.svg(svg)
-    w, h = canvas_size(aspect)
-    if raster.viewbox(svg) != f"0 0 {w} {h}":
-        errors.append(f'viewBox is not "0 0 {w} {h}"')
+    errors, warnings = lints.templates.svg(svg)
+    errors += lints.templates.viewbox(svg, aspect)
     design = paths.piece_dir(slug) / "design.py"
     if design.exists():
-        source_errors, source_warnings = lints.design(design)
+        source_errors, source_warnings = lints.source.design(design)
         errors, warnings = errors + source_errors, warnings + source_warnings
     if (paths.piece_dir(slug) / "meta.yaml").exists():
-        warnings = warnings + lints.copy_words(metadata.load_meta(slug))
-    return errors, warnings + lints.pixel_origins(grids)
+        warnings = warnings + lints.piece.copy_words(metadata.load_meta(slug))
+    return errors, warnings + lints.templates.pixel_origins(grids)
 
 
 def file_name(slug: str, variant: str, token: str, aspect: str, overrides: Sequence[str]) -> str:

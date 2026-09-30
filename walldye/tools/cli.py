@@ -184,9 +184,9 @@ def _cmd_themes(a: argparse.Namespace) -> int:
 
 
 def _cmd_hashes(a: argparse.Namespace) -> int:
-    from walldye.tools import check
+    from walldye.tools import determinism
 
-    return check.hashes_main(_items(a, "args"))
+    return determinism.hashes_main(_items(a, "args"))
 
 
 def _parser() -> argparse.ArgumentParser:

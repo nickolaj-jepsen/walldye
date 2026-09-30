@@ -357,7 +357,7 @@ architecture.md (Build and check) says how the hashes decide what to redraw.
 
 ### 11.5 Tool API
 
-`walldye/tools/common.py` holds what the other tools and the batch workflow call: `load(slug)`, `render`, `rasterize`, `crop_svg`, `ink_map` and `focus`. `check` and `build` run one task per (slug, variant) in a process pool whose workers never write files; the parent prints and writes.
+The tools and the batch workflow share these modules in `walldye/tools/`: `paths` (the repo, a piece's folders and the template names), `metadata` (meta.yaml), `loader` (`load(slug)`, `draw`, `render`), `raster` (`rasterize`, `crop_svg`, `fit_crop`, `ink_map`, `focus`), `themes` (the presets, the theme grammar and the check themes), `slotfile` (slots.json), `recolor` (the Python reference of the site's recolor), `lint` (`source` for design.py, `templates`, `piece` for meta.yaml and the folder) and `similar` (near-clones). `check` and `build` run one task per (slug, variant) in a process pool whose workers never write files; the parent prints and writes.
 
 ## 12. CLI
 
@@ -433,7 +433,7 @@ A rejection is never a reason to delete a piece: `drop` is a separate step the o
 
 ### 13.1 Design lint
 
-`walldye/tools/lint.py`, run by `preview` and `check`. Errors, each naming the line:
+`walldye/tools/lint/source.py`, run by `preview` and `check`. Errors, each naming the line:
 
 | Rule | Fails |
 |---|---|
@@ -453,7 +453,7 @@ Warnings: color words in docstrings and comments, a pixel-grid origin that is no
 
 A module-level statement is the docstring, an import, a `type` alias, an assignment (plain, annotated or augmented) of a constant expression to names, an `assert` of one, a `def` (undecorated, except `draw`), or a class (undecorated or `@dataclass(...)`). `if`, `for`, `while`, `with` and `try` fail.
 
-A constant expression uses literals, displays, comprehensions and lambdas, names bound earlier and their attributes, any operator, and calls of pure builtins, `math` and `cmath`, numpy's array constructors and element-wise trigonometry, `walldye`'s color and vector functions, the design's own `Params` subclasses, functions defined earlier in the module, and string methods. The `CONST_*` sets in `walldye/tools/lint.py` have the exact lists. So `TILT = math.radians(6)` and `SPOKES = np.array([...])` pass, while `P()`, anything on `s`, and shapely, scipy or skimage calls belong in `draw`.
+A constant expression uses literals, displays, comprehensions and lambdas, names bound earlier and their attributes, any operator, and calls of pure builtins, `math` and `cmath`, numpy's array constructors and element-wise trigonometry, `walldye`'s color and vector functions, the design's own `Params` subclasses, functions defined earlier in the module, and string methods. The `CONST_*` sets in `walldye/tools/lint/source.py` have the exact lists. So `TILT = math.radians(6)` and `SPOKES = np.array([...])` pass, while `P()`, anything on `s`, and shapely, scipy or skimage calls belong in `draw`.
 
 ### 13.3 Formatting
 

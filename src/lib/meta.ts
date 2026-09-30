@@ -1,6 +1,6 @@
 /**
  * Rules over a parsed meta.yaml shared by CI and the content schema: the license default and draft
- * flag (ports of walldye/tools/lint.py license_of and common.is_draft), the `variants:` mapping
+ * flag (ports of walldye/tools/lint/piece.py license_of and metadata.is_draft), the `variants:` mapping
  * and the copy lint.
  */
 
@@ -20,7 +20,7 @@ export const VARIANT_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type Meta = Record<string, unknown>;
 
-/** Slugs that would shadow a site route or file (walldye/tools/lint.py RESERVED_SLUGS). */
+/** Slugs that would shadow a site route or file (walldye/tools/lint/piece.py RESERVED_SLUGS). */
 export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   'about',
   'index',
@@ -106,7 +106,7 @@ const isMapping = (v: unknown): v is Meta =>
 /**
  * The named variants under meta.yaml `variants:`, in file order, read without validating them
  * (variantsMeta reports what is wrong) and leaving out entries that are not mappings, as
- * walldye/tools/common.py meta_variants does; [] when the key is absent or not a mapping.
+ * walldye/tools/metadata.py meta_variants does; [] when the key is absent or not a mapping.
  */
 export function namedVariants(meta: Meta): NamedVariant[] {
   const vs = meta.variants;
@@ -130,7 +130,7 @@ export function licenseOf(meta: Meta): unknown {
   return meta.model && !recreation ? DEFAULT_LICENSE : null;
 }
 
-/** walldye/tools/lint.py COLOR_WORDS: hues and named shades that copy never names. */
+/** walldye/tools/lint/words.py COLOR_WORDS: hues and named shades that copy never names. */
 export const COLOR_WORDS: ReadonlySet<string> = new Set([
   'red',
   'orange',

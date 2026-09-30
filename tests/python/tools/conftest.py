@@ -19,7 +19,7 @@ def review_files(tmp_path, monkeypatch):
     files.mkdir()
     monkeypatch.setattr(review.state, "STATE_FILE", files / ".walldye-review.json")
     monkeypatch.setattr(review.state, "LABELS", files / "labels.ts")
-    monkeypatch.setattr(lint, "LABELS", files / "labels.ts")
+    monkeypatch.setattr(lint.piece, "LABELS", files / "labels.ts")
     monkeypatch.setattr(paths, "TAXONOMY", files / "taxonomy.yaml")
     monkeypatch.setattr(paths, "FEATURED", files / "featured.yaml")
     return files

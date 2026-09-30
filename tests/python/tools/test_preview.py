@@ -68,7 +68,9 @@ def test_lint_checks_the_viewbox(wallpapers):
     piece(wallpapers, "tiny")
     svg = loader.render("tiny", "fireproof")
     assert preview.lint("tiny", svg, "16:9", []) == ([], [])
-    assert preview.lint("tiny", svg, "21:9", [])[0] == ['viewBox is not "0 0 2520 1080"']
+    assert preview.lint("tiny", svg, "21:9", [])[0] == [
+        "viewBox must be \"0 0 2520 1080\", not '0 0 1920 1080'"
+    ]
 
 
 def test_crop_parsing():

@@ -6,7 +6,6 @@ check_variant, in a process pool when several pieces are checked. Workers return
 and never write files.
 """
 
-import json
 import multiprocessing
 import os
 import subprocess
@@ -19,23 +18,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-import numpy as np
-from numpy.typing import NDArray
-
-from walldye._aspect import canvas_size
 from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye._theme import REGIMES, Regime
-from walldye.tools import hashing, knobs, lint, loader, metadata, paths, raster, themes
+from walldye.tools import determinism, hashing, knobs, lint, loader, metadata, paths, raster, themes
 from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialize_aspect
+from walldye.tools.similar import near_clones
 
-HASH_SEED: Final = "4242"
-NEAR_CLONE: Final = 0.93
 SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
-INK_WIDTH: Final = 256
-
-type Ink = NDArray[np.float64]
 
 
 class DesignError(Exception):
@@ -128,7 +119,7 @@ def prepare(slug: str, variant: str | None = None) -> Target:
     names = (
         ("default", *metadata.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
     )
-    errors, warnings = lint.meta(slug, meta, lint.load_taxonomy(), names)
+    errors, warnings = lint.piece.meta(slug, meta, lint.piece.load_taxonomy(), names)
     t.report.errors += errors
     t.report.warnings += warnings
     if t.piece is not None:
@@ -152,10 +143,10 @@ def lint_source(t: Target) -> None:
     if not path.exists():
         return
     try:
-        errors, warnings = lint.design(path)
+        errors, warnings = lint.source.design(path)
     except SyntaxError:
         return
-    t.report.errors += errors + lint.data(t.slug)
+    t.report.errors += errors + lint.piece.data(t.slug)
     t.report.warnings += warnings
 
 
@@ -178,14 +169,10 @@ def draw(piece: loader.Piece, spec: RenderSpec) -> Document:
 def probe_hashes(docs: Mapping[tuple[str, Regime], Document]) -> dict[str, str]:
     """slots.json `probes`: sha256 of the 16:9 dark document under fireproof, and of each
     regime's 16:9 document under its sample theme."""
-    probes = {"fireproof": _sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
+    probes = {"fireproof": determinism.sample_sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
     for regime in REGIMES:
-        probes[regime] = _sha(docs["16:9", regime], themes.SAMPLE[regime])
+        probes[regime] = determinism.sample_sha(docs["16:9", regime], themes.SAMPLE[regime])
     return probes
-
-
-def _sha(doc: Document, theme: themes.Theme) -> str:
-    return hashing.sha256(doc.to_svg(themes.tokens_of(theme)).encode())
 
 
 def check_variant(task: Task) -> Result:
@@ -226,7 +213,7 @@ def _check(task: Task, r: Result) -> None:
         for regime in REGIMES
     }
     # The fresh process draws while this one does; it only needs the keys.
-    fresh = _start_fresh(list(keys.values()))
+    fresh = determinism.start_fresh(list(keys.values()))
     try:
         expected: dict[str, str] = {}
         for (aspect, regime), k in keys.items():
@@ -249,26 +236,26 @@ def _check(task: Task, r: Result) -> None:
         if fresh.returncode is None:
             fresh.kill()
             fresh.wait()
-    r.errors += _fresh_errors(done, expected)
+    r.errors += determinism.fresh_errors(done, expected)
     if len(r.errors) > 0:
         return
 
     for (aspect, regime), doc in docs.items():
-        w, h = canvas_size(aspect)
-        if (got := raster.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
-            r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
+        r.errors += [
+            f"{aspect} {regime}: {e}" for e in lint.templates.viewbox(doc.skeleton(), aspect)
+        ]
     for aspect in piece.aspects:
         templates, entries, errors = serialize_aspect({g: docs[aspect, g] for g in REGIMES}, aspect)
         r.templates.update(templates)
         r.entries.update(entries)
         r.errors += errors
     for name, text in r.templates.items():
-        errors, warnings = lint.svg(text)
+        errors, warnings = lint.templates.svg(text)
         r.errors += [f"{name}: {e}" for e in errors]
         r.warnings += [f"{name}: {w}" for w in warnings]
     for aspect in piece.aspects:
         grids = [g for regime in REGIMES for g in docs[aspect, regime].pixel_grids]
-        r.warnings += [f"{aspect}: {w}" for w in lint.pixel_origins(grids)]
+        r.warnings += [f"{aspect}: {w}" for w in lint.templates.pixel_origins(grids)]
     r.cells = sorted({cell for doc in docs.values() for cell, _, _ in doc.pixel_grids})
     r.probes = probe_hashes(docs)
     dark = r.templates.get("16x9.svg")
@@ -276,41 +263,6 @@ def _check(task: Task, r: Result) -> None:
         r.focus = raster.focus(raster.rasterize(dark, raster.FOCUS_WIDTH), raster.background(dark))
     if task.paranoid and not isinstance(piece, loader.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
-
-
-def _start_fresh(keys: Sequence[str]) -> subprocess.Popen[str]:
-    """A running `python -m walldye _hashes` subprocess under PYTHONHASHSEED for `keys`; read
-    it with communicate() and judge it with _fresh_errors()."""
-    return subprocess.Popen(
-        [sys.executable, "-m", "walldye", "_hashes", str(paths.WALLPAPERS), *keys],
-        env={**os.environ, "PYTHONHASHSEED": HASH_SEED},
-        cwd=paths.ROOT,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-
-
-def _fresh_errors(run: subprocess.CompletedProcess[str], expected: Mapping[str, str]) -> list[str]:
-    """Errors for the keys the finished _start_fresh() subprocess `run` drew differently from
-    `expected` {key: sha256}."""
-    if run.returncode != 0:
-        return [f"determinism subprocess failed: {run.stderr.strip()[-600:]}"]
-    try:
-        got = metadata.as_dict(json.loads(run.stdout))
-    except ValueError:
-        got = None
-    if got is None:
-        return [f"determinism subprocess printed {run.stdout[:200]!r}"]
-    errors: list[str] = []
-    for k, sha in expected.items():
-        if got.get(k) != sha:
-            _, _, aspect, regime = k.split("@")
-            errors.append(
-                f"{aspect} {regime}: a fresh process with PYTHONHASHSEED={HASH_SEED} draws it"
-                " differently (iterating a set of strings? hash()?)"
-            )
-    return errors
 
 
 def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Document]) -> list[str]:
@@ -337,25 +289,6 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
     return errors
 
 
-def hashes_main(args: Sequence[str]) -> int:
-    """`python -m walldye _hashes <wallpapers dir> <slug@variant@aspect@regime>...`: print a
-    JSON object mapping each key to the sha256 of that draw serialized under the regime's
-    sample theme, made in this process. Design errors propagate (non-zero exit)."""
-    paths.WALLPAPERS = Path(args[0])
-    out: dict[str, str] = {}
-    for k in args[1:]:
-        slug, variant, aspect, regime = k.split("@")
-        if regime not in ("dark", "light"):
-            raise ValueError(f"bad key {k!r}")
-        piece = loader.load(slug)
-        spec = RenderSpec(
-            variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
-        )
-        out[k] = _sha(loader.draw(piece, spec, cache=False), themes.SAMPLE[spec.regime])
-    print(json.dumps(out))
-    return 0
-
-
 def workers(jobs: int | None, tasks: int) -> int:
     """How many processes to run `tasks` (slug, variant) tasks in: 1 for a single task, else
     `jobs` (default: every core)."""
@@ -378,16 +311,6 @@ def run_tasks[T, R](fn: Callable[[T], R], tasks: Sequence[T], jobs: int) -> Iter
         yield from pool.map(fn, tasks)
 
 
-def built_ink(slug: str, variant: str) -> Ink | None:
-    """The ink map of a variant's build/[<variant>/]16x9.svg, measured from its own
-    background; None when not built."""
-    path = paths.build_dir(slug, variant) / "16x9.svg"
-    if not path.exists():
-        return None
-    svg = path.read_text()
-    return raster.ink_map(raster.rasterize(svg, INK_WIDTH), raster.background(svg))
-
-
 def print_report(report: Report) -> None:
     status = f"{len(report.errors)} error(s)" if len(report.errors) > 0 else "ok"
     warned = f", {len(report.warnings)} warning(s)" if len(report.warnings) > 0 else ""
@@ -398,29 +321,6 @@ def print_report(report: Report) -> None:
         print(f"  warning: {w}")
     for n in report.notes:
         print(f"  note: {n}")
-
-
-def near_clones(slugs: Sequence[str]) -> None:
-    """`check --similar`: print pairs involving `slugs` whose built default build/16x9.svg
-    ink maps have cosine >= NEAR_CLONE, most similar first, then the `slugs` that have no
-    built template."""
-    maps: dict[str, Ink] = {}
-    skipped: list[str] = []
-    for slug in sorted(set(paths.slugs()) | set(slugs)):
-        ink = built_ink(slug, "default")
-        if ink is not None:
-            maps[slug] = ink
-        elif slug in slugs:
-            skipped.append(slug)
-    names = list(maps)
-    pairs = [
-        (sim, a, b) for i, a in enumerate(names) for b in names[i + 1 :]
-        if (a in slugs or b in slugs) and (sim := float(maps[a] @ maps[b])) >= NEAR_CLONE
-    ]  # fmt: skip
-    for sim, a, b in sorted(pairs, reverse=True):
-        print(f"similar ({sim:.2f}): {a} ~ {b}")
-    if len(skipped) > 0:
-        print(f"similar: skipped, no build/16x9.svg: {', '.join(skipped)}")
 
 
 def run(

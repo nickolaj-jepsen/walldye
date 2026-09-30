@@ -51,7 +51,7 @@ def is_draft(meta: Meta) -> bool:
 
 def meta_variants(meta: Meta) -> dict[str, dict[str, object]]:
     """meta.yaml `variants:` as {name: entry}, in file order; malformed entries are left out
-    (lint.meta reports them)."""
+    (lint.piece.meta reports them)."""
     out: dict[str, dict[str, object]] = {}
     variants = as_dict(meta.get("variants"))
     if variants is None:

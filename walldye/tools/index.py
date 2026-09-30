@@ -33,7 +33,7 @@ def write() -> None:
         index[slug] = {
             "aspects": [a for a in SITE_ASPECTS if any(k.startswith(f"{a}/") for k in keys)],
             "draft": metadata.is_draft(m),
-            "license": lint.license_of(m),
+            "license": lint.piece.license_of(m),
             "title": m.get("title"),
             "variants": variants,
         }

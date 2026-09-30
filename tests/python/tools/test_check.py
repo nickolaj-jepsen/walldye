@@ -7,7 +7,7 @@ import pytest
 from fixtures import pieces
 from tools_support import built, legacy, versions
 
-from walldye.tools import check, hashing, loader, paths, themes
+from walldye.tools import check, determinism, hashing, loader, paths, themes
 from walldye.tools.errors import UsageError
 
 TEXT_SOURCE = (
@@ -122,7 +122,7 @@ def test_determinism_subprocess_failures_are_errors(wallpapers):
     assert error.endswith("RuntimeError: only in the determinism subprocess")
     for stdout, want in (("[1]", "printed '[1]'"), ("oops", "printed 'oops'")):
         run = subprocess.CompletedProcess([], 0, stdout, "")
-        assert check._fresh_errors(run, {"k": "sha"}) == [f"determinism subprocess {want}"]
+        assert determinism.fresh_errors(run, {"k": "sha"}) == [f"determinism subprocess {want}"]
 
 
 def test_a_design_error_stops_the_determinism_subprocess(wallpapers, monkeypatch):
@@ -136,7 +136,7 @@ def test_a_design_error_stops_the_determinism_subprocess(wallpapers, monkeypatch
     def boom(piece, spec):
         raise check.DesignError("boom")
 
-    monkeypatch.setattr(check, "_start_fresh", start)
+    monkeypatch.setattr(determinism, "start_fresh", start)
     monkeypatch.setattr(check, "draw", boom)
     assert check.check_variant(check.Task(str(wallpapers), "hash-seed", "default")).errors == [
         "boom"
