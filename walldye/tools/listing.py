@@ -6,17 +6,9 @@ import json
 import re
 import sys
 
-from walldye import _check_themes, _theme
+from walldye import _theme
 from walldye._params import KnobInfo, describe
 from walldye.tools import check, common
-
-FIXTURE_SEED, FIXTURE_PER_REGIME = 1, 20
-# Seed triples where regime selection is closest to a tie.
-EDGE_CASES = [
-    ("#808080", "#808080", "#CF6A4C"),
-    ("#777777", "#787878", "#CF6A4C"),
-    ("#787878", "#777777", "#CF6A4C"),
-]
 
 
 def run_list() -> int:
@@ -108,29 +100,6 @@ def run_params(slug: str, as_json: bool) -> int:
         draft = "  (draft)" if entry.get("draft") is True else ""
         print(f"{name}: {values}{shown}{draft}")
     return 0
-
-
-def _entry(seeds: dict[str, str]) -> dict[str, object]:
-    return {
-        "seeds": seeds,
-        "light": _theme.is_light(seeds["bg"], seeds["fg"]),
-        "tokens": _theme.theme_tokens(seeds),
-    }
-
-
-def fixture() -> dict[str, object]:
-    """The TS port's reference data: every preset, FIXTURE_PER_REGIME random seed triples per
-    regime from _check_themes.generate(FIXTURE_SEED, ...), and EDGE_CASES, each as {seeds, light,
-    tokens} with tokens in TOKENS order (fireproof's exact seeds resolve to its pinned table)."""
-    random = _check_themes.generate(FIXTURE_SEED, FIXTURE_PER_REGIME)
-    return {
-        "presets": {name: _entry(_theme.parse_seeds(name)) for name in _theme.PRESETS},
-        "random": {
-            r: [_entry(dict(zip(_theme.SEEDS, t, strict=True))) for t in themes]
-            for r, themes in random.items()
-        },
-        "edges": [_entry(dict(zip(_theme.SEEDS, t, strict=True))) for t in EDGE_CASES],
-    }
 
 
 def run_themes(seeds: dict[str, str] | None) -> int:

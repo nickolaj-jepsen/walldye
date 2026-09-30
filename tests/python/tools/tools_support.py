@@ -3,7 +3,7 @@
 import numpy as np
 
 from walldye._theme import SEEDS, parse_seeds
-from walldye.tools import build, coefs, common
+from walldye.tools import build, coefs, common, new
 from walldye.tools.tokenize import skeleton
 
 LEGACY_SOURCE = (
@@ -61,6 +61,46 @@ VERSION_LABELS = {
 
 def versions(wallpapers, slug: str = "versions", **meta) -> str:
     """Install the versions fixture with its meta.yaml variants: labels."""
-    from fixtures import regen
+    from fixtures import pieces
 
-    return regen.install(wallpapers, "versions", slug, variants=VERSION_LABELS, **meta)
+    return pieces.install(wallpapers, "versions", slug, variants=VERSION_LABELS, **meta)
+
+
+# A ring everywhere; the dot only in the light regime, so light geometry differs.
+TINY = '''"""A ring with a dot that only the light version draws."""
+
+from walldye import ACCENT, UI, Canvas, P, design
+
+
+@design(aspects="any")
+def draw(s: Canvas) -> None:
+    s.stroke(P().circle(s.center, 200), UI, 2)
+    if s.light:
+        s.fill(P().circle(s.center, 20), ACCENT)
+'''
+FLAT = '''"""A square."""
+
+from walldye import UI, Canvas, P, design
+
+
+@design()
+def draw(s: Canvas) -> None:
+    s.fill(P().rect(10, 10, 100, 100), UI)
+'''
+
+
+def piece(wallpapers, slug, design=TINY, **meta):
+    d = wallpapers / slug
+    d.mkdir()
+    (d / "design.py").write_text(design)
+    fields = {
+        "title": slug.capitalize(),
+        "description": "A test piece.",
+        "model": "claude-opus-5-5",
+    }
+    new.write_meta(slug, {**fields, "draft": True, **meta})
+    return d
+
+
+def meta(slug):
+    return common.load_meta(slug)

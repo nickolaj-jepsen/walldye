@@ -1,7 +1,6 @@
 """`walldye new`: scaffold wallpapers/<slug>/ with a starter design.py and a draft meta.yaml."""
 
 import datetime
-import sys
 from collections.abc import Mapping
 from typing import override
 
@@ -61,16 +60,16 @@ def write_meta(slug: str, meta: Mapping[str, object]) -> None:
 
 def run(slug: str, model: str) -> int:
     """Create wallpapers/<slug>/ holding DESIGN and a meta.yaml made by `model`, added today,
-    draft true and with no license line. Exits with a message if `slug` is malformed, reserved
-    or already taken."""
+    draft true and with no license line. UsageError if `slug` is malformed, reserved or already
+    taken."""
     try:
         d = common.piece_dir(slug)
     except ValueError as e:
-        sys.exit(str(e))
+        raise common.UsageError(str(e)) from None
     if lint.reserved(slug):
-        sys.exit(f"{slug!r} is reserved for a site route")
+        raise common.UsageError(f"{slug!r} is reserved for a site route")
     if d.exists():
-        sys.exit(f"{d} already exists")
+        raise common.UsageError(f"{d} already exists")
     d.mkdir(parents=True)
     (d / "design.py").write_text(DESIGN)
     write_meta(slug, {

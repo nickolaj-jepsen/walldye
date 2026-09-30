@@ -1,6 +1,6 @@
 import pytest
 
-from walldye.tools import common, review
+from walldye.tools import common, lint, review
 
 
 @pytest.fixture
@@ -19,6 +19,7 @@ def review_files(tmp_path, monkeypatch):
     files.mkdir()
     monkeypatch.setattr(review, "STATE_FILE", files / ".walldye-review.json")
     monkeypatch.setattr(review, "LABELS", files / "labels.ts")
+    monkeypatch.setattr(lint, "LABELS", files / "labels.ts")
     monkeypatch.setattr(common, "TAXONOMY", files / "taxonomy.yaml")
     monkeypatch.setattr(common, "FEATURED", files / "featured.yaml")
     return files

@@ -1,7 +1,7 @@
 import sys
 
 import pytest
-from fixtures import regen
+from fixtures import pieces
 from tools_support import legacy
 
 from walldye._design import Design, RenderSpec
@@ -10,7 +10,7 @@ from walldye.tools import common
 
 
 def test_load_imports_once_per_file_content(wallpapers):
-    regen.install(wallpapers, "versions", "two-words")
+    pieces.install(wallpapers, "versions", "two-words")
     first = common.load("two-words")
     assert isinstance(first, Design)
     assert common.load("two-words") is first
@@ -25,7 +25,7 @@ def test_load_imports_once_per_file_content(wallpapers):
 
 
 def test_fresh_imports_anew_without_caching(wallpapers):
-    regen.install(wallpapers, "leaky")
+    pieces.install(wallpapers, "leaky")
     loaded = common.load("leaky")
     a, b = common.fresh("leaky"), common.fresh("leaky")
     assert a is not b and a is not loaded
@@ -33,11 +33,11 @@ def test_fresh_imports_anew_without_caching(wallpapers):
 
 
 def test_load_errors(wallpapers):
-    regen.install(wallpapers, "collision", "v1-style")
+    pieces.install(wallpapers, "collision", "v1-style")
     (wallpapers / "v1-style/design.py").write_text("def draw(s):\n    pass\n")
     with pytest.raises(ValueError, match=r"design.py must define @design\(\.\.\.\) def draw"):
         common.load("v1-style")
-    regen.install(wallpapers, "collision", "broken")
+    pieces.install(wallpapers, "collision", "broken")
     (wallpapers / "broken/design.py").write_text("def draw(s)\n    pass\n")
     with pytest.raises(SyntaxError):
         common.load("broken")
@@ -49,7 +49,7 @@ def test_load_errors(wallpapers):
 
 
 def test_prints_go_to_stderr(wallpapers, capsys):
-    regen.install(wallpapers, "collision", "chatty")
+    pieces.install(wallpapers, "collision", "chatty")
     design = wallpapers / "chatty/design.py"
     text = design.read_text().replace(
         "def draw(s: Canvas) -> None:\n", "def draw(s: Canvas) -> None:\n    print('drawing')\n"
@@ -61,7 +61,7 @@ def test_prints_go_to_stderr(wallpapers, capsys):
 
 
 def test_render_serializes_the_regime_document(wallpapers):
-    regen.install(wallpapers, "light-branch")
+    pieces.install(wallpapers, "light-branch")
     dark = common.render("light-branch", "nord")
     assert f'fill="{parse_theme("nord")["accent"]}"' in dark and "A100 100" in dark
     light = common.render("light-branch", "flexoki-light", "10:16")
@@ -71,7 +71,7 @@ def test_render_serializes_the_regime_document(wallpapers):
 
 
 def test_render_variants_and_overrides(wallpapers):
-    regen.install(wallpapers, "versions")
+    pieces.install(wallpapers, "versions")
     default = common.render("versions", "nord")
     late = common.render("versions", "nord", variant="late")
     assert late != default
@@ -81,7 +81,7 @@ def test_render_variants_and_overrides(wallpapers):
 
 
 def test_draw_caches_by_spec(wallpapers):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     piece = common.load("collision")
     spec = RenderSpec("default", piece.params(), "16:9", "dark")
     doc = common.draw(piece, spec)
@@ -90,7 +90,7 @@ def test_draw_caches_by_spec(wallpapers):
 
 
 def test_variant_of(wallpapers):
-    regen.install(wallpapers, "versions")
+    pieces.install(wallpapers, "versions")
     piece = common.load("versions")
     assert common.variant_of(piece, "versions", "late") == "late"
     with pytest.raises(

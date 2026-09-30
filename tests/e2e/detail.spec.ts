@@ -1,5 +1,7 @@
 import { readFile } from 'node:fs/promises';
-import { type Download, expect, type Page, test } from '@playwright/test';
+import type { Download, Page } from '@playwright/test';
+import { publishedPieces, templateUrl } from './helpers';
+import { expect, test } from './test';
 
 /** Width, height and color type from a PNG's IHDR chunk. */
 function pngHeader(buf: Buffer): { width: number; height: number; colorType: number } {
@@ -370,5 +372,45 @@ test.describe('detail on a very large screen', () => {
     );
     await expect(page.locator('#size-limit')).toBeVisible();
     await expect(page.locator('#export input[name=size][value="2560x1440"]')).toBeChecked();
+  });
+});
+
+const VERSIONED = publishedPieces().find((p) => p.versions.length > 1);
+
+test.describe('detail extras', () => {
+  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+
+  test('each version shows its own picture, hidden from its radio name', async ({ page }) => {
+    test.skip(!VERSIONED, 'no published piece with versions');
+    await page.goto(`/${VERSIONED!.slug}`);
+    const thumbs = page.locator('#versions .thumb');
+    await expect(thumbs).toHaveCount(VERSIONED!.versions.length);
+    await expect(thumbs.first()).toHaveAttribute('aria-hidden', 'true');
+    for (const [i, v] of VERSIONED!.versions.entries()) {
+      await expect(thumbs.nth(i).locator('img').last()).toHaveAttribute(
+        'src',
+        templateUrl(v.slots, '16:9'),
+      );
+    }
+  });
+
+  test('See also follows the page shape, and the source listing starts closed', async ({
+    page,
+  }) => {
+    await page.goto('/schotter');
+    const related = page.locator('section.related .grid > li');
+    const n = await related.count();
+    expect(n).toBeGreaterThan(0);
+    expect(n).toBeLessThanOrEqual(4);
+    await expect(page.locator('section.related li[data-slug=schotter]')).toHaveCount(0);
+    const other = await related.first().getAttribute('data-slug');
+    await page.locator('#export input[name=asp][value="9:19.5"]').check({ force: true });
+    await expect(page.locator('section.related')).toHaveAttribute('data-shape', '9:19.5');
+    await expect(related.first().locator('> a')).toHaveAttribute('href', `/${other}?shape=9x19.5`);
+
+    await expect(page.locator('.appendix')).not.toHaveAttribute('open');
+    await expect(page.locator('.listing')).toBeHidden();
+    await page.locator('.appendix > summary').click();
+    await expect(page.locator('.listing')).toBeVisible();
   });
 });

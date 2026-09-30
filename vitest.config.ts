@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitest/config';
 
-// Unit tests are `*.test.ts`; Playwright owns `tests/e2e/**/*.spec.ts`.
+// Playwright owns `tests/e2e/**/*.spec.ts`. `parity` compares the TS ports with the Python renders
+// and fixtures that `walldye build` and scripts/fixtures/regen.py write; `unit` needs neither.
 export default defineConfig({
   test: {
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', 'tests/unit/**/*.test.ts'],
+    projects: [
+      { test: { name: 'unit', include: ['tests/unit/**/*.test.ts'] } },
+      { test: { name: 'parity', include: ['tests/parity/**/*.test.ts'] } },
+    ],
   },
 });

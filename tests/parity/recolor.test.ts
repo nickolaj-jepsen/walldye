@@ -107,7 +107,7 @@ describe('recolor matches the Python renders (b)', () => {
 });
 
 describe('per-occurrence slots (f)', () => {
-  const dir = 'src/lib/__fixtures__/collision/';
+  const dir = 'tests/fixtures/collision/';
   const template = read(`${dir}16x9.svg`);
   const slots = JSON.parse(read(`${dir}slots.json`)) as Slots;
   const renders = JSON.parse(read(`${dir}renders.json`)) as Record<string, string>;

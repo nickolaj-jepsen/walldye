@@ -1,13 +1,13 @@
 import importlib.metadata
 
-from fixtures import regen
+from fixtures import pieces
 from tools_support import legacy
 
 from walldye.tools import common, hashing
 
 
 def test_design_lines(wallpapers):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     design = (wallpapers / "collision/design.py").read_bytes()
     assert hashing.design_lines("collision") == [
         f"wallpapers/collision/design.py\t{hashing.sha256(design)}",
@@ -21,7 +21,7 @@ def test_design_lines(wallpapers):
 
 def test_data_files_and_variants_join_the_design_sha(wallpapers):
     points = "[[960, 540], [1200, 300]]\n"
-    regen.install(wallpapers, "data", data={"points.json": points, "b.txt": "x\n"})
+    pieces.install(wallpapers, "data", data={"points.json": points, "b.txt": "x\n"})
     lines = hashing.design_lines("data")
     assert lines[1:] == [
         f"wallpapers/data/data/b.txt\t{hashing.sha256(b'x\n')}",

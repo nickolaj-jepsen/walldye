@@ -26,7 +26,8 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 - `taxonomy.yaml`: the allowed facet values for meta.yaml. Only `walldye review` adds to it.
 - `featured.yaml`: the pieces the index opens on, in order, chosen by the owner.
 - `src/`: the site. `src/lib/` is the code the build and the browser share: the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for facet values and licenses. `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time.
-- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recoloring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
+- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs), `unit/` (vitest, self-contained), `parity/` (vitest against the Python output), `e2e/` (Playwright), and `fixtures/`, the gitignored Python renders and fixtures the parity tests read.
+- `scripts/fixtures/`: `regen.py` writes `tests/fixtures/` from a build.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.
 - `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.
@@ -45,7 +46,7 @@ uv run ruff format . && uv run ruff check --fix .   # formatting (line length 10
 uv run pyrefly check                  # the library at the strictest preset
 uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py   # designs, at the design level
 uv run prek install                   # once per clone: ruff, Pyrefly and Biome as a pre-commit hook
-uv run python tests/python/fixtures/regen.py   # after a build, before pnpm test
+uv run python scripts/fixtures/regen.py   # after a build, before pnpm test
 
 pnpm test                             # vitest
 pnpm check                            # astro check: the site, client and tests, after a build
@@ -59,7 +60,7 @@ On NixOS, `nix develop` opens a shell with the locked Python environment (the ch
 
 ## Rules
 
-- Build output is never committed: `wallpapers/*/build/`, `wallpapers/index.json` and the generated test fixtures are gitignored. CI renders the published pieces itself, from a cache of main's last build. Locally, run `uv run walldye build --all` (drafts included, which `astro dev` shows) and `regen.py` before `pnpm dev`, `pnpm test` or the e2e tests.
+- Build output is never committed: `wallpapers/*/build/`, `wallpapers/index.json` and the generated test fixtures are gitignored. CI renders the published pieces itself, from a cache of main's last build. Locally, run `uv run walldye build --all` (drafts included, which `astro dev` shows) and `scripts/fixtures/regen.py` before `pnpm dev`, `pnpm test` or the e2e tests.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no color names, no theme roles as nouns, no internal terms, no evaluative adjectives.
 - Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.
 - All Python, including ` ```python ` blocks in Markdown, passes `ruff format` and `ruff check` (fix findings, no blanket `noqa`), and Pyrefly at its level: 0 errors in the library. The prek hook and CI run them; `walldye check` does not.

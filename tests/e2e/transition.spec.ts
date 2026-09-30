@@ -1,4 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 
 /**
  * The plate carried between a grid and its page as a cross-document view transition. Each page

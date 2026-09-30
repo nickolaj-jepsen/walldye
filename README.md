@@ -32,7 +32,7 @@ Tests and checks:
 ```sh
 uv run pytest
 uv run prek run --all-files                  # ruff, and Pyrefly on the library and the designs
-uv run python tests/python/fixtures/regen.py # the Python renders vitest compares against, after a build
+uv run python scripts/fixtures/regen.py # the Python renders vitest compares against, after a build
 pnpm test                                    # vitest
 pnpm build
 pnpm e2e                                     # Playwright; `pnpm e2e:nix` on NixOS

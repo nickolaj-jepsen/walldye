@@ -7,6 +7,7 @@ on:
     paths: &python
       - 'walldye/**'
       - 'tests/python/**'
+      - 'scripts/fixtures/**'
       - 'wallpapers/*/design.py'
       - 'wallpapers/pyrefly.toml'
       - '.claude/skills/walldye/SKILL.md'

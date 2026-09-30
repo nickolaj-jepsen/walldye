@@ -19,6 +19,7 @@ import {
   isDraft,
   licenseOf,
   namedVariants,
+  reservedSlug,
   typesetMeta,
   variantsMeta,
 } from './lib/meta';
@@ -35,14 +36,7 @@ const FEATURED = join(ROOT, 'featured.yaml');
 /** `path` relative to the project root, with forward slashes; the endpoints read files by it. */
 const rootPath = (path: string) => relative(ROOT, path).split(sep).join('/');
 
-/** Slugs that would shadow a site route or file (walldye/tools/lint.py reserved()). */
-const RESERVED = new Set(['about', 'index', 't', 'og', 'fonts', '404', 'robots', 'favicon']);
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-/** Whether a slug collides with a site route or file: RESERVED, `sitemap*` or `_*`. */
-export function reservedSlug(slug: string): boolean {
-  return RESERVED.has(slug) || slug.startsWith('sitemap') || slug.startsWith('_');
-}
 
 function loadTaxonomy(): Record<TaxonomyFacet, string[]> {
   const data = (YAML.parse(readFileSync(join(ROOT, 'taxonomy.yaml'), 'utf8')) ?? {}) as Record<

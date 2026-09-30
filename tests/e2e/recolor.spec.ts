@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test';
 import { recolor, select } from '../../src/lib/recolor';
 import { parseToken } from '../../src/lib/theme';
 import { platesSettled, REFERENCE_PIECES, readText, slotsOf } from './helpers';
+import { expect, test } from './test';
 
 // vitest checks recolor() against the Python renders; this checks the index repaints with it.
 test.use({

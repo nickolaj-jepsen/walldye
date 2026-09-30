@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from fixtures import regen
+from fixtures import pieces
 
 from walldye import ACCENT, BG, FG, MUTED, UI, _check_themes, by_regime, mix
 from walldye._design import RenderSpec
@@ -102,7 +102,7 @@ def test_slot_rule():
 
 
 def test_collision_needs_per_occurrence_slots(wallpapers):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     template = [c for _, _, c in find_colors(common.render("collision", "fireproof"))]
     assert template[1] == template[2]  # two roles, one fireproof hex
     piece = common.load("collision")

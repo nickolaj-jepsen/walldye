@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { rasterSvg } from '../../src/client/export/shape';
 import { decodeRgb, MANIFEST, type PixelDiff, pixelDiff, ROOT } from './helpers';
+import { expect, test } from './test';
 
 const REF = MANIFEST.resvg;
 const reference = () => decodeRgb(readFileSync(`${ROOT}${REF.png}`));
