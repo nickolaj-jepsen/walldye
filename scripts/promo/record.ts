@@ -1,5 +1,5 @@
 /**
- * Records the site's promo loop, `promo/walldye.mp4` (1920×1080) and `promo/walldye.gif` (1280×720):
+ * Records the site's promo loop as `promo/walldye.mp4` (1920×1080), `.webp` and `.gif` (1280×720):
  * the downloaded wallpaper shrinks into its index plate, the index runs through a few themes and the
  * phone shape, the plate carries to its page (the site's own view transition), Download is pressed,
  * and the file it saves recolors back to the first frame. Stills come from headless Chromium; the
@@ -171,7 +171,10 @@ class Reel {
   }
 }
 
-/** The lossless master as walldye.mp4 (BT.709, tagged, as browsers expect) and, with gifski, walldye.gif. */
+/**
+ * The lossless master as walldye.mp4 (BT.709, tagged, as browsers expect), walldye.webp (1280 wide,
+ * the README's `.github/promo.webp`) and, with gifski, walldye.gif.
+ */
 function encode(master: string, work: string): void {
   run('ffmpeg', [
     ...['-loglevel', 'error', '-y', '-i', master],
@@ -194,6 +197,11 @@ function encode(master: string, work: string): void {
       '+faststart',
     ],
     join(OUT, 'walldye.mp4'),
+  ]);
+  run('ffmpeg', [
+    ...['-loglevel', 'error', '-y', '-i', master, '-vf', 'scale=1280:-1:flags=lanczos'],
+    ...['-c:v', 'libwebp_anim', '-q:v', '85', '-compression_level', '6', '-loop', '0'],
+    join(OUT, 'walldye.webp'),
   ]);
   if (!need('gifski')) {
     console.warn('gifski not found: skipping walldye.gif');
@@ -711,4 +719,4 @@ try {
   stop(server);
   rmSync(work, { recursive: true, force: true });
 }
-console.log(`wrote ${OUT}/walldye.mp4${need('gifski') ? ` and ${OUT}/walldye.gif` : ''}`);
+console.log(`wrote ${OUT}/walldye.mp4, walldye.webp${need('gifski') ? ' and walldye.gif' : ''}`);

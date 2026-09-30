@@ -2,6 +2,8 @@
 
 walldye is a catalog of desktop and phone wallpapers, each drawn by a small Python script. Pick three colors and every wallpaper is redrawn in them, along with the site itself. The catalog is at [walldye.com](https://walldye.com), where any piece downloads as SVG, PNG, WebP or JPEG.
 
+[![The walldye.com index redrawn in four themes and then in a phone shape, one wallpaper opened on its page and downloaded, and the downloaded file in two more themes.](.github/promo.webp)](https://walldye.com)
+
 ## How the colors work
 
 A design never sees a color value. It draws in symbolic theme colors (background, foreground, accent and shades mixed from them), so its shapes are the same under every theme. `walldye build` renders each design once per screen shape and for dark and light themes, then records every color in the resulting SVG as a linear mix of the three chosen colors, read off the formula it was drawn with. CI builds those templates and their coefficients for every published piece, and the site recolors a wallpaper for any theme by rewriting its colors in the browser, without running the script. [docs/architecture.md](docs/architecture.md) has the details.
@@ -39,6 +41,8 @@ pnpm e2e                                     # Playwright; `pnpm e2e:nix` on Nix
 ```
 
 With Nix, `nix develop` gives a shell with the Python environment from `uv.lock`, Node, pnpm and the browsers Playwright needs, and every command above works in it unchanged. Without the shell, NixOS needs `programs.nix-ld.enable = true;` for the prebuilt Python wheels, and `pnpm e2e:nix` runs Playwright with the browsers from nixpkgs.
+
+`pnpm promo` records the clip at the top of this page into `promo/` as MP4, WebP and GIF, building and serving the site itself; the shell has the ffmpeg and gifski it needs. Copy `promo/walldye.webp` over `.github/promo.webp` to update the clip here.
 
 ## On NixOS
 
@@ -82,7 +86,7 @@ With [Claude Code](https://claude.com/claude-code) in this repository, ask for a
 | `wallpapers/` | one folder per wallpaper |
 | `src/` | the Astro site |
 | `tests/` | pytest, vitest and Playwright suites and their fixtures |
-| `scripts/` | the font subsetter |
+| `scripts/` | the font subsetter, the page-view fetcher and the promo recorder |
 | `docs/` | [architecture.md](docs/architecture.md) (how it works and why), [wallpapers.md](docs/wallpapers.md) (metadata, copy and licensing rules), [api.md](docs/api.md) (the design API and CLI), [site.md](docs/site.md) (the site's visual system and voice), [deploy.md](docs/deploy.md) (hosting and CI) |
 | `.claude/` | the Claude Code skill and batch workflow |
 | `infra/` | the Worker that redirects www.walldye.com |
