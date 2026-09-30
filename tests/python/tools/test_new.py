@@ -3,7 +3,7 @@ import datetime
 import pytest
 from tools_support import meta, piece
 
-from walldye.tools import check, cli, common, new
+from walldye.tools import check, cli, loader, new
 
 
 def test_new_scaffolds_a_draft(wallpapers, capsys):
@@ -18,8 +18,8 @@ def test_new_scaffolds_a_draft(wallpapers, capsys):
     assert m["draft"] is True and m["model"] == "claude-opus-5-5" and "author" not in m
     assert m["added"] == datetime.datetime.now().astimezone().date()
     assert (d / "design.py").read_text() == new.DESIGN
-    assert "A240 240" in common.render("ring-one", "nord")
-    assert common.load("ring-one").aspects == ("16:9",)
+    assert "A240 240" in loader.render("ring-one", "nord")
+    assert loader.load("ring-one").aspects == ("16:9",)
     # The template passes the design lint as written.
     t = check.prepare("ring-one")
     check.lint_source(t)

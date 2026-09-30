@@ -4,10 +4,10 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from fixtures import toolchain
 
 from walldye._design import Design, RenderSpec
 from walldye._params import Params
-from walldye.tools import common
 from walldye.tools.themes import parse_theme
 
 TYPING = Path(__file__).parent / "typing"
@@ -24,9 +24,9 @@ def load() -> Design[Params]:
 
 
 def test_helper_calls_type_check_at_the_design_level():
-    exe = common.tool("pyrefly")
+    exe = toolchain.tool("pyrefly")
     assert exe is not None
-    cmd = [str(exe), "check", "-c", str(common.DESIGN_PYREFLY), "--output-format", "json"]
+    cmd = [str(exe), "check", "-c", str(toolchain.DESIGN_PYREFLY), "--output-format", "json"]
     out = subprocess.run([*cmd, str(USES)], capture_output=True, text=True, check=False)
     assert json.loads(out.stdout)["errors"] == []
 

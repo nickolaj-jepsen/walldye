@@ -5,7 +5,7 @@ import pytest
 from walldye import _theme
 from walldye._aspect import SITE_ASPECTS, canvas_size, native_aspects, supports
 from walldye._theme import SEEDS, TOKENS, derive_theme, mix
-from walldye.tools import common, themes
+from walldye.tools import paths, themes
 from walldye.tools.themes import PRESETS, parse_theme
 
 NORD = {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"}
@@ -102,9 +102,9 @@ def test_site_aspect_canvases():
         "10:16": (1080, 1728),
     }
     for good in ("16:9", "3440x1440", "9:19.5"):
-        assert common.is_aspect(good)
+        assert paths.is_aspect(good)
     for bad in ("wide", "inf:1", "16:-9", "16:0"):
-        assert not common.is_aspect(bad)
+        assert not paths.is_aspect(bad)
 
 
 def test_supports_and_native_aspects():

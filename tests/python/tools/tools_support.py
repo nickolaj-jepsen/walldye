@@ -3,7 +3,7 @@
 import numpy as np
 
 from walldye._theme import SEEDS
-from walldye.tools import build, coefs, common, new
+from walldye.tools import build, coefs, loader, metadata, paths, recolor, slotfile
 from walldye.tools.themes import parse_seeds
 from walldye.tools.tokenize import skeleton
 
@@ -39,16 +39,16 @@ def seeds(theme) -> dict[str, str]:
 
 
 def assert_recolors(slug: str, theme, aspect: str = "16:9", variant: str = "default") -> None:
-    """build.recolor of the built template matches a fresh render: same skeleton, slots
+    """recolor.recolor of the built template matches a fresh render: same skeleton, slots
     within coefs.MAX_ERROR."""
-    slots = build.load_slots(slug, variant)
+    slots = slotfile.load(slug, variant)
     assert slots is not None
-    table = build.entries(slots)
+    table = slots.entries
     s = seeds(theme)
-    k = build.select(slots, aspect, s)
-    template = (common.build_dir(slug, variant) / table[k]["file"]).read_text()
-    got = build.recolor(template, table[k], s)
-    want = common.render(slug, s, aspect, variant)
+    k = recolor.select(table, aspect, s)
+    template = (paths.build_dir(slug, variant) / table[k]["file"]).read_text()
+    got = recolor.recolor(template, table[k], s)
+    want = loader.render(slug, s, aspect, variant)
     assert skeleton(got) == skeleton(want)
     assert np.abs(coefs.colors(got) - coefs.colors(want)).max(initial=0) <= coefs.MAX_ERROR
 
@@ -99,9 +99,9 @@ def piece(wallpapers, slug, design=TINY, **meta):
         "description": "A test piece.",
         "model": "claude-opus-5-5",
     }
-    new.write_meta(slug, {**fields, "draft": True, **meta})
+    metadata.write_meta(slug, {**fields, "draft": True, **meta})
     return d
 
 
 def meta(slug):
-    return common.load_meta(slug)
+    return metadata.load_meta(slug)

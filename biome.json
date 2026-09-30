@@ -9,7 +9,7 @@
     "includes": [
       "**/*.ts",
       "**/*.mjs",
-      "walldye/tools/review_page/*.js",
+      "walldye/tools/review/page/*.js",
       "!**/.claude",
       "!**/infra",
       "!**/.astro"
@@ -51,7 +51,7 @@
       }
     },
     {
-      "includes": ["walldye/tools/review_page/*.js"],
+      "includes": ["walldye/tools/review/page/*.js"],
       "javascript": {
         "globals": ["CFG"]
       }

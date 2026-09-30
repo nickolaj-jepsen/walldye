@@ -10,30 +10,13 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from walldye._design import RenderSpec
-from walldye.tools import common, knobs, themes
+from walldye.tools import knobs, loader, metadata, raster, recolor, themes
+from walldye.tools.errors import UsageError
 from walldye.tools.paths import aspect_label
 from walldye.tools.preview import preview_dir
 from walldye.tools.themes import theme_token
 
 PAD, LABEL = 8, 22
-
-
-def themed(slug: str, seeds: dict[str, str], variant: str = "default", aspect: str = "16:9") -> str:
-    """A variant's built template at `aspect` recolored to `seeds` the way the site does
-    it: build.select picks the slots.json entry and build.recolor applies it; fireproof's
-    exact seeds return the dark template untouched. KeyError if slots.json lacks the entry,
-    FileNotFoundError when not built."""
-    from walldye.tools.build import entries, load_slots, recolor, select
-
-    slots = load_slots(slug, variant)
-    if slots is None:
-        raise FileNotFoundError(f"{common.build_dir(slug, variant)} has no slots.json")
-    table = entries(slots)
-    d = common.build_dir(slug, variant)
-    if theme_token(seeds) == "fireproof":
-        return (d / table[f"{aspect}/dark"]["file"]).read_text()
-    k = select(slots, aspect, seeds)
-    return recolor((d / table[k]["file"]).read_text(), table[k], seeds)
 
 
 def _grid(cells: Sequence[tuple[str, Image.Image]], cols: int, thumb: int) -> Image.Image:
@@ -74,7 +57,7 @@ def run(
     thumbs: list[tuple[str, Image.Image]] = []
     for slug in slugs:
         try:
-            svg = themed(slug, seeds, variant, aspect)
+            svg = recolor.themed(slug, seeds, variant, aspect)
         except FileNotFoundError:
             if variant != "default" and variant not in _declared(slug):
                 print(f"skip {slug}: no variant {variant}", file=sys.stderr)
@@ -85,7 +68,7 @@ def run(
         except KeyError:
             print(f"skip {slug}: no {aspect} template", file=sys.stderr)
             continue
-        thumbs.append((slug, common.rasterize(svg, thumb)))
+        thumbs.append((slug, raster.rasterize(svg, thumb)))
     if len(thumbs) == 0:
         sys.exit("nothing to put on a sheet")
     name = f"sheet-{theme_token(seeds)}.png"
@@ -99,7 +82,7 @@ def _declared(slug: str) -> dict[str, dict[str, object]]:
     """The versions meta.yaml lists for `slug` (check keeps them equal to design.py's), {} when
     it lists none or cannot be read."""
     try:
-        return common.meta_variants(common.load_meta(slug))
+        return metadata.meta_variants(metadata.load_meta(slug))
     except (OSError, ValueError):
         return {}
 
@@ -126,10 +109,10 @@ def run_fresh(
     preview_dir()/sheet-<slug>[--<variant>]-<token>-<aspect>.png. `cols` defaults to the
     number of values of the fastest axis. Values outside a soft range warn on stderr.
     UsageError for an undeclared variant, a bad spec or value, or more than MAX_CELLS cells."""
-    piece = common.load(slug)
-    common.variant_of(piece, slug, variant)
+    piece = loader.load(slug)
+    loader.variant_of(piece, slug, variant)
     try:
-        base, warnings = common.params_for(piece, variant, overrides)
+        base, warnings = loader.params_for(piece, variant, overrides)
         axes: list[tuple[str, list[knobs.Value]]] = []
         for item in wedges:
             k, sep, spec = item.partition("=")
@@ -142,13 +125,13 @@ def run_fresh(
         if seed_range is not None:
             axes.append(("seed", list[knobs.Value](knobs.seeds(seed_range))))
     except ValueError as e:
-        raise common.UsageError(str(e)) from None
+        raise UsageError(str(e)) from None
     names = [k for k, _ in axes]
     if len(set(names)) != len(names):
-        raise common.UsageError(f"each param varies once, got {', '.join(names)}")
+        raise UsageError(f"each param varies once, got {', '.join(names)}")
     n = math.prod(len(v) for _, v in axes)
     if n > knobs.MAX_CELLS:
-        raise common.UsageError(f"{n} cells is over the limit of {knobs.MAX_CELLS}")
+        raise UsageError(f"{n} cells is over the limit of {knobs.MAX_CELLS}")
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
     regime, tokens = themes.regime_of(seeds), themes.tokens_of(seeds)
@@ -157,10 +140,10 @@ def run_fresh(
         try:
             params = knobs.replace(base, dict(zip(names, combo, strict=True)))
         except (TypeError, ValueError) as e:
-            raise common.UsageError(str(e)) from None
-        svg = common.draw(piece, RenderSpec(variant, params, aspect, regime)).to_svg(tokens)
+            raise UsageError(str(e)) from None
+        svg = loader.draw(piece, RenderSpec(variant, params, aspect, regime)).to_svg(tokens)
         label = " ".join(f"{k}={_label(v)}" for k, v in zip(names, combo, strict=True))
-        cells.append((label if label != "" else slug, common.rasterize(svg, thumb)))
+        cells.append((label if label != "" else slug, raster.rasterize(svg, thumb)))
     per_row = cols if cols is not None else len(axes[-1][1]) if len(axes) > 0 else 1
     name = slug if variant == "default" else f"{slug}--{variant}"
     default = preview_dir() / f"sheet-{name}-{theme_token(seeds)}-{aspect_label(aspect)}.png"

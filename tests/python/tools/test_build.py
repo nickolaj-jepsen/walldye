@@ -8,7 +8,20 @@ from tools_support import assert_recolors, built, legacy, seeds, versions
 
 from walldye._aspect import SITE_ASPECTS, canvas_size
 from walldye._theme import SEEDS
-from walldye.tools import build, coefs, common, hashing, listing, review, themes
+from walldye.tools import (
+    build,
+    coefs,
+    hashing,
+    index,
+    listing,
+    loader,
+    paths,
+    recolor,
+    review,
+    slotfile,
+    themes,
+)
+from walldye.tools.errors import UsageError
 from walldye.tools.paths import template_name
 from walldye.tools.themes import PRESETS
 from walldye.tools.tokenize import find_colors
@@ -18,9 +31,9 @@ ALL_HELD_OUT = themes.HELD_OUT["dark"] + themes.HELD_OUT["light"]
 
 
 def slots(slug: str, variant: str = "default") -> dict[str, object]:
-    s = build.load_slots(slug, variant)
+    s = slotfile.load(slug, variant)
     assert s is not None
-    return s
+    return s.to_dict()
 
 
 # --- build output -----------------------------------------------------------------
@@ -29,10 +42,10 @@ def slots(slug: str, variant: str = "default") -> dict[str, object]:
 def test_collision_builds_and_recolors(wallpapers, capsys):
     pieces.install(wallpapers, "collision")
     assert "collision: wrote 16x9.svg, slots.json" in built(capsys, "collision")
-    b = common.build_dir("collision")
+    b = paths.build_dir("collision")
     assert sorted(p.name for p in b.iterdir()) == ["16x9.svg", "slots.json"]
     template = (b / "16x9.svg").read_text()
-    assert template == common.render("collision", "fireproof")
+    assert template == loader.render("collision", "fireproof")
     s = slots("collision")
     assert list(s) == [
         "design_sha",
@@ -45,17 +58,17 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
         "16:9/light",
     ]
     assert s["design_sha"] == hashing.design_sha("collision")
-    assert s["checked"] == build.version() == "0.2.0"
+    assert s["checked"] == slotfile.version() == "0.2.0"
     assert s["render_lib"] == hashing.render_lib_sha()
     assert s["cells"] == [] and s["focus"] == [0.5, 0.5]
     assert s["probes"] == {
         "fireproof": hashing.sha256(template.encode()),
         **{
-            r: hashing.sha256(common.render("collision", themes.SAMPLE[r]).encode())
+            r: hashing.sha256(loader.render("collision", themes.SAMPLE[r]).encode())
             for r in ("dark", "light")
         },
     }
-    table = build.entries(s)
+    table = slotfile.parse(s).entries
     for regime in ("dark", "light"):
         entry = table[f"16:9/{regime}"]
         assert list(entry) == ["file", "sha256", "n", "coefs", "occ"]
@@ -63,8 +76,8 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
         assert entry["n"] == len(entry["occ"]) == len(find_colors(template)) == 3
     for theme in pieces.RECOLOR_THEMES + ALL_HELD_OUT:
         assert_recolors("collision", theme)
-    assert build.recolor(template, table["16:9/dark"], FIREPROOF) == template
-    assert build.recolor(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
+    assert recolor.recolor(template, table["16:9/dark"], FIREPROOF) == template
+    assert recolor.recolor(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
 
 
 def test_recolor_evaluates_like_predict():
@@ -75,7 +88,7 @@ def test_recolor_evaluates_like_predict():
         for _ in range(40)
     ]
     template = "".join(f'<rect fill="#{i:06X}"/>' for i in range(40))
-    entry: build.SlotsEntry = {
+    entry: slotfile.Entry = {
         "file": "",
         "sha256": "",
         "n": 40,
@@ -84,39 +97,39 @@ def test_recolor_evaluates_like_predict():
     }
     for _ in range(20):
         theme = tuple(f"#{r.getrandbits(24):06X}" for _ in range(3))
-        got = build.recolor(template, entry, dict(zip(SEEDS, theme, strict=True)))
+        got = recolor.recolor(template, entry, dict(zip(SEEDS, theme, strict=True)))
         assert (coefs.colors(got) == coefs.predict(np.array(rows), theme)).all()
 
 
 def test_select():
     both = {"16:9/dark": {}, "16:9/light": {}}
-    assert build.select(both, "16:9", seeds("nord")) == "16:9/dark"
-    assert build.select(both, "16:9", seeds("flexoki-light")) == "16:9/light"
+    assert recolor.select(both, "16:9", seeds("nord")) == "16:9/dark"
+    assert recolor.select(both, "16:9", seeds("flexoki-light")) == "16:9/light"
     with pytest.raises(KeyError):
-        build.select(both, "21:9", seeds("nord"))
+        recolor.select(both, "21:9", seeds("nord"))
     with pytest.raises(KeyError):
-        build.select({"16:9/dark": {}}, "16:9", seeds("flexoki-light"))
+        recolor.select({"16:9/dark": {}}, "16:9", seeds("flexoki-light"))
 
 
 def test_entries_are_validated():
     good = {"file": "16x9.svg", "sha256": "0", "n": 1, "coefs": [[1, 0, 0, 0, 0, 0]], "occ": [0]}
-    assert build.entries({"design_sha": "x", "16:9/dark": good})["16:9/dark"]["coefs"] == [
+    assert slotfile.parse({"design_sha": "x", "16:9/dark": good}).entries["16:9/dark"]["coefs"] == [
         [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ]
     for bad in ({**good, "occ": [1]}, {**good, "coefs": [[1, 2]]}, {**good, "n": "1"}, []):
         with pytest.raises(ValueError):
-            build.entries({"16:9/dark": bad})
+            slotfile.parse({"16:9/dark": bad})
 
 
 def test_light_branch_gets_its_own_template(wallpapers, capsys):
     pieces.install(wallpapers, "light-branch")
     built(capsys, "light-branch")
-    table = build.entries(slots("light-branch"))
+    table = slotfile.parse(slots("light-branch")).entries
     assert table["16:9/dark"]["file"] == "16x9.svg"
     assert table["16:9/light"]["file"] == "16x9.light.svg"
-    light = (common.build_dir("light-branch") / "16x9.light.svg").read_text()
-    assert light == common.render("light-branch", "flexoki-light")
-    assert "A100 100" not in light and "A100 100" in common.render("light-branch", "nord")
+    light = (paths.build_dir("light-branch") / "16x9.light.svg").read_text()
+    assert light == loader.render("light-branch", "flexoki-light")
+    assert "A100 100" not in light and "A100 100" in loader.render("light-branch", "nord")
     for theme in ["solarized-light", "nord", *ALL_HELD_OUT]:
         assert_recolors("light-branch", theme)
 
@@ -125,10 +138,10 @@ def test_any_aspect_pixel_design(wallpapers, capsys):
     pieces.install(wallpapers, "pixels")
     out = built(capsys, "pixels")
     assert "pixel grid origin" in out
-    b = common.build_dir("pixels")
+    b = paths.build_dir("pixels")
     assert sorted(p.name for p in b.glob("*.svg")) == sorted(template_name(a) for a in SITE_ASPECTS)
     s = slots("pixels")
-    table = build.entries(s)
+    table = slotfile.parse(s).entries
     assert s["cells"] == [3]
     for aspect in SITE_ASPECTS:
         w, h = canvas_size(aspect)
@@ -147,9 +160,7 @@ def test_legacy_piece_builds(wallpapers, capsys):
     legacy(wallpapers)
     built(capsys, "old")
     source = (wallpapers / "old/source.svg").read_text()
-    assert (common.build_dir("old") / "16x9.svg").read_text() == source.replace(
-        "#1c1b1a", "#1C1B1A"
-    )
+    assert (paths.build_dir("old") / "16x9.svg").read_text() == source.replace("#1c1b1a", "#1C1B1A")
     for theme in ["nord", "flexoki-light", *ALL_HELD_OUT]:
         assert_recolors("old", theme)
 
@@ -161,7 +172,7 @@ def test_variant_layout(wallpapers, capsys):
     versions(wallpapers)
     out = built(capsys, "versions")
     assert "versions (late): wrote late/16x9.svg, late/10x16.svg, late/slots.json" in out
-    b = common.build_dir("versions")
+    b = paths.build_dir("versions")
     assert sorted(p.name for p in b.iterdir()) == [
         "10x16.svg",
         "16x9.svg",
@@ -178,10 +189,10 @@ def test_variant_layout(wallpapers, capsys):
         s = slots("versions", name)
         assert list(s)[:3] == ["design_sha", "variant", "focus"]
         assert s["variant"] == name and s["design_sha"] == hashing.design_sha("versions", name)
-        assert build.entries(s)["16:9/dark"]["file"] == "16x9.svg"
+        assert slotfile.parse(s).entries["16:9/dark"]["file"] == "16x9.svg"
         assert_recolors("versions", "nord", "10:16", name)
     assert "variant" not in slots("versions")
-    assert (b / "late/16x9.svg").read_text() == common.render(
+    assert (b / "late/16x9.svg").read_text() == loader.render(
         "versions", "fireproof", variant="late"
     )
     index = json.loads((wallpapers / "index.json").read_text())
@@ -195,12 +206,12 @@ def test_variant_layout(wallpapers, capsys):
 def test_variant_builds_touch_only_their_variant(wallpapers, capsys):
     versions(wallpapers)
     built(capsys, "versions")
-    stray = common.build_dir("versions") / "gone"
+    stray = paths.build_dir("versions") / "gone"
     stray.mkdir()
-    (common.build_dir("versions", "late") / "21x9.svg").write_text("<svg/>")
+    (paths.build_dir("versions", "late") / "21x9.svg").write_text("<svg/>")
     out = built(capsys, "versions", variant="late", force=True)
     assert "versions (late): wrote" in out and "versions: wrote" not in out
-    assert stray.exists() and not (common.build_dir("versions", "late") / "21x9.svg").exists()
+    assert stray.exists() and not (paths.build_dir("versions", "late") / "21x9.svg").exists()
     out = built(capsys, "versions")
     assert "removed build/gone/, not a declared variant" in out and not stray.exists()
     design = wallpapers / "versions/design.py"
@@ -210,8 +221,8 @@ def test_variant_builds_touch_only_their_variant(wallpapers, capsys):
         meta.read_text().replace("  bare:\n    label: Five, no ring\n    draft: true\n", "")
     )
     out = built(capsys, "versions")
-    assert "removed build/bare/" in out and not common.build_dir("versions", "bare").exists()
-    with pytest.raises(common.UsageError):
+    assert "removed build/bare/" in out and not paths.build_dir("versions", "bare").exists()
+    with pytest.raises(UsageError):
         build.run(["versions"], variant="bare")
 
 
@@ -227,7 +238,7 @@ def test_a_failing_variant_writes_nothing_for_the_piece(wallpapers, capsys):
     assert build.run(["versions"], jobs=1) == 1
     out = capsys.readouterr().out
     assert "draw failed: ValueError" in out and "versions: not written" in out
-    assert not common.build_dir("versions").exists()
+    assert not paths.build_dir("versions").exists()
 
 
 # --- check failures and skips ---------------------------------------------------------
@@ -237,14 +248,14 @@ def test_failed_check_writes_nothing(wallpapers, capsys):
     pieces.install(wallpapers, "unseeded")
     assert build.run(["unseeded"]) == 1
     assert "unseeded: not written" in capsys.readouterr().out
-    assert not common.build_dir("unseeded").exists()
+    assert not paths.build_dir("unseeded").exists()
 
 
 def old_render_lib(slug: str, **changes: object) -> None:
     """Make `slug`'s slots.json look built under other render inputs, with `changes`."""
     s = slots(slug)
-    (common.build_dir(slug) / "slots.json").write_text(
-        build.dump_slots({**s, "render_lib": "0" * 64, **changes})
+    (paths.build_dir(slug) / "slots.json").write_text(
+        slotfile.dump({**s, "render_lib": "0" * 64, **changes})
     )
 
 
@@ -261,17 +272,17 @@ def test_skip_restamp_and_rebuild(wallpapers, capsys):
     old_render_lib("collision", probes={**slots("collision")["probes"], "dark": "0"})
     assert "collision: wrote" in built(capsys, "collision")
 
-    design = common.piece_dir("collision") / "design.py"
+    design = paths.piece_dir("collision") / "design.py"
     design.write_text(design.read_text() + "\n\n# edited\n")
     assert "collision: wrote" in built(capsys, "collision")
     assert "collision: wrote" in built(capsys, "collision", force=True)
 
-    template = common.build_dir("collision") / "16x9.svg"
+    template = paths.build_dir("collision") / "16x9.svg"
     template.write_text(template.read_text() + "<!-- hand edit -->\n")
     assert "collision: wrote" in built(capsys, "collision")
     s = slots("collision")
-    (common.build_dir("collision") / "slots.json").write_text(
-        build.dump_slots({**s, "checked": "0.1.0"})
+    (paths.build_dir("collision") / "slots.json").write_text(
+        slotfile.dump({**s, "checked": "0.1.0"})
     )
     assert "collision: wrote" in built(capsys, "collision")
     assert "collision: up to date" in built(capsys, "collision")
@@ -300,7 +311,7 @@ def test_build_applies_meta_rules_to_current_pieces(wallpapers, capsys):
 def test_unreadable_slots_json_is_rebuilt(wallpapers, capsys):
     pieces.install(wallpapers, "collision")
     built(capsys, "collision")
-    path = common.build_dir("collision") / "slots.json"
+    path = paths.build_dir("collision") / "slots.json"
     path.write_text("{x")
     out = built(capsys, "collision")
     assert f"collision: {path}: not valid JSON" in out and "collision: wrote" in out
@@ -345,7 +356,7 @@ def test_unreadable_siblings_are_left_out(wallpapers, capsys):
         ["syntax", "error"],
     ]
     assert captured.err.startswith("list: left out bad-yaml: ")
-    assert review.drafts() == ["collision", "syntax"]
+    assert review.state.drafts() == ["collision", "syntax"]
     assert capsys.readouterr().err.startswith("review: skipped bad-yaml: ")
 
 
@@ -353,8 +364,8 @@ def test_published_skips_drafts(wallpapers, capsys):
     pieces.install(wallpapers, "collision")
     versions(wallpapers, draft=False)
     out = built(capsys, all=True, published=True)
-    assert "skipped 1 draft pieces" in out and not common.build_dir("collision").exists()
-    assert [p.name for p in common.build_dir("versions").iterdir() if p.is_dir()] == []
+    assert "skipped 1 draft pieces" in out and not paths.build_dir("collision").exists()
+    assert [p.name for p in paths.build_dir("versions").iterdir() if p.is_dir()] == []
     assert build.run(["collision"], published=True, jobs=1) == 2
 
 
@@ -392,10 +403,10 @@ def test_write_index(wallpapers, capsys):
     meta = wallpapers / "recreation/meta.yaml"
     meta.write_text(meta.read_text().replace("license: CC0-1.0\n", ""))
     (wallpapers / "bad-meta/meta.yaml").write_text("title: [x\n")
-    (common.build_dir("bad-slots") / "slots.json").write_text("[]\n")
-    build.write_index()
+    (paths.build_dir("bad-slots") / "slots.json").write_text("[]\n")
+    index.write()
     bad_meta = wallpapers / "bad-meta/meta.yaml"
-    bad_slots = common.build_dir("bad-slots") / "slots.json"
+    bad_slots = paths.build_dir("bad-slots") / "slots.json"
     yaml_error = "expected ',' or ']', but got '<stream end>'"
     assert capsys.readouterr().err.splitlines() == [
         f"index.json: left out bad-meta: {bad_meta}: not valid YAML (line 2): {yaml_error}",

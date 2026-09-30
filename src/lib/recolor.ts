@@ -1,5 +1,5 @@
 /**
- * The browser recolor, a port of walldye/tools/build.py select() and recolor(): a template's color
+ * The browser recolor, a port of walldye/tools/recolor.py select() and recolor(): a template's color
  * slots are set from the seeds through the per-occurrence coefficients in slots.json.
  */
 
@@ -60,7 +60,7 @@ export function pickTemplate(slots: Slots, aspect: string, regime: Regime): Pick
   return { key, entry };
 }
 
-/** Python build.select(): the picked entry for `seeds`, in their regime. */
+/** Python recolor.select(): the picked entry for `seeds`, in their regime. */
 export function select(slots: Slots, aspect: string, seeds: Seeds): Picked {
   return pickTemplate(slots, aspect, regimeOf(seeds));
 }

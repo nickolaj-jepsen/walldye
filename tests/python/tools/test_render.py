@@ -2,7 +2,7 @@ import pytest
 from PIL import Image
 from tools_support import FLAT, TINY, piece, versions
 
-from walldye.tools import cli, common
+from walldye.tools import cli, loader, raster
 
 
 def test_render_names_file_after_slug_variant_token_and_aspect(
@@ -16,11 +16,11 @@ def test_render_names_file_after_slug_variant_token_and_aspect(
     assert cli.main(["render", "tiny", "--theme", "2E3440-ECEFF4-88C0D0", "--aspect", "21:9"]) == 0
     assert capsys.readouterr().out.strip() == "tiny-nord-21x9.svg"
     text = (out / "tiny-nord-21x9.svg").read_text()
-    assert text == common.render("tiny", "nord", "21:9") and 'viewBox="0 0 2520 1080"' in text
+    assert text == loader.render("tiny", "nord", "21:9") and 'viewBox="0 0 2520 1080"' in text
 
     assert cli.main(["render", "versions", "--variant", "late", "--theme", "flexoki-light"]) == 0
     assert capsys.readouterr().out.strip() == "versions--late-flexoki-light-16x9.svg"
-    assert (out / "versions--late-flexoki-light-16x9.svg").read_text() == common.render(
+    assert (out / "versions--late-flexoki-light-16x9.svg").read_text() == loader.render(
         "versions", "flexoki-light", variant="late"
     )
 
@@ -32,7 +32,7 @@ def test_render_names_file_after_slug_variant_token_and_aspect(
     )
     capsys.readouterr()
     assert cli.main(["render", "tiny", "-o", "-"]) == 0
-    assert capsys.readouterr().out == common.render("tiny", "fireproof")
+    assert capsys.readouterr().out == loader.render("tiny", "fireproof")
     assert cli.main(["render", "tiny", "-o", "new/dir/tiny.svg"]) == 0
     assert (out / "new/dir/tiny.svg").exists()
 
@@ -96,7 +96,7 @@ def test_render_fit_cuts_undeclared_aspects_from_16_9(wallpapers, capsys):
     assert 'viewBox="0 0 498.462 1080"' in capsys.readouterr().out
     # A declared aspect is drawn for, not cut.
     assert cli.main(["render", "tiny", "--aspect", "21:9", "--fit", "-o", "-"]) == 0
-    assert capsys.readouterr().out == common.render("tiny", "fireproof", "21:9")
+    assert capsys.readouterr().out == loader.render("tiny", "fireproof", "21:9")
     with pytest.raises(SystemExit) as e:
         cli.main(["render", "flat", "--aspect", "21:9", "--fit", "--crop", "0,0,10,10"])
     assert e.value.code == 2
@@ -122,9 +122,9 @@ def test_render_png_at_exact_pixel_sizes(wallpapers, tmp_path):
 
 
 def test_fit_crop_centers_on_the_focus_within_the_canvas():
-    assert common.fit_crop("16:9", (0.1, 0.9)) == (0.0, 0.0, 1920.0, 1080.0)
-    x, y, w, h = common.fit_crop("21:9", (0.5, 1.0))
+    assert raster.fit_crop("16:9", (0.1, 0.9)) == (0.0, 0.0, 1920.0, 1080.0)
+    x, y, w, h = raster.fit_crop("21:9", (0.5, 1.0))
     assert (x, w) == (0.0, 1920.0) and h == pytest.approx(822.857, abs=1e-3)
     assert y == pytest.approx(1080 - h)
-    x, y, w, h = common.fit_crop("9:19.5", (0.5, 0.5))
+    x, y, w, h = raster.fit_crop("9:19.5", (0.5, 0.5))
     assert (y, h) == (0.0, 1080.0) and x == pytest.approx((1920 - w) / 2)

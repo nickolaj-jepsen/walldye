@@ -1,51 +1,72 @@
-"""Static lints: the design lint, template limits, the data/ rules and the meta.yaml rules."""
+"""The design lint: what design.py may import, call and keep at module level, read from its
+source without running it."""
 
 import ast
 import io
 import re
 import tokenize as py_tokenize
-import xml.etree.ElementTree as ET
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-import yaml
+from walldye.tools.lint.templates import Lints
+from walldye.tools.lint.words import color_words
 
-from walldye.tools import common
-
-MAX_BYTES, WARN_BYTES = 1_000_000, 600_000
-MAX_ELEMENTS, WARN_ELEMENTS = 20_000, 15_000
 STDLIB: Final = frozenset({
     "math", "cmath", "itertools", "functools", "collections", "heapq", "bisect", "operator",
     "dataclasses", "typing", "enum", "fractions", "statistics", "string", "re", "textwrap",
     "json", "base64", "zlib", "copy",
 })  # fmt: skip
+
+
 LIBRARIES: Final = frozenset({"numpy", "scipy", "shapely", "skimage"})
+
+
 WALLDYE_MODULES: Final = frozenset({"walldye", "walldye.geom", "walldye.field", "walldye.pixel"})
+
+
 RANDOM_CALLS: Final = frozenset({"Noise", "default_rng", "RandomState", "SeedSequence"})
+
+
 # Modules whose every use is randomness; designs may not import or name them.
 RANDOM_MODULES: Final = ("numpy.random", "scipy.stats.qmc")
+
+
 # Library samplers: allowed only when handed a generator from s.np_rng(key).
 SAMPLER_CALLS: Final = frozenset({"rvs", "random_noise"})
+
+
 SAMPLER_ORIGINS: Final = frozenset({
     "scipy.sparse.random", "scipy.sparse.random_array", "scipy.sparse.rand",
     "skimage.util.random_noise",
 })  # fmt: skip
+
+
 TYPE_ESCAPES: Final = frozenset({"typing.cast", "typing.Any"})
+
+
 CONSTRUCTORS: Final = frozenset({"Color", "MaskColor", "Ref", "Canvas", "Document", "Design"})
+
+
 PROCESS_CALLS: Final = frozenset({
     "hash", "id", "open", "exec", "eval", "compile", "globals", "__import__",
 })  # fmt: skip
+
+
 MUTATORS: Final = frozenset({
     "append", "extend", "insert", "pop", "remove", "clear", "update", "setdefault", "add",
     "discard", "sort", "reverse",
 })  # fmt: skip
+
+
 CONST_BUILTINS: Final = frozenset({
     "abs", "min", "max", "round", "sum", "len", "range", "tuple", "list", "dict", "set",
     "frozenset", "zip", "enumerate", "sorted", "reversed", "int", "float", "str", "bool",
     "complex", "divmod", "pow", "any", "all",
 })  # fmt: skip
+
+
 CONST_NUMPY: Final = frozenset(
     f"numpy.{n}"
     for n in (
@@ -53,6 +74,8 @@ CONST_NUMPY: Final = frozenset(
         "degrees", "sin", "cos", "tan", "sqrt", "hypot", "arctan2", "linalg.norm",
     )
 )  # fmt: skip
+
+
 CONST_WALLDYE: Final = frozenset(
     f"walldye.{n}"
     for n in (
@@ -60,10 +83,14 @@ CONST_WALLDYE: Final = frozenset(
         "smoothstep",
     )
 )  # fmt: skip
+
+
 STR_METHODS: Final = frozenset({
     "split", "splitlines", "strip", "lstrip", "rstrip", "join", "replace", "ljust", "rjust",
     "center", "upper", "lower", "format", "zfill",
 })  # fmt: skip
+
+
 COLORS: Final = frozenset(
     f"walldye.{n}"
     for n in (
@@ -72,95 +99,39 @@ COLORS: Final = frozenset(
         "ACCENT_6", "ACCENT_7", "ACCENT_8", "MASK_WHITE", "MASK_BLACK",
     )
 )  # fmt: skip
+
+
 COLOR_CALLS: Final = frozenset({"walldye.mix", "walldye.by_regime"})
-# Hues and named shades; copy must say "accent", "bg", roles. Token names (ALL CAPS) are fine.
-COLOR_WORDS: Final = frozenset({
-    "red", "orange", "yellow", "green", "blue", "purple", "violet", "pink", "brown", "black",
-    "white", "grey", "gray", "cyan", "magenta", "teal", "turquoise", "indigo", "crimson",
-    "scarlet", "maroon", "amber", "golden", "beige", "cream", "ivory", "terracotta", "ochre",
-    "umber", "sepia", "navy", "lavender", "lilac", "mauve", "azure", "cobalt", "vermilion",
-    "burgundy", "charcoal", "khaki", "sienna", "cerulean", "ultramarine", "chartreuse", "fuchsia"
-})  # fmt: skip
-# Words visitors never read; variant labels may not use them.
-INTERNAL_TERMS: Final = frozenset({
-    "regime", "seed", "token", "native", "hand-tuned", "light-ready", "preset", "variant",
-    "param",
-})  # fmt: skip
-RESERVED_SLUGS: Final = frozenset(
-    {"about", "index", "t", "og", "fonts", "404", "robots", "favicon"}
-)
-SOURCE_KINDS: Final = ("recreation", "inspiration", "reference", "data")
-FAN_WORK: Final = "LicenseRef-fan-work"
-DEFAULT_LICENSE: Final = "CC0-1.0"
-# Kinds of source that say where the files in data/ come from.
-DATA_KINDS: Final = ("data", "recreation")
-LICENSES = common.ROOT / "LICENSES"
-LABELS = common.ROOT / "src" / "lib" / "labels.ts"
-_MODEL_ENTRY: Final = re.compile(r"^\s*'([^']+)': '")
-DATA_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.(json|txt|npy)")
+
+
 _HEX_STRING: Final = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
+
+
 _SUPPRESSION: Final = re.compile(r"#\s*(type|pyrefly)\s*:\s*ignore\b")
+
+
 _ALLOWLIST: Final = (
     "designs import walldye, walldye.geom, walldye.field, walldye.pixel, numpy (not"
     " numpy.random), scipy, shapely, skimage and a few pure standard-library modules"
 )
+
+
 _RANDOM: Final = "draw randomness from s.rng(key), s.np_rng(key) or s.noise(key)"
+
+
 _SAMPLER: Final = "library samplers take random_state=s.np_rng(key) or rng=s.np_rng(key)"
+
+
 _UNCHECKED: Final = "designs are type-checked as written; fix what Pyrefly reports instead"
+
+
 _NO_TEXT: Final = "a color has no text form; pass it to a drawing call"
+
+
 _ENTRY: Final = "a design has exactly one module-level @design(...) def draw(s: Canvas[...])"
 
-type Lints = tuple[list[str], list[str]]
+
 type Function = ast.FunctionDef | ast.AsyncFunctionDef | ast.Lambda
-
-
-def reserved(slug: str) -> bool:
-    """Whether `slug` collides with a site route or file (RESERVED_SLUGS, sitemap*, _*)."""
-    return slug in RESERVED_SLUGS or slug.startswith(("sitemap", "_"))
-
-
-def svg(text: str) -> Lints:
-    """(errors, warnings) for one template: invalid XML, <text>, <filter>, <image>, size and
-    element count over MAX_* are errors; over WARN_* warnings."""
-    try:
-        root = ET.fromstring(text)
-    except ET.ParseError as e:
-        return [f"invalid XML: {e}"], []
-    errors: list[str] = []
-    warnings: list[str] = []
-    tags = [el.tag.rpartition("}")[2] for el in root.iter()]
-    if "text" in tags:
-        errors.append("<text> depends on installed fonts; draw glyphs as paths (walldye.pixel)")
-    if "filter" in tags:
-        errors.append("<filter> is not allowed: slow at 4K, soft, and renderers disagree")
-    if "image" in tags:
-        errors.append("<image> is not allowed: templates are self-contained vectors")
-    size = len(text.encode())
-    for value, hard, soft, what in (
-        (size, MAX_BYTES, WARN_BYTES, f"{size:,} bytes"),
-        (len(tags), MAX_ELEMENTS, WARN_ELEMENTS, f"{len(tags)} elements"),
-    ):
-        if value > hard:
-            errors.append(
-                f"{what} is over the limit of {hard:,}; merge shapes into one <path> per color"
-            )
-        elif value > soft:
-            warnings.append(
-                f"{what} is heavy (over {soft:,}); merge shapes into one <path> per color"
-            )
-    return errors, warnings
-
-
-def color_words(text: str) -> set[str]:
-    """Color words in `text` as written, lowercased, plurals included ("greys" matches via
-    "grey"); ALL-CAPS words (token names like ACCENT_HI) are not prose."""
-    words: list[str] = re.findall(r"\b[A-Za-z]+\b", text)
-    prose = {w.lower() for w in words if not w.isupper()}
-    return {
-        w
-        for w in prose
-        if not COLOR_WORDS.isdisjoint({w, w.removesuffix("s"), w.removesuffix("es")})
-    }
 
 
 def random_module(name: str) -> str | None:
@@ -628,235 +599,3 @@ def design(path: Path) -> Lints:
             f"color words in docstrings or comments: {', '.join(sorted(words))} (name tokens or roles, never hues)"
         )
     return errors, warnings
-
-
-def data(slug: str) -> list[str]:
-    """Errors for wallpapers/<slug>/data/: only files named like `points.json`, `names.txt`
-    or `grid.npy`, and no subdirectories."""
-    d = common.piece_dir(slug) / "data"
-    if not d.is_dir():
-        return []
-    errors: list[str] = []
-    for p in sorted(d.iterdir()):
-        if p.is_dir():
-            errors.append(f"data/{p.name}/: data/ holds files only, no subdirectories")
-        elif DATA_NAME.fullmatch(p.name) is None:
-            errors.append(f"data/{p.name}: data files are .json, .txt or .npy with a plain name")
-    return errors
-
-
-def _text(m: common.Meta, key: str) -> str:
-    value = m.get(key)
-    return value if isinstance(value, str) else ""
-
-
-def _mappings(value: object) -> list[dict[str, object]] | None:
-    """The mappings of a YAML list, [] for None, and None when it is not a list of mappings."""
-    if value is None:
-        return []
-    items = common.as_list(value)
-    if items is None:
-        return None
-    out = [e for e in map(common.as_dict, items) if e is not None]
-    return out if len(out) == len(items) else None
-
-
-def license_of(meta: common.Meta) -> str | None:
-    """The folder's license: `license:`, else FAN_WORK when `franchise:` is set, else
-    DEFAULT_LICENSE for a piece a model made (`model:`) with no recreation source, else None
-    (no license can be resolved)."""
-    if (license := _text(meta, "license")) != "":
-        return license
-    if "franchise" in meta:
-        return FAN_WORK
-    sources = _mappings(meta.get("sources"))
-    recreation = sources is not None and any(s.get("kind") == "recreation" for s in sources)
-    return DEFAULT_LICENSE if _text(meta, "model") != "" and not recreation else None
-
-
-def model_names() -> set[str] | None:
-    """The model ids that MODEL_NAMES in src/lib/labels.ts gives a credit name; None when the
-    file or the table is missing."""
-    if not LABELS.exists():
-        return None
-    lines = LABELS.read_text().splitlines()
-    start = next((i for i, x in enumerate(lines) if x.startswith("export const MODEL_NAMES")), -1)
-    if start < 0:
-        return None
-    names: set[str] = set()
-    for line in lines[start + 1 :]:
-        if line.startswith("}"):
-            break
-        if (m := _MODEL_ENTRY.match(line)) is not None:
-            names.add(m.group(1))
-    return names
-
-
-def load_taxonomy() -> dict[str, set[str]] | None:
-    """Allowed values per facet from taxonomy.yaml (each facet a list of values, or a mapping
-    keyed by value); None when the file does not exist."""
-    if not common.TAXONOMY.exists():
-        return None
-    facets = common.as_dict(yaml.safe_load(common.TAXONOMY.read_text()))
-    out: dict[str, set[str]] = {}
-    for facet, values in (facets if facets is not None else dict[str, object]()).items():
-        listed = common.as_list(values)
-        keyed = common.as_dict(values)
-        found = listed if listed is not None else list[object]() if keyed is None else list(keyed)
-        out[facet] = {str(v) for v in found}
-    return out
-
-
-def meta(
-    slug: str,
-    m: common.Meta,
-    taxonomy: dict[str, set[str]] | None,
-    variants: Sequence[str] = ("default",),
-) -> Lints:
-    """(errors, warnings) for the meta.yaml `m` of `slug`, whose design declares `variants`
-    ("default" first). Facets are skipped with a warning
-    when `taxonomy` is None; color words in the copy warn."""
-    errors: list[str] = []
-    warnings: list[str] = []
-    for key in ("title", "description"):
-        if _text(m, key).strip() == "":
-            errors.append(f"meta.yaml needs a {key}")
-    if "draft" in m and not isinstance(m["draft"], bool):
-        errors.append(f"draft must be true or false, not {m['draft']!r}")
-    author, model = _text(m, "author").strip(), _text(m, "model").strip()
-    if author == "" and model == "":
-        errors.append("meta.yaml needs model: (the model id that made it) or author: (who did)")
-    elif author != "" and model != "":
-        errors.append("author: is for human-made pieces; a piece a model made has only model:")
-    elif model != "" and (names := model_names()) is not None and model not in names:
-        errors.append(f"model {model!r} needs a credit name in MODEL_NAMES in {LABELS.name}")
-    if reserved(slug):
-        errors.append(f"slug {slug!r} is reserved by the site")
-    sources = _mappings(m.get("sources"))
-    if sources is None:
-        errors.append("sources must be a list of mappings")
-        sources = list[dict[str, object]]()
-    for s in sources:
-        if s.get("kind") not in SOURCE_KINDS:
-            errors.append(f"source kind {s.get('kind')!r} is not one of {', '.join(SOURCE_KINDS)}")
-        if "title" in s and "topic" in s:
-            errors.append(
-                f"source {s['title']!r}: a title names a work and a topic anything else; not both"
-            )
-        if all(_text(s, k).strip() == "" for k in ("title", "topic", "author")):
-            errors.append("a source needs a title, a topic or an author")
-    if (common.WALLPAPERS / slug / "data").is_dir() and not any(
-        s.get("kind") in DATA_KINDS for s in sources
-    ):
-        errors.append("data/ needs a kind: data source (or the recreation it comes from)")
-    fan = "franchise" in m
-    if _text(m, "license") != "":
-        if fan:
-            errors.append(f"franchise: makes the piece fan work ({FAN_WORK}); drop license:")
-        elif m.get("license") == FAN_WORK:
-            errors.append("fan work is marked by franchise: {title, owner}, not license:")
-    elif not fan:
-        if any(s.get("kind") == "recreation" for s in sources):
-            errors.append("a kind: recreation source needs an explicit license: (ask the owner)")
-        elif model == "":
-            errors.append("human-made pieces need an explicit license:")
-    if (license := license_of(m)) is not None and not (LICENSES / f"{license}.txt").is_file():
-        errors.append(
-            f"license {license!r} has no LICENSES/{license}.txt; add the license text or fix the id"
-        )
-    franchise = common.as_dict(m.get("franchise"))
-    if fan and (franchise is None or "" in (_text(franchise, "title"), _text(franchise, "owner"))):
-        errors.append("franchise needs a title and an owner")
-    if taxonomy is None:
-        warnings.append("taxonomy.yaml not found; facets not checked")
-    else:
-        for facet, allowed in taxonomy.items():
-            raw = m.get(facet)
-            values = list[object]() if raw is None else common.as_list(raw)
-            if values is None:
-                errors.append(f"{facet} must be a list")
-                continue
-            for v in values:
-                if v not in allowed:
-                    errors.append(
-                        f"{facet}: {v!r} is not in taxonomy.yaml (suggest it under proposed_facets)"
-                    )
-    if m.get("proposed_facets") not in (None, {}) and not common.is_draft(m):
-        errors.append("proposed_facets are only allowed while draft: true")
-    variant_errors, variant_warnings = _variants(m, variants)
-    return errors + variant_errors, warnings + copy_words(m) + variant_warnings
-
-
-def _variants(m: common.Meta, names: Sequence[str]) -> Lints:
-    """The variants: rules: keys exactly the declared names, a unique plain label for each,
-    and description and draft only on named variants."""
-    if len(names) <= 1:
-        if "variants" in m:
-            return ["variants: is only for designs that declare named variants"], []
-        return [], []
-    entries = common.as_dict(m.get("variants"))
-    if entries is None:
-        return [f"meta.yaml needs variants: with a label for each of {', '.join(names)}"], []
-    errors: list[str] = []
-    warnings: list[str] = []
-    if len(missing := [n for n in names if n not in entries]) > 0:
-        errors.append(
-            f"variants: missing {', '.join(missing)} (design.py declares {', '.join(names)})"
-        )
-    if len(extra := [n for n in entries if n not in names]) > 0:
-        errors.append(
-            f"variants: {', '.join(extra)} not declared in design.py (it declares {', '.join(names)})"
-        )
-    labels: dict[str, str] = {}
-    for name, value in entries.items():
-        entry = common.as_dict(value)
-        if entry is None:
-            errors.append(f"variants: {name} must be a mapping with a label")
-            continue
-        allowed = {"label"} if name == "default" else {"label", "description", "draft"}
-        if len(unknown := sorted(set(entry) - allowed)) > 0:
-            errors.append(
-                f"variants: {name}: {', '.join(unknown)} not allowed (only {', '.join(sorted(allowed))})"
-            )
-        label = _text(entry, "label").strip()
-        words = label.split()
-        if not 1 <= len(words) <= 4:
-            errors.append(f"variants: {name} needs a label of one to four plain words")
-        stems = {w.lower().strip(".,;:!?").removesuffix("s") for w in words}
-        if len(internal := sorted(stems & INTERNAL_TERMS)) > 0:
-            errors.append(
-                f"variants: {name}: the label says {', '.join(internal)}, a word visitors never see"
-            )
-        if (other := labels.get(label.lower())) is not None:
-            errors.append(f"variants: {name} and {other} share the label {label!r}")
-        labels[label.lower()] = name
-        if "description" in entry and _text(entry, "description").strip() == "":
-            errors.append(f"variants: {name}: description must be text")
-        if "draft" in entry and not isinstance(entry["draft"], bool):
-            errors.append(f"variants: {name}: draft must be true or false")
-        if len(found := color_words(f"{label}\n{_text(entry, 'description')}")) > 0:
-            words_ = ", ".join(sorted(found))
-            warnings.append(
-                f"color words in variants: {name}: {words_} (describe the shape, without naming colors)"
-            )
-    return errors, warnings
-
-
-def copy_words(m: common.Meta) -> list[str]:
-    """A warning naming the color words in the title, description and notes of meta.yaml
-    `m`, or []."""
-    words = color_words("\n".join(_text(m, k) for k in ("title", "description", "notes")))
-    if len(words) == 0:
-        return []
-    return [
-        f"color words in meta.yaml copy: {', '.join(sorted(words))} (describe the shape or what it picks out, without naming colors)"
-    ]
-
-
-def pixel_origins(grids: Sequence[tuple[float, float, float]]) -> list[str]:
-    """Warnings for pixel grids (cell, x, y) whose origin is not a whole unit."""
-    off = sorted({(x, y, cell) for cell, x, y in grids if x % 1 != 0 or y % 1 != 0})
-    return [
-        f"pixel grid origin ({x:g}, {y:g}) is not a whole unit; snap it to the {cell:g}-unit cell grid"
-        for x, y, cell in off
-    ]

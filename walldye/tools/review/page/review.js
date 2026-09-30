@@ -1,6 +1,6 @@
 // biome-ignore-all lint/suspicious/noAssignInExpressions: `(e.x ||= {})` chains build the nested review state.
 // biome-ignore-all lint/suspicious/noFocusedTests: `fit()` sizes the picture; this is not a test file.
-// CFG comes from review.py config(); the state shape is documented on load_state().
+// CFG comes from review/state.py config(); the state shape is documented on load_state().
 
 const { steps: STEPS, pieces: PIECES, taxonomy: TAXONOMY, labels: LABELS } = CFG;
 const { themes: THEMES, canvas: CANVAS, facets: FACETS, text: TEXT } = CFG;

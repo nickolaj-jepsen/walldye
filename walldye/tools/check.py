@@ -6,7 +6,6 @@ check_variant, in a process pool when several pieces are checked. Workers return
 and never write files.
 """
 
-import json
 import multiprocessing
 import os
 import subprocess
@@ -19,23 +18,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-import numpy as np
-from numpy.typing import NDArray
-
-from walldye._aspect import canvas_size
 from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye._theme import REGIMES, Regime
-from walldye.tools import common, hashing, knobs, lint, themes
+from walldye.tools import determinism, hashing, knobs, lint, loader, metadata, paths, raster, themes
 from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialize_aspect
+from walldye.tools.similar import near_clones
 
-HASH_SEED: Final = "4242"
-NEAR_CLONE: Final = 0.93
 SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
-INK_WIDTH: Final = 256
-
-type Ink = NDArray[np.float64]
 
 
 class DesignError(Exception):
@@ -53,7 +44,7 @@ def design_error(e: BaseException, what: str) -> DesignError:
 
 @dataclass(frozen=True)
 class Task:
-    """One (slug, variant) to check. `wallpapers` is common.WALLPAPERS in the parent, which
+    """One (slug, variant) to check. `wallpapers` is paths.WALLPAPERS in the parent, which
     pool workers adopt; with `probes`, the check stops early when the variant's fresh probe
     hashes equal them (build's test for unchanged renders)."""
 
@@ -107,7 +98,7 @@ class Target:
 
     slug: str
     report: Report
-    piece: common.Piece | None = None
+    piece: loader.Piece | None = None
     variants: tuple[str, ...] = ()
 
 
@@ -117,7 +108,7 @@ def prepare(slug: str, variant: str | None = None) -> Target:
     UsageError when the design does not declare it."""
     t = Target(slug, Report(slug))
     try:
-        meta = common.load_meta(slug)
+        meta = metadata.load_meta(slug)
     except (OSError, ValueError) as e:
         t.report.errors.append(str(e))
         return t
@@ -125,13 +116,15 @@ def prepare(slug: str, variant: str | None = None) -> Target:
         t.piece = load(slug)
     except DesignError as e:
         t.report.errors.append(str(e))
-    names = ("default", *common.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
-    errors, warnings = lint.meta(slug, meta, lint.load_taxonomy(), names)
+    names = (
+        ("default", *metadata.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
+    )
+    errors, warnings = lint.piece.meta(slug, meta, lint.piece.load_taxonomy(), names)
     t.report.errors += errors
     t.report.warnings += warnings
     if t.piece is not None:
         if variant is not None:
-            common.variant_of(t.piece, slug, variant)
+            loader.variant_of(t.piece, slug, variant)
         t.variants = t.piece.variant_names() if variant is None else (variant,)
         infos = describe(t.piece.params_type)
         for v, params in t.piece.variants.items():
@@ -146,29 +139,29 @@ def prepare(slug: str, variant: str | None = None) -> Target:
 def lint_source(t: Target) -> None:
     """Add the design lint and the data/ rules of t.slug to its report; a design that does
     not parse is left to the import error prepare() reported."""
-    path = common.piece_dir(t.slug) / "design.py"
+    path = paths.piece_dir(t.slug) / "design.py"
     if not path.exists():
         return
     try:
-        errors, warnings = lint.design(path)
+        errors, warnings = lint.source.design(path)
     except SyntaxError:
         return
-    t.report.errors += errors + lint.data(t.slug)
+    t.report.errors += errors + lint.piece.data(t.slug)
     t.report.warnings += warnings
 
 
-def load(slug: str) -> common.Piece:
-    """common.load(slug), with anything the import raises turned into a DesignError."""
+def load(slug: str) -> loader.Piece:
+    """loader.load(slug), with anything the import raises turned into a DesignError."""
     try:
-        return common.load(slug)
+        return loader.load(slug)
     except Exception as e:  # whatever the import raises fails the check
         raise design_error(e, "import") from e
 
 
-def draw(piece: common.Piece, spec: RenderSpec) -> Document:
+def draw(piece: loader.Piece, spec: RenderSpec) -> Document:
     """An uncached draw, with anything the design raises turned into a DesignError."""
     try:
-        return common.draw(piece, spec, cache=False)
+        return loader.draw(piece, spec, cache=False)
     except Exception as e:  # whatever a design raises fails the check
         raise design_error(e, f"{spec.aspect} {spec.regime}: draw") from e
 
@@ -176,14 +169,10 @@ def draw(piece: common.Piece, spec: RenderSpec) -> Document:
 def probe_hashes(docs: Mapping[tuple[str, Regime], Document]) -> dict[str, str]:
     """slots.json `probes`: sha256 of the 16:9 dark document under fireproof, and of each
     regime's 16:9 document under its sample theme."""
-    probes = {"fireproof": _sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
+    probes = {"fireproof": determinism.sample_sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
     for regime in REGIMES:
-        probes[regime] = _sha(docs["16:9", regime], themes.SAMPLE[regime])
+        probes[regime] = determinism.sample_sha(docs["16:9", regime], themes.SAMPLE[regime])
     return probes
-
-
-def _sha(doc: Document, theme: themes.Theme) -> str:
-    return hashing.sha256(doc.to_svg(themes.tokens_of(theme)).encode())
 
 
 def check_variant(task: Task) -> Result:
@@ -192,7 +181,7 @@ def check_variant(task: Task) -> Result:
     constant-slot rule, the template limits, pixel origins, probes and focus,
     and with task.paranoid a fresh import per serialization. A determinism failure stops it
     before any geometry step; so does an exception from the design."""
-    common.WALLPAPERS = Path(task.wallpapers)
+    paths.WALLPAPERS = Path(task.wallpapers)
     start = time.perf_counter()
     r = Result(task.slug, task.variant)
     try:
@@ -219,12 +208,12 @@ def _check(task: Task, r: Result) -> None:
             return
 
     keys = {
-        (aspect, regime): common.key(slug, variant, aspect, regime)
+        (aspect, regime): paths.key(slug, variant, aspect, regime)
         for aspect in piece.aspects
         for regime in REGIMES
     }
     # The fresh process draws while this one does; it only needs the keys.
-    fresh = _start_fresh(list(keys.values()))
+    fresh = determinism.start_fresh(list(keys.values()))
     try:
         expected: dict[str, str] = {}
         for (aspect, regime), k in keys.items():
@@ -247,68 +236,33 @@ def _check(task: Task, r: Result) -> None:
         if fresh.returncode is None:
             fresh.kill()
             fresh.wait()
-    r.errors += _fresh_errors(done, expected)
+    r.errors += determinism.fresh_errors(done, expected)
     if len(r.errors) > 0:
         return
 
     for (aspect, regime), doc in docs.items():
-        w, h = canvas_size(aspect)
-        if (got := common.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
-            r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
+        r.errors += [
+            f"{aspect} {regime}: {e}" for e in lint.templates.viewbox(doc.skeleton(), aspect)
+        ]
     for aspect in piece.aspects:
         templates, entries, errors = serialize_aspect({g: docs[aspect, g] for g in REGIMES}, aspect)
         r.templates.update(templates)
         r.entries.update(entries)
         r.errors += errors
     for name, text in r.templates.items():
-        errors, warnings = lint.svg(text)
+        errors, warnings = lint.templates.svg(text)
         r.errors += [f"{name}: {e}" for e in errors]
         r.warnings += [f"{name}: {w}" for w in warnings]
     for aspect in piece.aspects:
         grids = [g for regime in REGIMES for g in docs[aspect, regime].pixel_grids]
-        r.warnings += [f"{aspect}: {w}" for w in lint.pixel_origins(grids)]
+        r.warnings += [f"{aspect}: {w}" for w in lint.templates.pixel_origins(grids)]
     r.cells = sorted({cell for doc in docs.values() for cell, _, _ in doc.pixel_grids})
     r.probes = probe_hashes(docs)
     dark = r.templates.get("16x9.svg")
     if dark is not None:
-        r.focus = common.focus(common.rasterize(dark, common.FOCUS_WIDTH), common.background(dark))
-    if task.paranoid and not isinstance(piece, common.LegacyPiece):
+        r.focus = raster.focus(raster.rasterize(dark, raster.FOCUS_WIDTH), raster.background(dark))
+    if task.paranoid and not isinstance(piece, loader.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
-
-
-def _start_fresh(keys: Sequence[str]) -> subprocess.Popen[str]:
-    """A running `python -m walldye _hashes` subprocess under PYTHONHASHSEED for `keys`; read
-    it with communicate() and judge it with _fresh_errors()."""
-    return subprocess.Popen(
-        [sys.executable, "-m", "walldye", "_hashes", str(common.WALLPAPERS), *keys],
-        env={**os.environ, "PYTHONHASHSEED": HASH_SEED},
-        cwd=common.ROOT,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-
-
-def _fresh_errors(run: subprocess.CompletedProcess[str], expected: Mapping[str, str]) -> list[str]:
-    """Errors for the keys the finished _start_fresh() subprocess `run` drew differently from
-    `expected` {key: sha256}."""
-    if run.returncode != 0:
-        return [f"determinism subprocess failed: {run.stderr.strip()[-600:]}"]
-    try:
-        got = common.as_dict(json.loads(run.stdout))
-    except ValueError:
-        got = None
-    if got is None:
-        return [f"determinism subprocess printed {run.stdout[:200]!r}"]
-    errors: list[str] = []
-    for k, sha in expected.items():
-        if got.get(k) != sha:
-            _, _, aspect, regime = k.split("@")
-            errors.append(
-                f"{aspect} {regime}: a fresh process with PYTHONHASHSEED={HASH_SEED} draws it"
-                " differently (iterating a set of strings? hash()?)"
-            )
-    return errors
 
 
 def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Document]) -> list[str]:
@@ -320,7 +274,7 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
         for theme in [TEMPLATE_THEMES[regime], *rest]:
             tokens = themes.tokens_of(theme)
             try:
-                piece = common.fresh(slug)
+                piece = loader.fresh(slug)
             except Exception as e:  # whatever the import raises fails the check
                 raise design_error(e, "fresh import") from e
             got = draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
@@ -333,25 +287,6 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
                 )
                 break
     return errors
-
-
-def hashes_main(args: Sequence[str]) -> int:
-    """`python -m walldye _hashes <wallpapers dir> <slug@variant@aspect@regime>...`: print a
-    JSON object mapping each key to the sha256 of that draw serialized under the regime's
-    sample theme, made in this process. Design errors propagate (non-zero exit)."""
-    common.WALLPAPERS = Path(args[0])
-    out: dict[str, str] = {}
-    for k in args[1:]:
-        slug, variant, aspect, regime = k.split("@")
-        if regime not in ("dark", "light"):
-            raise ValueError(f"bad key {k!r}")
-        piece = common.load(slug)
-        spec = RenderSpec(
-            variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
-        )
-        out[k] = _sha(common.draw(piece, spec, cache=False), themes.SAMPLE[spec.regime])
-    print(json.dumps(out))
-    return 0
 
 
 def workers(jobs: int | None, tasks: int) -> int:
@@ -376,16 +311,6 @@ def run_tasks[T, R](fn: Callable[[T], R], tasks: Sequence[T], jobs: int) -> Iter
         yield from pool.map(fn, tasks)
 
 
-def built_ink(slug: str, variant: str) -> Ink | None:
-    """The ink map of a variant's build/[<variant>/]16x9.svg, measured from its own
-    background; None when not built."""
-    path = common.build_dir(slug, variant) / "16x9.svg"
-    if not path.exists():
-        return None
-    svg = path.read_text()
-    return common.ink_map(common.rasterize(svg, INK_WIDTH), common.background(svg))
-
-
 def print_report(report: Report) -> None:
     status = f"{len(report.errors)} error(s)" if len(report.errors) > 0 else "ok"
     warned = f", {len(report.warnings)} warning(s)" if len(report.warnings) > 0 else ""
@@ -396,29 +321,6 @@ def print_report(report: Report) -> None:
         print(f"  warning: {w}")
     for n in report.notes:
         print(f"  note: {n}")
-
-
-def near_clones(slugs: Sequence[str]) -> None:
-    """`check --similar`: print pairs involving `slugs` whose built default build/16x9.svg
-    ink maps have cosine >= NEAR_CLONE, most similar first, then the `slugs` that have no
-    built template."""
-    maps: dict[str, Ink] = {}
-    skipped: list[str] = []
-    for slug in sorted(set(common.slugs()) | set(slugs)):
-        ink = built_ink(slug, "default")
-        if ink is not None:
-            maps[slug] = ink
-        elif slug in slugs:
-            skipped.append(slug)
-    names = list(maps)
-    pairs = [
-        (sim, a, b) for i, a in enumerate(names) for b in names[i + 1 :]
-        if (a in slugs or b in slugs) and (sim := float(maps[a] @ maps[b])) >= NEAR_CLONE
-    ]  # fmt: skip
-    for sim, a, b in sorted(pairs, reverse=True):
-        print(f"similar ({sim:.2f}): {a} ~ {b}")
-    if len(skipped) > 0:
-        print(f"similar: skipped, no build/16x9.svg: {', '.join(skipped)}")
 
 
 def run(
@@ -433,13 +335,13 @@ def run(
     `variant`, print a report per piece in slug order and, with `similar`, the near-clone
     advisory. Returns 1 if any piece has errors, 2 if there is nothing to check, else 0
     (warnings, notes and the advisory never fail). UsageError for an undeclared `variant`."""
-    targets = [prepare(s, variant) for s in (common.slugs() if all else slugs)]
+    targets = [prepare(s, variant) for s in (paths.slugs() if all else slugs)]
     if len(targets) == 0:
         print("nothing to check: name a slug or pass --all", file=sys.stderr)
         return 2
     for t in targets:
         lint_source(t)
-    tasks = [Task(str(common.WALLPAPERS), t.slug, v, paranoid) for t in targets for v in t.variants]
+    tasks = [Task(str(paths.WALLPAPERS), t.slug, v, paranoid) for t in targets for v in t.variants]
     results = run_tasks(check_variant, tasks, workers(jobs, len(tasks)))
     failed = 0
     for t in targets:

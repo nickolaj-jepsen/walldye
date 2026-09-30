@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from walldye.tools import common, tokenize
+from walldye.tools import paths, tokenize
 
-SPEC = json.loads((common.ROOT / "src/lib/__fixtures__/tokenize.json").read_text())
+SPEC = json.loads((paths.ROOT / "src/lib/__fixtures__/tokenize.json").read_text())
 
 
 @pytest.mark.parametrize("case", SPEC["cases"], ids=lambda c: c["name"])

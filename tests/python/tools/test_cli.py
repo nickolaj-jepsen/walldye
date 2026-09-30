@@ -2,7 +2,7 @@ import pytest
 from tools_support import FLAT, piece, versions
 
 from walldye._aspect import SITE_ASPECTS
-from walldye.tools import build, check, cli
+from walldye.tools import build, check, cli, determinism
 
 
 def test_check_and_build_wiring(wallpapers, monkeypatch):
@@ -43,7 +43,7 @@ def test_check_and_build_wiring(wallpapers, monkeypatch):
 
 def test_hashes_hands_off_to_check(monkeypatch):
     seen = []
-    monkeypatch.setattr(check, "hashes_main", lambda args: seen.append(args) or 0)
+    monkeypatch.setattr(determinism, "hashes_main", lambda args: seen.append(args) or 0)
     assert cli.main(["_hashes", "/w", "tiny@default@16:9@dark", "tiny@late@9:19.5@light"]) == 0
     assert seen == [["/w", "tiny@default@16:9@dark", "tiny@late@9:19.5@light"]]
     assert "_hashes" not in cli._parser().format_help()
