@@ -375,6 +375,30 @@ test.describe('detail on a very large screen', () => {
   });
 });
 
+test.describe('detail on a 16:10 screen', () => {
+  test.skip(({ browserName }) => browserName === 'firefox', 'Firefox ignores screen emulation');
+  test.use({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    contextOptions: { screen: { width: 1440, height: 900 } },
+  });
+
+  test('the export panel and Download start on your screen before the page module loads', async ({
+    page,
+  }) => {
+    // Without the module only the inline boots run, so what they show is the first paint.
+    await page.route('**/_astro/*.js', (route) => route.abort());
+    await page.goto('/schotter');
+    await expect(page.locator('#export input[name=asp][value="16:10"]')).toBeChecked();
+    await expect(page.locator('#export input[name=size][value=screen]')).toBeChecked();
+    await expect(page.locator('#export input[name=size][value="2560x1440"]')).toBeHidden();
+    await expect(page.locator('#quick-download .file')).toHaveText(
+      'PNG, 2880×1800 for your screen',
+    );
+    await expect(page.locator('#download .file')).toHaveText('PNG, 2880×1800 for your screen');
+  });
+});
+
 const VERSIONED = publishedPieces().find((p) => p.versions.length > 1);
 
 test.describe('detail extras', () => {

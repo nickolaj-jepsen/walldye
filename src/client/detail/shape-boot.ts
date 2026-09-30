@@ -3,13 +3,12 @@
  * shape (markShape) to the one the page starts in before first paint, so a phone's tall plate does not
  * grow when the page module loads. On any failure the plate stays 16:9 until then.
  */
-import { aspectOfLabel } from '../../lib/content';
-import { exportAspect, markShape } from '../screen';
+import { markShape } from '../screen';
+import { startAspect } from './panel';
 
 try {
   const spread = document.currentScript?.parentElement;
-  const shape = aspectOfLabel(new URLSearchParams(location.search).get('shape')) ?? exportAspect();
-  if (spread) markShape(spread, 'aspect', shape);
+  if (spread) markShape(spread, 'aspect', startAspect());
 } catch {
   // The page module sets the shape when it loads.
 }

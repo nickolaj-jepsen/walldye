@@ -6,14 +6,7 @@
  * A visitor's change goes through update(), which renders the whole page from the state and writes
  * the address; render() is cheap enough to run on every crop drag.
  */
-import {
-  type Aspect,
-  CANVAS,
-  DEFAULT_VARIANT,
-  downloadName,
-  FORMATS,
-  isAspect,
-} from '../../lib/content';
+import { type Aspect, CANVAS, DEFAULT_VARIANT, downloadName, isAspect } from '../../lib/content';
 import {
   cellWidths,
   cropAxis,
@@ -23,7 +16,6 @@ import {
   nearestAspect,
   objectPosition,
   renderCommand,
-  withinLimits,
 } from '../../lib/shape';
 import { tokenOf } from '../../lib/theme';
 import { copyText, flash } from '../clipboard';
@@ -31,39 +23,25 @@ import { must, readJson, replaceAddress } from '../dom';
 import { plateGrid } from '../grid';
 import { getSlots, keepShowing, keyedShow, type PlateData, plateData } from '../plates';
 import { retrying } from '../retry';
-import { exportAspect, markShape, NARROW_QUERY, screenPx } from '../screen';
+import { markShape, NARROW_QUERY, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
 import { dragCrop, placeCrop } from './crop';
 import { setUpExport } from './export';
-import { type DetailState, keptCrop, readAddress, shapeOf, sizeFor, writeAddress } from './state';
+import { allowed, formatOf, panelParts, renderPanel, sizePx, startState } from './panel';
+import { type DetailState, keptCrop, shapeOf, sizeFor, writeAddress } from './state';
 
 const spread = must('.spread');
 const plate = must('.plate', spread);
 const cropWindow = must(':scope > .crop', plate);
 const cropMap = must('.crop-map');
 const mapWindow = must(':scope > .crop', cropMap);
-const panel = must('#export');
+const parts = panelParts();
+const { panel, buttons: downloadBtns, formatRadios, native } = parts;
 const range = must<HTMLInputElement>('#crop');
-const cropRow = must('#crop-row');
-const shapeHint = must('#shape-hint');
-const sizes = [...must('#sizes').querySelectorAll('label')].map((label) => ({
-  label,
-  input: must<HTMLInputElement>('input', label),
-}));
-const sizeLimit = must('#size-limit');
 const cellNote = must('#cell-note');
 const formatHint = must('#format-hint');
-const downloadBtn = must<HTMLButtonElement>('#download');
-const quickBtn = must<HTMLButtonElement>('#quick-download');
-const downloadBtns = [downloadBtn, quickBtn];
-const summaryParts = (part: string) => downloadBtns.map((btn) => must(`[data-part=${part}]`, btn));
-const summaryFormats = summaryParts('format');
-const summarySizes = summaryParts('size');
-const summaryYours = summaryParts('yours');
 const exportError = must('#export-error');
 const desc = must('#desc');
-const aspectRadios = [...panel.querySelectorAll<HTMLInputElement>('input[name=asp]')];
-const formatRadios = [...panel.querySelectorAll<HTMLInputElement>('input[name=fmt]')];
 // Pieces with versions only.
 const versionsEl = document.getElementById('versions');
 const versionRadios = [...(versionsEl?.querySelectorAll<HTMLInputElement>('input[name=v]') ?? [])];
@@ -75,9 +53,6 @@ const runRender = document.getElementById('run-render');
 const copySource = document.querySelector<HTMLElement>('[data-action=copy-source]');
 
 const slug = plate.dataset.plate ?? '';
-const native = new Set(
-  aspectRadios.filter((r) => r.hasAttribute('data-native')).map((r) => r.value),
-);
 const screenAspect = nearestAspect(...screenPx());
 const narrow = matchMedia(NARROW_QUERY);
 
@@ -87,36 +62,15 @@ function cropsInPlace(shape: ExportShape): boolean {
   return narrow.matches && !shape.native && w < h;
 }
 
-/** Output pixels of a size radio's value. */
-function sizePx(size: string): [number, number] {
-  if (size === 'screen') return screenPx();
-  const [w, h] = size.split('x').map(Number);
-  return [w, h];
-}
-const allowed = (size: string) => withinLimits(...sizePx(size));
-
 const defaultData = plateData(plate);
 /** Every version's plate data by name, the default included; {} for a piece without named variants. */
 const versions = readJson<Record<string, PlateData>>(plate, 'variants', {});
 const dataOf = (variant: string): PlateData => versions[variant] ?? defaultData;
 
-function format(): (typeof FORMATS)[number] {
-  const v = formatRadios.find((r) => r.checked)?.value;
-  return FORMATS.find((f) => f.value === v) ?? FORMATS[1];
-}
-
 // ---- state ----
 
-const state: DetailState = (() => {
-  const asked = readAddress(new URLSearchParams(location.search));
-  // An unknown version, or a draft one outside `astro dev`, is not in `versions`: the default stays.
-  const variant =
-    asked.variant && Object.hasOwn(versions, asked.variant) ? asked.variant : DEFAULT_VARIANT;
-  // As the shape boot chose, so the plate keeps its size.
-  const aspect = asked.aspect ?? exportAspect();
-  const keep = aspect === screenAspect ? 'screen' : '';
-  return { variant, aspect, crop: asked.crop ?? null, size: sizeFor(aspect, keep, allowed) };
-})();
+// As the boots chose, so the plate and the panel keep what they show.
+const state: DetailState = startState(Object.keys(versions));
 /** The shown version's crop focus and grid cell sizes, from its slots.json once loaded. */
 let focus: [number, number] = [0.5, 0.5];
 let cells: number[] = [];
@@ -143,42 +97,20 @@ function render(): void {
   for (const r of versionRadios) r.checked = r.value === state.variant;
   if (desc.textContent !== data.alt) desc.textContent = data.alt;
   for (const img of plate.querySelectorAll<HTMLImageElement>(':scope > img')) img.alt = data.alt;
-  for (const r of aspectRadios) r.checked = r.value === state.aspect;
-  shapeHint.hidden = shape.native;
-  cropRow.hidden = shape.native;
   range.value = String(shape.t);
   markShape(spread, 'aspect', state.aspect);
   plate.style.setProperty('--pos', objectPosition(shape.aspect, shape.t));
   for (const win of [cropWindow, mapWindow]) placeCrop(win, shape);
-  renderSizes();
+  renderPanel(parts, state);
   renderNames(shape);
   renderPlate();
   if (cropsInPlace(shape)) renderMap();
   seeAlso?.setShape(state.aspect);
 }
 
-/** Shows the current shape's sizes, disabling those past the canvas limits. */
-function renderSizes(): void {
-  let limited = false;
-  for (const { label, input } of sizes) {
-    const offered = input.value === 'screen' || label.dataset.aspect === state.aspect;
-    const ok = allowed(input.value);
-    label.hidden = !offered;
-    input.disabled = !offered || !ok;
-    input.checked = input.value === state.size;
-    if (offered && !ok) {
-      input.setAttribute('aria-describedby', 'size-limit');
-      limited = true;
-    } else {
-      input.removeAttribute('aria-describedby');
-    }
-  }
-  sizeLimit.hidden = !limited;
-}
-
 function renderNames(shape: ExportShape): void {
   const token = tokenOf(currentSeeds());
-  const f = format();
+  const f = formatOf(parts);
   const [w, h] = sizePx(state.size);
   const name = downloadName(
     slug,
@@ -190,10 +122,6 @@ function renderNames(shape: ExportShape): void {
     !shape.native,
   );
   for (const btn of downloadBtns) btn.title = name;
-  for (const el of summaryFormats) el.textContent = f.label;
-  // An SVG has a shape but no pixel size.
-  for (const el of summarySizes) el.textContent = f.value === 'svg' ? state.aspect : `${w}×${h}`;
-  for (const el of summaryYours) el.hidden = f.value === 'svg' || state.size !== 'screen';
   if (runRender) runRender.textContent = renderCommand(slug, state.variant, token, shape);
   const widths =
     f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(shape, w, h));
@@ -326,7 +254,7 @@ setUpExport({
   formatHint,
   slug,
   job: () => {
-    const f = format();
+    const f = formatOf(parts);
     const shape = shapeOf(state, native, focus);
     const seeds = currentSeeds();
     const token = tokenOf(seeds);

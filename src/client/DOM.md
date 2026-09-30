@@ -10,7 +10,7 @@ The hooks the server-rendered pages give the client code in `src/client/`. The p
 | `index/page.ts` | `src/pages/index.astro` | Filters, shape, results line, the plate grid |
 | `detail/page.ts` | `src/pages/[slug].astro` | Versions and their pictures, plate, crop window, export panel, run command, the `f` key, "Copy", the "See also" grid |
 
-Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>` and `transition/boot.ts` after it, `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`, and `[slug].astro` inlines `detail/shape-boot.ts` as the first child of `.spread`. A boot that does not build fails the build.
+Both page modules show their grids of Plate.astro plates with `grid.ts`. `src/server/inline-script.ts` bundles the inline scripts: `Base.astro` inlines `theme/boot.ts` as the first script in `<head>` and `transition/boot.ts` after it, `index.astro` inlines `index/shape-boot.ts` as the first child of `section.plates`, and `[slug].astro` inlines `detail/shape-boot.ts` as the first child of `.spread` and `detail/panel-boot.ts` (`script#panel-boot`) right after the controls. A boot that does not build fails the build.
 
 ## Every page
 
@@ -22,7 +22,7 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 
 ### Plate transition
 
-`transition/boot.ts` sets `view-transition-name: plate` inline on one `.plate` for the length of a view transition: `.spread .plate[data-plate=<slug>]` on the detail page, `.grid > li[data-slug=<slug>] .plate` in a grid. Nothing else sets a view-transition-name. Detail pages hold their first render until `#quick-download` is parsed (`<link rel=expect blocking=render>`), so the spread's plate exists when `pagereveal` fires.
+`transition/boot.ts` sets `view-transition-name: plate` inline on one `.plate` for the length of a view transition: `.spread .plate[data-plate=<slug>]` on the detail page, `.grid > li[data-slug=<slug>] .plate` in a grid. Nothing else sets a view-transition-name. Detail pages hold their first render until `#panel-boot` is parsed (`<link rel=expect blocking=render>`), so the spread's plate exists when `pagereveal` fires and the panel boot has run.
 
 ### Header (`src/components/Masthead.astro`)
 
@@ -124,7 +124,7 @@ The page keeps its state in the query string, written with `history.replaceState
 | `.spread .plate` | Plate box with every aspect | Set `--pos`, the `object-position` of the crop, for that view; there a sideways drag on a cropped 16:9 picture moves the crop. |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
 | `#quick-download` | `button.download.quick` after the attribution | Runs the export as `#download` does, sharing its "Preparing…", `aria-busy`, summary and `title`. |
-| `[data-part=format\|size\|yours]` | spans inside both Download buttons (`DownloadSummary.astro`) | The format's label; the size as `w×h`, or the shape for SVG; " for your screen", shown for a raster at the `screen` size. |
+| `[data-part=format\|size\|yours]` | spans inside both Download buttons (`DownloadSummary.astro`) | The format's label; the size as `w×h`, or the shape for SVG; " for your screen", shown for a raster at the `screen` size. The panel boot sets them, with the Shape and Size rows, for the start state before first paint (`renderPanel()` in `detail/panel.ts`, which the page module renders with too). |
 | `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].alt`). |
 
 ### Versions, export and colors (`src/components/Controls.astro`)
