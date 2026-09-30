@@ -6,6 +6,7 @@ import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
 import { LICENSE_LINES, type TaxonomyFacet } from './lib/labels';
+import { typesetMeta, typesetNotes } from './lib/typeset';
 import {
   DEFAULT_LICENSE,
   FAN_WORK,
@@ -13,11 +14,10 @@ import {
   licenseOf,
   namedVariants,
   reservedSlug,
-  typesetMeta,
   variantsMeta,
-} from './lib/meta';
-import { DAY_FILE, type Day, parseDay, renames, type Views, viewTotals } from './lib/views';
+} from './server/meta';
 import { TAXONOMY } from './server/taxonomy';
+import { DAY_FILE, type Day, parseDay, renames, type Views, viewTotals } from './server/views';
 import { parseYaml } from './server/yaml';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
@@ -150,7 +150,7 @@ const wallpaper = z
     versions: z.array(version),
     /** Page views on walldye.com, all of them. */
     views: z.number().int().nonnegative(),
-    /** Page views weighted by age, a day's halving every HALF_LIFE_DAYS (src/lib/views.ts); rounded to 0.01. */
+    /** Page views weighted by age, a day's halving every HALF_LIFE_DAYS (src/server/views.ts); rounded to 0.01. */
     recent: z.number().nonnegative(),
     /** Place on featured.yaml, from 0; absent when the piece is not on it. */
     featured: z.number().int().nonnegative().optional(),
@@ -328,31 +328,6 @@ function loadViews(): Map<string, Views> {
     days,
     existsSync(redirects) ? renames(readFileSync(redirects, 'utf8')) : new Map(),
   );
-}
-
-/** Notes HTML with `<em>` as `<i>` (italics mark titles), acronyms in `<abbr>` and letter-like figures (Z64, 5.5) in `.lnum`; tags, entities and code are left alone. */
-function typesetNotes(html: string): string {
-  const skip = /^<(\/?)(code|pre|abbr|kbd|samp)\b/i;
-  let depth = 0;
-  return html
-    .replace(/<(\/?)em>/g, '<$1i>')
-    .split(/(<[^>]+>|&#?\w+;)/)
-    .map((part) => {
-      if (part.startsWith('&')) return part;
-      if (part.startsWith('<')) {
-        const m = skip.exec(part);
-        if (m) depth += m[1] ? -1 : 1;
-        return part;
-      }
-      if (depth > 0) return part;
-      return part
-        .replace(/\b[A-Z]{2,}\b/g, '<abbr>$&</abbr>')
-        .replace(
-          /\b(?:(?=[A-Za-z]*\d)(?=\d*[A-Za-z])[A-Za-z\d]+|\d+\.\d+|\d+ ?× ?\d+)\b/g,
-          '<span class="lnum">$&</span>',
-        );
-    })
-    .join('');
 }
 
 /**

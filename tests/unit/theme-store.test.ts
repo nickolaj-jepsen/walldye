@@ -8,7 +8,6 @@ import {
   PAGE_ATTR,
   resolveTheme,
   STORAGE_KEY,
-  SYSTEM_PAIR,
   savePair,
   saveTheme,
   sharedDiffers,
@@ -16,6 +15,7 @@ import {
   takeSharedParam,
 } from '../../src/client/theme/store';
 import { faviconUrl } from '../../src/lib/favicon';
+import { SYSTEM_PAIR } from '../../src/lib/presets';
 import { cssVars, normalizeSeeds, PRESETS } from '../../src/lib/theme';
 import { inlineScript } from '../../src/server/inline-script';
 

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { SYSTEM_PAIR } from '../../src/client/theme/store';
 import {
   DEFAULT_FAMILY,
   FAMILIES,
   NEAR_ACCENT,
   pairedFamily,
   presetColors,
+  SYSTEM_PAIR,
 } from '../../src/lib/presets';
 import { DEFAULT_THEME, distance, PRESETS, regimeOf } from '../../src/lib/theme';
 

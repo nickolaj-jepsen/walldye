@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { APIRoute, GetStaticPaths } from 'astro';
 import sharp from 'sharp';
-import { cropBox, focusPosition } from '../../client/export/shape';
 import { CANVAS } from '../../lib/content';
+import { cropBox, focusPosition } from '../../lib/shape';
 import { FIREPROOF } from '../../lib/theme';
 
 const W = 1200;

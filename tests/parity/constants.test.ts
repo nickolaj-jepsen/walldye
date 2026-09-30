@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { cropBox, focusPosition } from '../../src/client/export/shape';
 import { CANVAS, SITE_ASPECTS } from '../../src/lib/content';
-import { DEFAULT_LICENSE, FAN_WORK, MAX_VARIANTS, RESERVED_SLUGS } from '../../src/lib/meta';
+import { cropBox, focusPosition } from '../../src/lib/shape';
+import { DEFAULT_LICENSE, FAN_WORK, MAX_VARIANTS, RESERVED_SLUGS } from '../../src/server/meta';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (rel: string): unknown => JSON.parse(readFileSync(`${ROOT}${rel}`, 'utf8'));

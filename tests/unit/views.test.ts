@@ -9,7 +9,7 @@ import {
   pathSlug,
   renames,
   viewTotals,
-} from '../../src/lib/views';
+} from '../../src/server/views';
 
 const row = (date: string, requestPath: string, count: number): Row => ({
   count,

@@ -7,7 +7,7 @@ import {
   sizeFor,
   writeAddress,
 } from '../../src/client/detail/state';
-import { focusPosition } from '../../src/client/export/shape';
+import { focusPosition } from '../../src/lib/shape';
 
 const NATIVE = new Set(['16:9', '9:19.5']);
 const state = (patch: Partial<DetailState> = {}): DetailState => ({

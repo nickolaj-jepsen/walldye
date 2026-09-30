@@ -14,16 +14,6 @@ import {
   FORMATS,
   isAspect,
 } from '../../lib/content';
-import { tokenOf } from '../../lib/theme';
-import { copyText, flash } from '../clipboard';
-import { must, readJson, replaceAddress } from '../dom';
-import {
-  canEncodeWebp,
-  prefetchRasterizer,
-  type RasterFormat,
-  rasterizeSvg,
-  save,
-} from '../export/rasterize';
 import {
   cellWidths,
   crispPixels,
@@ -36,7 +26,17 @@ import {
   renderCommand,
   svgExport,
   withinLimits,
-} from '../export/shape';
+} from '../../lib/shape';
+import { tokenOf } from '../../lib/theme';
+import { copyText, flash } from '../clipboard';
+import { must, readJson, replaceAddress } from '../dom';
+import {
+  canEncodeWebp,
+  prefetchRasterizer,
+  type RasterFormat,
+  rasterizeSvg,
+  save,
+} from '../export/rasterize';
 import { plateGrid } from '../grid';
 import { getSlots, keepShowing, type PlateData, plateData, recolored } from '../plates';
 import { retrying } from '../retry';

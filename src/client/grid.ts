@@ -4,9 +4,9 @@
  * shape, its link opening the piece in that shape.
  */
 import { type Aspect, aspectLabel } from '../lib/content';
+import { cropAxis, focusPosition } from '../lib/shape';
 import { type Seeds, tokenOf } from '../lib/theme';
 import { must } from './dom';
-import { cropAxis, focusPosition } from './export/shape';
 import { keepShowing, type PlateData, plateData } from './plates';
 import { deviceAspect } from './screen';
 import { currentSeeds, onThemeChange } from './theme/current';

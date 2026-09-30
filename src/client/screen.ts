@@ -1,6 +1,6 @@
 /** The visitor's screen: its size at device resolution and the shape plates start in. */
 import type { Aspect } from '../lib/content';
-import { nearestAspect, withinLimits } from './export/shape';
+import { nearestAspect, withinLimits } from '../lib/shape';
 
 /** Phones and small tablets, which start on their own screen's shape. */
 export const PHONE_QUERY = '(max-width: 60rem) and (pointer: coarse)';

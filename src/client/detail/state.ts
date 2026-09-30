@@ -11,7 +11,7 @@ import {
   DEFAULT_VARIANT,
   EXPORT_SIZES,
 } from '../../lib/content';
-import { cropAxis, type ExportShape, focusPosition, num } from '../export/shape';
+import { cropAxis, type ExportShape, focusPosition, num } from '../../lib/shape';
 
 export interface DetailState {
   variant: string;

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
-import { focusPosition } from '../../src/client/export/shape';
+import { focusPosition } from '../../src/lib/shape';
 import { type CatalogVersion, publishedPieces, templateUrl } from './helpers';
 import { expect, test } from './test';
 

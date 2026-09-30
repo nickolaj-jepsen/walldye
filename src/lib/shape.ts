@@ -9,7 +9,7 @@ import {
   DEFAULT_VARIANT,
   fileStem,
   SITE_ASPECTS,
-} from '../../lib/content';
+} from './content';
 
 export interface Box {
   x: number;

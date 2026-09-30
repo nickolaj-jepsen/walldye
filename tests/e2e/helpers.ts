@@ -3,15 +3,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page } from '@playwright/test';
 import { decode } from 'fast-png';
-import {
-  DEFAULT_LICENSE,
-  isDraft,
-  licenseOf,
-  namedVariants,
-  smartQuotes,
-} from '../../src/lib/meta';
 import type { Slots, SlotsEntry } from '../../src/lib/recolor';
 import { findColors, skeleton } from '../../src/lib/tokenize';
+import { smartQuotes } from '../../src/lib/typeset';
+import { DEFAULT_LICENSE, isDraft, licenseOf, namedVariants } from '../../src/server/meta';
 import { loadMeta, slugs } from '../catalog';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
