@@ -1,38 +1,43 @@
-# Facet vocabulary for wallpapers/*/meta.yaml; the site's content schema rejects any other value.
-# Only `walldye review` adds values (accepted proposed_facets); agents never edit this file.
+# The facet vocabulary for wallpapers/*/meta.yaml, each value with the words the site shows for
+# it (lowercase: index entries, not headings); walldye check and the site reject any other value.
+# Only `walldye review` adds facet values (accepted proposed_facets, with their labels).
+# `models` gives each meta.yaml `model:` id the credit name the site shows, "Made with {name}";
+# add a model here by hand.
 technique:
-  - dither
-  - pixel
-  - glyph
-  - drafting
-  - instrument
-  - tiling
-  - simulation
-  - stipple
-  - field
-  - flat
-  - line
+  dither: dithering
+  pixel: pixel art
+  glyph: text characters
+  drafting: technical drawing
+  instrument: instrument displays
+  tiling: tiling
+  simulation: simulations
+  stipple: stippling and hatching
+  field: flow fields and contours
+  flat: flat shapes
+  line: line art
 subject:
-  - space
-  - landscape
-  - physics
-  - maps
-  - computing
-  - textile
-  - games
-  - maths
-  - flora-fauna
-  - machines
-  - architecture
-  - music
-  - sport
+  space: space
+  landscape: landscape
+  physics: physics
+  maps: maps
+  computing: computing
+  textile: textiles
+  games: games
+  maths: mathematics
+  flora-fauna: plants and animals
+  machines: machines
+  architecture: architecture
+  music: music and sound
+  sport: sport
 lineage:
-  - early-computer-art
-  - op-art
-  - modernism
-  - creative-coding
-  - japanese-art
-  - patent-drawings
-  - scientific-illustration
-  - vintage-computers
-  - arcade-games
+  early-computer-art: early computer art
+  op-art: op art
+  modernism: modernism
+  creative-coding: creative coding
+  japanese-art: Japanese art
+  patent-drawings: patent drawings
+  scientific-illustration: scientific illustration
+  vintage-computers: vintage computers
+  arcade-games: arcade games
+models:
+  claude-opus-5-5: Claude Opus 5.5

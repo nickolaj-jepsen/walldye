@@ -174,7 +174,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 - In order: the title, the attribution with its footnote markers, the Download line (§6.10), the description at 22px, the credit, a license line when there is one, the facts, then the notes as Markdown. Every row after the title is a whole 32px line, so the label shares baselines with the controls.
 - The attribution: a recreation reads "after {author}, *{title}*, {year}"; an inspiration, when there is no recreation, "inspired by {author}, *{title}*". References and data appear only as footnotes. Several are joined "A, B and C", a work by the same author as the one before leaves the name out ("Mark Rothko, *No. 61* and *Seagram murals*"), and missing fields are dropped.
-- The credit is "Made with Claude Opus 5.5", from `MODEL_NAMES` for meta.yaml's `model`, or "Made by {author}".
+- The credit is "Made with Claude Opus 5.5", from the credit name taxonomy.yaml gives meta.yaml's `model`, or "Made by {author}".
 - A CC0 piece shows no license. A fan work shows the fan-work disclaimer (wallpapers.md, Licensing); any other license shows its plain-words line from `LICENSE_LINES` in `src/lib/labels.ts`.
 - The facts are Technique, Inspired by, Shape and Added. A facet value links to the index filtered by it. Shape reads "Any screen", or the composed shapes followed by "(cropped for other screens)".
 - There are no previous and next links, arrow keys or `?from=`. The header's Index link is the way back.

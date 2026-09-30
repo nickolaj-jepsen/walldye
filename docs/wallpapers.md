@@ -43,9 +43,9 @@ variants:                    # only when design.py declares named variants
   settled: {label: Settled, description: ..., draft: true}
 ```
 
-- Facets: `technique`, `subject` and `lineage` take values from taxonomy.yaml, and the site shows each through its label in `src/lib/labels.ts`. Agents never add values. They write `proposed_facets`, which `walldye review` accepts or declines, asking for the new value's label. The site adds computed facets of its own, such as "fits any screen" and "made with Claude".
+- Facets: `technique`, `subject` and `lineage` take values from taxonomy.yaml, which gives each value the words the site shows for it. Agents never add values. They write `proposed_facets`, which `walldye review` accepts or declines, asking for the new value's label. The site adds computed facets of its own, such as "fits any screen" and "made with Claude".
 - Sources: a work (a game, film, book, paper, artwork or named series of them) is a `title`, set in italics. Anything else (a technique, phenomenon, place, product, program or logo) is a `topic`, set upright, following Wikipedia's rule for italics. A source never has both. A maker with no single work is an `author` with neither. A folder with `data/` needs a `data` or `recreation` source saying where its files came from. URLs are optional; fetch each one before writing it, and CI checks them.
-- Credit: exactly one of `model`, a model id with a name in `MODEL_NAMES` (`src/lib/labels.ts`), shown as "Made with Claude Opus 5.5", or `author`, shown as "Made by {author}".
+- Credit: exactly one of `model`, a model id with a credit name under `models:` in taxonomy.yaml, shown as "Made with Claude Opus 5.5", or `author`, shown as "Made by {author}".
 - Variants: the keys are exactly `default` plus the names design.py declares. Each needs a `label` of one to four plain words, unique within the piece, naming what that version shows. A named variant may add a `description`, which replaces the piece's while that version is shown, and `draft`.
 - Slugs: lowercase words joined by single hyphens. The site's routes reserve about, index, t, og, fonts, 404, robots, sitemap*, favicon and anything starting with `_`.
 
@@ -62,7 +62,7 @@ These rules cover everything a visitor reads that a wallpaper supplies: meta.yam
 - No evaluative adjectives (stunning, mesmerizing, elegant, timeless), and nothing the avoid-ai-tropes check flags.
 - Italics only for titles of works.
 
-`walldye check` warns on color words in design.py and meta.yaml and rejects internal terms in version labels. The vitest copy lint (`lintCopy` in `src/lib/meta.ts`) checks meta.yaml's text for color words, banned adjectives and stock phrases, internal terms, license identifiers, machinery numbers, theme roles as nouns and descriptions over two sentences or 30 words.
+`walldye check` rejects internal terms in version labels and warns on color words in design.py and on every copy problem in meta.yaml: color words, banned adjectives and stock phrases, internal terms, license identifiers, machinery numbers, theme roles as nouns and descriptions over two sentences or 30 words (`walldye/tools/lint/words.py`). pytest runs the same copy lint over the whole catalog and fails on any finding.
 
 ## Licensing
 

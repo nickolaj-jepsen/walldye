@@ -8,7 +8,7 @@ import urllib.request
 import pytest
 from tools_support import VERSION_LABELS, built, versions
 
-from walldye.tools import cli, metadata, paths, recolor, review
+from walldye.tools import cli, lint, metadata, paths, recolor, review
 from walldye.tools.errors import UsageError
 from walldye.tools.review.state import Step
 from walldye.tools.themes import parse_seeds
@@ -23,17 +23,14 @@ def draw(s: Canvas) -> None:
     s.stroke(P().circle(s.center, 200), UI, 2)
     s.fill(P().circle(s.center, 20), ACCENT)
 '''
-TAXONOMY = "# Facet vocabulary.\ntechnique:\n  - drafting\nsubject:\n  - flora-fauna\nlineage: []\n"
-LABELS_TS = """export const FACET_LABELS: Record<TaxonomyFacet, Record<string, string>> = {
-  technique: {
-    drafting: 'technical drawing',
-  },
-  subject: {
-    'flora-fauna': 'plants and animals',
-  },
-  lineage: {
-  },
-};
+TAXONOMY = """# Facet vocabulary.
+technique:
+  drafting: technical drawing
+subject:
+  flora-fauna: plants and animals
+lineage: {}
+models:
+  claude-opus-5-5: Claude Opus 5.5
 """
 
 
@@ -59,7 +56,6 @@ def meta(slug):
 
 def vocabulary():
     paths.TAXONOMY.write_text(TAXONOMY)
-    review.state.LABELS.write_text(LABELS_TS)
 
 
 # --- the queue and the words -----------------------------------------------------------------
@@ -85,22 +81,12 @@ def test_queue_orders_versions(wallpapers, capsys):
     assert review.state.drafts() == ["a", "b"]
 
 
-def test_facet_labels_read_and_extend_labels_ts():
-    real = review.state.facet_labels((paths.ROOT / "src/lib/labels.ts").read_text())
-    assert real["technique"]["dither"] == "dithering"
-    assert real["lineage"]["early-computer-art"] == "early computer art"
-    text = review.state.add_labels(
-        LABELS_TS, {"lineage": {"op-art": "op art"}, "technique": {"weave": "the weaver's grid"}}
-    )
-    assert "    weave: 'the weaver\\'s grid',\n  },\n  subject: {\n" in text
-    assert "  lineage: {\n    'op-art': 'op art',\n  },\n" in text
-    assert review.state.facet_labels(text) == {
-        "technique": {"drafting": "technical drawing", "weave": "the weaver's grid"},
-        "subject": {"flora-fauna": "plants and animals"},
-        "lineage": {"op-art": "op art"},
-    }
-    with pytest.raises(ValueError, match="no moods block"):
-        review.state.add_labels(LABELS_TS, {"moods": {"calm": "calm"}})
+def test_the_repo_taxonomy_has_labels_and_models():
+    taxonomy = lint.piece.load_taxonomy()
+    assert taxonomy is not None
+    assert taxonomy.facets["technique"]["dither"] == "dithering"
+    assert taxonomy.facets["lineage"]["early-computer-art"] == "early computer art"
+    assert taxonomy.models["claude-opus-5-5"] == "Claude Opus 5.5"
 
 
 def test_edited_applies_words_facets_and_versions():
@@ -175,7 +161,6 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
     ]
     assert result["published"] == ["c"] and result["new_facets"] == []
     assert meta("b")["draft"] is True and paths.TAXONOMY.read_text() == TAXONOMY
-    assert review.state.LABELS.read_text() == LABELS_TS
     assert "facets" in review.state.load_state()["b"]
 
     # A label typed on any piece serves every piece.
@@ -198,11 +183,9 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
     b = meta("b")
     assert "draft" not in b and "proposed_facets" not in b
     assert (b["technique"], b["subject"]) == (["drafting", "weave"], ["moon"])
-    assert paths.TAXONOMY.read_text() == (
-        "# Facet vocabulary.\ntechnique:\n  - drafting\n  - weave\nsubject:\n  - flora-fauna\n  - moon\nlineage: []\n"
-    )
-    labels = review.state.facet_labels(review.state.LABELS.read_text())
-    assert (labels["technique"]["weave"], labels["subject"]["moon"]) == ("woven grids", "the moon")
+    assert paths.TAXONOMY.read_text() == TAXONOMY.replace(
+        "technical drawing\n", "technical drawing\n  weave: woven grids\n"
+    ).replace("plants and animals\n", "plants and animals\n  moon: the moon\n")
     assert review.state.load_state() == {
         "b": {"versions": {"default": {"status": "keep", "note": "calm"}}},
         "c": {"versions": {"default": {"status": "keep"}}, "labels": {"subject": {"moon": "the moon"}}},
@@ -471,7 +454,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
 def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, capsys):
     piece(wallpapers, "a")
     built(capsys, "a")
-    paths.TAXONOMY.write_text("technique: {drafting: a mapping, not a list}\n")
+    paths.TAXONOMY.write_text("technique: [drafting]\n")
     review.state.save_state({"a": {"versions": {"default": {"status": "keep"}}}})
     url, finish = serve(monkeypatch, capsys, ["a"])
     with pytest.raises(urllib.error.HTTPError) as e:
@@ -482,7 +465,9 @@ def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, ca
     assert printed == sent
     assert printed["finished"] is False and printed["published"] == []
     assert printed["approved"] == ["a"]
-    assert printed["error"] == f"ValueError: {paths.TAXONOMY}: technique must be a list of values"
+    assert (
+        printed["error"] == "ValueError: taxonomy.yaml: technique must map each value to its words"
+    )
     assert meta("a")["draft"] is True
 
 

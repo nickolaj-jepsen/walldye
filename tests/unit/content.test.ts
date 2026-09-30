@@ -54,10 +54,10 @@ describe('filterGroups', () => {
         subject: i < 18 ? ['maps'] : [],
       }),
     );
-    const technique = filterGroups(pieces).find((g) => g.facet === 'technique');
+    const technique = filterGroups(pieces, () => undefined).find((g) => g.facet === 'technique');
     // dither matches 19 of 20, over the share; line matches 1.
     expect(technique?.entries.map((e) => e.value)).toEqual(['line']);
-    const subject = filterGroups(pieces).find((g) => g.facet === 'subject');
+    const subject = filterGroups(pieces, () => undefined).find((g) => g.facet === 'subject');
     // maps matches exactly 18 of 20, nine in ten, so it stays.
     expect(subject?.entries.map((e) => [e.value, e.count])).toEqual([['maps', 18]]);
   });

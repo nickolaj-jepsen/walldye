@@ -4,13 +4,14 @@ import Chips from '../components/Chips.astro';
 import Plate from '../components/Plate.astro';
 import Base from '../layouts/Base.astro';
 import { SITE_ASPECTS, aspectLabel, defaultSort, filterGroups, sortPieces } from '../lib/content';
+import { facetLabel } from '../server/taxonomy';
 import { DEFAULT_FAMILY, FAMILIES, presetColors } from '../lib/presets';
 import { inlineScript } from '../server/inline-script';
 
 const collection = await getCollection('wallpapers');
 const sort = defaultSort(collection.map((e) => e.data));
 const entries = sortPieces(collection, sort);
-const groups = filterGroups(entries.map((e) => e.data));
+const groups = filterGroups(entries.map((e) => e.data), facetLabel);
 const total = entries.length;
 // The view orders need a recorded view to mean anything (none in local builds without stats/).
 const viewed = collection.some((e) => e.data.views > 0);

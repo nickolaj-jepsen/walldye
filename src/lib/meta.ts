@@ -1,7 +1,7 @@
 /**
  * Rules over a parsed meta.yaml shared by CI and the content schema: the license default and draft
- * flag (ports of walldye/tools/lint/piece.py license_of and metadata.is_draft), the `variants:` mapping
- * and the copy lint.
+ * flag (ports of walldye/tools/lint/piece.py license_of and metadata.is_draft) and the `variants:`
+ * mapping. The copy rules live in walldye/tools/lint/words.py.
  */
 
 import { z } from 'astro/zod';
@@ -9,8 +9,6 @@ import { DEFAULT_VARIANT } from './content';
 
 export const DEFAULT_LICENSE = 'CC0-1.0';
 export const FAN_WORK = 'LicenseRef-fan-work';
-export const MAX_DESCRIPTION_WORDS = 30;
-export const MAX_DESCRIPTION_SENTENCES = 2;
 /** Named variants per design, so at most 5 versions with the default. */
 export const MAX_VARIANTS = 4;
 export const MAX_LABEL_WORDS = 4;
@@ -19,6 +17,8 @@ const MAX_VARIANT_NAME = 24;
 export const VARIANT_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type Meta = Record<string, unknown>;
+
+const words = (text: string): number => text.split(/\s+/).filter(Boolean).length;
 
 /** Slugs that would shadow a site route or file (walldye/tools/lint/piece.py RESERVED_SLUGS). */
 export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
@@ -128,144 +128,6 @@ export function licenseOf(meta: Meta): unknown {
     (s) => typeof s === 'object' && s !== null && (s as Meta).kind === 'recreation',
   );
   return meta.model && !recreation ? DEFAULT_LICENSE : null;
-}
-
-/** walldye/tools/lint/words.py COLOR_WORDS: hues and named shades that copy never names. */
-export const COLOR_WORDS: ReadonlySet<string> = new Set([
-  'red',
-  'orange',
-  'yellow',
-  'green',
-  'blue',
-  'purple',
-  'violet',
-  'pink',
-  'brown',
-  'black',
-  'white',
-  'grey',
-  'gray',
-  'cyan',
-  'magenta',
-  'teal',
-  'turquoise',
-  'indigo',
-  'crimson',
-  'scarlet',
-  'maroon',
-  'amber',
-  'golden',
-  'beige',
-  'cream',
-  'ivory',
-  'terracotta',
-  'ochre',
-  'umber',
-  'sepia',
-  'navy',
-  'lavender',
-  'lilac',
-  'mauve',
-  'azure',
-  'cobalt',
-  'vermilion',
-  'burgundy',
-  'charcoal',
-  'khaki',
-  'sienna',
-  'cerulean',
-  'ultramarine',
-  'chartreuse',
-  'fuchsia',
-]);
-
-/**
- * Color words in `text` as written, lowercased and sorted, plurals included ("greys" matches via "grey");
- * ALL-CAPS words (token names like ORANGE_DARK) are not prose.
- */
-export function colorWords(text: string): string[] {
-  const found = new Set<string>();
-  for (const [w] of text.matchAll(/(?<![\p{L}\p{N}_])[A-Za-z]+(?![\p{L}\p{N}_])/gu)) {
-    const lower = w.toLowerCase();
-    const stems = [lower, lower.replace(/s$/, ''), lower.replace(/es$/, '')];
-    if (w !== w.toUpperCase() && stems.some((t) => COLOR_WORDS.has(t))) found.add(lower);
-  }
-  return [...found].sort();
-}
-
-/** Phrases visible copy never uses, each with the reason shown by lintCopy. Matched case-insensitively as whole words. */
-export const BANNED: readonly (readonly [RegExp, string])[] = [
-  [
-    /\b(stunning|mesmeri[sz]ing|elegant|timeless|beautiful(ly)?|breathtaking|captivating|gorgeous|exquisite|hypnotic|vibrant|evocative|sublime|majestic|iconic|dazzling|striking)\b/i,
-    'evaluative adjective',
-  ],
-  [
-    /\b(delve[sd]?|delving|tapestry|testament|quietly|seamless(ly)?|serves as|stands as)\b/i,
-    'stock phrase',
-  ],
-  [
-    /\b(regimes?|seeds?|tokens?|native|hand-tuned|light-ready|presets?|variants?|params?|slots?|templates?|derived|guards?|has script|AI-generated|generator lost|appendix)\b/i,
-    'internal term',
-  ],
-  [/\b(CC0(-1\.0)?|GPL(-[\w.-]+)?|SPDX|OFL|LicenseRef-[\w.-]*)(?![\w-])/i, 'license identifier'],
-  [/\bRGB units?\b|\b\d+(\.\d+)?:1\b|\b\d+\s?px\b/i, 'machinery number'],
-  [/\bthe accent\b|\baccent colou?r\b|\b(bg|fg)(_alt)?\b/i, 'theme role as a noun'],
-];
-
-function words(text: string): number {
-  return text.split(/\s+/).filter(Boolean).length;
-}
-
-/** Sentences in `text`: a sentence ends at . ! or ? before whitespace and a capital, or at the end, so "Fig. 1" does not end one. */
-export function sentences(text: string): number {
-  const t = text.trim();
-  if (!t) return 0;
-  const ends = t.match(/[.!?]+(?=\s+[\p{Lu}"“‘(]|$)/gu)?.length ?? 0;
-  return /[.!?]$/.test(t) ? ends : ends + 1;
-}
-
-/**
- * Copy problems in the title, description and notes of `meta` and in each variant's label and
- * description, each as "<field>: <problem>" (a variant field as `variants.<name>.label`): color words
- * and BANNED phrases in any of them; a description over MAX_DESCRIPTION_WORDS words or
- * MAX_DESCRIPTION_SENTENCES sentences. [] when the copy follows the rules.
- */
-export function lintCopy(meta: Meta): string[] {
-  const fields: [string, unknown, boolean][] = [
-    ['title', meta.title, false],
-    ['description', meta.description, true],
-    ['notes', meta.notes, false],
-  ];
-  const vs = meta.variants;
-  if (isMapping(vs)) {
-    for (const [name, e] of Object.entries(vs)) {
-      if (isMapping(e))
-        fields.push(
-          [`variants.${name}.label`, e.label, false],
-          [`variants.${name}.description`, e.description, true],
-        );
-    }
-  }
-  const out: string[] = [];
-  for (const [field, value, isDescription] of fields) {
-    const text = value ? String(value) : '';
-    if (!text) continue;
-    const colors = colorWords(text);
-    if (colors.length) out.push(`${field}: color words ${colors.join(', ')}`);
-    for (const [re, why] of BANNED) {
-      const m = re.exec(text);
-      if (m) out.push(`${field}: ${why} "${m[0]}"`);
-    }
-    if (isDescription) {
-      const n = words(text);
-      if (n > MAX_DESCRIPTION_WORDS)
-        out.push(`${field}: ${n} words, over ${MAX_DESCRIPTION_WORDS}`);
-      const s = sentences(text);
-      if (s > MAX_DESCRIPTION_SENTENCES)
-        out.push(`${field}: ${s} sentences, over ${MAX_DESCRIPTION_SENTENCES}`);
-    }
-  }
-  return out;
 }
 
 /**

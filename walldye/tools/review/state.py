@@ -1,32 +1,29 @@
 """The review's state and logic: the queue of versions, the decisions and edits kept in
-STATE_FILE, and applying them to meta.yaml, taxonomy.yaml and labels.ts."""
+STATE_FILE, and applying them to meta.yaml and taxonomy.yaml."""
 
 import itertools
 import json
 import re
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 
 import yaml
 
 from walldye._aspect import SITE_ASPECTS, canvas_size
 from walldye._theme import SEEDS
-from walldye.tools import index, metadata, paths
+from walldye.tools import index, lint, metadata, paths
 from walldye.tools.metadata import dump_yaml, write_meta
 from walldye.tools.paths import template_name
 from walldye.tools.themes import PRESETS
 
 STATE_FILE = paths.ROOT / ".walldye-review.json"
-LABELS = paths.ROOT / "src/lib/labels.ts"
 # facet: its legend on the page
 FACETS = {"technique": "Technique", "subject": "Subject", "lineage": "Inspired by"}
 # field: (its label on the page, rows in its text box)
 TEXT = {"title": ("Title", 1), "description": ("Description", 3), "notes": ("Notes", 5)}
 FACET_VALUE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 RESULT_KEYS = ("published", "published_variants", "unpublished", "refused", "edits", "new_facets")
-_IDENT = re.compile(r"[A-Za-z_$][\w$]*")
-_LABEL_LINE = re.compile(r"    (?:'([^']+)'|([A-Za-z_$][\w$]*)): '((?:[^'\\]|\\.)*)',")
 
 type State = dict[str, dict[str, object]]
 type Labels = dict[str, dict[str, str]]
@@ -127,50 +124,6 @@ def _list(value: object) -> list[object]:
 
 def _strs(value: object) -> list[str]:
     return [str(v) for v in _list(value)]
-
-
-def facet_labels(text: str) -> Labels:
-    """The FACET_LABELS table of src/lib/labels.ts source `text`, as {facet: {value: label}};
-    {} when the table is missing."""
-    start = text.find("export const FACET_LABELS")
-    if start < 0:
-        return {}
-    out: Labels = {}
-    facet: str | None = None
-    for line in text[start:].splitlines()[1:]:
-        if line.startswith("}"):
-            break
-        if (m := re.fullmatch(r"  ([\w-]+): \{", line)) is not None:
-            facet = m.group(1)
-            out[facet] = {}
-        elif facet is not None and (m := _LABEL_LINE.fullmatch(line)) is not None:
-            key = m.group(1) if m.group(1) is not None else m.group(2)
-            out[facet][key] = re.sub(r"\\(.)", r"\1", m.group(3))
-    return out
-
-
-def add_labels(text: str, new: Mapping[str, Mapping[str, str]]) -> str:
-    """labels.ts source `text` with each of `new` {facet: {value: label}} appended to its
-    facet's block of FACET_LABELS. ValueError when that block is not found."""
-    lines = text.splitlines(keepends=True)
-    start = next((i for i, x in enumerate(lines) if x.startswith("export const FACET_LABELS")), -1)
-    for facet, values in new.items():
-        rows = range(max(start, 0), len(lines))
-        head = next((i for i in rows if lines[i] == f"  {facet}: {{\n"), -1)
-        end = next((i for i in range(head + 1, len(lines)) if lines[i] == "  },\n"), -1)
-        if start < 0 or head < 0 or end < 0:
-            raise ValueError(f"{LABELS}: no {facet} block in FACET_LABELS")
-        added: list[str] = []
-        for value, label in values.items():
-            key = value if _IDENT.fullmatch(value) is not None else f"'{value}'"
-            quoted = label.replace("\\", "\\\\").replace("'", "\\'")
-            added.append(f"    {key}: '{quoted}',\n")
-        lines[end:end] = added
-    return "".join(lines)
-
-
-def _labels() -> Labels:
-    return facet_labels(LABELS.read_text()) if LABELS.exists() else {}
 
 
 def _typed_labels(state: State) -> Labels:
@@ -276,7 +229,7 @@ def edited(meta: metadata.Meta, entry: Mapping[str, object]) -> metadata.Meta:
 
 
 def _new_values(
-    m: metadata.Meta, known: Mapping[str, Sequence[str]], labels: Labels
+    m: metadata.Meta, known: Mapping[str, Collection[str]], labels: Labels
 ) -> list[tuple[str, str, str]]:
     """(facet, value, label) for each value of `m`'s facets missing from `known`, with its
     label from `labels` ("" when it has none)."""
@@ -292,21 +245,20 @@ def _problems(
     slug: str,
     before: metadata.Meta,
     after: metadata.Meta,
-    known: Mapping[str, Sequence[str]],
+    taxonomy: lint.piece.Taxonomy,
     labels: Labels,
 ) -> tuple[list[str], list[str], list[str]]:
-    """(errors, warnings, fresh) from lint.piece.meta for `after`, the meta.yaml of `slug` as edited
-    from `before`, with the new facet values counted as known. fresh holds the errors `before`
-    lacks, plus one for each new value that is malformed or has no label in `labels`."""
-    from walldye.tools import lint
-
-    new = _new_values(after, known, labels)
-    taxonomy = {
-        f: {*known.get(f, ()), *(v for g, v, _ in new if g == f)} for f in {*known, *FACETS}
-    }
+    """(errors, warnings, fresh) from lint.piece.meta for `after`, the meta.yaml of `slug` as
+    edited from `before`, with its new facet values counted as known. fresh holds the errors
+    `before` lacks, plus one for each new value that is malformed or has no label in `labels`."""
+    new = _new_values(after, taxonomy.facets, labels)
+    facets = {f: dict(taxonomy.facets.get(f, {})) for f in FACETS}
+    for f, v, label in new:
+        facets[f][v] = label
+    grown = lint.piece.Taxonomy(facets, taxonomy.models)
     names = ["default", *variants(before)]
-    old, _ = lint.piece.meta(slug, before, taxonomy, names)
-    errors, warnings = lint.piece.meta(slug, after, taxonomy, names)
+    old, _ = lint.piece.meta(slug, before, grown, names)
+    errors, warnings = lint.piece.meta(slug, after, grown, names)
     fresh = [e for e in errors if e not in old]
     for f, v, label in new:
         if FACET_VALUE.fullmatch(v) is None:
@@ -316,16 +268,11 @@ def _problems(
     return errors, warnings, fresh
 
 
-def _taxonomy() -> tuple[str, dict[str, object], dict[str, list[str]]]:
-    """(taxonomy.yaml text, parsed, {facet: values}); ValueError when a facet is not a list."""
-    text = paths.TAXONOMY.read_text() if paths.TAXONOMY.exists() else ""
-    parsed = mapping(yaml.safe_load(text))
-    known: dict[str, list[str]] = {}
-    for facet, values in parsed.items():
-        if (items := metadata.as_list(values)) is None:
-            raise ValueError(f"{paths.TAXONOMY}: {facet} must be a list of values")
-        known[facet] = [str(v) for v in items]
-    return text, parsed, known
+def _taxonomy() -> lint.piece.Taxonomy:
+    """taxonomy.yaml, with no facets or models when it does not exist; ValueError when it is
+    malformed."""
+    taxonomy = lint.piece.load_taxonomy()
+    return lint.piece.Taxonomy({f: {} for f in FACETS}, {}) if taxonomy is None else taxonomy
 
 
 def _statuses(entry: Mapping[str, object]) -> dict[str, str]:
@@ -387,20 +334,18 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
     loses its draft key (on the piece for the default, on its variants: entry for a named one),
     and a dropped published one gets `draft: true`; nothing else changes a draft flag. A new
     facet value is appended to taxonomy.yaml (only its leading comment lines survive the
-    rewrite) and its label to FACET_LABELS in labels.ts. A piece is refused, and nothing of it
+    rewrite) with its label. A piece is refused, and nothing of it
     written, when an edit adds a lint error, a new facet value is malformed or has no label, or
     it would be published with proposed facets undecided. Everything is decided before the
     first write; index.json is rewritten after.
 
     Returns {published, published_variants: [{slug, variant}], unpublished: [{slug,
     variant}], refused: [{slug, reason}], edits: [{slug, variant, field, before, after}],
-    new_facets: [{facet, value, label}]}. ValueError if a taxonomy.yaml facet is not a list,
-    labels.ts has no block for a facet, or a meta.yaml is unreadable.
+    new_facets: [{facet, value, label}]}. ValueError if taxonomy.yaml is malformed or a
+    meta.yaml is unreadable.
     """
-    tax_text, taxonomy, known = _taxonomy()
-    labels_text = LABELS.read_text() if LABELS.exists() else ""
-    labels = facet_labels(labels_text)
-    merged = _merged(labels, _typed_labels(state))
+    taxonomy = _taxonomy()
+    merged = _merged(taxonomy.facets, _typed_labels(state))
     added: Labels = {}
     changed: dict[str, metadata.Meta] = {}
     written: list[str] = []
@@ -412,7 +357,10 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
         meta = metadata.load_meta(slug)
         m = edited(meta, entry)
         status = _statuses(entry)
-        known_now = {f: [*known.get(f, []), *added.get(f, {})] for f in {*known, *added}}
+        known_now = lint.piece.Taxonomy(
+            {f: {**taxonomy.facets.get(f, {}), **added.get(f, {})} for f in FACETS},
+            taxonomy.models,
+        )
         _, _, reasons = _problems(slug, meta, m, known_now, merged)
         results: dict[str, list[object]] = {k: [] for k in out}
         mine: list[Step] = []
@@ -453,7 +401,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
         if len(reasons) > 0:
             out["refused"].append({"slug": slug, "reason": "; ".join(reasons)})
             continue
-        for f, v, label in _new_values(m, known_now, merged):
+        for f, v, label in _new_values(m, known_now.facets, merged):
             added.setdefault(f, {})[v] = label
         results["edits"] = _diff(slug, meta, m)
         for k, items in results.items():
@@ -463,19 +411,15 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
         sent_back += back
         if m != meta:
             changed[slug] = m
-    fresh = {
-        f: {v: x for v, x in vs.items() if v not in labels.get(f, {})} for f, vs in added.items()
-    }
-    fresh = {f: vs for f, vs in fresh.items() if len(vs) > 0}
-    labels_out = add_labels(labels_text, fresh) if len(fresh) > 0 else labels_text
     if len(added) > 0:
+        text = paths.TAXONOMY.read_text() if paths.TAXONOMY.exists() else ""
+        data = metadata.as_dict(yaml.safe_load(text))
+        data = {} if data is None else data
         for f, vs in added.items():
-            taxonomy[f] = [*known.get(f, []), *vs]
-        lines = tax_text.splitlines(keepends=True)
+            data[f] = {**taxonomy.facets.get(f, {}), **vs}
+        lines = text.splitlines(keepends=True)
         header = "".join(itertools.takewhile(lambda line: line.startswith("#"), lines))
-        paths.TAXONOMY.write_text(header + dump_yaml(taxonomy, flow_lists=False))
-    if labels_out != labels_text:
-        LABELS.write_text(labels_out)
+        paths.TAXONOMY.write_text(header + dump_yaml(data, flow_lists=False))
     for slug, meta in changed.items():
         write_meta(slug, meta)
     if len(changed) > 0:
@@ -573,16 +517,16 @@ def config(steps: Sequence[Step]) -> dict[str, object]:
     """The page's data: steps, pieces, the facets and text fields it edits, taxonomy, labels,
     themes, canvas sizes and state."""
     try:
-        known = _taxonomy()[2]
+        known = _taxonomy().facets
     except ValueError:
-        known: dict[str, list[str]] = {}
+        known: Labels = {}
     return {
         "steps": [{"slug": s.slug, "variant": s.variant, "published": s.published} for s in steps],
         "pieces": {slug: _piece(slug, metadata.load_meta(slug)) for slug in _grouped(steps)},
         "facets": [[f, legend] for f, legend in FACETS.items()],
         "text": [[k, label, rows] for k, (label, rows) in TEXT.items()],
         "taxonomy": {f: sorted(known.get(f, [])) for f in FACETS},
-        "labels": _labels(),
+        "labels": known,
         "themes": [{"name": n, **{k: PRESETS[n][k] for k in SEEDS}} for n in PRESETS],
         "canvas": {a: canvas_size(a) for a in SITE_ASPECTS},
         "state": load_state(),
@@ -593,6 +537,6 @@ def check_entry(slug: str, entry: Mapping[str, object], state: State) -> dict[st
     """{errors, warnings, fresh} for `slug` as review state `entry` edits it (_problems);
     labels typed for any piece in `state` count."""
     meta = metadata.load_meta(slug)
-    merged = _merged(_labels(), _typed_labels({**state, slug: dict(entry)}))
-    errors, warnings, fresh = _problems(slug, meta, edited(meta, entry), _taxonomy()[2], merged)
+    merged = _merged(_taxonomy().facets, _typed_labels({**state, slug: dict(entry)}))
+    errors, warnings, fresh = _problems(slug, meta, edited(meta, entry), _taxonomy(), merged)
     return {"errors": errors, "warnings": warnings, "fresh": fresh}

@@ -1,7 +1,6 @@
 /**
- * The words visitors see for taxonomy slugs, computed facets, model ids and licenses. The content
- * schema fails the build when a published piece uses a value with no label here. Facet entries are
- * lowercase: they are index entries, not headings.
+ * The words visitors see for the facets, the computed facet values and licenses. The taxonomy
+ * values and model ids have theirs in taxonomy.yaml (src/server/taxonomy.ts reads it).
  */
 
 /** Facets that meta.yaml fills from taxonomy.yaml, in the order the index shows them. */
@@ -18,48 +17,6 @@ export const FACET_LEGENDS: Record<Facet, string> = {
   other: 'Other',
 };
 
-export const FACET_LABELS: Record<TaxonomyFacet, Record<string, string>> = {
-  technique: {
-    dither: 'dithering',
-    pixel: 'pixel art',
-    glyph: 'text characters',
-    drafting: 'technical drawing',
-    instrument: 'instrument displays',
-    tiling: 'tiling',
-    simulation: 'simulations',
-    stipple: 'stippling and hatching',
-    field: 'flow fields and contours',
-    flat: 'flat shapes',
-    line: 'line art',
-  },
-  subject: {
-    space: 'space',
-    landscape: 'landscape',
-    physics: 'physics',
-    maps: 'maps',
-    computing: 'computing',
-    textile: 'textiles',
-    games: 'games',
-    maths: 'mathematics',
-    'flora-fauna': 'plants and animals',
-    machines: 'machines',
-    architecture: 'architecture',
-    music: 'music and sound',
-    sport: 'sport',
-  },
-  lineage: {
-    'early-computer-art': 'early computer art',
-    'op-art': 'op art',
-    modernism: 'modernism',
-    'creative-coding': 'creative coding',
-    'japanese-art': 'Japanese art',
-    'patent-drawings': 'patent drawings',
-    'scientific-illustration': 'scientific illustration',
-    'vintage-computers': 'vintage computers',
-    'arcade-games': 'arcade games',
-  },
-};
-
 /** Computed facets (the "Other" group): query value -> label. */
 export const OTHER_LABELS = {
   references: 'has references',
@@ -69,20 +26,6 @@ export const OTHER_LABELS = {
   'human-made': 'human-made',
 } as const;
 export type OtherValue = keyof typeof OTHER_LABELS;
-
-/** Label of a facet value, or undefined when it has none (the schema turns that into a build error). */
-export function facetLabel(facet: Facet, value: string): string | undefined {
-  if (facet === 'other') return OTHER_LABELS[value as OtherValue];
-  return FACET_LABELS[facet][value];
-}
-
-/**
- * The credit name for each meta.yaml `model:` id, shown as "Made with {name}". A model missing
- * here fails the build (walldye check reads this table too).
- */
-export const MODEL_NAMES: Record<string, string> = {
-  'claude-opus-5-5': 'Claude Opus 5.5',
-};
 
 /** Where takedown requests for fan works go, shown in the fan-work line. */
 export const TAKEDOWN_CONTACT = 'takedown@walldye.com';

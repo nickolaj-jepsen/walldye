@@ -75,7 +75,6 @@ def constants() -> dict[str, object]:
         "site_aspects": list(SITE_ASPECTS),
         "canvas": {a: list(canvas_size(a)) for a in SITE_ASPECTS},
         "reserved_slugs": sorted(lint.piece.RESERVED_SLUGS),
-        "color_words": sorted(lint.words.COLOR_WORDS),
         "max_variants": _design.MAX_VARIANTS,
         "default_license": lint.piece.DEFAULT_LICENSE,
         "fan_work": lint.piece.FAN_WORK,

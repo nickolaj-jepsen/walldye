@@ -1,6 +1,6 @@
 name: Python
 
-# pytest and Pyrefly, for changes to the library, its tests, the designs or the environment.
+# pytest and Pyrefly, for changes to the library, its tests, the designs and their copy, or the environment.
 on:
   push:
     branches: [main]
@@ -9,6 +9,8 @@ on:
       - 'tests/python/**'
       - 'scripts/fixtures/**'
       - 'wallpapers/*/design.py'
+      - 'wallpapers/*/meta.yaml'
+      - 'taxonomy.yaml'
       - 'wallpapers/pyrefly.toml'
       - '.claude/skills/walldye/SKILL.md'
       - 'pyproject.toml'

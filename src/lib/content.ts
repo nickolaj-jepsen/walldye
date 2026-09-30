@@ -3,7 +3,6 @@ import type { CollectionEntry } from 'astro:content';
 import {
   FACET_LEGENDS,
   type Facet,
-  facetLabel,
   type OtherValue,
   TAXONOMY_FACETS,
   type TaxonomyFacet,
@@ -110,11 +109,14 @@ export interface FilterGroup {
 export const NARROW_SHARE = 0.9;
 
 /**
- * The index's filter groups over `pieces`: entries sorted by label, with their unfiltered counts.
- * Entries matching none of the pieces or more than NARROW_SHARE of them are left out; groups left
- * empty are dropped.
+ * The index's filter groups over `pieces`: entries named by `label` (the value itself when it gives
+ * none) and sorted by it, with their unfiltered counts. Entries matching none of the pieces or more
+ * than NARROW_SHARE of them are left out; groups left empty are dropped.
  */
-export function filterGroups(pieces: Piece[]): FilterGroup[] {
+export function filterGroups(
+  pieces: Piece[],
+  label: (facet: Facet, value: string) => string | undefined,
+): FilterGroup[] {
   const facets: Facet[] = [...TAXONOMY_FACETS, 'other'];
   const pairs = pieces.map((p) => new Set(facetPairs(p)));
   const groups: FilterGroup[] = [];
@@ -129,7 +131,7 @@ export function filterGroups(pieces: Piece[]): FilterGroup[] {
     for (const value of values) {
       const count = pairs.filter((s) => s.has(`${facet}:${value}`)).length;
       if (count === 0 || count > pieces.length * NARROW_SHARE) continue;
-      entries.push({ value, label: facetLabel(facet, value) ?? value, count });
+      entries.push({ value, label: label(facet, value) ?? value, count });
     }
     entries.sort((a, b) => collator.compare(a.label, b.label));
     if (entries.length) groups.push({ facet, legend: FACET_LEGENDS[facet], entries });

@@ -410,7 +410,7 @@ A localhost page that goes through versions one at a time and blocks until Apply
 
 Decisions are saved to the gitignored `.walldye-review.json` as they are made, so a review resumes where it stopped. Only Apply writes to the repository:
 - Accepting an unpublished version removes its `draft:`, and removing a published one sets `draft: true`. Nothing else about a version changes; review never edits design.py.
-- Edits and facet decisions go to meta.yaml, and a new facet value to taxonomy.yaml with its label in `src/lib/labels.ts`.
+- Edits and facet decisions go to meta.yaml, and a new facet value to taxonomy.yaml with its label.
 - A piece is refused, and nothing of it written, when an edit adds a lint error, a new facet value has no label, or it would be published with proposed facets undecided.
 
 It then prints JSON:
