@@ -1,0 +1,27 @@
+title: Sorting wires
+description: Thirty-two wires trade places, one swap at a time, until they lie in order from thin to thick. One wire's long climb is picked out.
+notes: |
+  Each wire is one number, drawn at its current place in the list and weighted by its value, so the finished end runs from thin to thick. Insertion sort swaps neighbors only, and swaps that don't share a place are drawn side by side, which turns the run into a wedge of crossings. In the network version a bitonic sorting network makes the swaps, some of them sixteen places long.
+technique: [line]
+subject: [computing]
+lineage: [creative-coding]
+sources:
+  - kind: inspiration
+    title: Visualising Sorting Algorithms
+    author: Aldo Cortesi
+    year: 2007
+    url: https://corte.si/posts/code/visualisingsorting/
+  - kind: reference
+    topic: Insertion sort
+    url: https://en.wikipedia.org/wiki/Insertion_sort
+  - kind: reference
+    topic: Bitonic sorter
+    url: https://en.wikipedia.org/wiki/Bitonic_sorter
+added: 2026-09-30
+model: claude-opus-5-5
+variants:
+  default:
+    label: Insertion sort
+  network:
+    label: Sorting network
+    description: Thirty-two wires cross in long bundles as a sorting network swaps them, sixteen places at the widest. One wire's zigzag path is picked out.

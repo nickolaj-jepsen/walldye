@@ -1,0 +1,21 @@
+title: Radiolarian cutaway
+description: An eighth is cut out of a spined radiolarian, down to the smallest of its three nested lattice shells, which is picked out.
+notes: |
+  Each shell is a geodesic sphere: an icosahedron's faces split into small triangles and pushed out onto the sphere. A round pore sits at every corner, and what is left between them makes the lattice. Fourteen spines leave the outer shell, six along its axes and eight between them; those rooted in the cut went with it, and those pointing nearly straight toward or away from the viewer are left out. Thin beams run from the smallest shell out to the roots of the spines. The far side of each shell shows through the cut in a fainter line. It follows the manner of Haeckel's plates, not any one figure in them.
+technique: [line]
+subject: [flora-fauna]
+lineage: [scientific-illustration]
+sources:
+  - kind: inspiration
+    title: Kunstformen der Natur
+    author: Ernst Haeckel
+    year: 1904
+    url: https://en.wikipedia.org/wiki/Kunstformen_der_Natur
+  - kind: reference
+    topic: Radiolaria
+    url: https://en.wikipedia.org/wiki/Radiolaria
+  - kind: reference
+    topic: Geodesic polyhedron
+    url: https://en.wikipedia.org/wiki/Geodesic_polyhedron
+added: 2026-09-30
+model: claude-opus-5-5
