@@ -214,6 +214,7 @@
               # scripts/promo/record.ts
               pkgs.ffmpeg-headless
               pkgs.gifski
+              pkgs.libwebp
             ];
             env = {
               # uv runs the Nix venv as is instead of syncing its own.

@@ -42,7 +42,7 @@ pnpm e2e                                     # Playwright; `pnpm e2e:nix` on Nix
 
 With Nix, `nix develop` gives a shell with the Python environment from `uv.lock`, Node, pnpm and the browsers Playwright needs, and every command above works in it unchanged. Without the shell, NixOS needs `programs.nix-ld.enable = true;` for the prebuilt Python wheels, and `pnpm e2e:nix` runs Playwright with the browsers from nixpkgs.
 
-`pnpm promo` records the clip at the top of this page into `promo/` as MP4, WebP and GIF, building and serving the site itself; the shell has the ffmpeg and gifski it needs. Copy `promo/walldye.webp` over `.github/promo.webp` to update the clip here.
+`pnpm promo` records the clip at the top of this page into `promo/` as MP4, WebP and GIF, building and serving the site itself; the shell has the ffmpeg, gifski and libwebp it needs. Copy `promo/walldye.webp` over `.github/promo.webp` to update the clip here.
 
 ## On NixOS
 

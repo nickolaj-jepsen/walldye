@@ -9,7 +9,7 @@
  * pnpm promo [--piece <slug>] [--skip-build] [--stills]
  *
  * Needs a built catalog (`walldye build --all --published`), ffmpeg, and Chromium for Playwright;
- * `nix develop` has all but the catalog. gifski makes the GIF, which is skipped without it. The
+ * `nix develop` has all but the catalog. img2webp and gifski make the WebP and the GIF. The
  * piece must be on the index's first screen at 1440×810 (featured.yaml). With `stats/` checked out
  * the index's sort shows the view orders, as on walldye.com.
  */
@@ -32,7 +32,7 @@ import sharp from 'sharp';
 
 const { values: args } = parseArgs({
   options: {
-    piece: { type: 'string', default: 'dither-wave' },
+    piece: { type: 'string', default: 'nix-snowflake' },
     'skip-build': { type: 'boolean', default: false },
     stills: { type: 'boolean', default: false },
   },
@@ -86,7 +86,7 @@ interface Probe {
 
 // ---- setup -----------------------------------------------------------------
 
-/** Whether `tool` runs; ffmpeg takes `-version`, gifski `--version`. */
+/** Whether `tool` runs; ffmpeg and img2webp take `-version`, gifski `--version`. */
 function need(tool: string, flag = '--version'): boolean {
   return spawnSync(tool, [flag], { stdio: 'ignore' }).status === 0;
 }
@@ -172,43 +172,30 @@ class Reel {
 }
 
 /**
- * The lossless master as walldye.mp4 (BT.709, tagged, as browsers expect), walldye.webp (1280 wide,
- * the README's `.github/promo.webp`) and, with gifski, walldye.gif.
+ * The lossless master as walldye.mp4 (BT.709, tagged, as browsers expect) and, 1280 wide, with
+ * img2webp walldye.webp (the README's `.github/promo.webp`) and with gifski walldye.gif. Each is
+ * skipped with a warning when its tool is missing.
  */
-function encode(master: string, work: string): void {
+function encode(master: string, work: string): string[] {
+  const mp4 = join(OUT, 'walldye.mp4');
   run('ffmpeg', [
     ...['-loglevel', 'error', '-y', '-i', master],
     ...['-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p'],
-    ...[
-      '-colorspace',
-      'bt709',
-      '-color_primaries',
-      'bt709',
-      '-color_trc',
-      'bt709',
-      '-color_range',
-      'tv',
-    ],
+    ...['-colorspace', 'bt709', '-color_primaries', 'bt709'],
+    ...['-color_trc', 'bt709', '-color_range', 'tv'],
     ...['-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-tune', 'animation'],
-    ...[
-      '-x264-params',
-      'colorprim=bt709:transfer=bt709:colormatrix=bt709',
-      '-movflags',
-      '+faststart',
-    ],
-    join(OUT, 'walldye.mp4'),
+    ...['-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709'],
+    ...['-movflags', '+faststart', mp4],
   ]);
-  run('ffmpeg', [
-    ...['-loglevel', 'error', '-y', '-i', master, '-vf', 'scale=1280:-1:flags=lanczos'],
-    ...['-c:v', 'libwebp_anim', '-q:v', '85', '-compression_level', '6', '-loop', '0'],
-    join(OUT, 'walldye.webp'),
-  ]);
-  if (!need('gifski')) {
-    console.warn('gifski not found: skipping walldye.gif');
-    return;
-  }
-  const pngs = join(work, 'gif');
-  mkdirSync(pngs);
+  const wrote = [mp4];
+  const webp = need('img2webp', '-version');
+  const gif = need('gifski');
+  if (!webp) console.warn('img2webp (libwebp) not found: skipping walldye.webp');
+  if (!gif) console.warn('gifski not found: skipping walldye.gif');
+  if (!webp && !gif) return wrote;
+
+  const dir = join(work, 'frames');
+  mkdirSync(dir);
   run('ffmpeg', [
     '-loglevel',
     'error',
@@ -216,28 +203,45 @@ function encode(master: string, work: string): void {
     master,
     '-vf',
     'scale=1280:-1:flags=lanczos',
-    join(pngs, '%04d.png'),
+    join(dir, '%04d.png'),
   ]);
-  const files = readdirSync(pngs)
+  const files = readdirSync(dir)
     .sort()
-    .map((f) => join(pngs, f));
-  // Full quality turns off gifski's reuse of the previous frame's pixels, which leaves ghosts of each crossfade.
-  run('gifski', [
-    '--quiet',
-    '--width',
-    '1280',
-    '--fps',
-    `${FPS}`,
-    '--quality',
-    '100',
-    '--motion-quality',
-    '100',
-    '--lossy-quality',
-    '100',
-    '-o',
-    join(OUT, 'walldye.gif'),
-    ...files,
-  ]);
+    .map((f) => join(dir, f));
+
+  if (webp) {
+    // Near-lossless: libwebp's lossy frames each patch the last with pixels it deems close enough, so ghosts pile up.
+    const argv = ['-loop', '0', '-near_lossless', '40', '-m', '4'];
+    let prev: Buffer | null = null;
+    let from = 0;
+    const flush = (i: number): void => {
+      // Durations in whole ms, rounded against the clock so the loop keeps FPS.
+      const ms = Math.round((i * 1000) / FPS) - Math.round((from * 1000) / FPS);
+      argv.push('-d', `${ms}`, files[from]);
+    };
+    for (const [i, f] of files.entries()) {
+      const png = readFileSync(f);
+      if (prev?.equals(png)) continue;
+      if (prev) flush(i);
+      prev = png;
+      from = i;
+    }
+    flush(files.length);
+    const out = join(OUT, 'walldye.webp');
+    run('img2webp', [...argv, '-o', out]);
+    wrote.push(out);
+  }
+  if (gif) {
+    const out = join(OUT, 'walldye.gif');
+    // Full quality turns off gifski's reuse of the previous frame's pixels, which leaves ghosts of each crossfade.
+    run('gifski', [
+      ...['--quiet', '--width', '1280', '--fps', `${FPS}`],
+      ...['--quality', '100', '--motion-quality', '100', '--lossy-quality', '100'],
+      ...['-o', out, ...files],
+    ]);
+    wrote.push(out);
+  }
+  return wrote;
 }
 
 // ---- pixels ----------------------------------------------------------------
@@ -711,7 +715,7 @@ try {
     const master = join(work, 'master.mkv');
     const frames = await record(browser, master, stills);
     console.log(`${frames} frames, ${(frames / FPS).toFixed(2)} s`);
-    encode(master, work);
+    console.log(`wrote ${encode(master, work).join(', ')}`);
   } finally {
     await browser.close();
   }
@@ -719,4 +723,3 @@ try {
   stop(server);
   rmSync(work, { recursive: true, force: true });
 }
-console.log(`wrote ${OUT}/walldye.mp4, walldye.webp${need('gifski') ? ' and walldye.gif' : ''}`);

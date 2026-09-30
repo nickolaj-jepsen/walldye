@@ -57,7 +57,7 @@ pnpm e2e:nix                          # Playwright on NixOS outside `nix develop
 pnpm promo                            # the promo loop in promo/: builds and serves the site itself; --skip-build, --piece, --stills
 ```
 
-On NixOS, `nix develop` opens a shell with the locked Python environment (the checkout installed editable), Node, pnpm, Playwright's browsers, and ffmpeg and gifski for `pnpm promo`, where `uv run` and `pnpm e2e` work as they are; outside it the Python wheels need `programs.nix-ld.enable`. `flake.nix` also packages the CLI and renders wallpapers for a NixOS config (README).
+On NixOS, `nix develop` opens a shell with the locked Python environment (the checkout installed editable), Node, pnpm, Playwright's browsers, and ffmpeg, gifski and libwebp for `pnpm promo`, where `uv run` and `pnpm e2e` work as they are; outside it the Python wheels need `programs.nix-ld.enable`. `flake.nix` also packages the CLI and renders wallpapers for a NixOS config (README).
 
 ## Rules
 
