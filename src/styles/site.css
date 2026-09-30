@@ -908,7 +908,18 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 
 @media (prefers-reduced-motion: no-preference) {
   .plate img { transition: opacity 0.2s; }
+  @view-transition { navigation: auto; }
 }
+/* A plate carried to or from its page (src/client/transition/) while the page crossfades. The arriving plate is empty until its colors are drawn, so the leaving picture stays whole under it and the arriving one fades in over it. */
+::view-transition-group(*) { animation-duration: 0.3s; }
+::view-transition-group(plate) { animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+/* Two shapes (a 9:19.5 grid plate opening a 16:9 spread) crop to the moving frame. */
+::view-transition-old(plate), ::view-transition-new(plate) { height: 100%; object-fit: cover; }
+/* Naming the animations drops the UA's plus-lighter blend, which would brighten the two grounds where they overlap. */
+@keyframes plate-in { from { opacity: 0; } }
+::view-transition-old(plate) { animation: none; }
+::view-transition-new(plate) { animation-name: plate-in; }
+:active-view-transition .plate { background: none; }
 
 /* Without JS nothing can change the theme, filter the index or export, so those controls stay out of the way. */
 @media (scripting: none) {
