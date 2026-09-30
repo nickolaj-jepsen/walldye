@@ -24,8 +24,8 @@ const urls = (templates: Piece['templates']) =>
 const variants =
   only169 || !p.versions.length
     ? undefined
-    : JSON.stringify(Object.fromEntries(p.versions.map((v) => [v.name, { templates: urls(v.templates), slots: v.slotsUrl, alt: v.description }])));
+    : JSON.stringify(Object.fromEntries(p.versions.map((v) => [v.name, { templates: urls(v.templates), slots: v.slotsUrl, alt: v.alt, description: v.description }])));
 ---
 
-<div class="plate" data-plate={p.slug} data-templates={JSON.stringify(urls(p.templates))} data-slots={p.slotsUrl} data-alt={p.description} data-variants={variants}><noscript><img src={p.templates['16:9/dark'].url} alt={p.description} width="1920" height="1080" loading={lazy ? 'lazy' : undefined} decoding="async" /></noscript><slot /></div>
+<div class="plate" data-plate={p.slug} data-templates={JSON.stringify(urls(p.templates))} data-slots={p.slotsUrl} data-alt={p.alt} data-variants={variants}><noscript><img src={p.templates['16:9/dark'].url} alt={p.alt} width="1920" height="1080" loading={lazy ? 'lazy' : undefined} decoding="async" /></noscript><slot /></div>
 

@@ -124,9 +124,9 @@ def meta(
     `taxonomy` is None; color words in the copy warn."""
     errors: list[str] = []
     warnings: list[str] = []
-    for key in ("title", "description"):
+    for key, what in (("title", "a title"), ("description", "a description"), ("alt", "alt text")):
         if _text(m, key).strip() == "":
-            errors.append(f"meta.yaml needs a {key}")
+            errors.append(f"meta.yaml needs {what}")
     if "draft" in m and not isinstance(m["draft"], bool):
         errors.append(f"draft must be true or false, not {m['draft']!r}")
     author, model = _text(m, "author").strip(), _text(m, "model").strip()
@@ -196,7 +196,8 @@ def meta(
 
 def _variants(m: metadata.Meta, names: Sequence[str]) -> Lints:
     """The variants: rules: keys exactly the declared names, a unique plain label for each,
-    and description and draft only on named variants."""
+    description, alt and draft only on named variants, and a warning for a named variant
+    without its own alt text."""
     if len(names) <= 1:
         if "variants" in m:
             return ["variants: is only for designs that declare named variants"], []
@@ -220,7 +221,7 @@ def _variants(m: metadata.Meta, names: Sequence[str]) -> Lints:
         if entry is None:
             errors.append(f"variants: {name} must be a mapping with a label")
             continue
-        allowed = {"label"} if name == "default" else {"label", "description", "draft"}
+        allowed = {"label"} if name == "default" else {"label", "description", "alt", "draft"}
         if len(unknown := sorted(set(entry) - allowed)) > 0:
             errors.append(
                 f"variants: {name}: {', '.join(unknown)} not allowed (only {', '.join(sorted(allowed))})"
@@ -237,8 +238,11 @@ def _variants(m: metadata.Meta, names: Sequence[str]) -> Lints:
         if (other := labels.get(label.lower())) is not None:
             errors.append(f"variants: {name} and {other} share the label {label!r}")
         labels[label.lower()] = name
-        if "description" in entry and _text(entry, "description").strip() == "":
-            errors.append(f"variants: {name}: description must be text")
+        for key in ("description", "alt"):
+            if key in entry and _text(entry, key).strip() == "":
+                errors.append(f"variants: {name}: {key} must be text")
+        if name != "default" and "alt" not in entry:
+            warnings.append(f"variants: {name} needs its own alt text: it draws something else")
         if "draft" in entry and not isinstance(entry["draft"], bool):
             errors.append(f"variants: {name}: draft must be true or false")
     return errors, warnings

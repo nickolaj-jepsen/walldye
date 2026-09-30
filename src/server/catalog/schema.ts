@@ -74,6 +74,8 @@ export const version = z
     label: z.string(),
     /** The variant's own description, else the piece's. */
     description: z.string(),
+    /** The variant's own alt text, else the piece's. */
+    alt: z.string(),
     draft: z.boolean(),
     ...build,
   })
@@ -88,6 +90,8 @@ export const wallpaper = z
   .object({
     title: z.string().trim().min(1),
     description: z.string().trim().min(1),
+    /** What the picture shows, for the plate's alt text. */
+    alt: z.string().trim().min(1),
     notes: z.string().optional(),
     technique: facetList('technique'),
     subject: facetList('subject'),

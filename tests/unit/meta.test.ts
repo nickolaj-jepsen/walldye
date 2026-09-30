@@ -15,27 +15,39 @@ describe("typographer's quotes outside the notes", () => {
     expect(smartQuotes("16½''' ETA 6497-1, 12\" wide")).toBe("16½''' ETA 6497-1, 12\" wide");
   });
 
-  it('applies to titles, descriptions, variant copy, sources and the franchise, not notes', () => {
+  it('applies to titles, descriptions, alt texts, variant copy, sources and the franchise, not notes', () => {
     const meta = {
       title: "Baldur's Gate from the harbor",
       description: "Wyrm's Rock at dusk.",
+      alt: "The harbor's lamps.",
       notes: "Markdown's own.",
       sources: [{ kind: 'inspiration', title: "Mirror's Edge", author: 'DICE', year: 2008 }],
       franchise: { title: "Baldur's Gate 3", owner: 'Larian Studios' },
       variants: {
         default: { label: 'Harbor' },
-        night: { label: "Night's end", description: "The keep's lamps.", draft: true },
+        night: {
+          label: "Night's end",
+          description: "The keep's lamps.",
+          alt: "The keep's roof.",
+          draft: true,
+        },
       },
     };
     expect(typesetMeta(meta)).toEqual({
       ...meta,
       title: 'Baldur’s Gate from the harbor',
       description: 'Wyrm’s Rock at dusk.',
+      alt: 'The harbor’s lamps.',
       sources: [{ kind: 'inspiration', title: 'Mirror’s Edge', author: 'DICE', year: 2008 }],
       franchise: { title: 'Baldur’s Gate 3', owner: 'Larian Studios' },
       variants: {
         default: { label: 'Harbor' },
-        night: { label: 'Night’s end', description: 'The keep’s lamps.', draft: true },
+        night: {
+          label: 'Night’s end',
+          description: 'The keep’s lamps.',
+          alt: 'The keep’s roof.',
+          draft: true,
+        },
       },
     });
     expect(meta.title).toBe("Baldur's Gate from the harbor");

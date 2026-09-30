@@ -63,8 +63,12 @@ function cropsInPlace(shape: ExportShape): boolean {
 }
 
 const defaultData = plateData(plate);
-/** Every version's plate data by name, the default included; {} for a piece without named variants. */
-const versions = readJson<Record<string, PlateData>>(plate, 'variants', {});
+/** Every version's plate data and description by name, the default included; {} for a piece without named variants. */
+const versions = readJson<Record<string, PlateData & { description: string }>>(
+  plate,
+  'variants',
+  {},
+);
 const dataOf = (variant: string): PlateData => versions[variant] ?? defaultData;
 
 // ---- state ----
@@ -95,7 +99,8 @@ function render(): void {
   const data = dataOf(state.variant);
   const shape = shapeOf(state, native, focus);
   for (const r of versionRadios) r.checked = r.value === state.variant;
-  if (desc.textContent !== data.alt) desc.textContent = data.alt;
+  const text = versions[state.variant]?.description;
+  if (text !== undefined && desc.textContent !== text) desc.textContent = text;
   for (const img of plate.querySelectorAll<HTMLImageElement>(':scope > img')) img.alt = data.alt;
   range.value = String(shape.t);
   markShape(spread, 'aspect', state.aspect);

@@ -35,6 +35,7 @@ def run(slug: str, model: str) -> int:
     metadata.write_meta(slug, {
         "title": slug.replace("-", " ").capitalize(),
         "description": "",
+        "alt": "",
         "technique": [],
         "subject": [],
         "lineage": [],

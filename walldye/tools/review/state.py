@@ -21,7 +21,14 @@ STATE_FILE = paths.ROOT / ".walldye-review.json"
 # facet: its legend on the page
 FACETS = {"technique": "Technique", "subject": "Subject", "lineage": "Inspired by"}
 # field: (its label on the page, rows in its text box)
-TEXT = {"title": ("Title", 1), "description": ("Description", 3), "notes": ("Notes", 5)}
+TEXT = {
+    "title": ("Title", 1),
+    "description": ("Description", 2),
+    "alt": ("Alt text", 2),
+    "notes": ("Notes", 5),
+}
+# A named version's own text fields; left empty, the piece's are shown.
+VERSION_TEXT = ("description", "alt")
 FACET_VALUE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 RESULT_KEYS = ("published", "published_variants", "unpublished", "refused", "edits", "new_facets")
 
@@ -40,8 +47,8 @@ class Step:
 
 def load_state() -> State:
     """Review state {slug: {versions?: {name: {status?: keep|edit|drop, note?}}, edits?: {title?,
-    description?, notes?, technique?, subject?, lineage?, variants?: {name: {label?,
-    description?}}}, facets?: {facet: {value: accept|decline}}, labels?: {facet: {value:
+    description?, alt?, notes?, technique?, subject?, lineage?, variants?: {name: {label?,
+    description?, alt?}}}, facets?: {facet: {value: accept|decline}}, labels?: {facet: {value:
     label}}}}; {} if unreadable."""
     try:
         data: object = json.loads(STATE_FILE.read_text())
@@ -184,7 +191,9 @@ def edited(meta: metadata.Meta, entry: Mapping[str, object]) -> metadata.Meta:
             if key == "notes" and text == "":
                 m.pop(key, None)
             else:
-                m = _put(m, key, text, after="description")
+                m = _put(
+                    m, key, text, after="alt" if key == "notes" and "alt" in m else "description"
+                )
     for facet in FACETS:
         if facet in edits:
             m[facet] = _strs(edits.get(facet))
@@ -218,11 +227,12 @@ def edited(meta: metadata.Meta, entry: Mapping[str, object]) -> metadata.Meta:
                 continue
             if isinstance(label := c.get("label"), str):
                 e["label"] = _clean(label, False)
-            if name != "default" and isinstance(d := c.get("description"), str):
-                if (text := _clean(d, False)) != "":
-                    e = _put(e, "description", text, after="label")
-                else:
-                    e.pop("description", None)
+            for key, after in zip(VERSION_TEXT, ("label", "description"), strict=True):
+                if name != "default" and isinstance(d := c.get(key), str):
+                    if (text := _clean(d, False)) != "":
+                        e = _put(e, key, text, after=after if after in e else "label")
+                    else:
+                        e.pop(key, None)
             out[name] = e
         m["variants"] = out
     return m
@@ -442,7 +452,7 @@ def _diff(slug: str, before: metadata.Meta, after: metadata.Meta) -> list[object
     old_v, new_v = mapping(before.get("variants")), mapping(after.get("variants"))
     for name, value in new_v.items():
         a, b = mapping(old_v.get(name)), mapping(value)
-        for key in ("label", "description"):
+        for key in ("label", *VERSION_TEXT):
             if (old := text_field(a, key)) != (new := text_field(b, key)):
                 rows.append(
                     {"slug": slug, "variant": name, "field": key, "before": old, "after": new}
@@ -500,7 +510,7 @@ def _piece(slug: str, meta: metadata.Meta) -> dict[str, object]:
         d = paths.build_dir(slug, name)
         shown[name] = {
             "label": text_field(entry, "label"),
-            "description": text_field(entry, "description"),
+            **{k: text_field(entry, k) for k in VERSION_TEXT},
             "aspects": [a for a in SITE_ASPECTS if (d / template_name(a)).exists()],
         }
     return {

@@ -41,6 +41,7 @@ def piece(wallpapers, slug, **meta):
     fields = {
         "title": slug.capitalize(),
         "description": "A test piece.",
+        "alt": "A ring.",
         "technique": [],
         "subject": [],
         "lineage": [],
@@ -106,9 +107,10 @@ def test_edited_applies_words_facets_and_versions():
     entry = {
         "edits": {
             "title": "  A   clock ",
+            "alt": "A clock face.",
             "notes": "Line one.  \n\nLine two.\n\n",
             "subject": ["sea"],
-            "variants": {"late": {"label": "Late", "description": "Later on."}, "bare": {"description": " "}},
+            "variants": {"late": {"label": "Late", "description": "Later on.", "alt": "A later face."}, "bare": {"description": " "}},
         },
         "facets": {"technique": {"weave": "accept", "stipple": "decline"}},
     }  # fmt: skip
@@ -116,6 +118,7 @@ def test_edited_applies_words_facets_and_versions():
     assert list(m) == [
         "title",
         "description",
+        "alt",
         "notes",
         "technique",
         "subject",
@@ -128,7 +131,12 @@ def test_edited_applies_words_facets_and_versions():
     assert m["proposed_facets"] == {"subject": ["moon"]}
     assert m["variants"] == {
         "default": {"label": "Two"},
-        "late": {"label": "Late", "description": "Later on.", "draft": True},
+        "late": {
+            "label": "Late",
+            "description": "Later on.",
+            "alt": "A later face.",
+            "draft": True,
+        },
         "bare": {"label": "Five", "draft": True},
     }
     assert before["variants"]["bare"]["description"] == "No ring." and "notes" not in before
@@ -369,6 +377,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     assert c["versions"]["late"] == {
         "label": "Eight o'clock",
         "description": "",
+        "alt": "A clock at eight.",
         "aspects": ["16:9", "10:16"],
     }
     assert cfg["themes"][0] == {
@@ -380,7 +389,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     assert cfg["state"] == other
     assert b"init();" in http(url + "review.js")
     assert cfg["facets"][2] == ["lineage", "Inspired by"]
-    assert [t[0] for t in cfg["text"]] == ["title", "description", "notes"]
+    assert [t[0] for t in cfg["text"]] == ["title", "description", "alt", "notes"]
 
     template = (paths.build_dir("c", "late") / "16x9.svg").read_bytes()
     assert http(url + "img/c/late/16x9/fireproof.svg") == template

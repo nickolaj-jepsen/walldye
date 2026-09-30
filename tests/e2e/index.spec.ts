@@ -264,7 +264,7 @@ test.describe('index plates', () => {
       .toBe(true);
   });
 
-  test('every plate gets an image with the description as alt text', async ({ page }) => {
+  test('every plate gets an image with its alt text', async ({ page }) => {
     await page.goto('/');
     // Plates load as they come near the view.
     await page.locator('.grid > li[data-slug=schotter]').scrollIntoViewIfNeeded();

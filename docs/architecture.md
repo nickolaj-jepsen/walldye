@@ -41,7 +41,7 @@ Any other shape is a crop of the 16:9 template. The crop spans the template's fu
 
 ## Versions
 
-A version is a named variant that a visitor can switch to on the piece's page: another moon phase, or a later moment of a sweep. Its values are a `Params` instance in design.py, and its label, description and draft flag are in meta.yaml.
+A version is a named variant that a visitor can switch to on the piece's page: another moon phase, or a later moment of a sweep. Its values are a `Params` instance in design.py, and its label, alt text, description and draft flag are in meta.yaml.
 
 - A version changes what is depicted, or leaves out a layer such as a drawing's dimensions; it never just nudges a value. Review judges this; check does not compare versions.
 - A design has at most four named variants, so five versions with the default.

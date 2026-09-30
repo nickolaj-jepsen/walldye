@@ -10,6 +10,7 @@ DESIGNS = Path(__file__).parent / "designs"
 META = {
     "title": "Fixture",
     "description": "A synthetic design for the build tests.",
+    "alt": "Test shapes.",
     "model": "claude-opus-5-5",
     "draft": True,
 }

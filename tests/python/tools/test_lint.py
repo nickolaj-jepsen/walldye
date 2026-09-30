@@ -282,8 +282,20 @@ TAXONOMY = lint.piece.Taxonomy(
     {"technique": {"drafting": "drafting", "dither": "dithering"}, "subject": {"space": "space"}},
     {"claude-opus-5-5": "Claude Opus 5.5"},
 )
-GOOD = {"title": "T", "description": "A disc.", "model": "claude-opus-5-5", "technique": ["dither"]}
-HUMAN = {"title": "T", "description": "A disc.", "author": "A. Person", "technique": ["dither"]}
+GOOD = {
+    "title": "T",
+    "description": "A disc.",
+    "alt": "A disc.",
+    "model": "claude-opus-5-5",
+    "technique": ["dither"],
+}
+HUMAN = {
+    "title": "T",
+    "description": "A disc.",
+    "alt": "A disc.",
+    "author": "A. Person",
+    "technique": ["dither"],
+}
 FAN = {"franchise": {"title": "Outer Wilds", "owner": "Mobius Digital"}}
 WORK = {"kind": "recreation", "title": "Schotter"}
 NAMES = ("default", "late")

@@ -155,7 +155,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 
 `src/components/Plate.astro` and `PlateBox.astro`.
 
-- One `<li>` per piece, showing the default version in the grid's shape: a link named by its title around a figure, the description as alt text. The same plates make up "See also" (§6.8), with h3 titles.
+- One `<li>` per piece, showing the default version in the grid's shape: a link named by its title around a figure, with the piece's alt text. The same plates make up "See also" (§6.8), with h3 titles.
 - The caption is a tombstone: the title, "N versions" when the piece has published named variants ("(N draft)" added in `astro dev`), then the attribution line of §6.7.
 - Before JavaScript runs, a plate is an empty box of the grid's shape on `--seed-bg`, with a `<noscript>` image of the untouched 16:9 template. An inline script sets the index's shape before first paint, so the grid does not reflow.
 
@@ -191,7 +191,7 @@ After the label, notes and sources, "See also" (a small-caps head over a `.hair-
 
 `src/components/Controls.astro`, a labeled `section`.
 
-- Versions, when the piece has published named variants: a radio group headed "Versions", the default first, then meta.yaml order, each its 16:9 picture in the current colors over its name, in a row. The picture is hidden from assistive tech, so the radio is named by the version alone. Choosing one swaps the plate, the description and alt text, the file names and the run command, and writes `?v=<name>`; theme, shape and a placed crop are kept. An unknown or draft `?v=` shows the default.
+- Versions, when the piece has published named variants: a radio group headed "Versions", the default first, then meta.yaml order, each its 16:9 picture in the current colors over its name, in a row. The picture is hidden from assistive tech, so the radio is named by the version alone. Choosing one swaps the plate, the description, the alt text, the file names and the run command, and writes `?v=<name>`; theme, shape and a placed crop are kept. An unknown or draft `?v=` shows the default.
 - Export: Shape, Crop (for a cropped shape only, with "cropped from 16:9" under Shape), Size and Format (SVG, PNG, WebP, JPEG), then Download. The sizes per shape come from `EXPORT_SIZES` in `src/lib/content.ts`, with "your screen" last: the screen size times the device pixel ratio, at the nearest shape by |log ratio|. The page starts on it, as PNG, so a visitor who changes nothing downloads a file that fits their screen; a screen past the canvas limits starts on 16:9 at the default size.
 - Colors: swatch, hex value and role for each of the three, then "Change", which opens the picker, and "Copy link".
 - Hints under a row, in `--text-2`: "This browser can't make WebP files.", "This browser can't draw a file that large." (over 16,777,216 pixels or 32,767 px a side), and for pixel pieces whose squares miss whole pixels, "At this size the squares come out 3 or 4 pixels wide." Choices the browser cannot make fade to `--text-dim`.

@@ -23,7 +23,7 @@ def test_new_scaffolds_a_draft(wallpapers, capsys):
     # The template passes the design lint as written.
     t = check.prepare("ring-one")
     check.lint_source(t)
-    assert t.report.errors == ["meta.yaml needs a description"]
+    assert t.report.errors == ["meta.yaml needs a description", "meta.yaml needs alt text"]
 
 
 @pytest.mark.parametrize(

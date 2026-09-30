@@ -29,7 +29,13 @@ def legacy(wallpapers, slug="old", source=LEGACY_SOURCE, palette=LEGACY_PALETTE,
     d.mkdir()
     (d / "source.svg").write_text(source)
     (d / "palette.yaml").write_text(palette)
-    fields = {"title": "Old", "description": "A disc.", "model": "claude-opus-5-5", **meta}
+    fields = {
+        "title": "Old",
+        "description": "A disc.",
+        "alt": "A disc in the middle.",
+        "model": "claude-opus-5-5",
+        **meta,
+    }
     (d / "meta.yaml").write_text("".join(f"{k}: {v}\n" for k, v in fields.items()))
     return slug
 
@@ -55,8 +61,8 @@ def assert_recolors(slug: str, theme, aspect: str = "16:9", variant: str = "defa
 
 VERSION_LABELS = {
     "default": {"label": "Two o'clock"},
-    "late": {"label": "Eight o'clock", "draft": True},
-    "bare": {"label": "Five, no ring", "draft": True},
+    "late": {"label": "Eight o'clock", "alt": "A clock at eight.", "draft": True},
+    "bare": {"label": "Five, no ring", "alt": "A bare clock at five.", "draft": True},
 }
 
 
@@ -97,6 +103,7 @@ def piece(wallpapers, slug, design=TINY, **meta):
     fields = {
         "title": slug.capitalize(),
         "description": "A test piece.",
+        "alt": "A test shape.",
         "model": "claude-opus-5-5",
     }
     metadata.write_meta(slug, {**fields, "draft": True, **meta})

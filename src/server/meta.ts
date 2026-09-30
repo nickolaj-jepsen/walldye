@@ -48,6 +48,8 @@ const variantEntry = z
     label: z.string().trim().min(1),
     /** Replaces the piece's description while this version is shown; named variants only. */
     description: z.string().trim().min(1).optional(),
+    /** Replaces the piece's alt text while this version is shown; named variants only. */
+    alt: z.string().trim().min(1).optional(),
     /** Built but hidden from the production site; named variants only. */
     draft: z.boolean().optional(),
   })
@@ -56,7 +58,7 @@ const variantEntry = z
 /**
  * meta.yaml `variants:`: `default` plus every named variant design.py declares, each with a label of
  * at most MAX_LABEL_WORDS words, unique within the piece. At most MAX_VARIANTS named variants;
- * `description` and `draft` belong to named variants only. Whether the names match design.py is
+ * `description`, `alt` and `draft` belong to named variants only. Whether the names match design.py is
  * `walldye check`'s to say.
  */
 export const variantsMeta = z.record(z.string(), variantEntry).superRefine((vs, ctx) => {
@@ -79,6 +81,8 @@ export const variantsMeta = z.record(z.string(), variantEntry).superRefine((vs, 
   }
   if (unnamed?.description !== undefined)
     issue('the default version shows the piece description', [DEFAULT_VARIANT, 'description']);
+  if (unnamed?.alt !== undefined)
+    issue('the default version shows the piece alt text', [DEFAULT_VARIANT, 'alt']);
   if (unnamed?.draft !== undefined)
     issue('the default version is a draft only with the piece', [DEFAULT_VARIANT, 'draft']);
   const seen = new Map<string, string>();
@@ -97,6 +101,7 @@ export interface NamedVariant {
   name: string;
   label: unknown;
   description: unknown;
+  alt: unknown;
   draft: boolean;
 }
 
@@ -113,7 +118,13 @@ export function namedVariants(meta: Meta): NamedVariant[] {
   if (!isMapping(vs)) return [];
   return Object.entries(vs)
     .filter((e): e is [string, Meta] => e[0] !== DEFAULT_VARIANT && isMapping(e[1]))
-    .map(([name, e]) => ({ name, label: e.label, description: e.description, draft: isDraft(e) }));
+    .map(([name, e]) => ({
+      name,
+      label: e.label,
+      description: e.description,
+      alt: e.alt,
+      draft: isDraft(e),
+    }));
 }
 
 /**
