@@ -20,6 +20,23 @@ export const VARIANT_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type Meta = Record<string, unknown>;
 
+/** Slugs that would shadow a site route or file (walldye/tools/lint.py RESERVED_SLUGS). */
+export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
+  'about',
+  'index',
+  't',
+  'og',
+  'fonts',
+  '404',
+  'robots',
+  'favicon',
+]);
+
+/** Whether a slug collides with a site route or file: RESERVED_SLUGS, `sitemap*` or `_*`. */
+export function reservedSlug(slug: string): boolean {
+  return RESERVED_SLUGS.has(slug) || slug.startsWith('sitemap') || slug.startsWith('_');
+}
+
 /** Whether `meta` marks its piece a draft: only `draft: true` does. */
 export function isDraft(meta: Meta): boolean {
   return meta.draft === true;

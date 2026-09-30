@@ -1,11 +1,10 @@
-"""The Python-made fixtures vitest checks the TS ports against, and the helper that installs
-the synthetic designs in designs/ as pieces.
+"""The Python-made fixtures vitest's parity tests check the TS ports against.
 
-`uv run python tests/python/fixtures/regen.py` writes them, uncommitted: themes.json and
-collision/ in src/lib/__fixtures__/, and the reference renders in tests/fixtures/, which need
+`uv run python scripts/fixtures/regen.py` writes them to tests/fixtures/, uncommitted:
+themes.json, constants.json, crops.json and collision/, and the reference renders, which need
 REFERENCE_PIECES built first. CI runs it after `walldye build`; run it locally before
-`pnpm test`. The hand-written specs next to them (tokenize.json, theme-tokens.json) are
-committed.
+`pnpm test`. The hand-written specs the ports also read (tokenize.json, theme-tokens.json) are
+committed in src/lib/__fixtures__/.
 """
 
 import contextlib
@@ -18,54 +17,81 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import resvg_py
-import yaml
 from PIL import Image
 
-from walldye._aspect import aspect_label, canvas_size
+from walldye import _check_themes, _design, _theme
+from walldye._aspect import SITE_ASPECTS, aspect_label, canvas_size
 from walldye._theme import parse_seeds
-from walldye.tools import build, common, hashing, listing
+from walldye.tools import build, common, hashing, lint
 from walldye.tools.tokenize import find_colors
 
-HERE = Path(__file__).parent
-DESIGNS = HERE / "designs"
-SHARED = common.ROOT / "src/lib/__fixtures__"
+sys.path.insert(0, str(common.ROOT / "tests/python"))
+from fixtures.pieces import RECOLOR_THEMES, install
+
 REFERENCE = common.ROOT / "tests/fixtures"
-META = {
-    "title": "Fixture",
-    "description": "A synthetic design for the build tests.",
-    "model": "claude-opus-5-5",
-    "draft": True,
-}
-# vitest (b) themes: a 1-unit neighbor of fireproof (derived model), two presets, and a light
-# corner, so each regime is recolored under two themes other than its template's.
-RECOLOR_THEMES = ["1c1b1b-dad8ce-cf6a4c", "nord", "flexoki-light", "ffffff-000000-0000ff"]
 # Every template of these pieces gets reference renders under RECOLOR_THEMES.
 REFERENCE_PIECES = ["dither-moon", "radar-sweep", "schotter"]
 # The resvg-wasm parity reference: slug, aspect, theme, width in px.
 RESVG = ("schotter", "16:9", "nord", 960)
+THEMES_SEED, THEMES_PER_REGIME = 1, 20
+# Seed triples where regime selection is closest to a tie.
+EDGE_CASES = [
+    ("#808080", "#808080", "#CF6A4C"),
+    ("#777777", "#787878", "#CF6A4C"),
+    ("#787878", "#777777", "#CF6A4C"),
+]
+# Where the crops are centered, as fractions of the canvas: both edges, the middle and between.
+CROP_FOCI = [(0.0, 0.0), (0.25, 0.8), (0.5, 0.5), (0.8, 0.1), (1.0, 1.0), (0.3337, 0.6663)]
 
 
-def install(
-    wallpapers: Path,
-    design: str,
-    slug: str | None = None,
-    data: Mapping[str, str] | None = None,
-    **meta: object,
-) -> str:
-    """Copy designs/<design>.py to wallpapers/<slug>/design.py (slug defaults to `design`)
-    with META updated by `meta` as its meta.yaml and `data` as data/<name> files, credited by
-    a data source unless `meta` gives the sources; returns the slug."""
-    slug = slug or design
-    if data and "sources" not in meta:
-        meta = {**meta, "sources": [{"kind": "data", "topic": "Fixture points"}]}
-    d = wallpapers / slug
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "design.py").write_text((DESIGNS / f"{design}.py").read_text())
-    (d / "meta.yaml").write_text(yaml.safe_dump({**META, **meta}, sort_keys=False))
-    for name, text in (data or {}).items():
-        (d / "data").mkdir(exist_ok=True)
-        (d / "data" / name).write_text(text)
-    return slug
+def _entry(seeds: dict[str, str]) -> dict[str, object]:
+    return {
+        "seeds": seeds,
+        "light": _theme.is_light(seeds["bg"], seeds["fg"]),
+        "tokens": _theme.theme_tokens(seeds),
+    }
+
+
+def themes() -> dict[str, object]:
+    """The theme port's reference data: every preset, THEMES_PER_REGIME random seed triples per
+    regime from _check_themes.generate(THEMES_SEED, ...), and EDGE_CASES, each as {seeds, light,
+    tokens} with tokens in TOKENS order (fireproof's exact seeds resolve to its pinned table)."""
+    random = _check_themes.generate(THEMES_SEED, THEMES_PER_REGIME)
+    return {
+        "presets": {name: _entry(_theme.parse_seeds(name)) for name in _theme.PRESETS},
+        "random": {
+            r: [_entry(dict(zip(_theme.SEEDS, t, strict=True))) for t in triples]
+            for r, triples in random.items()
+        },
+        "edges": [_entry(dict(zip(_theme.SEEDS, t, strict=True))) for t in EDGE_CASES],
+    }
+
+
+def constants() -> dict[str, object]:
+    """The constants the site defines again in TypeScript."""
+    return {
+        "site_aspects": list(SITE_ASPECTS),
+        "canvas": {a: list(canvas_size(a)) for a in SITE_ASPECTS},
+        "reserved_slugs": sorted(lint.RESERVED_SLUGS),
+        "color_words": sorted(lint.COLOR_WORDS),
+        "max_variants": _design.MAX_VARIANTS,
+        "default_license": lint.DEFAULT_LICENSE,
+        "fan_work": lint.FAN_WORK,
+    }
+
+
+def crops() -> list[dict[str, object]]:
+    """fit_crop's position and box for each site aspect but 16:9 around each of CROP_FOCI."""
+    return [
+        {
+            "aspect": aspect,
+            "focus": list(focus),
+            "t": common.crop_position(aspect, focus),
+            "box": list(common.fit_crop(aspect, focus)),
+        }
+        for aspect in SITE_ASPECTS[1:]
+        for focus in CROP_FOCI
+    ]
 
 
 def per_hex(slug: str) -> dict[str, object]:
@@ -110,8 +136,13 @@ def collision() -> dict[str, str]:
 
 
 def outputs() -> dict[str, str]:
-    """The generated fixtures in src/lib/__fixtures__/, path relative to it -> text."""
-    return {"themes.json": json.dumps(listing.fixture(), indent=2) + "\n", **collision()}
+    """The fixtures that need no build, path relative to tests/fixtures/ -> text."""
+    return {
+        "themes.json": json.dumps(themes(), indent=2) + "\n",
+        "constants.json": json.dumps(constants(), indent=1) + "\n",
+        "crops.json": json.dumps(crops(), indent=1) + "\n",
+        **collision(),
+    }
 
 
 def _rel(path: Path) -> str:
@@ -200,7 +231,7 @@ def _write(base: Path, files: Mapping[str, str | bytes]) -> None:
 
 
 if __name__ == "__main__":
-    _write(SHARED, outputs())
+    _write(REFERENCE, outputs())
     if not references_current():
         print(f"tests/fixtures/: build {', '.join(REFERENCE_PIECES)} first", file=sys.stderr)
         sys.exit(1)

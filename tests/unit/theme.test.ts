@@ -28,12 +28,6 @@ import {
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const FIXTURES = `${ROOT}src/lib/__fixtures__/`;
 
-interface Entry {
-  seeds: Seeds;
-  light: boolean;
-  tokens: Record<string, string>;
-}
-
 /** Deterministic PRNG (mulberry32) so the random triples are the same on every run. */
 function rng(seed: number): () => number {
   return () => {
@@ -84,35 +78,6 @@ describe('number helpers', () => {
 });
 
 describe('derive_theme (c)', () => {
-  const text = readFileSync(`${FIXTURES}themes.json`, 'utf8');
-  const fixture = JSON.parse(text) as { random: Record<'dark' | 'light', Entry[]>; edges: Entry[] };
-  const entry = (seeds: Seeds): Entry => ({
-    seeds,
-    light: isLight(seeds.bg, seeds.fg),
-    tokens: themeTokens(seeds),
-  });
-
-  it('is byte-equal to themes.json from regen.py', () => {
-    const built = {
-      presets: Object.fromEntries(
-        Object.keys(PRESETS).map((name) => [name, entry(parseToken(name) as Seeds)]),
-      ),
-      random: {
-        dark: fixture.random.dark.map((e) => entry(e.seeds)),
-        light: fixture.random.light.map((e) => entry(e.seeds)),
-      },
-      edges: fixture.edges.map((e) => entry(e.seeds)),
-    };
-    expect(`${JSON.stringify(built, null, 2)}\n`).toBe(text);
-  });
-
-  it('covers both regimes with at least 20 triples each', () => {
-    expect(fixture.random.dark.length).toBeGreaterThanOrEqual(20);
-    expect(fixture.random.light.length).toBeGreaterThanOrEqual(20);
-    expect(fixture.random.dark.every((e) => !e.light)).toBe(true);
-    expect(fixture.random.light.every((e) => e.light)).toBe(true);
-  });
-
   it('pins fireproof and derives its 1-unit neighbor', () => {
     expect(themeTokens(normalizeSeeds({ bg: '#1c1b1a', fg: 'dad8ce', accent: '#CF6A4C' }))).toEqual(
       FIREPROOF,

@@ -123,7 +123,7 @@ jobs:
                       lines.append(f"{slug}?v={name}\t{p['title']}: {v['label']}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write("drafts<<EOF\n" + "".join(f"{line}\n" for line in lines) + "EOF\n")
-      - run: uv run python tests/python/fixtures/regen.py
+      - run: uv run python scripts/fixtures/regen.py
 
       - run: pnpm test
       # Type-checks the site, the client and the tests; it needs the rendered builds, so it runs here.

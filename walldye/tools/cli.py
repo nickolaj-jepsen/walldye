@@ -105,7 +105,7 @@ def _cmd_render(a: argparse.Namespace) -> int:
     native = supports(piece.declared_aspects, aspect)
     fit = cast("bool", a.fit) and not native
     if not native and not fit:
-        sys.exit(
+        raise common.UsageError(
             f"{slug} declares aspects={piece.declared_aspects!r}, not {aspect};"
             " pass --fit, or render 16:9 with --crop"
         )

@@ -1,4 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 
 test.describe('structure', () => {
   test.use({ viewport: { width: 1440, height: 1000 } });

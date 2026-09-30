@@ -394,7 +394,9 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
         "accent": "#CF6A4C",
     }
     assert cfg["state"] == other
-    assert http(url + "review.js").startswith(b'"use strict"')
+    assert b"init();" in http(url + "review.js")
+    assert cfg["facets"][2] == ["lineage", "Inspired by"]
+    assert [t[0] for t in cfg["text"]] == ["title", "description", "notes"]
 
     template = (common.build_dir("c", "late") / "16x9.svg").read_bytes()
     assert http(url + "img/c/late/16x9/fireproof.svg") == template
@@ -507,7 +509,7 @@ def test_review_refuses_unbuilt_and_empty(wallpapers, review_files, capsys):
     for slug in ("raw", "versions"):
         (wallpapers / slug / "meta.yaml").unlink()
     new.write_meta("a", {**meta("a"), "draft": False})
-    with pytest.raises(SystemExit, match="no drafts"):
+    with pytest.raises(common.UsageError, match="no drafts"):
         review.run([], 1, 0, False)
     with pytest.raises(SystemExit) as e:
         cli.main(["review", "a", "--all"])

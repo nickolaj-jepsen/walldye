@@ -6,7 +6,14 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**/*.ts", "**/*.mjs", "!**/.claude", "!**/infra", "!**/.astro"]
+    "includes": [
+      "**/*.ts",
+      "**/*.mjs",
+      "walldye/tools/review_page/*.js",
+      "!**/.claude",
+      "!**/infra",
+      "!**/.astro"
+    ]
   },
   "formatter": {
     "indentStyle": "space",
@@ -41,6 +48,12 @@
             "noNonNullAssertion": "off"
           }
         }
+      }
+    },
+    {
+      "includes": ["walldye/tools/review_page/*.js"],
+      "javascript": {
+        "globals": ["CFG"]
       }
     }
   ]

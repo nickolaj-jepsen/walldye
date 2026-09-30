@@ -402,19 +402,33 @@ def _sized(svg: str, w: float, h: float) -> str:
     )
 
 
-def fit_crop(aspect: str, focus: tuple[float, float]) -> Crop:
-    """The box of the 16:9 canvas an `aspect` it wasn't drawn for is cut from, as the site
-    cuts it: the canvas's full height for a narrower aspect, else its full width, slid along
-    the other axis to center on `focus` (fractions of the canvas), clamped to the canvas, the
-    position rounded to 0.001."""
+def _crop_span(aspect: str) -> tuple[bool, float]:
+    """(whether `aspect` is narrower than 16:9, the crop's size along its moving axis)."""
     cw, ch = canvas_size("16:9")
     aw, ah = canvas_size(aspect)
     ratio = aw / ah
     narrow = ratio < cw / ch
-    size = ch * ratio if narrow else cw / ratio
+    return narrow, ch * ratio if narrow else cw / ratio
+
+
+def crop_position(aspect: str, focus: tuple[float, float]) -> float:
+    """Where along its moving axis the crop of the 16:9 canvas to `aspect` sits when centered
+    on `focus` (fractions of the canvas): 0 at the left or top edge, 1 at the other, clamped
+    and rounded to 0.001, as the site's crop slider holds it."""
+    cw, ch = canvas_size("16:9")
+    narrow, size = _crop_span(aspect)
     span = size / (cw if narrow else ch)
     f = focus[0] if narrow else focus[1]
-    t = 0.5 if span >= 1 else round(min(1.0, max(0.0, (f - span / 2) / (1 - span))), 3)
+    return 0.5 if span >= 1 else round(min(1.0, max(0.0, (f - span / 2) / (1 - span))), 3)
+
+
+def fit_crop(aspect: str, focus: tuple[float, float]) -> Crop:
+    """The box of the 16:9 canvas an `aspect` it wasn't drawn for is cut from, as the site
+    cuts it: the canvas's full height for a narrower aspect, else its full width, slid along
+    the other axis to crop_position()."""
+    cw, ch = canvas_size("16:9")
+    narrow, size = _crop_span(aspect)
+    t = crop_position(aspect, focus)
     if narrow:
         return t * (cw - size), 0.0, size, float(ch)
     return 0.0, t * (ch - size), float(cw), size

@@ -26,8 +26,10 @@ STATE_FILE = common.ROOT / ".walldye-review.json"
 LABELS = common.ROOT / "src/lib/labels.ts"
 PAGE = Path(__file__).with_name("review_page")
 STATIC = {"review.js": "text/javascript", "review.css": "text/css"}
-FACETS = ("technique", "subject", "lineage")
-TEXT = ("title", "description", "notes")
+# facet: its legend on the page
+FACETS = {"technique": "Technique", "subject": "Subject", "lineage": "Inspired by"}
+# field: (its label on the page, rows in its text box)
+TEXT = {"title": ("Title", 1), "description": ("Description", 3), "notes": ("Notes", 5)}
 FACET_VALUE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 RESULT_KEYS = ("published", "published_variants", "unpublished", "refused", "edits", "new_facets")
 _IDENT = re.compile(r"[A-Za-z_$][\w$]*")
@@ -575,7 +577,8 @@ def _piece(slug: str, meta: common.Meta) -> dict[str, object]:
 
 
 def config(steps: Sequence[Step]) -> dict[str, object]:
-    """The page's data: steps, pieces, taxonomy, labels, themes, canvas sizes and state."""
+    """The page's data: steps, pieces, the facets and text fields it edits, taxonomy, labels,
+    themes, canvas sizes and state."""
     try:
         known = _taxonomy()[2]
     except ValueError:
@@ -583,6 +586,8 @@ def config(steps: Sequence[Step]) -> dict[str, object]:
     return {
         "steps": [{"slug": s.slug, "variant": s.variant, "published": s.published} for s in steps],
         "pieces": {slug: _piece(slug, common.load_meta(slug)) for slug in _grouped(steps)},
+        "facets": [[f, legend] for f, legend in FACETS.items()],
+        "text": [[k, label, rows] for k, (label, rows) in TEXT.items()],
         "taxonomy": {f: sorted(known.get(f, [])) for f in FACETS},
         "labels": _labels(),
         "themes": [{"name": n, **{k: PRESETS[n][k] for k in SEEDS}} for n in PRESETS],
@@ -607,13 +612,13 @@ def run(
     one) and block until Apply or `timeout` seconds; then print summarize() plus apply()'s
     result and `finished` as JSON. Decisions and edits persist in STATE_FILE as they are made;
     only Apply writes them. When apply() raises, the JSON says `error` (also sent to the page)
-    and the run returns 1, else 0. Exits without serving when the queue is empty or a version
-    in it lacks build/[<variant>/]16x9.svg or slots.json."""
+    and the run returns 1, else 0. UsageError when the queue is empty; exits without serving
+    when a version in it lacks build/[<variant>/]16x9.svg or slots.json."""
     steps = queue(slugs, everything)
     if len(steps) == 0:
         if len(slugs) > 0 or everything:
-            sys.exit("nothing to review")
-        sys.exit("no drafts to review; name slugs or pass --all")
+            raise common.UsageError("nothing to review")
+        raise common.UsageError("no drafts to review; name slugs or pass --all")
     missing = _missing(steps)
     if len(missing) > 0:
         todo = " ".join(dict.fromkeys(m.split(" ")[0] for m in missing))

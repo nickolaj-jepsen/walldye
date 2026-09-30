@@ -1,4 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 
 /** The theme token saved in localStorage, or null. */
 const saved = (page: Page) => page.evaluate(() => localStorage.getItem('walldye.theme'));
@@ -287,5 +288,75 @@ test.describe('theme', () => {
     const url = new URL(text);
     expect(url.searchParams.get('t')).toBe('rose-pine');
     expect(url.searchParams.get('technique')).toBe('drafting');
+  });
+});
+
+/** Pastes `text` into `selector` as the clipboard would. */
+const paste = (page: Page, selector: string, text: string) =>
+  page.locator(selector).evaluate((el, t) => {
+    const data = new DataTransfer();
+    data.setData('text/plain', t);
+    el.dispatchEvent(
+      new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+    );
+  }, text);
+
+test.describe('colors', () => {
+  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+
+  test('the row over the grid applies and saves a preset', async ({ page }) => {
+    await page.goto('/');
+    const nord = page.locator('.themes button[data-preset=nord]');
+    await expect(page.locator('.themes button[data-family=fireproof]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await nord.click();
+    await expect(page.locator('.themes button[data-family=fireproof]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'nord');
+    await expect(nord).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#picker button[data-preset=nord]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(await page.evaluate(() => localStorage.getItem('walldye.theme'))).toBe('nord');
+  });
+
+  test('a family in the row shows and picks its theme for the system scheme', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/');
+    const gruvbox = page.locator('.themes button[data-family=gruvbox]');
+    await expect(gruvbox.locator('.for-light')).toBeVisible();
+    await expect(gruvbox.locator('.for-dark')).toBeHidden();
+    await gruvbox.click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'gruvbox-light');
+    await expect(gruvbox).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#picker button[data-family=gruvbox]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await expect(gruvbox.locator('.for-dark')).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'gruvbox-dark');
+  });
+
+  test('a pasted terminal theme fills the colors', async ({ page, browserName }) => {
+    test.skip(browserName === 'firefox', 'Firefox empties clipboardData on synthetic paste events');
+    await page.goto('/about');
+    await page.click('#theme-button');
+    await paste(page, '#theme-import', 'hello');
+    await expect(page.locator('#import-msg')).toBeVisible();
+    await paste(
+      page,
+      '#theme-import',
+      'background #101820\nforeground #F0F0E0\ncolor1 #E04040\ncolor4 #202830',
+    );
+    await expect(page.locator('#import-msg')).toBeHidden();
+    await expect(page.locator('#seed-bg')).toHaveValue('#101820');
+    await expect(page.locator('#seed-accent')).toHaveValue('#E04040');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', '101820-f0f0e0-e04040');
   });
 });

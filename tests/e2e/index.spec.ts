@@ -1,4 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import YAML from 'yaml';
 import {
   countFor,
   type Filterable,
@@ -7,6 +8,8 @@ import {
   ordered,
 } from '../../src/client/index/filter';
 import type { SortOrder } from '../../src/lib/content';
+import { publishedPieces, readText, templateUrl } from './helpers';
+import { expect, test } from './test';
 
 const visibleSlugs = (page: Page) =>
   page
@@ -268,5 +271,117 @@ test.describe('index plates', () => {
     const img = page.locator('.grid > li[data-slug=schotter] .plate > img');
     await expect(img).toHaveAttribute('alt', /^Twenty-nine columns/);
     await expect(img).toHaveAttribute('width', '1920');
+  });
+});
+
+const PIECES = publishedPieces();
+const hasPortrait = (p: (typeof PIECES)[number]) => p.versions[0].aspects.includes('9:19.5');
+/** A piece with a 9:19.5 template of its own, and one without. */
+const PORTRAIT = PIECES.find(hasPortrait);
+const CROPPED = PIECES.find((p) => !hasPortrait(p));
+
+const plateImg = (page: Page, slug: string) =>
+  page.locator(`.grid > li[data-slug="${slug}"] .plate > img`).last();
+const link = (page: Page, slug: string) => page.locator(`.grid > li[data-slug="${slug}"] > a`);
+
+test.describe('index shape', () => {
+  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+  test.skip(!PORTRAIT || !CROPPED, 'needs a piece with a 9:19.5 template and one without');
+
+  test('a shape shows own templates or focus crops, and plates open in it', async ({ page }) => {
+    const portrait = PORTRAIT!.slug;
+    const cropped = CROPPED!.slug;
+    await page.goto('/?shape=9x19.5');
+    await expect(page.locator('section.plates')).toHaveAttribute('data-shape', '9:19.5');
+    await expect(page.locator('#facets input[name=shape][value="9x19.5"]')).toBeChecked();
+
+    await page.locator(`.grid > li[data-slug="${portrait}"]`).scrollIntoViewIfNeeded();
+    // A tall plate reads slots.json before its template, which can take a while under a full run.
+    const loads = { timeout: 15_000 };
+    await expect(plateImg(page, portrait)).toHaveAttribute(
+      'src',
+      templateUrl(PORTRAIT!.versions[0].slots, '9:19.5'),
+      loads,
+    );
+    await expect(link(page, portrait)).toHaveAttribute('href', `/${portrait}?shape=9x19.5`);
+
+    await page.locator(`.grid > li[data-slug="${cropped}"]`).scrollIntoViewIfNeeded();
+    const img = plateImg(page, cropped);
+    await expect(img).toHaveAttribute('data-aspect', '16:9', loads);
+    expect(await img.evaluate((el) => getComputedStyle(el).objectFit)).toBe('cover');
+    const box = await img.boundingBox();
+    expect(box!.height / box!.width).toBeGreaterThan(2);
+
+    await page.locator('#facets input[name=shape][value="16x9"]').check({ force: true });
+    expect(new URL(page.url()).search).toBe('');
+    await expect(link(page, cropped)).toHaveAttribute('href', `/${cropped}`);
+    await expect(page.locator('section.plates')).toHaveAttribute('data-shape', '16:9');
+  });
+
+  test('tall plates keep two to a row on the narrowest phones', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto('/?shape=9x19.5');
+    const tops = await page
+      .locator('.grid > li')
+      .evaluateAll((lis) => lis.slice(0, 2).map((li) => li.getBoundingClientRect().top));
+    expect(tops[0]).toBe(tops[1]);
+  });
+
+  test('clear keeps the shape', async ({ page }) => {
+    await page.goto('/?shape=21x9&q=a');
+    await page.click('.results-line .clear');
+    // The reset applies a task later, so wait for the address rather than read it at once.
+    await expect.poll(() => new URL(page.url()).search).toBe('?shape=21x9');
+  });
+});
+
+test.describe('index shape on a phone', () => {
+  test.use({
+    colorScheme: 'dark',
+    viewport: { width: 390, height: 844 },
+    contextOptions: { screen: { width: 390, height: 844 } },
+    hasTouch: true,
+  });
+
+  test("starts in the phone's shape without writing it", async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'pointer: coarse follows hasTouch in Chromium only');
+    await page.goto('/');
+    await expect(page.locator('section.plates')).toHaveAttribute('data-shape', '9:19.5');
+    await expect(page.locator('#facets input[name=shape][value="9x19.5"]')).toBeChecked();
+    expect(new URL(page.url()).search).toBe('');
+    const first = await page.locator('.grid > li').first().getAttribute('data-slug');
+    await expect(link(page, first!)).toHaveAttribute('href', `/${first}`);
+  });
+
+  test('the color row is one line that scrolls sideways', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'pointer: coarse follows hasTouch in Chromium only');
+    await page.goto('/');
+    const row = page.locator('.themes');
+    const [height, clipped] = await row.evaluate((el) => [
+      el.clientHeight,
+      el.scrollWidth > el.clientWidth,
+    ]);
+    // One 32px line inside its 4px focus-ring padding.
+    expect(height).toBe(40);
+    expect(clipped).toBe(true);
+  });
+});
+
+test.describe('index order', () => {
+  test.use({ colorScheme: 'dark', viewport: { width: 1440, height: 1000 } });
+
+  test('the index opens on the featured pieces, in featured.yaml order', async ({ page }) => {
+    const published = new Set(PIECES.map((p) => p.slug));
+    const featured = (YAML.parse(readText('featured.yaml')) as string[]).filter((s) =>
+      published.has(s),
+    );
+    test.skip(featured.length === 0, 'nothing on featured.yaml is published');
+    await page.goto('/');
+    await expect(page.locator('#facets input[name=sort][value=featured]')).toBeChecked();
+    const order = await page
+      .locator('.grid > li')
+      .evaluateAll((lis) => lis.map((li) => (li as HTMLElement).dataset.slug));
+    expect(order.slice(0, featured.length)).toEqual(featured);
+    expect(new URL(page.url()).search).toBe('');
   });
 });

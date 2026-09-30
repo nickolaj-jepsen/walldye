@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 import pytest
-from fixtures import regen
+from fixtures import pieces
 from tools_support import assert_recolors, built, legacy, seeds, versions
 
 from walldye import _check_themes
@@ -26,7 +26,7 @@ def slots(slug: str, variant: str = "default") -> dict[str, object]:
 
 
 def test_collision_builds_and_recolors(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     assert "collision: wrote 16x9.svg, slots.json" in built(capsys, "collision")
     b = common.build_dir("collision")
     assert sorted(p.name for p in b.iterdir()) == ["16x9.svg", "slots.json"]
@@ -60,7 +60,7 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
         assert list(entry) == ["file", "sha256", "n", "coefs", "occ"]
         assert entry["file"] == "16x9.svg" and entry["sha256"] == hashing.sha256(template.encode())
         assert entry["n"] == len(entry["occ"]) == len(find_colors(template)) == 3
-    for theme in regen.RECOLOR_THEMES + ALL_HELD_OUT:
+    for theme in pieces.RECOLOR_THEMES + ALL_HELD_OUT:
         assert_recolors("collision", theme)
     assert build.recolor(template, table["16:9/dark"], FIREPROOF) == template
     assert build.recolor(template, {**table["16:9/dark"], "n": 2}, seeds("nord")) == template
@@ -108,7 +108,7 @@ def test_entries_are_validated():
 
 
 def test_light_branch_gets_its_own_template(wallpapers, capsys):
-    regen.install(wallpapers, "light-branch")
+    pieces.install(wallpapers, "light-branch")
     built(capsys, "light-branch")
     table = build.entries(slots("light-branch"))
     assert table["16:9/dark"]["file"] == "16x9.svg"
@@ -121,7 +121,7 @@ def test_light_branch_gets_its_own_template(wallpapers, capsys):
 
 
 def test_any_aspect_pixel_design(wallpapers, capsys):
-    regen.install(wallpapers, "pixels")
+    pieces.install(wallpapers, "pixels")
     out = built(capsys, "pixels")
     assert "pixel grid origin" in out
     b = common.build_dir("pixels")
@@ -233,7 +233,7 @@ def test_a_failing_variant_writes_nothing_for_the_piece(wallpapers, capsys):
 
 
 def test_failed_check_writes_nothing(wallpapers, capsys):
-    regen.install(wallpapers, "unseeded")
+    pieces.install(wallpapers, "unseeded")
     assert build.run(["unseeded"]) == 1
     assert "unseeded: not written" in capsys.readouterr().out
     assert not common.build_dir("unseeded").exists()
@@ -248,7 +248,7 @@ def old_render_lib(slug: str, **changes: object) -> None:
 
 
 def test_skip_restamp_and_rebuild(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     built(capsys, "collision")
     assert "collision: up to date" in built(capsys, "collision")
 
@@ -277,7 +277,7 @@ def test_skip_restamp_and_rebuild(wallpapers, capsys):
 
 
 def test_data_files_trigger_rebuilds(wallpapers, capsys):
-    regen.install(wallpapers, "data", data={"points.json": "[[960, 540]]\n"})
+    pieces.install(wallpapers, "data", data={"points.json": "[[960, 540]]\n"})
     built(capsys, "data")
     assert "data: up to date" in built(capsys, "data")
     (wallpapers / "data/data/points.json").write_text("[[100, 100], [960, 540]]\n")
@@ -285,7 +285,7 @@ def test_data_files_trigger_rebuilds(wallpapers, capsys):
 
 
 def test_build_applies_meta_rules_to_current_pieces(wallpapers, capsys):
-    regen.install(
+    pieces.install(
         wallpapers, "collision", sources=[{"kind": "recreation", "title": "X"}], license="CC0-1.0"
     )
     built(capsys, "collision")
@@ -297,7 +297,7 @@ def test_build_applies_meta_rules_to_current_pieces(wallpapers, capsys):
 
 
 def test_unreadable_slots_json_is_rebuilt(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     built(capsys, "collision")
     path = common.build_dir("collision") / "slots.json"
     path.write_text("{x")
@@ -308,8 +308,8 @@ def test_unreadable_slots_json_is_rebuilt(wallpapers, capsys):
 
 
 def test_probe_failure_is_reported_and_the_run_goes_on(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
-    regen.install(wallpapers, "collision", "other")
+    pieces.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision", "other")
     built(capsys, all=True)
     old_render_lib("other")
     # design.py now fails to draw, but slots.json is made to look current for it
@@ -323,10 +323,10 @@ def test_probe_failure_is_reported_and_the_run_goes_on(wallpapers, capsys):
 
 
 def test_unreadable_siblings_are_left_out(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
-    regen.install(wallpapers, "collision", "syntax")
+    pieces.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision", "syntax")
     (wallpapers / "syntax/design.py").write_text("def draw(s)\n    pass\n")
-    regen.install(wallpapers, "collision", "bad-yaml")
+    pieces.install(wallpapers, "collision", "bad-yaml")
     (wallpapers / "bad-yaml/meta.yaml").write_text("title: [x\n")
     (wallpapers / "no-design").mkdir()
     (wallpapers / "no-design/meta.yaml").write_text("title: X\n")
@@ -349,7 +349,7 @@ def test_unreadable_siblings_are_left_out(wallpapers, capsys):
 
 
 def test_published_skips_drafts(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     versions(wallpapers, draft=False)
     out = built(capsys, all=True, published=True)
     assert "skipped 1 draft pieces" in out and not common.build_dir("collision").exists()
@@ -358,7 +358,7 @@ def test_published_skips_drafts(wallpapers, capsys):
 
 
 def test_pool_builds_what_one_process_builds(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     versions(wallpapers)
     built(capsys, all=True, jobs=2)
     files = {
@@ -375,8 +375,8 @@ def test_pool_builds_what_one_process_builds(wallpapers, capsys):
 
 
 def test_write_index(wallpapers, capsys):
-    regen.install(wallpapers, "collision", "plain")
-    regen.install(
+    pieces.install(wallpapers, "collision", "plain")
+    pieces.install(
         wallpapers,
         "collision",
         "recreation",
@@ -384,9 +384,9 @@ def test_write_index(wallpapers, capsys):
         sources=[{"kind": "recreation", "title": "X"}],
         license="CC0-1.0",
     )
-    regen.install(wallpapers, "pixels", "unbuilt")
-    regen.install(wallpapers, "collision", "bad-meta")
-    regen.install(wallpapers, "collision", "bad-slots")
+    pieces.install(wallpapers, "pixels", "unbuilt")
+    pieces.install(wallpapers, "collision", "bad-meta")
+    pieces.install(wallpapers, "collision", "bad-slots")
     built(capsys, "plain", "recreation", "bad-meta", "bad-slots")
     meta = wallpapers / "recreation/meta.yaml"
     meta.write_text(meta.read_text().replace("license: CC0-1.0\n", ""))

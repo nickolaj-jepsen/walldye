@@ -43,8 +43,7 @@ def lint(
 ) -> tuple[list[str], list[str]]:
     """(errors, warnings) for one render of `slug` at `aspect`: the per-render part of
     `walldye check` (viewBox, the template limits, the design lint, color words in the
-    meta.yaml copy, whole-unit origins of `grids`, the document's pixel grids). Ruff and
-    Pyrefly run only in check."""
+    meta.yaml copy, whole-unit origins of `grids`, the document's pixel grids)."""
     errors, warnings = lints.svg(svg)
     w, h = canvas_size(aspect)
     if common.viewbox(svg) != f"0 0 {w} {h}":

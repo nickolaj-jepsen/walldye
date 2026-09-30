@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 import pytest
-from fixtures import regen
+from fixtures import pieces
 from tools_support import built, legacy, versions
 
 from walldye import _check_themes
@@ -37,13 +37,13 @@ def test_clean_designs_pass(wallpapers, design):
     if design == "versions":
         versions(wallpapers)
     else:
-        regen.install(wallpapers, design)
+        pieces.install(wallpapers, design)
     r = report(design)
     assert r.errors == [] and r.notes == []
 
 
 def test_data_design_reads_its_files(wallpapers):
-    regen.install(wallpapers, "data", data={"points.json": "[[960, 540], [1200, 300]]\n"})
+    pieces.install(wallpapers, "data", data={"points.json": "[[960, 540], [1200, 300]]\n"})
     assert report("data").errors == []
     (wallpapers / "data/data/extra.csv").write_text("x\n")
     (wallpapers / "data/data/sub").mkdir()
@@ -63,13 +63,13 @@ def test_data_design_reads_its_files(wallpapers):
     ],
 )
 def test_check_catches(wallpapers, design, expected):
-    regen.install(wallpapers, design)
+    pieces.install(wallpapers, design)
     errors = report(design).errors
     assert any(expected in e for e in errors), errors
 
 
 def test_determinism_failure_stops_before_geometry(wallpapers):
-    regen.install(wallpapers, "unseeded")
+    pieces.install(wallpapers, "unseeded")
     result = check.check_variant(check.Task(str(wallpapers), "unseeded", "default"))
     assert result.errors and all("two draws differ" in e for e in result.errors)
     assert result.templates == {} and result.entries == {} and result.focus is None
@@ -91,7 +91,7 @@ def test_legacy_backstops(wallpapers):
 
 
 def test_design_exception_names_the_line(wallpapers):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     design = wallpapers / "collision/design.py"
     design.write_text(
         design.read_text().replace(
@@ -104,7 +104,7 @@ def test_design_exception_names_the_line(wallpapers):
 
 
 def test_import_errors_are_reported(wallpapers):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     (wallpapers / "collision/design.py").write_text('"""Old."""\n\n\ndef draw(s):\n    pass\n')
     errors = report("collision").errors
     assert (
@@ -115,7 +115,7 @@ def test_import_errors_are_reported(wallpapers):
 
 
 def test_determinism_subprocess_failures_are_errors(wallpapers):
-    regen.install(wallpapers, "hash-seed")
+    pieces.install(wallpapers, "hash-seed")
     task = check.Task(str(wallpapers), "hash-seed", "default")
     (error,) = check.check_variant(task).errors
     assert error.startswith("determinism subprocess failed: ")
@@ -126,7 +126,7 @@ def test_determinism_subprocess_failures_are_errors(wallpapers):
 
 
 def test_a_design_error_stops_the_determinism_subprocess(wallpapers, monkeypatch):
-    regen.install(wallpapers, "hash-seed")
+    pieces.install(wallpapers, "hash-seed")
     started = []
 
     def start(keys):
@@ -145,7 +145,7 @@ def test_a_design_error_stops_the_determinism_subprocess(wallpapers, monkeypatch
 
 
 def test_paranoid_reports_a_failing_fresh_import(wallpapers, monkeypatch):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
 
     def gone(slug):
         raise ImportError(f"{slug} is gone")
@@ -158,7 +158,7 @@ def test_paranoid_reports_a_failing_fresh_import(wallpapers, monkeypatch):
 
 
 def test_paranoid_catches_leaked_module_state(wallpapers):
-    regen.install(wallpapers, "leaky")
+    pieces.install(wallpapers, "leaky")
     assert report("leaky").errors == []
     errors = report("leaky", paranoid=True).errors
     assert len(errors) == 2 and all("a fresh import drawn for" in e for e in errors)
@@ -198,7 +198,7 @@ def test_variant_values_outside_soft_ranges_warn(wallpapers, capsys):
 
 
 def test_variants_need_meta_labels(wallpapers):
-    regen.install(wallpapers, "versions")
+    pieces.install(wallpapers, "versions")
     assert check.prepare("versions").report.errors == [
         "meta.yaml needs variants: with a label for each of default, late, bare"
     ]
@@ -207,7 +207,7 @@ def test_variants_need_meta_labels(wallpapers):
 
 
 def test_slow_variants_warn(wallpapers, monkeypatch):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     monkeypatch.setattr(check, "SLOW", 0.0)
     result = check.check_variant(check.Task(str(wallpapers), "collision", "default"))
     assert result.warnings[-1].startswith("the check took") and result.warnings[-1].endswith(
@@ -216,7 +216,7 @@ def test_slow_variants_warn(wallpapers, monkeypatch):
 
 
 def test_pixel_grids_give_cells_and_origin_warnings(wallpapers):
-    regen.install(wallpapers, "pixels")
+    pieces.install(wallpapers, "pixels")
     result = check.check_variant(check.Task(str(wallpapers), "pixels", "default"))
     assert result.errors == [] and result.cells == [3.0]
     assert (
@@ -227,7 +227,7 @@ def test_pixel_grids_give_cells_and_origin_warnings(wallpapers):
 
 
 def test_hashes_subprocess(wallpapers):
-    regen.install(wallpapers, "versions")
+    pieces.install(wallpapers, "versions")
     keys = ["versions@late@10:16@light", "versions@default@16:9@dark"]
     run = subprocess.run(
         [sys.executable, "-m", "walldye", "_hashes", str(wallpapers), *keys],
@@ -246,9 +246,9 @@ def test_hashes_subprocess(wallpapers):
 
 
 def test_run_codes_and_similar(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
-    regen.install(wallpapers, "collision", "copy")
-    regen.install(wallpapers, "mask")
+    pieces.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision", "copy")
+    pieces.install(wallpapers, "mask")
     built(capsys, "collision", "copy")
     assert check.run(["copy", "mask"], similar=True, jobs=1) == 0
     out = capsys.readouterr().out
@@ -263,7 +263,7 @@ def test_run_codes_and_similar(wallpapers, capsys):
 
 
 def test_pool_matches_one_process(wallpapers, capsys):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     versions(wallpapers)
     assert check.run(["collision", "versions"], jobs=1) == 0
     alone = capsys.readouterr().out
@@ -273,7 +273,7 @@ def test_pool_matches_one_process(wallpapers, capsys):
 
 
 def test_meta_yaml_problems(wallpapers):
-    regen.install(wallpapers, "collision")
+    pieces.install(wallpapers, "collision")
     meta = wallpapers / "collision/meta.yaml"
     meta.write_text("- a\n- b\n")
     assert report("collision").errors == [f"{meta}: must be a mapping"]

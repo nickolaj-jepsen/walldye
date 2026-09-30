@@ -1,8 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { focusPosition } from '../../src/client/export/shape';
 import { type CatalogVersion, publishedPieces, templateUrl } from './helpers';
+import { expect, test } from './test';
 
 /**
  * Versions on the real catalog. PIECE is the first published piece with a published named

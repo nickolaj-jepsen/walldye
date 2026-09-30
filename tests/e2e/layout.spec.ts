@@ -1,5 +1,6 @@
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { horizontalOverflow } from './helpers';
+import { expect, test } from './test';
 
 const WIDTHS = [320, 390, 1440] as const;
 
