@@ -31,29 +31,6 @@ SPDX-FileCopyrightText = "OpenStreetMap contributors"
 SPDX-License-Identifier = "ODbL-1.0"
 
 [[annotations]]
-path = "wallpapers/racing-banked-turn/data/tri-oval.json"
-SPDX-FileCopyrightText = "OpenStreetMap contributors"
-SPDX-License-Identifier = "ODbL-1.0"
-
-[[annotations]]
-path = "wallpapers/quake-plates/data/plates.json"
-SPDX-FileCopyrightText = [
-  "2014 Hugo Ahlenius, Nordpil (fraxen/tectonicplates)",
-  "2003 Peter Bird",
-]
-SPDX-License-Identifier = "ODC-By-1.0"
-
-[[annotations]]
 path = "wallpapers/flight-arcs/data/routes.json"
 SPDX-FileCopyrightText = "OpenFlights contributors"
 SPDX-License-Identifier = "ODbL-1.0"
-
-[[annotations]]
-path = "wallpapers/marey-trains/data/timetable.json"
-SPDX-FileCopyrightText = "SNCF Voyageurs"
-SPDX-License-Identifier = "ODbL-1.0"
-
-[[annotations]]
-path = "wallpapers/danish-waters/data/belt.npy"
-SPDX-FileCopyrightText = "EMODnet Bathymetry Consortium (EMODnet Digital Bathymetry, DTM 2024)"
-SPDX-License-Identifier = "CC-BY-4.0"
