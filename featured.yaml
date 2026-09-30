@@ -3,6 +3,7 @@
 # production builds. `walldye drop` takes a dropped piece off this list.
 - dither-moon
 - attribute-clash
+- nix-snowflake
 - dither-wave
 - brain-coral
 - pulsar-map
