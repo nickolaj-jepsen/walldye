@@ -91,7 +91,7 @@
   --index-col: 18rem;
   --col-gap: 4rem;
   --masthead-h: calc(10 * var(--u));
-  /* Width over height of a plate box, and the narrowest a grid column may get; a [data-shape] grid sets both. */
+  /* Width over height of a plate box, and the narrowest a grid column may get; a [data-shape] grid sets both (--shape-ratio comes from src/client/screen.ts markShape). */
   --ratio: calc(16 / 9);
   --track: 18rem;
 
@@ -433,11 +433,10 @@ abbr {
 .plate img { position: absolute; top: 0; left: 0; width: 100%; aspect-ratio: var(--ratio); height: auto; object-fit: contain; }
 
 /* A grid in another shape: pieces without a template of that shape show the 16:9 one cropped around its focus (--pos, set per plate), as the export would crop it. */
-[data-shape="16:10"] { --ratio: 1.6; }
-[data-shape="21:9"] { --ratio: calc(21 / 9); --track: 26rem; }
-[data-shape="32:9"] { --ratio: calc(32 / 9); --track: 40rem; }
-[data-shape="9:19.5"] { --ratio: calc(9 / 19.5); --track: 12rem; }
-[data-shape="10:16"] { --ratio: 0.625; --track: 12rem; }
+[data-shape] { --ratio: var(--shape-ratio, calc(16 / 9)); }
+[data-shape="21:9"] { --track: 26rem; }
+[data-shape="32:9"] { --track: 40rem; }
+[data-shape][data-tall] { --track: 12rem; }
 [data-shape]:not([data-shape="16:9"]) .plate > img[data-aspect="16:9"] { object-fit: cover; object-position: var(--pos, 50% 50%); }
 
 .label-s { margin-top: calc(2 * var(--u)); font-size: var(--fs-2); line-height: calc(3 * var(--u)); }
@@ -850,9 +849,9 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 
   :root { --track: 100%; }
   /* Tall plates two to a row, down to 320px: a track never wider than half the row less half the gap. */
-  [data-shape="9:19.5"], [data-shape="10:16"] { --track: min(9rem, calc(50% - var(--u))); }
+  [data-shape][data-tall] { --track: min(9rem, calc(50% - var(--u))); }
   .grid { row-gap: calc(5 * var(--u)); }
-  [data-shape="9:19.5"] > .grid, [data-shape="10:16"] > .grid { column-gap: calc(2 * var(--u)); }
+  [data-shape][data-tall] > .grid { column-gap: calc(2 * var(--u)); }
 
   .below {
     grid-template-columns: minmax(0, 1fr);

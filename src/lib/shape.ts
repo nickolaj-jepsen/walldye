@@ -62,6 +62,12 @@ export function focusPosition(aspect: string, focus: readonly [number, number]):
   return Math.round(Math.min(1, Math.max(0, t)) * 1000) / 1000;
 }
 
+/** CSS object-position showing the crop of the 16:9 picture to `aspect` at position `t`. */
+export function objectPosition(aspect: string, t: number): string {
+  const p = `${t * 100}%`;
+  return cropAxis(aspect) === 'x' ? `${p} 0%` : `0% ${p}`;
+}
+
 /** The largest box of width/height `ratio` inside `box`, centered in it. */
 export function fitRect(box: Box, ratio: number): Box {
   if (box.w / box.h > ratio) {

@@ -4,11 +4,11 @@
  * shape, its link opening the piece in that shape.
  */
 import { type Aspect, aspectLabel } from '../lib/content';
-import { cropAxis, focusPosition } from '../lib/shape';
+import { focusPosition, objectPosition } from '../lib/shape';
 import { type Seeds, tokenOf } from '../lib/theme';
 import { must } from './dom';
 import { keepShowing, type PlateData, plateData } from './plates';
-import { deviceAspect } from './screen';
+import { deviceAspect, markShape } from './screen';
 import { currentSeeds, onThemeChange } from './theme/current';
 
 interface GridPlate {
@@ -84,15 +84,15 @@ export function plateGrid(root: HTMLElement, shape: Aspect): PlateGrid {
   }
 
   function place(it: GridPlate): void {
-    const t = it.native.has(shape) ? 50 : focusPosition(shape, it.focus) * 100;
-    it.plate.style.setProperty('--pos', cropAxis(shape) === 'x' ? `${t}% 0%` : `0% ${t}%`);
+    const t = it.native.has(shape) ? 0.5 : focusPosition(shape, it.focus);
+    it.plate.style.setProperty('--pos', objectPosition(shape, t));
     const href = shape === home ? `/${it.slug}` : `/${it.slug}?shape=${aspectLabel(shape)}`;
     if (it.link.getAttribute('href') !== href) it.link.setAttribute('href', href);
   }
 
   function setShape(next: Aspect): void {
     shape = next;
-    root.dataset.shape = next;
+    markShape(root, 'shape', next);
     for (const it of items.values()) place(it);
     for (const it of near) want(it);
   }

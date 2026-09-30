@@ -77,11 +77,11 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     margin-top: var(--u);
   }
   @media (max-width: 60rem) {
-    :global(.spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) ~ .below) .crop-map {
+    :global(.spread[data-tall] ~ .below) .crop-map {
       display: block;
     }
     /* The label sits beside the range, under the picture. */
-    :global(.spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) ~ .below) #crop-row {
+    :global(.spread[data-tall] ~ .below) #crop-row {
       align-items: end;
     }
   }

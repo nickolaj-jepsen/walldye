@@ -75,7 +75,7 @@ The query string is the form's own GET serialization: `q=<text>`, `sort=<order>`
 
 ### Plates
 
-`section.plates[data-shape]` holds `ul.grid > li`, in the build's first order (featured, popular or newest, ties as `comparePieces()`). The shape boot and `grid.ts` set `data-shape` to the shown shape (`16:9` until then), which site.css reads for the plate ratio and the column width.
+`section.plates[data-shape]` holds `ul.grid > li`, in the build's first order (featured, popular or newest, ties as `comparePieces()`). The shape boot and `grid.ts` mark the shown shape with `markShape()` from `screen.ts` (`16:9` until then): `data-shape`, `--shape-ratio` and, for a shape taller than wide, `data-tall`, which site.css reads for the plate ratio and the column width.
 
 | Attribute on `li` | Value |
 |---|---|
@@ -104,11 +104,11 @@ Inside each `li`: `a[href="/<slug>"][aria-labelledby=t-<slug>]`, with `aria-desc
 </div>
 ```
 
-- `data-templates` maps each slots.json key (`<aspect>/<regime>`) to a template URL: only the `16:9/*` keys in grids, every key on the detail spread. The URL hash is `slots[key].sha256.slice(0, 12)`, so a key left out comes from slots.json (`templateUrl()` in `src/lib/recolor.ts`). Under the exact fireproof seeds, use the template URL itself as `img.src`.
+- `data-templates` maps each slots.json key (`<aspect>/<regime>`) to a template URL: only the `16:9/*` keys in grids, every key on the detail spread. The URL is `servedUrl()` of the template's hash, so a key left out comes from slots.json (`templateUrl()` in `src/lib/recolor.ts`). Under the exact fireproof seeds, use the template URL itself as `img.src`.
 - `data-slots` is the piece's `build/slots.json`, byte for byte (`focus`, `cells`, and per key `{file, sha256, n, coefs, occ}`), fetched once per piece. If `n` does not match, show the untouched template.
 - `data-alt` is the description, for the `alt` of the inserted `<img>`.
 - `data-variants` (detail page, pieces with versions only) maps each version, `default` first, to its `templates`, `slots` and `alt`. The client reads these attributes once and never writes them.
-- Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; the CSS frames a non-16:9 template from `data-aspect`. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
+- Insert `<img alt width height decoding="async" data-aspect>` into `.plate`, before any `.crop`. `width` and `height` are the template canvas; set the plate's `--shape` to their ratio, which the CSS frames a non-16:9 template with. `PlateBox.astro` already gives the empty plate the image's height, so inserting it moves nothing.
 - While an image fades in over the one it replaces, `site.css` stacks the second `img` over the first.
 - When the template or slots.json fails to load, an empty plate gets the untouched template, and the recolor is retried on the `RETRY_MS` schedule and on the `online` event (`keepShowing()` in `plates.ts`).
 
@@ -120,7 +120,7 @@ The page keeps its state in the query string, written with `history.replaceState
 
 | Hook | Element | Notes |
 |---|---|---|
-| `.spread` | `figure` | Set `data-aspect` to the Shape, which the page's CSS reads to set a tall shape in the plate on phones. The shape boot sets the first one before first paint (`exportAspect()` in `screen.ts` unless the address has `shape`); the page module starts on the same. |
+| `.spread` | `figure` | Mark the Shape with `markShape(spread, 'aspect', …)`, whose `data-tall` and `--shape-ratio` the CSS reads to set a tall shape in the plate on phones. The shape boot sets the first one before first paint (`exportAspect()` in `screen.ts` unless the address has `shape`); the page module starts on the same. |
 | `.spread .plate` | Plate box with every aspect | Set `--pos`, the `object-position` of the crop, for that view; there a sideways drag on a cropped 16:9 picture moves the crop. |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
 | `#quick-download` | `button.download.quick` after the attribution | Runs the export as `#download` does, sharing its "Preparing…", `aria-busy`, summary and `title`. |
@@ -166,4 +166,4 @@ Script-less pieces have `p.lost` instead, and none of these hooks.
 
 ## Shared helpers
 
-`src/lib/` has no Node or Astro runtime imports, so client code can import it. `content.ts` has `SITE_ASPECTS`, `isAspect`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `aspectOfLabel`, `normalizeSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset); `import-theme.ts` reads pasted themes; `labels.ts` has the facet labels; `theme.ts` returns seeds already normalized (`Seeds`), so the client never normalizes them again.
+`src/lib/` is pure code with no DOM, Node or Astro runtime imports, so the client, the build and scripts can all import it. `shape.ts` has the crop and export geometry, `typeset.ts` the curled quotes. `content.ts` has `SITE_ASPECTS`, `isAspect`, `CANVAS`, `EXPORT_SIZES`, `DEFAULT_SIZE_INDEX`, `FORMATS`, `DEFAULT_VARIANT`, `aspectLabel`, `aspectOfLabel`, `normalizeSearch`, `fileStem`, `downloadName` and `comparePieces` (takes `{slug, title, added}`, such as an `li`'s dataset); `import-theme.ts` reads pasted themes; `labels.ts` has the facets' legends and the computed facets' labels; `theme.ts` returns seeds already normalized (`Seeds`), so the client never normalizes them again.
