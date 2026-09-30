@@ -52,6 +52,10 @@ BANNED: Final = (
 HIGHLIGHT: Final = re.compile(
     r"\b(lit|picked out|filled in|stands? out|highlighted|singled out)\b", _WORDS
 )
+# Only in a description: credit belongs in sources and notes.
+CREDIT: Final = re.compile(r"\bafter [A-Z]\w*|\bafter the\b", re.ASCII)
+# Only in an alt text: say what the set-apart thing is or shows instead.
+SET_APART: Final = re.compile(r"\b(picked[- ]out|filled[- ]in|highlighted)\b", _WORDS)
 # Only in a title: imagery words stand in for the subject's name.
 IMAGERY: Final = re.compile(
     r"\b(veils?|whirl(s|ing)?|struck|danc(e|es|ing)|whispers?|symphony|reverie|dreams?|ballet|lullaby|requiem)\b",
@@ -90,7 +94,7 @@ def copy(meta: Mapping[str, object]) -> list[str]:
     """Copy problems in the title, description, alt text and notes of `meta` and in each
     version's label, description and alt text, each as "<field>: <problem>" (a version field as
     `variants.<name>.label`): color words and BANNED phrases in any of them, IMAGERY in the
-    title, HIGHLIGHT in a description, and a description or alt text over its LIMITS. [] when
+    title, HIGHLIGHT and CREDIT in a description, SET_APART in an alt text, and a description or alt text over its LIMITS. [] when
     the copy follows the rules."""
     fields: list[tuple[str, object, str]] = [
         ("title", meta.get("title"), "title"),
@@ -119,6 +123,10 @@ def copy(meta: Mapping[str, object]) -> list[str]:
             out.append(f'{field}: imagery "{m[0]}" (name the subject)')
         if kind == "description" and (m := HIGHLIGHT.search(text)) is not None:
             out.append(f'{field}: describes the picture "{m[0]}" (the alt text does)')
+        if kind == "description" and (m := CREDIT.search(text)) is not None:
+            out.append(f'{field}: credit "{m[0]}" (sources and notes carry it)')
+        if kind == "alt" and (m := SET_APART.search(text)) is not None:
+            out.append(f'{field}: "{m[0]}" (say what the set-apart thing is or shows)')
         if kind in LIMITS:
             most_words, most_sentences = LIMITS[kind]
             if (n := len(text.split())) > most_words:
