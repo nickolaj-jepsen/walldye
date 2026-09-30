@@ -53,7 +53,6 @@ const chips = Object.fromEntries(
 const picks = Object.fromEntries(
   SEEDS.map((k) => [k, must<HTMLInputElement>('input[type=color]', chips[k])]),
 ) as Record<Seed, HTMLInputElement>;
-const seedMsg = must('#seed-msg');
 const faintMsg = must('#faint-msg');
 const accentFgMsg = must('#accent-fg-msg');
 const accentBgMsg = must('#accent-bg-msg');
@@ -62,8 +61,6 @@ const importMsg = must('#import-msg');
 
 /** The debounced commit waiting to run, or 0. */
 let pending = 0;
-/** Fields marked invalid; an empty field counts only once the visitor left or submitted it. */
-const invalid = new Set<Seed>();
 
 function cancelPending(): void {
   clearTimeout(pending);
@@ -77,7 +74,8 @@ function choose(seeds: Seeds): void {
 }
 
 /**
- * The fields' invalid marks, the warnings when bg and fg are too close or the accent is too close to
+ * The fields' invalid marks (the pattern's `:user-invalid`, so an empty field counts only once the
+ * visitor left it), the warnings when bg and fg are too close or the accent is too close to
  * either, and each swatch and color picker: the typed color while it is valid but not applied yet,
  * else the applied seed.
  */
@@ -92,7 +90,7 @@ function renderFields(): void {
   const applied = currentSeeds();
   for (const k of SEEDS) {
     const input = fields[k];
-    const bad = invalid.has(k);
+    const bad = input.matches(':user-invalid');
     if (bad) input.setAttribute('aria-invalid', 'true');
     else input.removeAttribute('aria-invalid');
     let note: string | null = null;
@@ -106,7 +104,6 @@ function renderFields(): void {
     chips[k].style.setProperty('--c', shown ?? `var(--seed-${k})`);
     picks[k].value = (shown ?? applied[k]).toLowerCase();
   }
-  seedMsg.hidden = invalid.size === 0;
   faintMsg.hidden = !faint;
   accentBgMsg.hidden = !nearBg;
   accentFgMsg.hidden = !nearFg;
@@ -118,14 +115,13 @@ function fillFields(all: boolean): void {
   for (const k of SEEDS) {
     if (!all && document.activeElement === fields[k]) continue;
     fields[k].value = seeds[k];
-    invalid.delete(k);
   }
   renderFields();
 }
 
 /**
- * Applies the fields when all three hold valid colors that differ from the applied theme, and marks
- * the invalid ones; `final` when the visitor left or submitted a field.
+ * Applies the fields when all three hold valid colors that differ from the applied theme; `final`
+ * when the visitor left or submitted a field.
  */
 function commit(final: boolean): void {
   cancelPending();
@@ -133,8 +129,6 @@ function commit(final: boolean): void {
   for (const k of SEEDS) {
     const v = normalizeSeed(fields[k].value);
     if (v !== null) values[k] = v;
-    if (v === null && (final || fields[k].value.trim() !== '')) invalid.add(k);
-    else invalid.delete(k);
   }
   renderFields();
   const { bg, fg, accent } = values;
@@ -145,9 +139,8 @@ function commit(final: boolean): void {
   if (final) for (const k of SEEDS) fields[k].value = seeds[k];
 }
 
-/** After the visitor typed or pasted: clears the marks the edit fixed and schedules a commit. */
+/** After the visitor typed or pasted: renders the fields and schedules a commit. */
 function edited(): void {
-  for (const k of SEEDS) if (normalizeSeed(fields[k].value)) invalid.delete(k);
   renderFields();
   clearTimeout(pending);
   pending = window.setTimeout(() => commit(false), DEBOUNCE_MS);
@@ -234,7 +227,11 @@ for (const b of familyButtons) {
 for (const k of SEEDS) {
   const input = fields[k];
   input.addEventListener('input', edited);
-  input.addEventListener('change', () => commit(true));
+  input.addEventListener('change', () => {
+    commit(true);
+    // WebKit sets :user-invalid a task after `change`.
+    setTimeout(renderFields);
+  });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') commit(true);
   });

@@ -2,6 +2,7 @@
 /** The theme popover opened by the header's theme button; behavior lives in the client. */
 import Chips from './Chips.astro';
 import { DEFAULT_FAMILY, DEFAULT_PRESET, FAMILIES, presetColors } from '../lib/presets';
+import { SEED_PATTERN } from '../lib/theme';
 
 const fields = [
   { seed: 'bg', label: 'Background', value: DEFAULT_PRESET.bg },
@@ -38,12 +39,12 @@ const fields = [
     <h3 class="sc">Colors</h3>
     {
       fields.map((f) => (
-        <div class="hexfield"><label class="k" for={`seed-${f.seed}`}>{f.label}</label><span class="chip" style={`--c:var(--seed-${f.seed})`}><input type="color" value={f.value.toLowerCase()} aria-label={`Pick ${f.label.toLowerCase()} color`} /></span><input id={`seed-${f.seed}`} data-seed={f.seed} value={f.value} spellcheck="false" autocomplete="off" autocapitalize="characters" /></div>
+        <div class="hexfield"><label class="k" for={`seed-${f.seed}`}>{f.label}</label><span class="chip" style={`--c:var(--seed-${f.seed})`}><input type="color" value={f.value.toLowerCase()} aria-label={`Pick ${f.label.toLowerCase()} color`} /></span><input id={`seed-${f.seed}`} data-seed={f.seed} value={f.value} required pattern={`\\s*${SEED_PATTERN}\\s*`} spellcheck="false" autocomplete="off" autocapitalize="characters" /></div>
       ))
     }
     <label class="importfield"><span class="k">Import</span><input id="theme-import" placeholder="paste a terminal theme" spellcheck="false" autocomplete="off" aria-describedby="import-msg" /></label>
     <div class="msgs" aria-live="polite">
-      <p id="seed-msg" class="msg err" hidden>Use a hex color, like <span class="mono">#CF6A4C</span>.</p>
+      <p id="seed-msg" class="msg err">Use a hex color, like <span class="mono">#CF6A4C</span>.</p>
       <p id="faint-msg" class="msg warn" hidden>The background and foreground are too close, so wallpapers will be hard to see.</p>
       <p id="accent-bg-msg" class="msg warn" hidden>The accent is too close to the background, so it will barely show in wallpapers.</p>
       <p id="accent-fg-msg" class="msg warn" hidden>The accent is too close to the foreground, so it will barely stand out in wallpapers.</p>

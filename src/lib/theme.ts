@@ -47,7 +47,9 @@ export const FIREPROOF: Readonly<Tokens> = {
   accent_7: '#2E1C19', accent_8: '#241B19', orange_dark: '#BC5215',
 };
 
-const SEED_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+/** A seed as an unanchored regex source, fit for an HTML `pattern`: 3 or 6 hex digits, optional `#`, any case. */
+export const SEED_PATTERN = '#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})';
+const SEED_RE = new RegExp(`^${SEED_PATTERN}$`);
 
 /** `c` (3 or 6 hex digits, optional `#`, any case, surrounding whitespace ignored) as uppercase #RRGGBB, or null. */
 export function normalizeSeed(c: string): Hex | null {

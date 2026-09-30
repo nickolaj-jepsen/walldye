@@ -400,6 +400,9 @@ abbr {
   margin-bottom: var(--u);
 }
 .empty { color: var(--text-2); }
+/* "clear" while a box is checked or the search holds text; the note while no plate shows. */
+.index:not(:has(#facets input[type=checkbox]:checked, #q:not(:placeholder-shown))) .results-line .clear,
+.plates:has(.grid > li:not([hidden])) .empty { display: none; }
 
 .grid {
   display: grid;
@@ -618,6 +621,11 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 .download .file .mono { white-space: nowrap; }
 /* The export panel's Download, repeated under the attribution so it shares the first screen with the plate. */
 .download.quick { display: block; }
+/* " for your screen" on a raster at the screen size only. */
+.detail:not(:has(#sizes input[value=screen]:checked)) [data-part=yours],
+.detail:has(#export input[name=fmt][value=svg]:checked) [data-part=yours] { display: none; }
+/* The crop notes and range only while the checked shape is cropped from 16:9. */
+#export:has(input[name=asp][data-native]:checked) :is(#shape-hint, #crop-row) { display: none; }
 
 /* see also */
 .related { margin-top: calc(10 * var(--u)); }
@@ -769,7 +777,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   text-transform: uppercase;
   outline-offset: 3px;
 }
-.hexfield input[data-seed][aria-invalid="true"] {
+.hexfield input[data-seed]:user-invalid {
   background-image: linear-gradient(var(--link), var(--link));
   background-size: 100% 2px;
 }
@@ -789,6 +797,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
 .msgs { margin-top: var(--u); line-height: calc(3 * var(--u)); text-wrap: pretty; }
 .msg.err { color: var(--link); }
 .msg.warn { color: var(--text); }
+.picker:not(:has(input[data-seed]:user-invalid)) #seed-msg { display: none; }
 .picker .actions { margin-top: calc(2 * var(--u)); }
 
 /* ---- baseline overlay: a debugging aid, on when <html> has class show-grid ---- */

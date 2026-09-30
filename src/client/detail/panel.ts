@@ -51,8 +51,6 @@ export function panelParts() {
     buttons,
     aspectRadios,
     native: new Set(aspectRadios.filter((r) => r.hasAttribute('data-native')).map((r) => r.value)),
-    shapeHint: must('#shape-hint'),
-    cropRow: must('#crop-row'),
     sizes: [...must('#sizes').querySelectorAll('label')].map((label) => ({
       label,
       input: must<HTMLInputElement>('input', label),
@@ -61,7 +59,6 @@ export function panelParts() {
     formatRadios: [...panel.querySelectorAll<HTMLInputElement>('input[name=fmt]')],
     summaryFormats: summary('format'),
     summarySizes: summary('size'),
-    summaryYours: summary('yours'),
   };
 }
 export type PanelParts = ReturnType<typeof panelParts>;
@@ -75,9 +72,6 @@ export function formatOf(p: PanelParts): Format {
 /** Renders the Shape and Size rows and the Download summaries for `s`. */
 export function renderPanel(p: PanelParts, s: DetailState): void {
   for (const r of p.aspectRadios) r.checked = r.value === s.aspect;
-  const native = p.native.has(s.aspect);
-  p.shapeHint.hidden = native;
-  p.cropRow.hidden = native;
 
   let limited = false;
   for (const { label, input } of p.sizes) {
@@ -100,5 +94,4 @@ export function renderPanel(p: PanelParts, s: DetailState): void {
   for (const el of p.summaryFormats) el.textContent = f.label;
   // An SVG has a shape but no pixel size.
   for (const el of p.summarySizes) el.textContent = f.value === 'svg' ? s.aspect : `${w}×${h}`;
-  for (const el of p.summaryYours) el.hidden = f.value === 'svg' || s.size !== 'screen';
 }

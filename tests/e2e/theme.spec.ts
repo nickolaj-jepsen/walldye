@@ -133,7 +133,12 @@ test.describe('theme', () => {
     await page.click('#theme-button');
     const accent = page.locator('#seed-accent');
 
+    // A field is marked once the visitor leaves it.
     await accent.fill('#CF6A4');
+    await page.waitForTimeout(400);
+    await expect(accent).not.toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#seed-msg')).toBeHidden();
+    await page.locator('#seed-bg').focus();
     await expect(accent).toHaveAttribute('aria-invalid', 'true');
     await expect(accent).toHaveAttribute('aria-describedby', 'seed-msg');
     await expect(page.locator('#seed-msg')).toBeVisible();

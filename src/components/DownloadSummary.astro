@@ -1,7 +1,8 @@
 ---
 /**
  * What a Download button makes: the format, the size (or an SVG's shape) and, for the visitor's own
- * screen size, "for your screen". The detail page's client keeps every copy in step.
+ * screen size, "for your screen", which site.css shows. The detail page's client keeps every copy's
+ * text in step.
  */
 interface Props {
   format: string;
@@ -10,4 +11,4 @@ interface Props {
 const { format, size } = Astro.props;
 ---
 
-<span class="file"><span data-part="format">{format}</span>, <span class="mono" data-part="size">{size}</span><span data-part="yours" hidden> for your screen</span></span>
+<span class="file"><span data-part="format">{format}</span>, <span class="mono" data-part="size">{size}</span><span data-part="yours"> for your screen</span></span>

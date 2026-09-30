@@ -40,10 +40,10 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 |---|---|---|
 | `#picker` | `div[popover][role=dialog]` | Opened natively by any `[popovertarget=picker]`. |
 | `#picker .presets li` | one per family, in `FAMILIES` order (`src/lib/presets.ts`) | A family with a light preset has `button.family[data-family]` (its name) and one `button.swatch[data-preset][aria-label][title]` per preset; a lone preset is one `button.single[data-preset]`. Set `aria-pressed="true"` on the visitor's choice only (`ownChoice()`, or the shared theme's preset while it differs): a family, or a fixed preset. The server marks the fireproof family. |
-| `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent]` | Prefilled with the fireproof seeds. On an invalid value set `aria-invalid` and `aria-describedby="seed-msg"`; otherwise the bg and fg fields point at `faint-msg` while it shows, and the accent field at `accent-bg-msg` or `accent-fg-msg`. |
+| `#seed-bg`, `#seed-fg`, `#seed-accent` | `input[data-seed=bg\|fg\|accent][required][pattern]` | Prefilled with the fireproof seeds; the pattern is `SEED_PATTERN` from `src/lib/theme.ts`, padded with whitespace. While a field is `:user-invalid` set `aria-invalid` and `aria-describedby="seed-msg"`; otherwise the bg and fg fields point at `faint-msg` while it shows, and the accent field at `accent-bg-msg` or `accent-fg-msg`. |
 | `.hexfield .chip` | `span.chip` before each input | `style="--c:var(--seed-…)"`. Override `--c` while an unapplied edit is shown. |
 | `.hexfield .chip input[type=color]` | the native color picker, invisible over the swatch | Keep its value on the swatch's color. Its `input` fills the hex field as an edit, its `change` commits it. |
-| `#seed-msg`, `#faint-msg`, `#accent-bg-msg`, `#accent-fg-msg` | `p.msg[hidden]` inside the `aria-live` `.msgs` | Unhide for invalid input, for the contrast warning, and for an accent within `NEAR_ACCENT` of the background (first) or the foreground. |
+| `#seed-msg`, `#faint-msg`, `#accent-bg-msg`, `#accent-fg-msg` | `p.msg` inside the `aria-live` `.msgs`, all but `#seed-msg` `[hidden]` | site.css shows `#seed-msg` while a field is `:user-invalid`. Unhide the others for the contrast warning, and for an accent within `NEAR_ACCENT` of the background (first) or the foreground. |
 | `#theme-import` | `input` under the hex fields | On paste, read the clipboard text whole with `seedsFromText()` from `src/lib/import-theme.ts`; on change, the typed value. Seeds fill the three fields as an edit; none unhide `#import-msg`. |
 | `#import-msg` | `p.msg[hidden]` inside `.msgs` | "No colors found in that text." |
 | `[data-action=copy-link]` | button "Copy link" (also on the detail page) | Copy the current URL with `?t=<token>`. |
@@ -64,8 +64,8 @@ When storage cannot be written, `theme/store.ts` keeps the token on `<html>` as 
 | `label.entry .count` | `span.count` | Starts at the unfiltered count. Disable a box when its live count is 0 and it is not checked. |
 | `#result-count` | `span`, the one live region | Starts as "N wallpapers". Add `role=status` after the first render from the query string, so a filtered load is not announced; then write it only when the text changes. |
 | `#show-results` | `button.show` after `#facets`, inside the disclosure | "Show N wallpapers", N as in `#result-count`; not a live region. On click, close the disclosure and focus and scroll to its summary. site.css shows it on phones only. |
-| `.results-line .clear` | `button[type=reset][form=facets][hidden]` | Show it while any box is checked or the search is not empty. |
-| `.plates .empty` | `p[hidden]` | Show it when nothing matches. |
+| `.results-line .clear` | `button[type=reset][form=facets]` | site.css shows it while any box is checked or the search is not empty. |
+| `.plates .empty` | `p` | site.css shows it while every `li` is hidden. |
 
 The query string is the form's own GET serialization: `q=<text>`, `sort=<order>` (left out for the first order), `shape=<w>x<h>` (left out for the device's shape) and repeated `<facet>=<value>` keys, e.g. `/?technique=drafting&technique=dither&other=any-screen`. Detail pages link their facts the same way. The client reads it back into the controls, ignoring values that have no checkbox or radio, and writes `FormData` of the form, so a new control is in the address without client changes.
 
@@ -124,7 +124,7 @@ The page keeps its state in the query string, written with `history.replaceState
 | `.spread .plate` | Plate box with every aspect | Set `--pos`, the `object-position` of the crop, for that view; there a sideways drag on a cropped 16:9 picture moves the crop. |
 | `.spread .crop` | `div.crop[data-axis=x\|y][hidden]` with `span.handle` | Show it for a cropped shape; set `data-axis` and position it in % of the plate. |
 | `#quick-download` | `button.download.quick` after the attribution | Runs the export as `#download` does, sharing its "Preparing…", `aria-busy`, summary and `title`. |
-| `[data-part=format\|size\|yours]` | spans inside both Download buttons (`DownloadSummary.astro`) | The format's label; the size as `w×h`, or the shape for SVG; " for your screen", shown for a raster at the `screen` size. The panel boot sets them, with the Shape and Size rows, for the start state before first paint (`renderPanel()` in `detail/panel.ts`, which the page module renders with too). |
+| `[data-part=format\|size\|yours]` | spans inside both Download buttons (`DownloadSummary.astro`) | The format's label; the size as `w×h`, or the shape for SVG; " for your screen", which site.css shows for a raster at the `screen` size. The panel boot sets them, with the Shape and Size rows, for the start state before first paint (`renderPanel()` in `detail/panel.ts`, which the page module renders with too). |
 | `#desc` | `p.desc` | Set it to the shown version's description (`data-variants[name].alt`). |
 
 ### Versions, export and colors (`src/components/Controls.astro`)
@@ -139,8 +139,8 @@ The page keeps its state in the query string, written with `history.replaceState
 | `#format-hint` | `span.hint[hidden]` | Shown, with the WebP radio disabled, when the browser cannot encode WebP. |
 | `#export input[name=fmt]` | radios `svg`, `png` (checked), `webp`, `jpeg` | `data-ext` is the file extension. |
 | `#export input[name=asp]` | radios `16:9` (checked), `16:10`, `21:9`, `32:9`, `9:19.5`, `10:16` | `data-native` marks shapes with their own template; the rest crop 16:9. |
-| `#shape-hint` | `span.hint[hidden]` | Show it for cropped shapes. |
-| `#crop-row`, `#crop` | `div.row[hidden]` and `input[type=range]` 0 to 1 | Show for cropped shapes. The value is the position along the crop's travel (0 left or top). It follows the version's `focus` (clamped) until the visitor places it (range, drag or `?crop=`); a placed crop is kept when the new shape crops along the same axis. |
+| `#shape-hint` | `span.hint` | site.css shows it while the checked `asp` radio has no `data-native`. |
+| `#crop-row`, `#crop` | `div.row` and `input[type=range]` 0 to 1 | site.css shows the row as `#shape-hint`. The value is the position along the crop's travel (0 left or top). It follows the version's `focus` (clamped) until the visitor places it (range, drag or `?crop=`); a placed crop is kept when the new shape crops along the same axis. |
 | `.crop-map` | `span.plate[aria-hidden]` above `#crop`, holding a `.crop` like the spread's | While the plate shows a tall crop itself (phones), show the 16:9 template in the current version and theme, and place and drag its window as the spread's. site.css shows it in that view only. |
 | `#sizes` | radiogroup | One `label[data-aspect=<aspect>]` per size of every shape in `EXPORT_SIZES` (value `<w>x<h>`, label `<span class="mono">w×h</span>`), then `screen`. Only the 16:9 ones are shown and enabled at first, 2560×1440 checked; the client shows and enables the chosen shape's. Picking `screen` switches to the nearest shape; leaving that shape drops it for the default size. The page starts on it when it starts in the screen's shape. |
 | `#size-limit` | `span.hint[hidden]` | Shown while a size is disabled for the canvas limits; disabled radios point at it with `aria-describedby`. |

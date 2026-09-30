@@ -42,8 +42,6 @@ const boxes = [...form.querySelectorAll<HTMLInputElement>('input[type=checkbox]'
 const sorts = [...form.querySelectorAll<HTMLInputElement>('input[name=sort]')];
 const shapes = [...form.querySelectorAll<HTMLInputElement>('input[name=shape]')];
 const status = must('#result-count');
-const clear = must('.results-line .clear');
-const empty = must('.plates .empty');
 const summary = must('.filter > summary .state');
 const details = must<HTMLDetailsElement>('details.filter');
 const showResults = must<HTMLButtonElement>('#show-results', details);
@@ -87,10 +85,8 @@ function apply(): void {
   // Rewriting an unchanged live region can re-announce it.
   if (status.textContent !== text) status.textContent = text;
   showResults.textContent = `Show ${shown} ${shown === 1 ? 'wallpaper' : 'wallpapers'}`;
-  empty.hidden = shown > 0;
   const needle = s.q.trim();
   const checked = boxes.filter((b) => b.checked);
-  clear.hidden = checked.length === 0 && needle === '';
   const terms = checked.map(
     (b) => b.closest('label')?.querySelector('.term')?.textContent ?? b.value,
   );
