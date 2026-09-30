@@ -20,7 +20,7 @@ Designs import only these four. Each defines `__all__` with exactly these names,
 | `walldye.field` | `Noise`, `noise_grid`, `cells`, `falloff`, `gauss`, `iso_lines`, `runs`, `sample_field` |
 | `walldye.pixel` | `Pixels`, `grid_runs`, `dither`, `bayer`, `blue_noise`, `threshold_matrix`, `sprite`, `glyph`, `glyphs`, `text_width`, `Font`, `DitherMethod` |
 
-The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import. Everything under `walldye/` except `tools/` feeds the render-lib hash (architecture.md, Build and check).
+The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import. The code under `walldye/` except `tools/` feeds the render-lib hash (architecture.md, Build and check).
 
 ## 3. Design files
 

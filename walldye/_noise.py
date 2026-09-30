@@ -7,7 +7,7 @@ from typing import Final, final, overload
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from ._vec import NUM_TYPES, Num, real
+from ._vec import Num, is_scalar, real
 
 type _F = NDArray[np.float64]
 type _I = NDArray[np.int64]
@@ -64,7 +64,7 @@ def _grad3_a(h: _I, x: _F, y: _F, z: _F) -> _F:
 
 
 def _scalar(*vs: object) -> bool:
-    return all(isinstance(v, NUM_TYPES) for v in vs)
+    return all(is_scalar(v) for v in vs)
 
 
 def _arrays(*vs: ArrayLike) -> list[_F]:

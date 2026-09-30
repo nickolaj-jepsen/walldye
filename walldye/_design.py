@@ -10,10 +10,11 @@ from types import MappingProxyType
 from typing import Final, Literal, cast, final
 
 from ._aspect import SITE_ASPECTS, Aspect, canvas_size, native_aspects
-from ._canvas import Canvas
+from ._canvas import Canvas, close
 from ._color import BG, Color
 from ._document import Builder, Document
 from ._params import Params
+from ._theme import Regime
 
 MAX_VARIANTS: Final = 4
 _VARIANT_NAME: Final = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
@@ -27,7 +28,7 @@ class RenderSpec:
     variant: str  # "default" or a named variant; a label for keys
     params: Params  # the values drawn (a variant's, or with --set overrides)
     aspect: str  # anything _aspect.canvas_size accepts
-    regime: Literal["dark", "light"]
+    regime: Regime
 
 
 @final
@@ -85,7 +86,7 @@ class Design[Pm: Params]:
         try:
             self.fn(canvas)
         finally:
-            canvas._close()
+            close(canvas)
         return doc.finish()
 
 

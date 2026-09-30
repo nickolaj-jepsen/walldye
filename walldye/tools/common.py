@@ -14,7 +14,7 @@ from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
-from typing import Final, Literal, cast, final
+from typing import Final, cast, final
 
 import numpy as np
 import resvg_py
@@ -27,16 +27,9 @@ from walldye._color import Color, mix, token
 from walldye._design import Design, RenderSpec
 from walldye._document import Document
 from walldye._params import Params
-from walldye._theme import (
-    PRESETS,
-    SEEDS,
-    hex_to_rgb,
-    is_light,
-    normalize_seed,
-    parse_seeds,
-    theme_tokens,
-)
+from walldye._theme import FIREPROOF, hex_to_rgb, normalize_seed
 from walldye.tools import knobs
+from walldye.tools.themes import Theme, regime_of, tokens_of
 from walldye.tools.tokenize import find_colors
 
 sys.dont_write_bytecode = True  # imported designs must not leave __pycache__ in wallpapers/<slug>/
@@ -50,15 +43,12 @@ TAXONOMY = ROOT / "taxonomy.yaml"
 FEATURED = ROOT / "featured.yaml"  # the site's featured pieces, one `- <slug>` line each
 DESIGN_PYREFLY: Final = ROOT / "wallpapers" / "pyrefly.toml"  # the level designs are checked at
 DESIGN_ERROR: Final = "design.py must define @design(...) def draw(s: Canvas[...]) -> None"
-FIREPROOF_BG: Final = PRESETS["fireproof"]["bg"]
+FIREPROOF_BG: Final = FIREPROOF["bg"]
 DOC_CACHE: Final = 16
 FOCUS_WIDTH: Final = 480  # px wide the focus is measured at
 
 type Crop = tuple[float, float, float, float]
-type Regime = Literal["dark", "light"]
-REGIMES: Final[tuple[Regime, ...]] = ("dark", "light")
 type Meta = dict[str, object]
-type Theme = str | Mapping[str, str] | tuple[str, str, str]
 _SLUG: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _BACKGROUND: Final = re.compile(
     r"<svg\b[^\n]*\n(?:<defs>[^\n]*</defs>\n)?"
@@ -170,26 +160,6 @@ def is_aspect(value: str) -> bool:
     except (ValueError, ZeroDivisionError, OverflowError):
         return False
     return w > 0 and h > 0
-
-
-def seeds_of(theme: Theme) -> dict[str, str]:
-    """{bg, fg, accent} of a theme token, a seed mapping or a (bg, fg, accent) triple."""
-    if isinstance(theme, str):
-        return parse_seeds(theme)
-    if isinstance(theme, tuple):
-        return dict(zip(SEEDS, theme, strict=True))
-    return {k: normalize_seed(theme[k]) for k in SEEDS}
-
-
-def tokens_of(theme: Theme) -> dict[str, str]:
-    """The 21 tokens of a theme token, seed mapping or seed triple."""
-    return theme_tokens(seeds_of(theme))
-
-
-def regime_of(theme: Theme) -> Regime:
-    """The regime a theme's seeds select."""
-    s = seeds_of(theme)
-    return "light" if is_light(s["bg"], s["fg"]) else "dark"
 
 
 @final

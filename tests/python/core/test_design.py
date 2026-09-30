@@ -5,17 +5,10 @@ import pytest
 from core_support import load, spec
 
 from walldye import BG_ALT, MASK_WHITE, UI, Canvas, P, Params, design, knob
-from walldye._aspect import (
-    SITE_ASPECTS,
-    aspect_label,
-    canvas_size,
-    native_aspects,
-    parse_template_name,
-    supports,
-    template_name,
-)
+from walldye._aspect import SITE_ASPECTS, canvas_size, native_aspects, supports
 from walldye._design import Design, RenderSpec
-from walldye._theme import parse_theme
+from walldye.tools.paths import aspect_label, parse_template_name, template_name
+from walldye.tools.themes import parse_theme
 
 
 class Radar(Params):

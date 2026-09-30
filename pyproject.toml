@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "Procedural SVG wallpapers recolored from three seed colors."
 readme = "README.md"
 authors = [{ name = "Nickolaj Jepsen" }]
-# font.py carries Spleen's glyphs under BSD-2-Clause; the rest of the package is GPL.
+# _font.py carries Spleen's glyphs under BSD-2-Clause; the rest of the package is GPL.
 license = "GPL-3.0-or-later AND BSD-2-Clause"
 license-files = ["LICENSE", "LICENSES/BSD-2-Clause.txt"]
 requires-python = ">=3.13"

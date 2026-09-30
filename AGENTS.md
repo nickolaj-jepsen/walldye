@@ -21,7 +21,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 
 ## Layout
 
-- `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Everything outside `tools/` feeds the render-lib hash, so editing it makes the next build re-check every piece's probes.
+- `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. The code outside `tools/` feeds the render-lib hash, so changing it (not its comments or docstrings) makes the next build re-check every piece's probes.
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand; `build/` is generated and gitignored, with named variants in `build/<variant>/`. Legacy pieces have `source.svg` and `palette.yaml` instead of a script. `wallpapers/index.json` is generated and gitignored too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `taxonomy.yaml`: the allowed facet values for meta.yaml. Only `walldye review` adds to it.
 - `featured.yaml`: the pieces the index opens on, in order, chosen by the owner.

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal, Self, overload
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from ._vec import Num, Point, angle, angle_pair, num, point
+from ._vec import Num, Point, angle, angle_pair, num, point, points
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
@@ -54,23 +54,21 @@ def _flag(v: object, what: str) -> str:
     raise TypeError(f"{what} flags are bools or 0 or 1, got {v!r}")
 
 
-def _points(pts: ArrayLike, what: str) -> NDArray[np.float64]:
-    """`pts` as an (N, 2) float array; (0, 2) for no points.
-
-    Raises TypeError for non-numeric or boolean data and ValueError for another shape or a
-    non-finite coordinate.
-    """
-    a: NDArray[np.generic] = np.asarray(pts)
-    if a.size == 0:
-        return np.zeros((0, 2))
-    if a.dtype.kind not in "iuf":
-        raise TypeError(f"{what} takes numeric points, got dtype {a.dtype}")
-    if a.ndim != 2 or a.shape[1] != 2:
-        raise ValueError(f"{what} takes points of shape (N, 2), got {a.shape}")
-    f = np.asarray(a, dtype=np.float64)
-    if not bool(np.isfinite(f).all()):
-        raise ValueError(f"{what} takes finite points")
-    return f
+def catmull_rom(
+    p: NDArray[np.float64], closed: bool, k: float
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """Each segment of the Catmull-Rom curve through the (N >= 3, 2) points `p` as a cubic
+    Bézier: (starts, first controls, second controls, ends), each (segments, 2). A control
+    point sits `k` of the neighbor chord from its end; an open curve's end segments repeat
+    their end point."""
+    m = len(p)
+    i = np.arange(m if closed else m - 1)
+    if closed:
+        p0, p3 = p[(i - 1) % m], p[(i + 2) % m]
+    else:
+        p0, p3 = p[np.maximum(i - 1, 0)], p[np.minimum(i + 2, m - 1)]
+    p1, p2 = p[i], p[(i + 1) % m]
+    return p1, p1 + (p2 - p0) * k, p2 - (p3 - p1) * k, p2
 
 
 def ngon_vertices(c: Point, r: Num, n: int, a: Num, inner: Num | None) -> NDArray[np.float64]:
@@ -384,7 +382,7 @@ class Path:
             raise ValueError(f"dots takes r >= 0, got {r!r}")
         if rr == 0:
             return self
-        for x, y in _points(pts, "dots").tolist():
+        for x, y in points(pts, "dots").tolist():
             self._oval((x, y), rr, rr, 1)
         return self
 
@@ -425,10 +423,10 @@ class Path:
 
         Raises ValueError for another shape or a non-finite coordinate.
         """
-        rows = _points(pts, "poly").tolist()
+        rows = points(pts, "poly").tolist()
         if len(rows) == 0:
             return self
-        # _points() checked every coordinate is a finite float, so skip fmt()'s checks
+        # points() checked every coordinate is a finite float, so skip fmt()'s checks
         nd = self._nd
         self._parts.extend(
             f"{'L' if i > 0 else 'M'}{_text(x, nd)} {_text(y, nd)}" for i, (x, y) in enumerate(rows)
@@ -441,24 +439,14 @@ class Path:
 
         An open curve's end segments repeat their end point; fewer than 3 points give poly().
         """
-        p: list[list[float]] = _points(pts, "spline").tolist()
+        p = points(pts, "spline")
         k = num(tension, "spline tension") / 6
-        n = len(p)
-        if n < 3:
+        if len(p) < 3:
             return self.poly(pts, closed=closed)
-        self.M(p[0][0], p[0][1])
-        for i in range(n if closed else n - 1):
-            p0 = p[(i - 1) % n] if (closed or i > 0) else p[0]
-            p1, p2 = p[i], p[(i + 1) % n]
-            p3 = p[(i + 2) % n] if (closed or i + 2 < n) else p2
-            self.C(
-                p1[0] + (p2[0] - p0[0]) * k,
-                p1[1] + (p2[1] - p0[1]) * k,
-                p2[0] - (p3[0] - p1[0]) * k,
-                p2[1] - (p3[1] - p1[1]) * k,
-                p2[0],
-                p2[1],
-            )
+        _, c1, c2, p2 = catmull_rom(p, closed, k)
+        self.M(float(p[0, 0]), float(p[0, 1]))
+        for (ax, ay), (bx, by), (x, y) in zip(c1.tolist(), c2.tolist(), p2.tolist(), strict=True):
+            self.C(ax, ay, bx, by, x, y)
         return self.Z() if closed else self
 
     def shape(self, geom: "BaseGeometry") -> Self:

@@ -5,8 +5,9 @@ from fixtures import pieces
 from tools_support import legacy
 
 from walldye._design import Design, RenderSpec
-from walldye._theme import mix, parse_theme
+from walldye._theme import mix
 from walldye.tools import common
+from walldye.tools.themes import parse_theme
 
 
 def test_load_imports_once_per_file_content(wallpapers):

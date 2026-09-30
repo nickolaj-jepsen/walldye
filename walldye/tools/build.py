@@ -9,9 +9,11 @@ from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TypedDict
 
-from walldye._aspect import SITE_ASPECTS, TEMPLATE_NAME
-from walldye._theme import PRESETS, SEEDS, hex_to_rgb, is_light, normalize_seed, rgb_to_hex
+from walldye._aspect import SITE_ASPECTS
+from walldye._theme import SEEDS, hex_to_rgb, is_light, normalize_seed, rgb_to_hex
 from walldye.tools import check, common, hashing, lint
+from walldye.tools.paths import TEMPLATE_NAME
+from walldye.tools.themes import PRESETS
 from walldye.tools.tokenize import find_colors, substitute
 
 _FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}

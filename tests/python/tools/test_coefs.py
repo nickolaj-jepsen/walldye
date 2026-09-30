@@ -2,11 +2,11 @@ import numpy as np
 import pytest
 from fixtures import pieces
 
-from walldye import ACCENT, BG, FG, MUTED, UI, _check_themes, by_regime, mix
+from walldye import ACCENT, BG, FG, MUTED, UI, by_regime, mix
 from walldye._design import RenderSpec
 from walldye._document import Document
-from walldye._theme import parse_theme
-from walldye.tools import coefs, common
+from walldye.tools import coefs, common, themes
+from walldye.tools.themes import parse_theme
 from walldye.tools.tokenize import find_colors
 
 
@@ -118,7 +118,7 @@ def test_collision_needs_per_occurrence_slots(wallpapers):
     rows = np.array(entry["coefs"])[[entry["occ"][0], entry["occ"][1], entry["occ"][1]]]
     worst = max(
         np.abs(coefs.predict(rows, t) - coefs.colors(common.render("collision", t))).max()
-        for t in _check_themes.HELD_OUT["dark"]
+        for t in themes.HELD_OUT["dark"]
     )
     assert worst > coefs.MAX_ERROR
 

@@ -2,16 +2,19 @@
 
 Tokens are relative to the seeds, so light themes invert on their own: BG_DEEP and BLACK sit
 beyond bg, the grays step from bg to fg and ACCENT_1..8 from accent to bg. `fireproof` pins all
-21 tokens by hand; its exact seeds resolve to that table, any other seeds are derived.
-
-Theme token grammar (parse_seeds): a preset name, `bg-fg-accent`, `bg,fg,accent` or
-`bg=..,fg=..,accent=..`, each seed 3 or 6 hex digits with an optional `#`.
+21 tokens by hand (FIREPROOF); its exact seeds resolve to that table, any other seeds are
+derived. The presets and the theme token grammar are in walldye.tools.themes.
 """
 
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Final, Literal, NamedTuple
 
+type Regime = Literal["dark", "light"]
+REGIMES: Final[tuple[Regime, ...]] = ("dark", "light")
 SEEDS = ("bg", "fg", "accent")
 TOKENS = (
     "black", "bg_deep", "bg", "bg_alt", "ui", "ui_alt", "ui_hi", "muted", "fg_alt", "fg",
@@ -32,9 +35,9 @@ _ACCENT_T = {
     "accent_5": 0.68, "accent_6": 0.8, "accent_7": 0.9, "accent_8": 0.955,
 }  # fmt: skip
 
-PRESETS: dict[str, dict[str, str]] = {
-    # Pinned so the hand-picked grays and terracotta ramp render exactly.
-    "fireproof": {
+# Pinned so the hand-picked grays and terracotta ramp render exactly.
+FIREPROOF: Final[Mapping[str, str]] = MappingProxyType(
+    {
         "black": "#100F0F",
         "bg_deep": "#181716",
         "bg": "#1C1B1A",
@@ -56,29 +59,8 @@ PRESETS: dict[str, dict[str, str]] = {
         "accent_7": "#2E1C19",
         "accent_8": "#241B19",
         "orange_dark": "#BC5215",
-    },
-    "flexoki-light": {"bg": "#FFFCF0", "fg": "#100F0F", "accent": "#BC5215"},
-    "ayu-dark": {"bg": "#0B0E14", "fg": "#BFBDB6", "accent": "#E6B450"},
-    # ayu's keyword orange: its #FFAA33 accent all but vanishes on the light ground.
-    "ayu-light": {"bg": "#FCFCFC", "fg": "#5C6166", "accent": "#FA8D3E"},
-    "catppuccin-mocha": {"bg": "#1E1E2E", "fg": "#CDD6F4", "accent": "#CBA6F7"},
-    "catppuccin-latte": {"bg": "#EFF1F5", "fg": "#4C4F69", "accent": "#8839EF"},
-    "dracula": {"bg": "#282A36", "fg": "#F8F8F2", "accent": "#FF79C6"},
-    # The scheme's orange: its green sits too close to fg for a highlight to stand out.
-    "everforest-dark": {"bg": "#2D353B", "fg": "#D3C6AA", "accent": "#E69875"},
-    "everforest-light": {"bg": "#FDF6E3", "fg": "#5C6A72", "accent": "#F57D26"},
-    "gruvbox-dark": {"bg": "#282828", "fg": "#EBDBB2", "accent": "#FE8019"},
-    "gruvbox-light": {"bg": "#FBF1C7", "fg": "#3C3836", "accent": "#AF3A03"},
-    "nord": {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"},
-    # "love", not the usual "rose", which sits too close to fg for a highlight to stand out.
-    "rose-pine": {"bg": "#191724", "fg": "#E0DEF4", "accent": "#EB6F92"},
-    "rose-pine-dawn": {"bg": "#FAF4ED", "fg": "#575279", "accent": "#B4637A"},
-    "solarized-dark": {"bg": "#002B36", "fg": "#93A1A1", "accent": "#CB4B16"},
-    "solarized-light": {"bg": "#FDF6E3", "fg": "#586E75", "accent": "#CB4B16"},
-    "tokyo-night": {"bg": "#1A1B26", "fg": "#C0CAF5", "accent": "#7AA2F7"},
-    "tokyo-night-day": {"bg": "#E1E2E7", "fg": "#3760BF", "accent": "#9854F1"},
-}
-DEFAULT_THEME = "fireproof"
+    }
+)
 
 _SEED = re.compile(r"#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
 
@@ -116,6 +98,19 @@ def luminance(c: str) -> float:
 def is_light(bg: str, fg: str) -> bool:
     """True for the light regime: bg strictly brighter than fg (equal luminance is dark)."""
     return luminance(bg) > luminance(fg)
+
+
+def regime(bg: str, fg: str) -> Regime:
+    """The regime seeds `bg` and `fg` select: "light" when is_light, else "dark"."""
+    return "light" if is_light(bg, fg) else "dark"
+
+
+class Seeds(NamedTuple):
+    """A theme's three seeds, each #RRGGBB."""
+
+    bg: str
+    fg: str
+    accent: str
 
 
 def _recipe(light: bool) -> dict[str, tuple[str, str, float]]:
@@ -200,36 +195,6 @@ def normalize_seed(c: str) -> str:
     return "#" + (h if len(h) == 6 else "".join(ch * 2 for ch in h)).upper()
 
 
-def _preset_seeds(name: str) -> dict[str, str]:
-    return {k: PRESETS[name][k] for k in SEEDS}
-
-
-def parse_seeds(spec: str | None) -> dict[str, str]:
-    """Seeds {bg, fg, accent} (uppercase #RRGGBB) for a theme token; None or "" means DEFAULT_THEME.
-
-    Raises ValueError for anything outside the grammar: unknown names, a wrong seed count,
-    keys other than bg/fg/accent (per-token overrides), or a preset combined with overrides.
-    """
-    spec = (DEFAULT_THEME if spec is None or spec == "" else spec).strip()
-    if spec in PRESETS:
-        return _preset_seeds(spec)
-    if "=" in spec:
-        pairs = [p.split("=", 1) for p in spec.split(",")]
-        values = {p[0].strip(): p[1] for p in pairs if len(p) == 2}
-        if len(values) != len(pairs) or values.keys() != set(SEEDS):
-            raise ValueError(
-                f"theme {spec!r}: keyed form takes exactly bg=, fg= and accent=,"
-                " no preset or other tokens"
-            )
-        return {k: normalize_seed(values[k]) for k in SEEDS}
-    parts = spec.split("," if "," in spec else "-")
-    if len(parts) != 3:
-        raise ValueError(
-            f"unknown theme {spec!r}: use a preset ({', '.join(PRESETS)}) or bg-fg-accent hex seeds"
-        )
-    return {k: normalize_seed(v) for k, v in zip(SEEDS, parts)}
-
-
 def theme_tokens(seeds: dict[str, str]) -> dict[str, str]:
     """All 21 tokens for exactly {bg, fg, accent}: the pinned fireproof table for fireproof's
     exact seeds, derive_theme otherwise. Seeds are normalized first; ValueError on other keys."""
@@ -238,19 +203,4 @@ def theme_tokens(seeds: dict[str, str]) -> dict[str, str]:
             f"theme seeds must be exactly bg, fg, accent (got {', '.join(sorted(seeds))})"
         )
     s = {k: normalize_seed(seeds[k]) for k in SEEDS}
-    return derive_theme(PRESETS["fireproof"] if s == _preset_seeds("fireproof") else s)
-
-
-def parse_theme(spec: str | None) -> dict[str, str]:
-    """All 21 tokens for a theme token (see parse_seeds)."""
-    return theme_tokens(parse_seeds(spec))
-
-
-def theme_token(seeds: dict[str, str]) -> str:
-    """Canonical token for {bg, fg, accent}: the preset name when the seeds equal a preset's,
-    else lowercase `bg-fg-accent` without `#`."""
-    s = {k: normalize_seed(seeds[k]) for k in SEEDS}
-    for name in PRESETS:
-        if s == _preset_seeds(name):
-            return name
-    return "-".join(s[k][1:].lower() for k in SEEDS)
+    return derive_theme(dict(FIREPROOF) if all(s[k] == FIREPROOF[k] for k in SEEDS) else s)

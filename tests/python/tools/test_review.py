@@ -8,9 +8,9 @@ import urllib.request
 import pytest
 from tools_support import VERSION_LABELS, built, versions
 
-from walldye._theme import parse_seeds
 from walldye.tools import cli, common, new, review, sheet
 from walldye.tools.review import Step
+from walldye.tools.themes import parse_seeds
 
 RING = '''"""A ring round a dot."""
 

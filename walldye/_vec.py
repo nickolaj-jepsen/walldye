@@ -1,6 +1,8 @@
-"""Numbers, points, vectors, rectangles, angles and ufunc-safe scalar maths."""
+"""Numbers, points, vectors, rectangles, angles, ufunc-safe scalar maths, and the argument
+checks the helper modules share: each raises with a message that starts with `what`."""
 
 import math
+import random
 from typing import Final, NamedTuple, TypeIs, overload, override
 
 import numpy as np
@@ -57,6 +59,69 @@ def point(p: object, what: str) -> tuple[float, float]:
     else:
         raise TypeError(f"{what} takes a point (x, y), got {p!r}")
     return num(x, what), num(y, what)
+
+
+def integer(n: object, what: str) -> int:
+    """`n` as an int. Raises TypeError for anything but an int or numpy integer (a bool is not
+    one)."""
+    if isinstance(n, bool) or not isinstance(n, (int, np.integer)):
+        raise TypeError(f"{what} takes an int, got {n!r}")
+    return int(n)
+
+
+def count(n: object, what: str, least: int) -> int:
+    """integer(`n`), raising ValueError below `least`."""
+    v = integer(n, what)
+    if v < least:
+        raise ValueError(f"{what} takes an int >= {least}, got {n!r}")
+    return v
+
+
+def positive(v: object, what: str) -> float:
+    """num(`v`), raising ValueError unless it is above 0."""
+    f = num(v, what)
+    if f <= 0:
+        raise ValueError(f"{what} takes a number above 0, got {v!r}")
+    return f
+
+
+def is_scalar(v: object) -> TypeIs[int | float | np.integer | np.floating]:
+    """Whether `v` takes a function's scalar path rather than its array one; bools do, so that
+    num() rejects them."""
+    return isinstance(v, NUM_TYPES)
+
+
+def points(pts: ArrayLike, what: str) -> NDArray[np.float64]:
+    """`pts` as an (N, 2) float array; (0, 2) for no points.
+
+    Raises TypeError for non-numeric or boolean data and ValueError for another shape or a
+    non-finite coordinate.
+    """
+    a: NDArray[np.generic] = np.asarray(pts)
+    if a.size == 0:
+        return np.zeros((0, 2))
+    if a.dtype.kind not in "iuf":
+        raise TypeError(f"{what} takes numeric points, got dtype {a.dtype}")
+    if a.ndim != 2 or a.shape[1] != 2:
+        raise ValueError(f"{what} takes points of shape (N, 2), got {a.shape}")
+    f = np.asarray(a, dtype=np.float64)
+    if not bool(np.isfinite(f).all()):
+        raise ValueError(f"{what} takes finite points")
+    return f
+
+
+def py_random(rng: object, what: str) -> random.Random:
+    """`rng`, which must be a random.Random from s.rng(key); TypeError otherwise."""
+    if not isinstance(rng, random.Random):
+        raise TypeError(f"{what} takes a random.Random from s.rng(key), got {rng!r}")
+    return rng
+
+
+def np_generator(rng: object, what: str) -> np.random.Generator:
+    """`rng`, which must be a numpy Generator from s.np_rng(key); TypeError otherwise."""
+    if not isinstance(rng, np.random.Generator):
+        raise TypeError(f"{what} takes a numpy Generator from s.np_rng(key), got {rng!r}")
+    return rng
 
 
 class Vec(NamedTuple):
@@ -261,6 +326,12 @@ class Rect(NamedTuple):
         return self.x - m <= x <= self.x1 + m and self.y - m <= y <= self.y1 + m
 
 
+def box(rect: Rect, what: str) -> tuple[float, float, float, float]:
+    """`rect` (x, y, w, h) as four finite floats."""
+    x, y, w, h = rect
+    return num(x, what), num(y, what), num(w, what), num(h, what)
+
+
 def angle(deg: object, rad: object, bearing: object, what: str = "angle") -> float:
     """The one angle given as deg=, rad= or bearing=, in screen radians (clockwise from east).
 
@@ -321,17 +392,13 @@ def polar(
     return Vec(cx + rr * math.cos(a), cy + rr * math.sin(a))
 
 
-def _is_real(v: object) -> TypeIs[int | float | np.integer | np.floating]:
-    return isinstance(v, NUM_TYPES)
-
-
 @overload
 def lerp(a: Num, b: Num, t: Num) -> float: ...
 @overload
 def lerp(a: ArrayLike, b: ArrayLike, t: ArrayLike) -> NDArray[np.float64]: ...
 def lerp(a: ArrayLike, b: ArrayLike, t: ArrayLike) -> float | NDArray[np.float64]:
     """a + (b - a) * t: a float for numbers, element-wise float64 for arrays."""
-    if _is_real(a) and _is_real(b) and _is_real(t):
+    if is_scalar(a) and is_scalar(b) and is_scalar(t):
         fa, fb, ft = float(a), float(b), float(t)
         return fa + (fb - fa) * ft
     xa, xb, xt = _arr(a), _arr(b), _arr(t)
@@ -344,7 +411,7 @@ def clamp(v: Num, lo: Num = 0.0, hi: Num = 1.0) -> float: ...
 def clamp(v: ArrayLike, lo: ArrayLike = 0.0, hi: ArrayLike = 1.0) -> NDArray[np.float64]: ...
 def clamp(v: ArrayLike, lo: ArrayLike = 0.0, hi: ArrayLike = 1.0) -> float | NDArray[np.float64]:
     """`v` limited to [lo, hi]: `lo if v < lo else min(v, hi)` for numbers, np.clip for arrays."""
-    if _is_real(v) and _is_real(lo) and _is_real(hi):
+    if is_scalar(v) and is_scalar(lo) and is_scalar(hi):
         fv, flo, fhi = float(v), float(lo), float(hi)
         return flo if fv < flo else min(fv, fhi)
     return np.asarray(np.clip(_arr(v), _arr(lo), _arr(hi)), dtype=np.float64)
@@ -359,7 +426,7 @@ def smoothstep(e0: ArrayLike, e1: ArrayLike, x: ArrayLike) -> float | NDArray[np
 
     Works with e0 > e1 (a falling edge). Raises ValueError when e0 == e1.
     """
-    if _is_real(e0) and _is_real(e1) and _is_real(x):
+    if is_scalar(e0) and is_scalar(e1) and is_scalar(x):
         f0, f1, fx = float(e0), float(e1), float(x)
         if f0 == f1:
             raise ValueError(f"smoothstep needs e0 != e1, got {f0} twice")

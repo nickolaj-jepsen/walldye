@@ -11,12 +11,13 @@ from pathlib import Path
 
 from PIL import Image
 
-from walldye._aspect import aspect_label, canvas_size, supports
+from walldye._aspect import canvas_size, supports
 from walldye._design import RenderSpec
-from walldye._theme import theme_token
-from walldye.tools import common
+from walldye.tools import common, themes
 from walldye.tools import lint as lints
 from walldye.tools.common import Crop
+from walldye.tools.paths import aspect_label
+from walldye.tools.themes import theme_token
 
 
 def preview_dir() -> Path:
@@ -117,9 +118,9 @@ def run(
     for w in set_warnings:
         print(f"warning: {w}", file=sys.stderr)
     token = theme_token(seeds)
-    spec = RenderSpec(variant, params, aspect, common.regime_of(seeds))
+    spec = RenderSpec(variant, params, aspect, themes.regime_of(seeds))
     doc = common.draw(piece, spec)
-    svg = doc.to_svg(common.tokens_of(seeds))
+    svg = doc.to_svg(themes.tokens_of(seeds))
     errors, warnings = lint(slug, svg, aspect, doc.pixel_grids)
     if not supports(piece.declared_aspects, aspect):
         declared = piece.declared_aspects

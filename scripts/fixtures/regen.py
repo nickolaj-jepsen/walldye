@@ -19,10 +19,12 @@ from pathlib import Path
 import resvg_py
 from PIL import Image
 
-from walldye import _check_themes, _design, _theme
-from walldye._aspect import SITE_ASPECTS, aspect_label, canvas_size
-from walldye._theme import parse_seeds
+from walldye import _design, _theme
+from walldye._aspect import SITE_ASPECTS, canvas_size
 from walldye.tools import build, common, hashing, lint
+from walldye.tools import themes as check_themes
+from walldye.tools.paths import aspect_label
+from walldye.tools.themes import parse_seeds
 from walldye.tools.tokenize import find_colors
 
 sys.path.insert(0, str(common.ROOT / "tests/python"))
@@ -54,11 +56,11 @@ def _entry(seeds: dict[str, str]) -> dict[str, object]:
 
 def themes() -> dict[str, object]:
     """The theme port's reference data: every preset, THEMES_PER_REGIME random seed triples per
-    regime from _check_themes.generate(THEMES_SEED, ...), and EDGE_CASES, each as {seeds, light,
+    regime from check_themes.generate(THEMES_SEED, ...), and EDGE_CASES, each as {seeds, light,
     tokens} with tokens in TOKENS order (fireproof's exact seeds resolve to its pinned table)."""
-    random = _check_themes.generate(THEMES_SEED, THEMES_PER_REGIME)
+    random = check_themes.generate(THEMES_SEED, THEMES_PER_REGIME)
     return {
-        "presets": {name: _entry(_theme.parse_seeds(name)) for name in _theme.PRESETS},
+        "presets": {name: _entry(check_themes.parse_seeds(name)) for name in check_themes.PRESETS},
         "random": {
             r: [_entry(dict(zip(_theme.SEEDS, t, strict=True))) for t in triples]
             for r, triples in random.items()

@@ -38,10 +38,22 @@ def test_data_files_and_variants_join_the_design_sha(wallpapers):
 def test_render_lib_lines():
     lines = hashing.render_lib_lines()
     keys = [line.split("\t")[0] for line in lines]
-    assert "walldye/__init__.py" in keys and "walldye/_check_themes.py" in keys
+    assert "walldye/__init__.py" in keys and "walldye/_theme.py" in keys
     assert not any(k.startswith("walldye/tools/") or "__pycache__" in k for k in keys)
     assert [line for line in lines if line.startswith("dep\t")] == [
         f"dep\t{name}=={importlib.metadata.version(name)}"
         for name in ("numpy", "scikit-image", "scipy", "shapely")
     ]
     assert f"python\t{(common.ROOT / '.python-version').read_text().strip()}" in lines
+
+
+def test_code_line_ignores_comments_docstrings_and_layout(tmp_path):
+    a, b, c = tmp_path / "a.py", tmp_path / "b.py", tmp_path / "c.py"
+    a.write_text('"""Module."""\n\n\ndef f(x):\n    """Doubles."""\n    return x * 2\n')
+    b.write_text("# a note\ndef f(x):  # why\n    return (x *\n            2)\n")
+    c.write_text("def f(x):\n    return x * 3\n")
+    code = [hashing.code_line("k", p).split("\t")[1] for p in (a, b, c)]
+    assert code[0] == code[1] != code[2]
+    svg = tmp_path / "x.svg"
+    svg.write_text("<svg/>")
+    assert hashing.code_line("k", svg) == hashing.file_line("k", svg)

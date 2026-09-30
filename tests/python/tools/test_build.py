@@ -6,14 +6,15 @@ import pytest
 from fixtures import pieces
 from tools_support import assert_recolors, built, legacy, seeds, versions
 
-from walldye import _check_themes
-from walldye._aspect import SITE_ASPECTS, canvas_size, template_name
-from walldye._theme import PRESETS, SEEDS
-from walldye.tools import build, coefs, common, hashing, listing, review
+from walldye._aspect import SITE_ASPECTS, canvas_size
+from walldye._theme import SEEDS
+from walldye.tools import build, coefs, common, hashing, listing, review, themes
+from walldye.tools.paths import template_name
+from walldye.tools.themes import PRESETS
 from walldye.tools.tokenize import find_colors
 
 FIREPROOF = {k: PRESETS["fireproof"][k] for k in SEEDS}
-ALL_HELD_OUT = _check_themes.HELD_OUT["dark"] + _check_themes.HELD_OUT["light"]
+ALL_HELD_OUT = themes.HELD_OUT["dark"] + themes.HELD_OUT["light"]
 
 
 def slots(slug: str, variant: str = "default") -> dict[str, object]:
@@ -50,7 +51,7 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
     assert s["probes"] == {
         "fireproof": hashing.sha256(template.encode()),
         **{
-            r: hashing.sha256(common.render("collision", _check_themes.SAMPLE[r]).encode())
+            r: hashing.sha256(common.render("collision", themes.SAMPLE[r]).encode())
             for r in ("dark", "light")
         },
     }

@@ -1,23 +1,6 @@
 """The core design API; the helpers live in walldye.geom, walldye.field and walldye.pixel."""
 
-from ._canvas import (
-    Buckets,
-    Canvas,
-    ClipSurface,
-    FillRule,
-    LineCap,
-    LineJoin,
-    MaskPaint,
-    MaskStop,
-    MaskSurface,
-    NpRng,
-    Paint,
-    PatternSurface,
-    Ref,
-    Rng,
-    Stop,
-    Style,
-)
+from ._canvas import Canvas
 from ._color import (
     ACCENT,
     ACCENT_1,
@@ -52,6 +35,20 @@ from ._color import (
 from ._design import design
 from ._params import Params, knob
 from ._path import P, Path
+from ._surfaces import Buckets, ClipSurface, MaskSurface, PatternSurface
+from ._svg import (
+    FillRule,
+    LineCap,
+    LineJoin,
+    MaskPaint,
+    MaskStop,
+    NpRng,
+    Paint,
+    Ref,
+    Rng,
+    Stop,
+    Style,
+)
 from ._vec import Num, Point, Rect, Vec, clamp, lerp, polar, smoothstep
 
 __all__ = [

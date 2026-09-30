@@ -7,8 +7,8 @@ import pytest
 
 from walldye._design import Design, RenderSpec
 from walldye._params import Params
-from walldye._theme import parse_theme
 from walldye.tools import common
+from walldye.tools.themes import parse_theme
 
 TYPING = Path(__file__).parent / "typing"
 USES = TYPING / "uses.py"

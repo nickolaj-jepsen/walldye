@@ -7,8 +7,7 @@ import pytest
 from fixtures import pieces
 from tools_support import built, legacy, versions
 
-from walldye import _check_themes
-from walldye.tools import check, common, hashing
+from walldye.tools import check, common, hashing, themes
 
 TEXT_SOURCE = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">\n'
@@ -241,7 +240,7 @@ def test_hashes_subprocess(wallpapers):
         from walldye._design import RenderSpec
 
         doc = common.draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
-        want = doc.to_svg(common.tokens_of(_check_themes.SAMPLE[regime]))
+        want = doc.to_svg(themes.tokens_of(themes.SAMPLE[regime]))
         assert got[k] == hashing.sha256(want.encode())
 
 

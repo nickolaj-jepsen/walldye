@@ -5,9 +5,10 @@ import itertools
 import sys
 from pathlib import Path
 
-from walldye import _check_themes, _theme
+from walldye import _theme
 from walldye._design import Design, RenderSpec
 from walldye._params import Params
+from walldye.tools.themes import HELD_OUT, PROBES, parse_theme
 
 DESIGNS = Path(__file__).parent / "designs"
 _fresh = itertools.count()
@@ -45,8 +46,8 @@ def tokens(theme: tuple[str, str, str]) -> dict[str, str]:
 def themes(regime: str) -> list[dict[str, str]]:
     """Every theme the tools serialize a document of `regime` under: its template preset, the
     held-out set and the probes (the sample theme is one of the held-out set)."""
-    template = _theme.parse_theme("fireproof" if regime == "dark" else "flexoki-light")
-    rest = _check_themes.HELD_OUT[regime] + _check_themes.PROBES[regime]
+    template = parse_theme("fireproof" if regime == "dark" else "flexoki-light")
+    rest = HELD_OUT[regime] + PROBES[regime]
     return [template, *(tokens(t) for t in rest)]
 
 

@@ -2,8 +2,9 @@ import importlib.util
 import json
 
 from walldye._aspect import SITE_ASPECTS
-from walldye._theme import PRESETS, TOKENS, derive_theme, parse_theme
+from walldye._theme import TOKENS, derive_theme
 from walldye.tools import common
+from walldye.tools.themes import PRESETS, parse_theme
 
 _spec = importlib.util.spec_from_file_location("regen", common.ROOT / "scripts/fixtures/regen.py")
 assert _spec is not None and _spec.loader is not None

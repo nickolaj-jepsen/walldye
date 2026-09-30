@@ -16,11 +16,13 @@ from typing import override
 
 import yaml
 
-from walldye._aspect import SITE_ASPECTS, aspect_label, canvas_size, template_name
-from walldye._theme import PRESETS, SEEDS, parse_seeds
+from walldye._aspect import SITE_ASPECTS, canvas_size
+from walldye._theme import SEEDS
 from walldye.tools import common
 from walldye.tools.new import dump_yaml, write_meta
+from walldye.tools.paths import aspect_label, template_name
 from walldye.tools.sheet import themed
+from walldye.tools.themes import PRESETS, parse_seeds
 
 STATE_FILE = common.ROOT / ".walldye-review.json"
 LABELS = common.ROOT / "src/lib/labels.ts"

@@ -93,7 +93,7 @@ With [Claude Code](https://claude.com/claude-code) in this repository, ask for a
 | Path | License |
 |---|---|
 | Everything outside `wallpapers/` unless listed below | GPL-3.0-or-later ([LICENSE](LICENSE)) |
-| `walldye/font.py` (Spleen glyphs) | BSD-2-Clause, 2018-2024 Frederic Cambus |
+| `walldye/_font.py` (Spleen glyphs) | BSD-2-Clause, 2018-2024 Frederic Cambus |
 | `src/assets/fonts/` | SIL OFL 1.1 ([OFL.txt](src/assets/fonts/OFL.txt)) |
 | `wallpapers/<slug>/` | Per folder: the `license:` in its `meta.yaml`, `LicenseRef-fan-work` when it has a `franchise:`, or CC0-1.0 for an AI-generated piece that sets neither. |
 | Third-party data in `wallpapers/<slug>/data/` | Its upstream license, with the notice in [REUSE.toml](REUSE.toml) |

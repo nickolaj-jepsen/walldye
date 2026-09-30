@@ -8,7 +8,7 @@ import sys
 
 from walldye import _theme
 from walldye._params import KnobInfo, describe
-from walldye.tools import check, common
+from walldye.tools import check, common, themes
 
 
 def run_list() -> int:
@@ -105,13 +105,13 @@ def run_params(slug: str, as_json: bool) -> int:
 def run_themes(seeds: dict[str, str] | None) -> int:
     """List the presets with their seeds and regime; with `seeds`, also print that theme's 21
     tokens."""
-    for name in _theme.PRESETS:
-        s = _theme.parse_seeds(name)
+    for name in themes.PRESETS:
+        s = themes.parse_seeds(name)
         regime = "light" if _theme.is_light(s["bg"], s["fg"]) else "dark"
-        default = " (default)" if name == _theme.DEFAULT_THEME else ""
+        default = " (default)" if name == themes.DEFAULT_THEME else ""
         print(f"{name:18} {s['bg']} {s['fg']} {s['accent']}  {regime}{default}")
     if seeds is not None:
-        print(f"\n{_theme.theme_token(seeds)}:")
+        print(f"\n{themes.theme_token(seeds)}:")
         for k, v in _theme.theme_tokens(seeds).items():
             print(f"  {k.upper():12} {v}")
     return 0

@@ -3,7 +3,8 @@ from core_support import load, spec, themes
 
 from walldye import ACCENT, MASK_WHITE, UI
 from walldye._document import Document
-from walldye._theme import hex_to_rgb, parse_theme
+from walldye._theme import hex_to_rgb
+from walldye.tools.themes import parse_theme
 from walldye.tools.tokenize import find_colors, normalize, skeleton
 
 FIXTURES = ("rings", "veil", "pixels", "branchy")
