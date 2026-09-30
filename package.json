@@ -25,7 +25,8 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "e2e:nix": "PLAYWRIGHT_BROWSERS_PATH=$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#playwright-driver.browsers) PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true playwright test",
-    "fonts": "uv run scripts/fonts/subset.py"
+    "fonts": "uv run scripts/fonts/subset.py",
+    "promo": "node scripts/promo/record.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
