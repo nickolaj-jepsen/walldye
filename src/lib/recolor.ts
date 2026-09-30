@@ -38,9 +38,17 @@ export interface Picked {
   entry: SlotsEntry;
 }
 
-/** Where the site serves the template `entry` describes: /t/<sha256[:12]>.svg. */
+/** The part of a file's sha256 its served URL carries. */
+export const servedHash = (sha256: string): string => sha256.slice(0, 12);
+
+/** Where the site serves a template or slots.json by its content: /t/<servedHash>.svg or .slots.json. */
+export function servedUrl(hash: string, kind: 'svg' | 'slots.json'): string {
+  return `/t/${hash}.${kind}`;
+}
+
+/** Where the site serves the template `entry` describes. */
 export function templateUrl(entry: SlotsEntry): string {
-  return `/t/${entry.sha256.slice(0, 12)}.svg`;
+  return servedUrl(servedHash(entry.sha256), 'svg');
 }
 
 export function isEntry(value: unknown): value is SlotsEntry {

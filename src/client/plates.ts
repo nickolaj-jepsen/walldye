@@ -195,8 +195,8 @@ export async function recolored(
   const picked = pickTemplate(slots, aspect, regimeOf(seeds));
   const url = data.templates[picked.key] ?? templateUrl(picked.entry);
   const tpl = await getTemplate(url);
-  // A template whose URL does not carry its slots hash is not the one the coefficients were made for.
-  if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) {
+  // A template served under another hash is not the one the coefficients were made for.
+  if (url !== templateUrl(picked.entry)) {
     return { svg: tpl.svg, url, untouched: true };
   }
   await yieldToMain();
