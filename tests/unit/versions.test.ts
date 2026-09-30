@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { downloadName, FORMATS, fileStem, type Piece, versionCount } from '../../src/lib/content';
-import { lintCopy, namedVariants, variantsMeta } from '../../src/lib/meta';
+import { namedVariants, variantsMeta } from '../../src/lib/meta';
 
 /** "<path>: <message>" for each problem variantsMeta finds in `value`. */
 function problems(value: unknown): string[] {
@@ -95,35 +95,6 @@ describe('namedVariants', () => {
     ]);
     expect(namedVariants({})).toEqual([]);
     expect(namedVariants({ variants: ['late'] })).toEqual([]);
-  });
-});
-
-describe('copy lint over variants (h)', () => {
-  it('checks labels like titles and variant descriptions like descriptions', () => {
-    const long = Array.from({ length: 31 }, () => 'dot').join(' ');
-    expect(
-      lintCopy({
-        variants: {
-          default: { label: 'Seed 11' },
-          late: { label: 'Red sky', description: 'A stunning sweep.' },
-          'open-sea': { label: 'Open water', description: long },
-        },
-      }),
-    ).toEqual([
-      'variants.default.label: internal term "Seed"',
-      'variants.late.label: color words red',
-      'variants.late.description: evaluative adjective "stunning"',
-      'variants.open-sea.description: 31 words, over 30',
-    ]);
-  });
-
-  it('keeps "variant" and "param" out of every field', () => {
-    expect(lintCopy({ notes: 'This variant sets one param.' })).toEqual([
-      'notes: internal term "variant"',
-    ]);
-    expect(lintCopy({ variants: { late: { label: 'Params' } } })).toEqual([
-      'variants.late.label: internal term "Params"',
-    ]);
   });
 });
 

@@ -847,7 +847,7 @@ if (review?.undecided.length) next.push(`Undecided pieces stay draft: true; revi
 if (review?.error) next.push(`walldye review ended with an error, so nothing was published: ${review.error}`)
 if (review?.refused?.length) next.push(`Approval refused for ${review.refused.map(r => r.slug).join(', ')} (see review.refused).`)
 if (lessons) next.push('Show the owner `proposed_lessons`, and write the ones they approve into .claude/skills/walldye/references/.')
-next.push(`Leave the new folders uncommitted. Offer the owner a commit that stages only wallpapers/{${survivors.join(',')}}/ and any lines review added to taxonomy.yaml and src/lib/labels.ts; drafts land on main as draft: true.`)
+next.push(`Leave the new folders uncommitted. Offer the owner a commit that stages only wallpapers/{${survivors.join(',')}}/ and any lines review added to taxonomy.yaml; drafts land on main as draft: true.`)
 
 return {
   status: review?.finished ? 'reviewed' : built.length ? 'built' : 'build-failed',

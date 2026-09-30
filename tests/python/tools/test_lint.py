@@ -278,7 +278,10 @@ def test_svg_limits():
     assert lint.templates.svg("<svg>")[0][0].startswith("invalid XML")
 
 
-TAXONOMY = {"technique": {"drafting", "dither"}, "subject": {"space"}}
+TAXONOMY = lint.piece.Taxonomy(
+    {"technique": {"drafting": "drafting", "dither": "dithering"}, "subject": {"space": "space"}},
+    {"claude-opus-5-5": "Claude Opus 5.5"},
+)
 GOOD = {"title": "T", "description": "A disc.", "model": "claude-opus-5-5", "technique": ["dither"]}
 HUMAN = {"title": "T", "description": "A disc.", "author": "A. Person", "technique": ["dither"]}
 FAN = {"franchise": {"title": "Outer Wilds", "owner": "Mobius Digital"}}
@@ -308,7 +311,12 @@ LABELS = {"default": {"label": "Early"}, "late": {"label": "Late in the turn", "
         ("ok", {**HUMAN, "license": "CC0-1.0"}, (), None),
         ("ok", {**HUMAN, "model": "claude-opus-5-5"}, (), "author: is for human-made pieces"),
         ("ok", {**GOOD, "model": ""}, (), "needs model: (the model id that made it)"),
-        ("ok", {**GOOD, "model": "gpt-x"}, (), "'gpt-x' needs a credit name in MODEL_NAMES"),
+        (
+            "ok",
+            {**GOOD, "model": "gpt-x"},
+            (),
+            "'gpt-x' needs a credit name under models: in taxonomy.yaml",
+        ),
         ("ok", {**GOOD, "license": "LicenseRef-fan-work"}, (), "marked by franchise"),
         ("ok", {**GOOD, **FAN}, (), None),
         ("ok", {**GOOD, **FAN, "sources": [WORK]}, (), None),
@@ -411,10 +419,8 @@ def test_meta_warnings():
     _, warnings = lint.piece.meta("ok", meta, None, NAMES)
     assert any("black, terracotta" in w for w in warnings)
     assert any("taxonomy.yaml not found" in w for w in warnings)
-    assert (
-        "color words in variants: late: blue, red (describe the shape, without naming colors)"
-        in warnings
-    )
+    assert "meta.yaml variants.late.label: color words red" in warnings
+    assert "meta.yaml variants.late.description: color words blue" in warnings
 
 
 def test_fan_work_license_text_is_committed():

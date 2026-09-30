@@ -9,13 +9,14 @@ import PlateBox from '../components/PlateBox.astro';
 import SourceCode from '../components/SourceCode.astro';
 import Base from '../layouts/Base.astro';
 import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, EXPORT_SIZES, FORMATS, captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery, relatedPieces, type Piece } from '../lib/content';
-import { LICENSE_LINES, MODEL_NAMES, TAKEDOWN_CONTACT, facetLabel, type TaxonomyFacet } from '../lib/labels';
+import { LICENSE_LINES, TAKEDOWN_CONTACT, type TaxonomyFacet } from '../lib/labels';
+import { TAXONOMY, facetLabel } from '../server/taxonomy';
 import { DEFAULT_LICENSE, FAN_WORK } from '../lib/meta';
 import { inlineScript } from '../server/inline-script';
 
 export async function getStaticPaths() {
   const entries = await getCollection('wallpapers');
-  const groups = filterGroups(entries.map((e) => e.data));
+  const groups = filterGroups(entries.map((e) => e.data), facetLabel);
   // Facts link to the index only for values it offers as filters.
   const filters = new Set(groups.flatMap((g) => g.entries.map((e) => `${g.facet}:${e.value}`)));
   const pieces = entries.map((e) => e.data);
@@ -44,7 +45,7 @@ const lineage = facts('lineage');
 const aspectsText = p.aspects.join(', ');
 
 // Figures inside names ("Opus 5.5") take lining numerals.
-const credit = (p.model ? `Made with ${MODEL_NAMES[p.model]}` : `Made by ${p.author}`).split(/(\S*\d\S*)/).map((text, i) => ({ text, lnum: i % 2 === 1 }));
+const credit = (p.model ? `Made with ${TAXONOMY.models[p.model]}` : `Made by ${p.author}`).split(/(\S*\d\S*)/).map((text, i) => ({ text, lnum: i % 2 === 1 }));
 const fanWork = p.resolvedLicense === FAN_WORK ? p.franchise : undefined;
 const licenseLine = p.resolvedLicense !== DEFAULT_LICENSE && p.resolvedLicense !== FAN_WORK ? LICENSE_LINES[p.resolvedLicense] : undefined;
 // The export panel's first choices, which the client keeps in step.

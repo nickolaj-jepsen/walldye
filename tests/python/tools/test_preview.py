@@ -38,7 +38,7 @@ def test_preview_prints_lint_lines(wallpapers, tmp_path, monkeypatch, capsys):
     assert lines[0].startswith("error: line 3: imports random;")
     assert lines[1:4] == [
         "warning: color words in docstrings or comments: crimson (name tokens or roles, never hues)",
-        "warning: color words in meta.yaml copy: crimson (describe the shape or what it picks out, without naming colors)",
+        "warning: meta.yaml description: color words crimson",
         "warning: pixel grid origin (0.5, 3) is not a whole unit; snap it to the 4-unit cell grid",
     ]
     assert lines[4] == "lint: 1 error(s), 3 warning(s)"

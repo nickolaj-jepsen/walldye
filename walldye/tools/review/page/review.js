@@ -935,7 +935,7 @@ function renderSummary() {
       }),
     ),
   );
-  sheet.append(...section('New facet values', 'added to taxonomy.yaml and labels.ts', values));
+  sheet.append(...section('New facet values', 'added to taxonomy.yaml', values));
   sheet.append(
     ...section(
       "Can't apply yet",

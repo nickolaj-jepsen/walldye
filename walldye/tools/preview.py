@@ -53,7 +53,7 @@ def lint(
         source_errors, source_warnings = lints.source.design(design)
         errors, warnings = errors + source_errors, warnings + source_warnings
     if (paths.piece_dir(slug) / "meta.yaml").exists():
-        warnings = warnings + lints.piece.copy_words(metadata.load_meta(slug))
+        warnings = warnings + [f"meta.yaml {w}" for w in lints.words.copy(metadata.load_meta(slug))]
     return errors, warnings + lints.templates.pixel_origins(grids)
 
 

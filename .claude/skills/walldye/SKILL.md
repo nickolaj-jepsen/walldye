@@ -17,8 +17,8 @@ flags.
 
 - Edit only `wallpapers/<slug>/design.py`, `meta.yaml` and `data/` by hand, plus the lines
   steps 2 and 12 name. `walldye build` writes `build/` and rewrites `wallpapers/index.json`;
-  both are gitignored, and CI renders its own. Never edit `walldye/`, `taxonomy.yaml`, other
-  pieces, or anything in `build/`.
+  both are gitignored, and CI renders its own. Never edit `walldye/`, other pieces, anything in
+  `build/`, or `taxonomy.yaml` beyond the model line step 2 names.
 - Always name the slug; never `--all`.
 - Previews go to `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), never into the repo.
 - A check or build takes from a few seconds to about half a minute per piece (a dense
@@ -51,8 +51,8 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    ```bash
    uv run walldye new <slug> --model <model id>
    ```
-   If `walldye check` says the model needs a credit name, add
-   `'<model id>': '<display name>'` to `MODEL_NAMES` in src/lib/labels.ts.
+   If `walldye check` says the model needs a credit name, add `<model id>: <display name>`
+   under `models:` in taxonomy.yaml, the one line of that file you write.
 3. Write design.py, starting from the nearest piece in Examples and references/api.md. Use
    `@design(aspects="any")` whenever the composition can follow `s.pick`, `s.frac` and
    `s.inset`; leave it out for 16:9 only, and the site crops other screen shapes from that.
@@ -106,7 +106,7 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
     owner, and write it only once they approve. A note about this piece alone ("move the moon
     left") is not a lesson.
 13. Hand off. List the files the run touched (the piece's folder, and any line added to
-    src/lib/labels.ts, taxonomy.yaml or the references), what review published, and the
+    taxonomy.yaml or the references), what review published, and the
     lessons written. Leave them uncommitted, and offer a commit,
     `feat(wallpapers): add <slug>` or `feat(wallpapers): rework <slug>`, that stages only those
     paths: the tree may hold unrelated work.

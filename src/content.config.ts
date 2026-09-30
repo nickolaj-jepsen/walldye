@@ -4,15 +4,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
-import YAML from 'yaml';
 import { DEFAULT_VARIANT, SITE_ASPECTS } from './lib/content';
-import {
-  FACET_LABELS,
-  LICENSE_LINES,
-  MODEL_NAMES,
-  TAXONOMY_FACETS,
-  type TaxonomyFacet,
-} from './lib/labels';
+import { LICENSE_LINES, type TaxonomyFacet } from './lib/labels';
 import {
   DEFAULT_LICENSE,
   FAN_WORK,
@@ -24,6 +17,8 @@ import {
   variantsMeta,
 } from './lib/meta';
 import { DAY_FILE, type Day, parseDay, renames, type Views, viewTotals } from './lib/views';
+import { TAXONOMY } from './server/taxonomy';
+import { parseYaml } from './server/yaml';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
 const ROOT = resolve('.');
@@ -38,29 +33,13 @@ const rootPath = (path: string) => relative(ROOT, path).split(sep).join('/');
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-function loadTaxonomy(): Record<TaxonomyFacet, string[]> {
-  const data = (YAML.parse(readFileSync(join(ROOT, 'taxonomy.yaml'), 'utf8')) ?? {}) as Record<
-    string,
-    unknown
-  >;
-  const out = {} as Record<TaxonomyFacet, string[]>;
-  for (const facet of TAXONOMY_FACETS) {
-    const values = data[facet] ?? [];
-    if (!Array.isArray(values) || !values.every((v) => typeof v === 'string'))
-      throw new Error(`taxonomy.yaml: ${facet} must be a list of slugs`);
-    out[facet] = values;
-  }
-  return out;
-}
-
-const taxonomy = loadTaxonomy();
 const facetList = (facet: TaxonomyFacet) =>
   z
     .array(z.string())
     .default([])
     .superRefine((vs, ctx) => {
       for (const v of vs) {
-        if (!taxonomy[facet].includes(v))
+        if (!(v in TAXONOMY.facets[facet]))
           ctx.addIssue({
             code: 'custom',
             message: `${v} is not in taxonomy.yaml (suggest it under proposed_facets)`,
@@ -124,8 +103,9 @@ const version = z
   .strict();
 
 /**
- * One wallpaper: meta.yaml validated against taxonomy.yaml, the
- * license rules and the reserved slugs, plus what the loader attaches from the folder.
+ * One wallpaper: meta.yaml in the shape the pages read, plus what the loader attaches from the
+ * folder. walldye check owns the rest of the meta.yaml rules; this keeps only what a page needs to
+ * render: facet values, credit and license words the site has, and a slug that is a free route.
  */
 const wallpaper = z
   .object({
@@ -139,7 +119,7 @@ const wallpaper = z
     added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'added must be a date like 2026-09-27'),
     /** Who made a human-made piece; a piece a model made has `model` instead. */
     author: z.string().trim().min(1).optional(),
-    /** The model id that made the piece, credited by its MODEL_NAMES name. */
+    /** The model id that made the piece, credited by its name under `models:` in taxonomy.yaml. */
     model: z.string().trim().min(1).optional(),
     license: z.string().optional(),
     franchise: z
@@ -184,21 +164,8 @@ const wallpaper = z
     if (reservedSlug(m.slug)) issue(`slug ${m.slug} is reserved for a site route`, ['slug']);
     if (!m.author && !m.model)
       issue('needs model: (the model id that made it) or author: (who did)', ['model']);
-    else if (m.author && m.model)
-      issue('author: is for human-made pieces; a piece a model made has only model:', ['author']);
-    else if (m.model && !MODEL_NAMES[m.model])
-      issue(`model ${m.model} needs a credit name in MODEL_NAMES (src/lib/labels.ts)`, ['model']);
-    const recreation = m.sources.some((s) => s.kind === 'recreation');
-    if (m.license && m.franchise)
-      issue(`franchise: makes the piece fan work (${FAN_WORK}); drop license:`, ['license']);
-    else if (m.license === FAN_WORK)
-      issue('fan work is marked by franchise: {title, owner}, not license:', ['license']);
-    else if (!m.license && !m.franchise && recreation)
-      issue('a kind: recreation source needs an explicit license: (ask the owner)', ['license']);
-    else if (!m.license && !m.franchise && !m.model)
-      issue('human-made pieces need an explicit license:', ['license']);
-    if (m.license && !existsSync(join(ROOT, 'LICENSES', `${m.license}.txt`)))
-      issue(`license ${m.license} has no LICENSES/${m.license}.txt`, ['license']);
+    else if (m.model && !TAXONOMY.models[m.model])
+      issue(`model ${m.model} needs a credit name under models: in taxonomy.yaml`, ['model']);
     if (
       m.license &&
       m.license !== DEFAULT_LICENSE &&
@@ -208,17 +175,6 @@ const wallpaper = z
       issue(`license ${m.license} needs a plain-words line in LICENSE_LINES (src/lib/labels.ts)`, [
         'license',
       ]);
-    }
-    if (m.hasData && !m.sources.some((s) => s.kind === 'data' || s.kind === 'recreation')) {
-      issue('data/ needs a kind: data source (or the recreation it comes from)', ['sources']);
-    }
-    if (Object.values(m.proposed_facets).some((vs) => vs.length) && !m.draft)
-      issue('proposed_facets are only allowed while draft: true', ['proposed_facets']);
-    for (const facet of TAXONOMY_FACETS) {
-      for (const v of m[facet]) {
-        if (taxonomy[facet].includes(v) && !FACET_LABELS[facet][v])
-          issue(`${v} needs a label in src/lib/labels.ts`, [facet]);
-      }
     }
   });
 
@@ -341,7 +297,7 @@ function attach(
  */
 function loadFeatured(slugs: readonly string[]): Map<string, number> {
   if (!existsSync(FEATURED)) return new Map();
-  const list: unknown = YAML.parse(readFileSync(FEATURED, 'utf8')) ?? [];
+  const list: unknown = parseYaml(readFileSync(FEATURED, 'utf8')) ?? [];
   if (!Array.isArray(list) || !list.every((s) => typeof s === 'string'))
     throw new Error('featured.yaml: must be a list of slugs');
   const out = new Map<string, number>();
@@ -426,7 +382,7 @@ function wallpapers(): Loader {
           const filePath = rootPath(join(WALLPAPERS, slug, 'meta.yaml'));
           let meta: Record<string, unknown>;
           try {
-            meta = (YAML.parse(readFileSync(join(ROOT, filePath), 'utf8')) ?? {}) as Record<
+            meta = (parseYaml(readFileSync(join(ROOT, filePath), 'utf8')) ?? {}) as Record<
               string,
               unknown
             >;

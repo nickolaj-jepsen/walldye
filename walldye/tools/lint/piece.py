@@ -2,26 +2,21 @@
 
 import re
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Final
 
 import yaml
 
 from walldye.tools import metadata, paths
 from walldye.tools.lint.templates import Lints
-from walldye.tools.lint.words import color_words
-
-# Words visitors never read; variant labels may not use them.
-INTERNAL_TERMS: Final = frozenset({
-    "regime", "seed", "token", "native", "hand-tuned", "light-ready", "preset", "variant",
-    "param",
-})  # fmt: skip
-
+from walldye.tools.lint.words import INTERNAL_TERMS, copy
 
 RESERVED_SLUGS: Final = frozenset(
     {"about", "index", "t", "og", "fonts", "404", "robots", "favicon"}
 )
 
 
+FACETS: Final = ("technique", "subject", "lineage")
 SOURCE_KINDS: Final = ("recreation", "inspiration", "reference", "data")
 
 
@@ -36,12 +31,6 @@ DATA_KINDS: Final = ("data", "recreation")
 
 
 LICENSES = paths.ROOT / "LICENSES"
-
-
-LABELS = paths.ROOT / "src" / "lib" / "labels.ts"
-
-
-_MODEL_ENTRY: Final = re.compile(r"^\s*'([^']+)': '")
 
 
 DATA_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.(json|txt|npy)")
@@ -96,48 +85,43 @@ def license_of(meta: metadata.Meta) -> str | None:
     return DEFAULT_LICENSE if _text(meta, "model") != "" and not recreation else None
 
 
-def model_names() -> set[str] | None:
-    """The model ids that MODEL_NAMES in src/lib/labels.ts gives a credit name; None when the
-    file or the table is missing."""
-    if not LABELS.exists():
-        return None
-    lines = LABELS.read_text().splitlines()
-    start = next((i for i, x in enumerate(lines) if x.startswith("export const MODEL_NAMES")), -1)
-    if start < 0:
-        return None
-    names: set[str] = set()
-    for line in lines[start + 1 :]:
-        if line.startswith("}"):
-            break
-        if (m := _MODEL_ENTRY.match(line)) is not None:
-            names.add(m.group(1))
-    return names
+@dataclass(frozen=True)
+class Taxonomy:
+    """taxonomy.yaml: each facet's values with the words the site shows for them, and each
+    model id's credit name."""
+
+    facets: dict[str, dict[str, str]]
+    models: dict[str, str]
 
 
-def load_taxonomy() -> dict[str, set[str]] | None:
-    """Allowed values per facet from taxonomy.yaml (each facet a list of values, or a mapping
-    keyed by value); None when the file does not exist."""
+def _labels(value: object, what: str) -> dict[str, str]:
+    entries = dict[str, object]() if value is None else metadata.as_dict(value)
+    if entries is None or not all(isinstance(v, str) and v.strip() != "" for v in entries.values()):
+        raise ValueError(f"{paths.TAXONOMY.name}: {what} must map each value to its words")
+    return {k: str(v) for k, v in entries.items()}
+
+
+def load_taxonomy() -> Taxonomy | None:
+    """taxonomy.yaml's FACETS and `models:`; None when the file does not exist. ValueError when
+    one of them is not a mapping of values to non-empty words."""
     if not paths.TAXONOMY.exists():
         return None
-    facets = metadata.as_dict(yaml.safe_load(paths.TAXONOMY.read_text()))
-    out: dict[str, set[str]] = {}
-    for facet, values in (facets if facets is not None else dict[str, object]()).items():
-        listed = metadata.as_list(values)
-        keyed = metadata.as_dict(values)
-        found = listed if listed is not None else list[object]() if keyed is None else list(keyed)
-        out[facet] = {str(v) for v in found}
-    return out
+    data = metadata.as_dict(yaml.safe_load(paths.TAXONOMY.read_text()))
+    if data is None:
+        raise ValueError(f"{paths.TAXONOMY.name}: must be a mapping")
+    facets = {f: _labels(data.get(f), f) for f in FACETS}
+    return Taxonomy(facets, _labels(data.get("models"), "models"))
 
 
 def meta(
     slug: str,
     m: metadata.Meta,
-    taxonomy: dict[str, set[str]] | None,
+    taxonomy: Taxonomy | None,
     variants: Sequence[str] = ("default",),
 ) -> Lints:
     """(errors, warnings) for the meta.yaml `m` of `slug`, whose design declares `variants`
-    ("default" first). Facets are skipped with a warning
-    when `taxonomy` is None; color words in the copy warn."""
+    ("default" first). Facets and the model's credit name are skipped, with a warning, when
+    `taxonomy` is None; color words in the copy warn."""
     errors: list[str] = []
     warnings: list[str] = []
     for key in ("title", "description"):
@@ -150,8 +134,8 @@ def meta(
         errors.append("meta.yaml needs model: (the model id that made it) or author: (who did)")
     elif author != "" and model != "":
         errors.append("author: is for human-made pieces; a piece a model made has only model:")
-    elif model != "" and (names := model_names()) is not None and model not in names:
-        errors.append(f"model {model!r} needs a credit name in MODEL_NAMES in {LABELS.name}")
+    elif model != "" and taxonomy is not None and model not in taxonomy.models:
+        errors.append(f"model {model!r} needs a credit name under models: in taxonomy.yaml")
     if reserved(slug):
         errors.append(f"slug {slug!r} is reserved by the site")
     sources = _mappings(m.get("sources"))
@@ -192,7 +176,7 @@ def meta(
     if taxonomy is None:
         warnings.append("taxonomy.yaml not found; facets not checked")
     else:
-        for facet, allowed in taxonomy.items():
+        for facet, allowed in taxonomy.facets.items():
             raw = m.get(facet)
             values = list[object]() if raw is None else metadata.as_list(raw)
             if values is None:
@@ -206,7 +190,8 @@ def meta(
     if m.get("proposed_facets") not in (None, {}) and not metadata.is_draft(m):
         errors.append("proposed_facets are only allowed while draft: true")
     variant_errors, variant_warnings = _variants(m, variants)
-    return errors + variant_errors, warnings + copy_words(m) + variant_warnings
+    copy_warnings = [f"meta.yaml {w}" for w in copy(m)]
+    return errors + variant_errors, warnings + copy_warnings + variant_warnings
 
 
 def _variants(m: metadata.Meta, names: Sequence[str]) -> Lints:
@@ -256,20 +241,4 @@ def _variants(m: metadata.Meta, names: Sequence[str]) -> Lints:
             errors.append(f"variants: {name}: description must be text")
         if "draft" in entry and not isinstance(entry["draft"], bool):
             errors.append(f"variants: {name}: draft must be true or false")
-        if len(found := color_words(f"{label}\n{_text(entry, 'description')}")) > 0:
-            words_ = ", ".join(sorted(found))
-            warnings.append(
-                f"color words in variants: {name}: {words_} (describe the shape, without naming colors)"
-            )
     return errors, warnings
-
-
-def copy_words(m: metadata.Meta) -> list[str]:
-    """A warning naming the color words in the title, description and notes of meta.yaml
-    `m`, or []."""
-    words = color_words("\n".join(_text(m, k) for k in ("title", "description", "notes")))
-    if len(words) == 0:
-        return []
-    return [
-        f"color words in meta.yaml copy: {', '.join(sorted(words))} (describe the shape or what it picks out, without naming colors)"
-    ]

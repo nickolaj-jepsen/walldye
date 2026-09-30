@@ -119,7 +119,12 @@ def prepare(slug: str, variant: str | None = None) -> Target:
     names = (
         ("default", *metadata.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
     )
-    errors, warnings = lint.piece.meta(slug, meta, lint.piece.load_taxonomy(), names)
+    try:
+        taxonomy = lint.piece.load_taxonomy()
+    except ValueError as e:
+        t.report.errors.append(str(e))
+        taxonomy = None
+    errors, warnings = lint.piece.meta(slug, meta, taxonomy, names)
     t.report.errors += errors
     t.report.warnings += warnings
     if t.piece is not None:

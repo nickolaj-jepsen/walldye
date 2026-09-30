@@ -1,7 +1,7 @@
 /** The catalog's committed files as the tests read them. Not a test: neither runner matches this name. */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parse } from 'yaml';
+import { parseYaml } from '../src/server/yaml';
 
 /** Sorted names of every wallpapers/<slug>/ of `root` holding a meta.yaml. */
 export function slugs(root: string): string[] {
@@ -11,11 +11,10 @@ export function slugs(root: string): string[] {
     .sort();
 }
 
-/** wallpapers/<slug>/meta.yaml parsed the way PyYAML's safe_load reads it ({} when empty). */
+/** wallpapers/<slug>/meta.yaml as the site reads it ({} when empty). */
 export function loadMeta(root: string, slug: string): Record<string, unknown> {
-  const meta: unknown = parse(readFileSync(join(root, 'wallpapers', slug, 'meta.yaml'), 'utf8'), {
-    version: '1.1',
-    uniqueKeys: false,
-  });
+  const meta: unknown = parseYaml(
+    readFileSync(join(root, 'wallpapers', slug, 'meta.yaml'), 'utf8'),
+  );
   return (meta ?? {}) as Record<string, unknown>;
 }
