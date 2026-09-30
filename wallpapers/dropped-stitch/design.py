@@ -1,4 +1,4 @@
-"""Stockinette knit tiled from a two-row pattern cell, with one dropped stitch laddered down its column to a loose loop."""
+"""Stockinette knit tiled from a two-row cell, with one dropped stitch laddered down its column."""
 
 import numpy as np
 

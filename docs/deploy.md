@@ -60,7 +60,7 @@ A push to `main` deploys only when `ci.yml` runs, and it skips docs-only changes
 ## Check that it works
 
 - walldye.com loads, recolors when the theme changes, and exports a PNG from a detail page.
-- `curl -sI 'https://www.walldye.com/schotter?t=nord'` answers `301` with `location: https://walldye.com/schotter?t=nord`.
+- `curl -sI 'https://www.walldye.com/loose-squares?t=nord'` answers `301` with `location: https://walldye.com/loose-squares?t=nord`.
 - `https://walldye.com/robots.txt` ends with `Sitemap: https://walldye.com/sitemap-index.xml`, and the sitemap it names lists every published piece.
 - A template under `/t/` is served with `cache-control: public, max-age=31536000, immutable`, and a page with `max-age=0, must-revalidate`.
 - A pull request from a branch in this repository: once `build` and `e2e` pass, a comment links the preview, and later pushes edit the same comment.

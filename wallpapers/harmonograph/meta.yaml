@@ -1,5 +1,6 @@
 title: Harmonograph
-description: A damped pendulum drawing at two to three. Its loops shrink inward to a few lit turns around an eye with one dot.
+description: A harmonograph pen follows swinging pendulums, and as they lose energy each loop comes out smaller.
+alt: Nested thin curves spread into several lobes that converge on a small oval ring holding a single dot.
 notes: Each axis adds two damped swings, as a two-pendulum harmonograph does, and one swing per axis runs slightly fast, so every loop lands a little turned from the last.
 technique: [line]
 subject: [maths, physics]
@@ -20,7 +21,7 @@ variants:
     label: Two to three
   octave:
     label: One to two
-    description: At one to two, the damped pendulum sweeps a wide fan around a round eye with one dot.
+    alt: Nested curves open into a wide fan to one side of a round ring holding a single dot.
   twelfth:
     label: One to three
-    description: At one to three, a damped pendulum draws four blades meeting at a small eye with one dot.
+    alt: Four blades of nested curves meet at a small ring with a single dot at its center.

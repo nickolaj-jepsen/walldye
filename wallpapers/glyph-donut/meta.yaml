@@ -1,7 +1,8 @@
 title: ASCII donut
-description: A torus seen from above at a three-quarter angle, drawn in twelve ASCII characters, from dots on its shaded side to at-signs where the light catches the rim.
+description: A torus made of ASCII characters, each chosen by how directly its patch of surface faces the light.
+alt: A tilted ring of text characters with its hole showing, dots and dashes at the back, dense @ and % on the left rim.
 notes: |
-  The technique is the one Andy Sloane's donut.c made famous: every point on the surface is projected onto the character grid, the nearest point in each cell wins, and the angle between the surface and the light picks a character. Instead of spinning, this torus holds one pose, set by the two angles donut.c advances every frame: A tips it about the horizontal axis and B turns it about the line of sight, so the ring is seen from above at a slant with its hole in view. It is shaded with its own ramp, `` .`-:;+=*o%#@ ``, and a second, tighter highlight puts the glint on the outer rim.
+  The technique is the one Andy Sloane's donut.c made famous: every point on the surface is projected onto the character grid and the nearest point in each cell wins. Instead of spinning, this torus holds one pose, set by the two angles donut.c advances every frame: A tips it about the horizontal axis and B turns it about the line of sight. It is shaded with its own ramp, `` .`-:;+=*o%#@ ``, and a second, tighter highlight puts the glint on the outer rim.
 technique: [glyph]
 subject: [computing]
 lineage: [creative-coding]

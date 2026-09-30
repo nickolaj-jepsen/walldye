@@ -1,4 +1,4 @@
-"""Hitomezashi sashiko: two strings of stitch offsets set every running stitch, and a flood fill from one hand-picked cell finds the region filled in as an appliqué patch."""
+"""Hitomezashi sashiko from two strings of stitch offsets, with one enclosed region flood-filled."""
 
 import math
 

@@ -1,4 +1,4 @@
-"""A Compact Cassette drafted in front, bottom and magnified detail views; only its tape is picked out."""
+"""A Compact Cassette in front, bottom and detail views, drafted as a technical drawing."""
 
 import math
 from itertools import pairwise

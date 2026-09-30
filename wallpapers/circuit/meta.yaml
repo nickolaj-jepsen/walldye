@@ -1,5 +1,6 @@
 title: Circuit traces
-description: Circuit-board traces run in straight and diagonal steps between ring-shaped pads. A handful near the right edge are lit.
+description: A printed circuit board joins parts with traces etched from copper, ending in pads where they connect.
+alt: Straight and diagonal traces join ring-shaped pads, sparse at left and denser at right, with several traces in a second tone.
 technique: [line]
 subject: [computing]
 lineage: []

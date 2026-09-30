@@ -18,9 +18,9 @@ const row = (date: string, requestPath: string, count: number): Row => ({
 
 describe('pathSlug', () => {
   it('reads a slug from a one-segment path, trailing slash or not', () => {
-    expect(['/schotter', '/schotter/', '/dither-moon'].map(pathSlug)).toEqual([
-      'schotter',
-      'schotter',
+    expect(['/loose-squares', '/loose-squares/', '/dither-moon'].map(pathSlug)).toEqual([
+      'loose-squares',
+      'loose-squares',
       'dither-moon',
     ]);
   });
@@ -34,7 +34,7 @@ describe('pathSlug', () => {
       '/a--b',
       '/-a',
       '/.env',
-      'schotter',
+      'loose-squares',
     ]) {
       expect(pathSlug(path), path).toBeUndefined();
     }
@@ -48,7 +48,7 @@ describe('days', () => {
   });
 
   it('parses a day file and rejects anything but counts', () => {
-    expect(parseDay('{"schotter": 3}')).toEqual({ schotter: 3 });
+    expect(parseDay('{"loose-squares": 3}')).toEqual({ 'loose-squares': 3 });
     for (const text of ['[]', 'null', '{"a": -1}', '{"a": 1.5}', '{"a": "2"}'])
       expect(() => parseDay(text), text).toThrow();
   });

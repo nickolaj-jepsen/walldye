@@ -1,4 +1,4 @@
-"""A keyboard corner seen from above: keycaps as four stacked rounded rectangles, the Escape key picked out and the rest fading with distance from it."""
+"""A tenkeyless keyboard corner seen from above, keycaps as four stacked rounded rectangles."""
 
 import math
 

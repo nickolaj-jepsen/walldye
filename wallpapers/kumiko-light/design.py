@@ -1,4 +1,4 @@
-"""A tall shoji panel of asanoha kumiko: a triangle lattice split into hemp-leaf cells, with the cells round one joint lit from behind in three steps."""
+"""A shoji panel of asanoha kumiko, lit from behind."""
 
 import math
 from collections.abc import Iterator

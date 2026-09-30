@@ -31,7 +31,7 @@ test.describe('without JavaScript', () => {
         .first()
         .evaluate((el) => getComputedStyle(el).backgroundColor),
     ).toBe('rgb(28, 27, 26)');
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await expect(page.locator('.controls')).toBeHidden();
     await expect(page.locator('[data-action=copy-source]')).toBeHidden();
   });

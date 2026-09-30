@@ -1,4 +1,4 @@
-"""Le Mans at night from a camera tower: OSM road geometry projected and z-buffered into a dithered cell grid of woods, Armco and a braking car's light trail at Mulsanne corner."""
+"""Mulsanne corner at Le Mans at night, from OpenStreetMap geometry in a dithered cell grid."""
 
 import itertools
 import math

@@ -1,9 +1,10 @@
 title: Double slit
-description: Seen side on, crest arcs from two slits cross in rows of beads. Each row runs to a bright fringe in the comb of lines drawn out from the screen.
+description: Light through two slits makes bright and dark bands where waves from the two slits add or cancel.
+alt: Crossing arcs spread from two gaps in a wall toward a screen at the right, where horizontal lines of varying length form a comb.
 notes: |
-  Light arrives as a plane wave and leaves each slit as circular crests. Where a crest from one slit crosses a crest from the other, the two add up, and those crossings fall along curves where the paths to the two slits differ by a whole number of wavelengths. Each curve ends on a bright fringe.
+  Light arrives as a plane wave and leaves each slit as circular crests. Crests from the two slits add where the paths to the slits differ by a whole number of wavelengths, and each such curve ends on a bright fringe.
 
-  Each line of the comb is as long as the light is bright at that point on the screen. Near the middle, the fringes are spaced by the wavelength times the distance to the screen, divided by the slit spacing. Each slit is a quarter as wide as that spacing, so the spread of light through one slit alone, traced by the dashed curve, dims the fringes in groups and all but removes every fourth one.
+  Each line of the comb is as long as the light is bright at that point on the screen. Each slit is a quarter as wide as the slit spacing, so the spread of light through one slit, the dashed curve, dims the fringes in groups and all but removes every fourth one.
 technique: [line]
 subject: [physics]
 lineage: [scientific-illustration]

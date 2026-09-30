@@ -1,4 +1,4 @@
-"""A motorcycle's rear racing tire in drafted section rolling over onto its shoulder, with its earlier positions ghosted and the tread's contact path lit."""
+"""A motorcycle tire in drafted section, rolled onto its shoulder in five positions."""
 
 import math
 

@@ -1,4 +1,4 @@
-"""A lightning strike built by midpoint displacement: a haloed return stroke drops from a dithered cloud base to the ground, forked by tapering branches."""
+"""A lightning strike built by midpoint displacement, with tapering branches under a dithered cloud base."""
 
 import math
 

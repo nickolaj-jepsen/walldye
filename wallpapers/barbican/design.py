@@ -1,4 +1,4 @@
-"""Night elevation of a brutalist tower in flat fills: round-ended balcony bands under a saw-tooth crown, one window lit."""
+"""A concrete tower at night in flat fills."""
 
 from walldye import (
     ACCENT,

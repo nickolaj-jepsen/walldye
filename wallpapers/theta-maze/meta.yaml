@@ -1,9 +1,10 @@
 title: Theta maze
-description: A circular maze of fourteen rings, carved by a random depth-first walk. One route is threaded from rim to center.
+description: In a theta maze, rings split into more cells toward the rim so passages keep about the same width.
+alt: A circular maze with a gate at its upper left rim and a path running through the walls to a dot at the center.
 notes: |
-  A ring splits into twice as many cells wherever its cells would otherwise grow wider than two ring widths, so the passages keep about the same size from the center, with 8 cells, out to the rim, with 64. A recursive backtracker carves the maze from the gate and picks a move around a ring five times as often as one across, which gives long curving corridors.
+  A ring doubles its cell count wherever its cells would otherwise grow wider than two ring widths, from 8 cells at the center to 64 at the rim. A recursive backtracker carves the maze from the gate and picks a move around a ring five times as often as one across, which gives long curving corridors.
 
-  The maze has no loops, so the shortest route to the center is also the only one. Where the gaps in several rings line up, the thread crosses them in one straight run. The walls fade towards the rim.
+  The maze has no loops, so the shortest route to the center is also the only one.
 technique: [line]
 subject: [maths]
 lineage: []

@@ -1,4 +1,4 @@
-"""The air swirling behind an open-wheel racing car as a vector plot of modeled vortices over the car's faint rear outline, with one of the rear wing's two tip vortices lit and its twin fainter."""
+"""The air behind an open-wheel racing car as a vector plot of modeled wing and diffuser vortices."""
 
 import math
 

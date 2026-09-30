@@ -1,5 +1,6 @@
 title: Rubik's cube
-description: A Rubik's cube mid-turn, drawn as a ruled patent figure. One corner sticker on top is filled in.
+description: A Rubik's cube mid-turn, whose six centers keep their places relative to each other.
+alt: A line-drawn cube with its top layer mid-turn and an arrow beside it; one corner sticker on top is solid, the others outlined.
 notes: |
   The shading follows the rule for United States patent drawings, which has light fall from the upper left. Only the stickers facing away from it, on the right-hand side of the lower two layers, are ruled, with the lines closing up toward their shadowed edge.
 technique: [drafting]

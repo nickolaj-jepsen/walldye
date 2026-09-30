@@ -1,4 +1,4 @@
-"""An isometric pixel-art corner room at night, lit only by the monitor on its desk: 2:1 iso planes filled into one index grid."""
+"""An isometric pixel-art corner room at night, lit only by the monitor on its desk."""
 
 import math
 

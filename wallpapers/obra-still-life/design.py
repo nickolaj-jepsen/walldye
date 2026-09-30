@@ -1,4 +1,4 @@
-"""Plaster cube, sphere, cone and cylinder on a table, ray-cast and dithered into square cells after Return of the Obra Dinn, the cone's lit face picked out."""
+"""Plaster cube, sphere, cone and cylinder on a table, ray-cast and dithered into square cells."""
 
 import math
 

@@ -1,4 +1,4 @@
-"""A Haeckel radiolarian as a specimen plate: a spined shell pierced by a spherical Voronoi lattice of pores, its central capsule lit through them in stepped flat tones."""
+"""A radiolarian shell as a specimen plate in line and flat tones, with a spherical Voronoi lattice of pores."""
 
 import math
 

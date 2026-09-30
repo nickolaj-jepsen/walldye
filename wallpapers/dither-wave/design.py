@@ -1,4 +1,4 @@
-"""A breaking wave curls over from the left with foam on its lip, in Jarvis-Judice-Ninke error diffusion."""
+"""A breaking wave in one-bit Jarvis-Judice-Ninke error diffusion."""
 
 from itertools import pairwise
 

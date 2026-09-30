@@ -1,4 +1,4 @@
-"""Langton's ant on a square-cell grid: a chaotic blob, then the periodic highway that breaks out of it, lit by when the ant first crossed each cell."""
+"""Langton's ant on a cell grid, toned by when the ant first reached each cell."""
 
 import numpy as np
 from numpy.typing import NDArray

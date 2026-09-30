@@ -16,7 +16,7 @@ const SLUG_PATH = /^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/;
 const RENAME = /^\/([^/\s]+)\s+\/([^/\s]+)\s+301$/;
 const DAY_MS = 86_400_000;
 
-/** The slug a page path names (`/schotter` or `/schotter/`), else undefined. */
+/** The slug a page path names (`/loose-squares` or `/loose-squares/`), else undefined. */
 export function pathSlug(path: string): string | undefined {
   return SLUG_PATH.exec(path)?.[1];
 }

@@ -1,5 +1,6 @@
 title: One-bit moon
-description: Void-and-cluster dithering turns a gibbous moon, lit from the right, into square cells. The maria lie across its upper half.
+description: 'The Moon''s dark maria are plains of basalt left by ancient lava flows.'
+alt: A gibbous moon of square dots, dense on the right and sparse toward the left, with sparser patches across its upper half.
 technique: [dither]
 subject: [space]
 lineage: []
@@ -15,4 +16,4 @@ variants:
     label: Gibbous moon
   crescent:
     label: Crescent moon
-    description: Void-and-cluster dithering turns a thin crescent moon, lit from the right, into square cells. The unlit disc shows as a faint scatter.
+    alt: A thin crescent of dense dots along the right edge of a disc whose remaining face is a faint scatter.

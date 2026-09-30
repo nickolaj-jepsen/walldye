@@ -1,0 +1,19 @@
+title: Suprematist rectangles
+description: Malevich's Suprematism built pictures only from flat geometric shapes, here ten rectangles at one tilt.
+alt: Ten tilted rectangles shrink along a rising curve in two staggered rows, the largest at lower left, with a thin line between the rows.
+notes: |
+  Malevich's *Suprematist Composition: Airplane Flying* (1915) sets flat blocks on a diagonal across an empty ground. Here the diagonal becomes a curve, and on tall screens it turns steeper to climb the long side.
+technique: [flat]
+subject: []
+lineage: [modernism]
+sources:
+  - kind: inspiration
+    title: 'Suprematist Composition: Airplane Flying'
+    author: Kazimir Malevich
+    year: 1915
+    url: https://commons.wikimedia.org/wiki/File:Suprematist_Composition_-_Airplane_Flying_(Malevich,_1915).jpg
+  - kind: reference
+    topic: Suprematism
+    url: https://en.wikipedia.org/wiki/Suprematism
+added: 2026-09-27
+model: claude-opus-5-5

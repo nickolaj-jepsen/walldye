@@ -1,4 +1,4 @@
-"""An apartment tower at night in pixel art: unlit windows, a few dim rooms with silhouettes, and one lit window where someone codes late."""
+"""An apartment tower at night in pixel art, with a few furnished rooms seen through windows."""
 
 import math
 

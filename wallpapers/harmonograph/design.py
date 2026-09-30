@@ -1,4 +1,4 @@
-"""A damped, slightly detuned harmonograph trace whose last inward turns step up in tone around a pen-stop in its eye."""
+"""A damped, slightly detuned harmonograph trace drawn in hairlines."""
 
 from itertools import pairwise
 from typing import Literal

@@ -1,9 +1,8 @@
 title: Weather front
-description: 'Isobars wind round a low, and a front curls into it and splits: pennants on one branch, domes on the other.'
+description: On weather charts, triangles mark a cold front and half circles a warm one, on the side each moves toward.
+alt: Pressure lines run around a low at upper center; a curving line, triangles on one branch and half circles on the other, runs into it.
 notes: |
-  Pennants mark the cold front and domes the warm front, each on the side the front is moving towards. Where the cold front has caught up with the warm one, the occluded front carries both, alternating, into the low.
-
-  A high sits off to one side, and the dotted graticule of a conic map projection runs under the isobars.
+  Where the cold front has caught up with the warm one, the occluded front carries both symbols, alternating, into the low.
 technique: [field, drafting]
 subject: [maps]
 lineage: []

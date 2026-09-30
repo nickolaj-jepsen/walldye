@@ -1,7 +1,8 @@
 title: Kumiko light
-description: A lamp behind a tall asanoha shoji panel lights a six-pointed star of cells, fading out in three steps.
+description: A shoji panel in the asanoha pattern, which joins each lattice triangle's center to its corners.
+alt: A tall panel of triangular lattice cells, with a six-pointed star of cells lit from behind and fading out in three steps.
 notes: |
-  Kumiko is Japanese lattice joinery: thin wooden laths are notched and fitted together without nails, mostly for shoji doors and screens. In the asanoha pattern, named after the hemp leaf, lines from the center of each triangle of the lattice to its corners split it into three cells.
+  Kumiko is Japanese lattice joinery: thin wooden laths are notched and fitted together without nails, mostly for shoji doors and screens. Asanoha is named after the hemp leaf, and its lines split each triangle into three cells.
 technique: [tiling]
 subject: [architecture]
 lineage: [japanese-art]

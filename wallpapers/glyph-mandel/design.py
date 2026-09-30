@@ -1,4 +1,4 @@
-"""The Mandelbrot set as a 1980s ASCII printout: exterior distance estimates pick density glyphs in bands around a one-glyph rim."""
+"""The Mandelbrot set as a 1980s ASCII printout, shaded by exterior distance estimate."""
 
 import numpy as np
 from numpy.typing import NDArray

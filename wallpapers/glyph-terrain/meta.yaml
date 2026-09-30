@@ -1,5 +1,6 @@
 title: ASCII overworld
-description: A roguelike island in carets, tildes and quotes. A road of slashes climbs from the harbor to a one-block town.
+description: Dwarf Fortress builds its world from elevation, rainfall and drainage, then draws it in text characters.
+alt: Dots, quote marks and carets make an island in text characters, crossed by a road of slashes running from a harbor to a town.
 notes: |
   Noise fields shape the coastline and the woods, and a broader one decides where a couple of mountain ranges may rise. Dots are open ground, quote marks are woods and carets and triangles are hills and peaks, while tildes mark the sea and thin out away from the shore.
 

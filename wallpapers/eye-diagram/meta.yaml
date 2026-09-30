@@ -1,7 +1,8 @@
 title: Eye diagram
-description: Random bit streams, overlaid across two bit periods, build a dithered oscilloscope eye. A hexagonal test mask sits in its opening.
+description: An eye diagram overlays every bit of a serial signal, and the wider the opening, the more noise it tolerates.
+alt: Grainy traces cross between two horizontal rails to form two eye shapes, with a hexagon in the opening and three small marks inside it.
 notes: |
-  An eye diagram is how engineers check a fast serial link. The scope's sweep restarts in step with the data, so every bit is drawn over the last, and the clear opening between the rising and falling edges is the eye. Here each trace is a random six-bit stream with slightly jittered edges, smoothed so a transition takes about a third of a bit period, and every cell is shaded by how many traces crossed it, on a log scale, as on a persistence display.
+  The scope's sweep restarts in step with the data, so every bit is drawn over the last, and the clear opening between the rising and falling edges is the eye. Here each trace is a random six-bit stream with slightly jittered edges, smoothed so a transition takes about a third of a bit period, and every cell is shaded by how many traces crossed it, on a log scale, as on a persistence display.
 
   The hexagon is a keep-out zone fitted to the eye's opening. A transmitter passes only when no sample lands inside it, so the three hits fail this link. The readout gives the rate, 2.5 Gb/s, and its bit period of 400 ps.
 technique: [instrument, dither]

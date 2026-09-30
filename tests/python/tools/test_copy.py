@@ -21,6 +21,8 @@ def test_color_words_but_not_token_names():
     assert copy({"title": "Red moon"}) == ["title: color words red"]
     assert copy({"notes": "Drawn in amber."}) == ["notes: color words amber"]
     assert color_words("reddish Blueprint") == set()
+    assert color_words("A golden rectangle, cut by the golden ratio, in gold.") == set()
+    assert color_words("A golden disc.") == {"golden"}
     assert color_words("Greys and whites under the ambers; GREYS, BLUES, crimsons") == {
         "ambers",
         "crimsons",

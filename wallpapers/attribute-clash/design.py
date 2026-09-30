@@ -1,4 +1,4 @@
-"""A ZX Spectrum night road in ordered dither, where two tail lights recolor the ink of every 8x8 attribute cell they touch."""
+"""A night road on a ZX Spectrum screen in ordered dither, drawn in 8x8 attribute cells."""
 
 import numpy as np
 

@@ -1,4 +1,4 @@
-"""A felled trunk's end grain seen from one corner: noise-wobbled year rings as splines, one fire year and a drying check."""
+"""A felled trunk's end grain from one corner: year rings as splines, a fire year and a drying crack."""
 
 import math
 

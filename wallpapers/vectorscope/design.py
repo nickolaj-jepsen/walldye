@@ -1,4 +1,4 @@
-"""A broadcast vectorscope reading color bars: a hexagonal trace with pixel-binned persistence, and one lit cell cluster on the skin-tone line."""
+"""A broadcast vectorscope reading color bars, with a skin-tone cluster."""
 
 import math
 

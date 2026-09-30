@@ -1,4 +1,4 @@
-"""One dune crest: iso-line ripples comb the windward slope, the slip face lies in shade and the summit is lit."""
+"""One dune crest: iso-line ripples on the windward slope, the slip face in shade."""
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,7 +1,8 @@
 title: Keycaps
-description: A mechanical keyboard's top-left corner, seen at a tilt. Escape is picked out, and the other keys fade into the plate.
+description: A keyboard corner in the tenkeyless layout, which is the full-size layout without the number pad.
+alt: 'The top-left of a tilted keyboard: a lone Escape key, two groups of four function keys and the start of the number row.'
 notes: |
-  Each keycap is four stacked rounded rectangles: the skirt, a top face set back so its front wall shows, a dish shaded at its back wall, and the floor of the dish. The keys follow the ANSI tenkeyless layout.
+  Each keycap is four stacked rounded rectangles: the skirt, a top face set back so its front wall shows, a dish shaded at its back wall, and the floor of the dish. The layout is ANSI, the US key arrangement.
 technique: [flat]
 subject: [computing]
 lineage: []

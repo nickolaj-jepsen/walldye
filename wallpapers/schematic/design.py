@@ -1,4 +1,4 @@
-"""Unlabeled op-amp circuits in schematic symbols on a dotted drafting grid, with the signal path picked out."""
+"""Unlabeled op-amp circuits as schematic drawings on a dotted drafting grid."""
 
 import math
 from dataclasses import dataclass

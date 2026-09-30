@@ -1,5 +1,6 @@
 title: CRT scanlines
-description: Bowed scanlines on a curved tube face swell into one round lit patch up and right of center.
+description: Cathode-ray tubes build a picture from horizontal lines, each swept across the screen by one electron beam.
+alt: Thin horizontal lines curve across a rounded screen, thicker and denser in one round patch right of center.
 technique: [stipple]
 subject: [computing]
 lineage: [vintage-computers]

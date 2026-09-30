@@ -1,4 +1,4 @@
-"""Pool-floor caustics from photons bent by a Perlin wave surface, halftoned with Knuth's dot diffusion, with its densest knot picked out."""
+"""Pool-floor caustics from a Perlin wave surface, halftoned with Knuth's dot diffusion."""
 
 import math
 

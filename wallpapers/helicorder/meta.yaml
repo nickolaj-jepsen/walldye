@@ -1,9 +1,10 @@
 title: Helicorder
-description: Minute-broken traces rule a seismograph drum, and one row catches an earthquake as a dense wave packet.
+description: Helicorders record ground motion on a slowly turning drum, one row of trace per turn.
+alt: Rows of wavering horizontal lines, in one of which a small wave grows into a dense burst that trails into the next row.
 notes: |
-  A helicorder draws a seismometer's signal on paper wrapped round a turning drum, so the record reads like a page: left to right, then down a row, with the right end of each row joining the left end of the next. The small breaks mark the minutes, and alternate rows use two tones only to keep them apart.
+  The signal is drawn on paper wrapped round a turning drum, so the right end of each row joins the left end of the next. The small breaks mark the minutes.
 
-  The earthquake arrives as a small P wave, and the larger S waves follow. Their tail is still dying away when the row runs out, so the start of the next row is picked out too.
+  An earthquake arrives as a small P wave, and the larger S waves follow.
 technique: [instrument]
 subject: [physics]
 lineage: []

@@ -156,7 +156,7 @@ jobs:
             wallpapers/*/build/**/slots.json
             wallpapers/dither-moon/build/
             wallpapers/radar-sweep/build/
-            wallpapers/schotter/build/
+            wallpapers/loose-squares/build/
           if-no-files-found: error
           retention-days: 1
 

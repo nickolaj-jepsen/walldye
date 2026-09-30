@@ -1,5 +1,6 @@
 title: Isometric cubes
-description: Isometric cubes floor the screen. Right of center, a hexagon of 36 is filled in, inside a circle shaded one step apart.
+description: A field of cubes in isometric projection, where the three axes sit 120 degrees apart and shrink equally.
+alt: Cubes in three face shades cover the screen, with a hexagonal patch of 36 cubes right of center in a different tone.
 technique: [tiling, flat]
 subject: []
 lineage: []

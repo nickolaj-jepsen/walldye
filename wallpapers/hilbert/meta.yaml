@@ -1,5 +1,6 @@
 title: Hilbert curve
-description: A Hilbert curve fills the frame in thin lines, one stretch drawn heavier.
+description: A Hilbert curve visits every cell of a grid once, and in the limit every point of a square.
+alt: One square-cornered line folds back and forth across the whole screen, with a continuous stretch near the upper right drawn heavier.
 technique: [line]
 subject: [maths]
 lineage: []

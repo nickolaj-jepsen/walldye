@@ -1,4 +1,4 @@
-"""A crescent moon drawn as one unbroken line: a traveling-salesman tour through stipples weighted by sunlight."""
+"""A crescent moon drawn as one unbroken line: a traveling-salesman tour through weighted stipples."""
 
 import math
 from collections import deque

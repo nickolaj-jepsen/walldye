@@ -1,7 +1,8 @@
 title: Hitomezashi
-description: Running stitches lock into stepped diamonds. One enclosed shape, a ring topped by a cross beside a smaller ring, is filled in.
+description: Hitomezashi is Japanese sashiko stitching in which each row and column is a line of running stitches.
+alt: Stepped diamonds of short stitches cover the screen, and one solid shape is a large ring topped by a cross, joined to a small ring.
 notes: |
-  In hitomezashi every row and column is one line of evenly spaced running stitches, and the only choice per line is whether it starts with a stitch or a gap. Most lines here start opposite to their neighbor, which draws long diagonal steps.
+  The only choice per line is whether it starts with a stitch or a gap. Most lines here start opposite to their neighbor, which draws long diagonal steps.
 technique: [tiling]
 subject: [textile, maths]
 lineage: [japanese-art]

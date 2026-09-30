@@ -1,4 +1,4 @@
-"""The Debian swirl as a construction drawing: ten compass arcs, each run on into its full circle, with the tail picked out."""
+"""The Debian swirl as a construction drawing of ten compass arcs."""
 
 from itertools import pairwise
 

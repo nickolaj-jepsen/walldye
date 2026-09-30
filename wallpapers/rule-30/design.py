@@ -1,4 +1,4 @@
-"""An elementary cellular automaton, Rule 30 by default, grown one generation per row from a single live cell at the top edge in square cells, with one line of its cells picked out."""
+"""An elementary cellular automaton, Rule 30 by default, grown from a single cell in square cells."""
 
 from typing import Literal
 

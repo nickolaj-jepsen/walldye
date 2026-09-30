@@ -1,4 +1,4 @@
-"""A magnetic core memory plane drawn as tilted ring outlines on a lattice of over-and-under wires, fading out from one byte being read."""
+"""A magnetic core memory plane: tilted ring outlines on a lattice of crossing wires."""
 
 import math
 

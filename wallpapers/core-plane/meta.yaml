@@ -1,7 +1,8 @@
 title: Core memory plane
-description: Tilted ferrite rings on a wire lattice fade away from one byte being read. Three of its eight cores are lit.
+description: A core memory plane stores one bit per ferrite ring, as the direction of its magnetization.
+alt: Tilted rings on a grid of crossing wires fade outward from one row of eight near the center, where three rings have heavier outlines.
 notes: |
-  Each ferrite ring stores one bit as the direction of its magnetization. A read drives the selected core to zero, and a core that held a one flips and sends a pulse down the diagonal sense wire. The rings tilt in alternate directions to make room for those diagonals.
+  A read drives the selected core to zero, and a core that held a one flips and sends a pulse down the diagonal sense wire. The rings tilt in alternate directions to make room for those diagonals.
 
   In a real memory stack each plane holds one bit of every word, so a byte is spread over eight planes. Here it sits along one wire and holds 00101010.
 technique: [tiling]

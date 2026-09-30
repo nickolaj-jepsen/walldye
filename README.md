@@ -25,7 +25,7 @@ The Python side is the `walldye` library and CLI:
 ```sh
 uv run walldye --help
 uv run walldye list                          # every piece
-uv run walldye preview schotter --theme nord # a PNG in $WALLDYE_PREVIEW, by default a folder in the temp directory
+uv run walldye preview loose-squares --theme nord # a PNG in $WALLDYE_PREVIEW, by default a folder in the temp directory
 uv run walldye render radar-sweep --theme nord --aspect 21:9   # writes radar-sweep-nord-21x9.svg here
 ```
 

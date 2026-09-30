@@ -1,0 +1,16 @@
+title: Wavy lines
+description: Lines that ripple faster toward the right make a still image seem to move.
+alt: Lines fill the lower screen, flat at the left and rippling tighter toward the right; one is drawn heavier, with a thin line beside it.
+notes: |
+  The idea comes from Bridget Riley's *Fall* (1963). Here the lines lie flat and quicken towards the right, and each one lags a little behind the one below it, so the crests lean instead of stacking.
+technique: [line]
+subject: []
+lineage: [op-art]
+sources:
+  - kind: inspiration
+    title: Fall
+    author: Bridget Riley
+    year: 1963
+    url: https://www.tate.org.uk/art/artworks/riley-fall-t00616
+added: 2026-09-27
+model: claude-opus-5-5

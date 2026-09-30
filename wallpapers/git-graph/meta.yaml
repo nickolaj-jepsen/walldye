@@ -1,5 +1,6 @@
 title: Git graph
-description: A git commit graph drawn like a transit map, with one four-commit feature branch picked out.
+description: In a git commit graph each commit points to its parent, and a merge commit has two or more.
+alt: Ringed commits sit on vertical lines that fork and merge down the right half, with a four-commit side branch off the leftmost line.
 technique: [drafting]
 subject: [computing]
 lineage: []

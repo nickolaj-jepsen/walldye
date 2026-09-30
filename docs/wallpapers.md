@@ -18,8 +18,8 @@ Legacy pieces have `source.svg` and `palette.yaml` in place of design.py (archit
 
 ```yaml
 title: Loose squares
-description: A grid of squares grows more random column by column, after a 1968 plotter drawing by Georg Nees.
-alt: Columns of square outlines, orderly at the left, tilt and scatter toward the right, where one filled square has broken away.
+description: In Georg Nees's Schotter, German for gravel, random variables turn rows of orderly squares into disorder.
+alt: Square outlines, aligned at the left, tilt and scatter toward the right, where a trail of strays ends at one shaded square.
 notes: |                     # optional Markdown, shown on the detail page
   ...
 technique: [drafting]        # facets, from taxonomy.yaml
@@ -93,7 +93,7 @@ In every field:
 The library, the site and the tooling are GPL-3.0-or-later. Each wallpaper folder, build output included, has its own license:
 
 - A piece a model made is CC0-1.0 and may leave out `license:`.
-- A human-made piece, and any piece with a `recreation` source, sets `license:` to an SPDX id. A recreation of a work under an attribution license takes that license: nix-snowflake, after the CC BY 4.0 NixOS logo, is CC-BY-4.0.
+- A human-made piece, and any piece with a `recreation` source, sets `license:` to an SPDX id. A recreation of a work under an attribution license takes that license: nixos-logo, after the CC BY 4.0 NixOS logo, is CC-BY-4.0.
 - A fan piece sets `franchise: {title, owner}` instead of `license:`, which makes it `LicenseRef-fan-work`. No license is granted, use is non-commercial, and the page carries a disclaimer naming the owner and takedown@walldye.com. Fan pieces need the owner's approval.
 - Third-party files in `data/` keep their upstream license, with the notice in `REUSE.toml`, and are credited as `data` sources.
 
@@ -105,7 +105,7 @@ A piece is released as CC0 only when everything in it is ours to give away. The 
 
 - Styles, techniques, algorithms, genres and ideas are free to use. Credit the work that suggested one as an `inspiration`, and the piece stays CC0.
 - A `recreation`, which redraws one specific work, is only for works that are public domain in both the EU and the US (US federal works such as NASA's count) or under an open license.
-- Works still in copyright are never redrawn. A piece may keep a work's visual idea and feel, but it makes two or three deliberate departures of its own: orientation, proportion, count, where the change happens, a focal point, or an added element. schotter is the model: a grid of squares coming loose, turned sideways, with strays leading to one filled square. Someone who knows the original should think "in the spirit of it", not "that is it". The title is not the work's title, the notes may say what is taken and what is done differently, and the work is credited as an inspiration.
+- Works still in copyright are never redrawn. A piece may keep a work's visual idea and feel, but it makes two or three deliberate departures of its own: orientation, proportion, count, where the change happens, a focal point, or an added element. loose-squares is the model: a grid of squares coming loose, turned sideways, with strays leading to one filled square. Someone who knows the original should think "in the spirit of it", not "that is it". The title is not the work's title, the notes may say what is taken and what is done differently, and the work is credited as an inspiration.
 - Some looks stay off limits even as inspiration: game looks that courts have protected (the Tetris well, in *Tetris Holding v. Xio*, 2012) and single famous images such as album covers.
 - Game and franchise pieces are fan work (Licensing above). Prefer drawing a subject over copying its assets: traced official renders, textures and logos come closer to redistribution than a depiction does. A rights holder's request is honored with `walldye drop`.
 

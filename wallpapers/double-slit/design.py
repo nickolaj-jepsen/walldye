@@ -1,4 +1,4 @@
-"""Young's double slit seen side on: crest arcs from two slits cross in beads along the bright directions, and a comb of lines on the screen traces the fringes under the single-slit envelope."""
+"""Young's double slit seen side on, with a comb of lines for the fringes on the screen."""
 
 import itertools
 import math

@@ -1,4 +1,4 @@
-"""A solid sun of square cells in a halo that thins out through Bayer-ordered checkers into loose dots."""
+"""A sun and its halo in ordered Bayer dither."""
 
 import numpy as np
 

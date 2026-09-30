@@ -1,0 +1,16 @@
+title: Axis-parallel walk
+description: A random walk whose steps alternate between horizontal and vertical and have random lengths.
+alt: One right-angled path leaves a square of overlapping ones through its right wall and ends at a small filled square.
+notes: |
+  The walk comes from Georg Nees' 1964 plotter drawing *Achsenparalleler Irrweg* (axis-parallel maze): steps that alternate between horizontal and vertical, each of random length, inside a square. Here the strides are longer and older steps fade.
+technique: [line]
+subject: []
+lineage: [early-computer-art]
+sources:
+  - kind: inspiration
+    title: Achsenparalleler Irrweg
+    author: Georg Nees
+    year: 1964
+    url: https://zkm.de/en/artworks/achsenparalleler-irrweg
+added: 2026-09-27
+model: claude-opus-5-5

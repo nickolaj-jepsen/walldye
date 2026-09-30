@@ -1,6 +1,10 @@
 title: Pong, mid-rally
-description: Pong frozen mid-rally, the ball trailing three afterimages. A dotted path runs back off the top wall to the left paddle.
-notes: After Atari's *Pong* (1972). Where the ball meets the wall the drawing turns into a diagram, with its outline at contact, the dashed normal and the two equal angles either side.
+description: The arcade Pong was built from logic chips, with no microprocessor.
+alt: Along a dotted path that bounces off the top wall, a square ball with a short trail heads from the left paddle toward the right.
+notes: |
+  The ball leaves the wall at the angle it arrived, both measured from the normal, the line at a right angle to the wall. The drawing marks those angles at the point of contact.
+
+  The paddles, square ball and dashed center line come from Atari's *Pong* (1972). The bounce diagram is added.
 technique: [flat]
 subject: [games]
 lineage: [arcade-games]

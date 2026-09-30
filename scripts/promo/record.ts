@@ -32,7 +32,7 @@ import sharp from 'sharp';
 
 const { values: args } = parseArgs({
   options: {
-    piece: { type: 'string', default: 'nix-snowflake' },
+    piece: { type: 'string', default: 'nixos-logo' },
     'skip-build': { type: 'boolean', default: false },
     stills: { type: 'boolean', default: false },
   },

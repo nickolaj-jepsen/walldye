@@ -112,7 +112,7 @@ export interface Manifest {
 export const MANIFEST = JSON.parse(readText('tests/fixtures/manifest.json')) as Manifest;
 
 /** The pieces with Python reference renders under tests/fixtures. */
-export const REFERENCE_PIECES = ['dither-moon', 'radar-sweep', 'schotter'] as const;
+export const REFERENCE_PIECES = ['dither-moon', 'radar-sweep', 'loose-squares'] as const;
 
 export interface Rgb {
   width: number;

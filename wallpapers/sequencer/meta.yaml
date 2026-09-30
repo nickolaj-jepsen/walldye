@@ -1,7 +1,8 @@
 title: Step sequencer
-description: A drum machine's eight-by-sixteen step grid, halted on step 11. The muted chord track's hits are hollow.
+description: A step sequencer splits a measure into sixteen steps and plays the pads switched on as the playhead passes.
+alt: Eight rows of sixteen pads in fours hold scattered filled steps, with a mark over the eleventh column and outlines only in the bottom row.
 notes: |
-  The kick lands on every beat and the snare on two and four, with one extra hit on the last step. The chord track is muted, so its lamp is lit. On a tall screen the grid takes a tracker's layout, with time running down the screen and one column per track.
+  The kick lands on every beat and the snare on two and four, with one extra hit on the last step. The chord track is muted, so its steps are hollow. On a tall screen the grid takes a tracker's layout, with time running down the screen and one column per track.
 technique: [instrument]
 subject: [music]
 lineage: []

@@ -40,7 +40,7 @@ test.describe('detail', () => {
   test('a shape without its own template shows a crop window that follows the range and a drag', async ({
     page,
   }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await expect(page.locator('.spread .plate > img')).toHaveAttribute('src', /^\/t\//);
     await expect(page.locator('.spread .crop')).toBeHidden();
     await expect(page.locator('#crop-row')).toBeHidden();
@@ -61,12 +61,12 @@ test.describe('detail', () => {
     expect(new URL(page.url()).search).toBe('?shape=16x10');
     await expect(page.locator('#download')).toHaveAttribute(
       'title',
-      'schotter-fireproof-2560x1600.png',
+      'loose-squares-fireproof-2560x1600.png',
     );
     await expect(page.locator('#sizes input:enabled')).toHaveCount(5);
     await expect(page.locator('#sizes label:visible')).toHaveCount(5);
     await expect(page.locator('#run-render')).toHaveText(
-      'uv run walldye render schotter --theme fireproof --crop 25.536,0,1728,1080 -o schotter-fireproof-16x10-crop.svg',
+      'uv run walldye render loose-squares --theme fireproof --crop 25.536,0,1728,1080 -o loose-squares-fireproof-16x10-crop.svg',
     );
 
     await setCrop(page, 1);
@@ -88,14 +88,14 @@ test.describe('detail', () => {
   });
 
   test('PNG export is RGB at the exact size', async ({ page }) => {
-    await page.goto('/schotter?shape=21x9&crop=0.5');
+    await page.goto('/loose-squares?shape=21x9&crop=0.5');
     await pick(page, 'size', '3440x1440');
     await expect(page.locator('#download')).toHaveAttribute(
       'title',
-      'schotter-fireproof-3440x1440.png',
+      'loose-squares-fireproof-3440x1440.png',
     );
     const { dl, buf } = await download(page);
-    expect(dl.suggestedFilename()).toBe('schotter-fireproof-3440x1440.png');
+    expect(dl.suggestedFilename()).toBe('loose-squares-fireproof-3440x1440.png');
     expect(pngHeader(buf)).toEqual({ width: 3440, height: 1440, colorType: 2 });
   });
 
@@ -109,20 +109,20 @@ test.describe('detail', () => {
   });
 
   test('SVG export is recolored, cut to the crop and titled', async ({ page }) => {
-    await page.goto('/schotter?t=nord');
+    await page.goto('/loose-squares?t=nord');
     await pick(page, 'fmt', 'svg');
     await pick(page, 'asp', '9:19.5');
     await setCrop(page, 0);
     await expect(page.locator('#download')).toHaveAttribute(
       'title',
-      'schotter-nord-9x19.5-crop.svg',
+      'loose-squares-nord-9x19.5-crop.svg',
     );
     const { dl, buf } = await download(page);
-    expect(dl.suggestedFilename()).toBe('schotter-nord-9x19.5-crop.svg');
+    expect(dl.suggestedFilename()).toBe('loose-squares-nord-9x19.5-crop.svg');
     const svg = buf.toString('utf8');
     expect(svg).toMatch(/^<svg [^>]*viewBox="0 0 498\.4615 1080" width="498\.4615" height="1080"/);
     expect(svg).toContain(
-      '<title>Squares shaking loose</title><desc>walldye.com/schotter · CC0-1.0 · theme nord</desc>',
+      '<title>Loose squares</title><desc>walldye.com/loose-squares · CC0-1.0 · theme nord</desc>',
     );
     expect(svg).toContain('#2E3440');
     expect(svg).not.toContain('#1C1B1A');
@@ -185,8 +185,8 @@ test.describe('detail', () => {
   test('f is ignored with modifiers, in fields, listings and editable text, and while the picker is open', async ({
     page,
   }) => {
-    // schotter crops every other shape, so the crop range is there to focus.
-    await page.goto('/schotter');
+    // loose-squares crops every other shape, so the crop range is there to focus.
+    await page.goto('/loose-squares');
     const fullscreen = () => page.evaluate(() => document.fullscreenElement !== null);
     /** Presses `key` on whatever `focus` focuses, then checks fullscreen did not start. */
     const ignored = async (key: string, focus: () => Promise<void>) => {
@@ -228,7 +228,7 @@ test.describe('detail', () => {
 
   test('f toggles fullscreen on the plate', async ({ page, browserName }) => {
     test.skip(browserName === 'webkit', 'headless WebKit has no fullscreen');
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await page.locator('body').press('f');
     await expect
       .poll(() =>
@@ -267,7 +267,7 @@ test.describe('detail', () => {
   test('Copy takes the raw design.py', async ({ page, context, browserName }) => {
     test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only in Playwright');
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await page.locator('.appendix > summary').click();
     await page.click('[data-action=copy-source]');
     await expect(page.locator('[data-action=copy-source]')).toHaveText('Copied');
@@ -288,12 +288,12 @@ test.describe('detail on a phone', () => {
   });
 
   test('starts on your screen, in the nearest shape', async ({ page }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await expect(page.locator('#export input[name=asp][value="9:19.5"]')).toBeChecked();
     await expect(page.locator('#export input[name=size][value=screen]')).toBeChecked();
     await expect(page.locator('#download')).toHaveAttribute(
       'title',
-      'schotter-flexoki-light-1170x2532.png',
+      'loose-squares-flexoki-light-1170x2532.png',
     );
     // The phone default is not written to the address.
     expect(new URL(page.url()).search).toBe('');
@@ -302,7 +302,7 @@ test.describe('detail on a phone', () => {
   test('the plate takes its tall shape before the page module loads', async ({ page }) => {
     // Without the module only the inline shape boot runs, so the plate size cannot change later.
     await page.route('**/_astro/*.js', (route) => route.abort());
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await expect(page.locator('.spread')).toHaveAttribute('data-aspect', '9:19.5');
     const box = await page.locator('.spread .plate').boundingBox();
     expect(box!.height / box!.width).toBeGreaterThan(2);
@@ -311,7 +311,7 @@ test.describe('detail on a phone', () => {
   test('a tall shape shows the crop in the plate, moved by a drag, with the window on a map', async ({
     page,
   }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     const plate = page.locator('.spread .plate');
     await expect(plate.locator('> img')).toHaveAttribute('data-aspect', '16:9');
     const box = await plate.boundingBox();
@@ -339,7 +339,7 @@ test.describe('detail on a phone', () => {
   test('the Download under the attribution follows the export panel and saves its file', async ({
     page,
   }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     const quick = page.locator('#quick-download');
     // Narrow phones leave out "for your screen", keeping the line to one.
     await expect(quick).toHaveText('Download PNG, 1170×2532', { useInnerText: true });
@@ -421,12 +421,12 @@ test.describe('detail extras', () => {
   test('See also follows the page shape, and the source listing starts closed', async ({
     page,
   }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     const related = page.locator('section.related .grid > li');
     const n = await related.count();
     expect(n).toBeGreaterThan(0);
     expect(n).toBeLessThanOrEqual(4);
-    await expect(page.locator('section.related li[data-slug=schotter]')).toHaveCount(0);
+    await expect(page.locator('section.related li[data-slug=loose-squares]')).toHaveCount(0);
     const other = await related.first().getAttribute('data-slug');
     await page.locator('#export input[name=asp][value="9:19.5"]').check({ force: true });
     await expect(page.locator('section.related')).toHaveAttribute('data-shape', '9:19.5');

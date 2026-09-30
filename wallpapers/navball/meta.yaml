@@ -1,7 +1,8 @@
 title: Navball
-description: A spacecraft navball tilted on all three axes. Its grid splits into sky and ground behind the lit aircraft symbol.
+description: A navball shows a spacecraft's pitch, roll and yaw by turning a sphere behind a fixed symbol.
+alt: A tilted sphere with a latitude-longitude grid, split along a slanted line, sits in a ticked ring with a W-shaped marker across the middle.
 notes: |
-  On crewed spacecraft the attitude indicator is a ball that turns behind a fixed aircraft symbol, showing pitch, roll and yaw against a frame fixed in space rather than the ground. This one is an orthographic projection of its latitude and longitude lines, pitched 25 degrees, rolled 18 and yawed 30.
+  Crewed spacecraft measure against a frame fixed in space rather than the horizon. This one is an orthographic projection (a flat view of a sphere from far away) of its latitude and longitude lines, pitched 25 degrees, rolled 18 and yawed 30.
 technique: [instrument]
 subject: [space]
 lineage: []

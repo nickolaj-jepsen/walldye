@@ -1,4 +1,4 @@
-"""An enso in dry brush: bristle ribbons that split and run dry around the circle, with an eroded square seal stamped below right."""
+"""An ensō in dry brush with an eroded square seal, drawn as bristle ribbons."""
 
 import math
 from collections.abc import Iterable, Iterator

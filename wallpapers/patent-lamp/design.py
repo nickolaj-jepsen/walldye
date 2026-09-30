@@ -1,4 +1,4 @@
-"""Patent figure of an incandescent lamp in ruled shading and rim stipple, where only the filament glows."""
+"""Patent figure of an incandescent lamp in ruled shading and rim stipple."""
 
 import math
 

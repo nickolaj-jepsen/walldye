@@ -1,7 +1,8 @@
 title: Dither specimen
-description: Eight dithering algorithms side by side on one tone ramp, labeled like a specimen plate and crossed by a single probe line.
+description: Eight dithering algorithms render one tone ramp with dots, each placing them differently.
+alt: Eight labeled rows of dots thicken from left to right under a 0 to 100 scale, with a dashed vertical line marked 0.55 crossing them.
 notes: |
-  Top to bottom: ordered dithering with 2x2 and 8x8 Bayer matrices, a 4x4 clustered-dot screen set at 45 degrees and a void-and-cluster mask, then Floyd–Steinberg, Atkinson and Jarvis–Judice–Ninke error diffusion, and Riemersma's dither, which carries its error along a Hilbert curve. Every ribbon starts from the same ramp, running from about a fifth to three fifths inked.
+  Top to bottom: ordered dithering with 2x2 and 8x8 Bayer matrices, a 4x4 clustered-dot screen set at 45 degrees and a void-and-cluster mask, then Floyd–Steinberg, Atkinson and Jarvis–Judice–Ninke error diffusion, which passes each cell's rounding error on to its neighbors, and Riemersma's dither, which carries its error along a Hilbert curve. Every row starts from the same ramp, running from about a fifth to three fifths inked.
 
   On a tall screen the plate is turned on its side, so the ramp rises up the screen.
 technique: [dither, drafting]

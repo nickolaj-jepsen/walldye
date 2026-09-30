@@ -1,4 +1,4 @@
-"""Pixel-art bonsai in a shallow tray; autumn has turned one pad's tip and a leaf drifts down."""
+"""A pixel-art bonsai in a shallow tray, in the informal upright style."""
 
 import math
 

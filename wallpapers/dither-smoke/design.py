@@ -1,4 +1,4 @@
-"""An incense plume rising from an ember, braided filaments fraying into veils, in Sierra Lite error-diffusion dither."""
+"""An incense plume in Sierra Lite error-diffusion dither."""
 
 import numpy as np
 from numpy.typing import NDArray

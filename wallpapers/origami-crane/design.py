@@ -1,4 +1,4 @@
-"""A paper crane in flat-shaded facets, balanced on one corner of its own bird-base crease pattern."""
+"""A paper crane in flat-shaded facets beside its bird-base crease pattern."""
 
 import math
 

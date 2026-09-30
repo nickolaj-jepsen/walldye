@@ -1,4 +1,4 @@
-"""An editor minimap at wallpaper scale: made-up code as rounded bars, a lit viewport band and one identifier picked out under the caret."""
+"""An editor minimap at wallpaper scale: made-up code as rounded bars."""
 
 from typing import NamedTuple
 

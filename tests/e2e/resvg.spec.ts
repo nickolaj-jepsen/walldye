@@ -35,7 +35,7 @@ async function exportAt(page: Page, width: number, height: number): Promise<Buff
   await page.locator(`#sizes input[value="${width}x${height}"]`).check({ force: true });
   await expect(page.locator('#download')).toHaveAttribute(
     'title',
-    `schotter-nord-${width}x${height}.png`,
+    `loose-squares-nord-${width}x${height}.png`,
   );
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 90_000 }),
@@ -46,7 +46,7 @@ async function exportAt(page: Page, width: number, height: number): Promise<Buff
 
 test.describe('resvg-wasm', () => {
   test('the bundled export worker draws the reference SVG like resvg-py', async ({ page }) => {
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     const svg = rasterSvg(
       readFileSync(`${ROOT}${REF.svg}`, 'utf8'),
       { aspect: '16:9', native: true, t: 0 },
@@ -88,7 +88,7 @@ test.describe('resvg-wasm', () => {
   test('a PNG exported under nord matches the resvg-py render of the Python output', async ({
     page,
   }) => {
-    await page.goto('/schotter?t=nord');
+    await page.goto('/loose-squares?t=nord');
     await page.locator('#export').scrollIntoViewIfNeeded();
     const got = decodeRgb(await exportAt(page, REF.width, REF.height));
     // The browser recolor is within 2 units of the Python render slot by slot, so the pixels are too.

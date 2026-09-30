@@ -1,7 +1,8 @@
 title: Domino run
-description: A wave runs down a curving line of flat-shaded dominoes. The first piece and one caught mid-fall are picked out.
+description: A toppling chain of dominoes moves as a wave whose speed depends on the pieces' width, height and spacing.
+alt: Dominoes in a curving row recede in perspective, lying flat at the near left, standing at the far right, with one tipping in between.
 notes: |
-  Each domino is a box seen through a pinhole camera. Its faces take one of three tones by how squarely they meet the light, and the pieces are drawn from the farthest to the nearest over the shadows they cast on the floor. Fallen pieces rest almost flat, and the six at the wavefront lean over at steps from 66 to 7 degrees.
+  Each domino is a box seen through a pinhole camera. Its faces take one of three tones by how squarely they meet the light, and the pieces are drawn from the farthest to the nearest over the shadows they cast on the floor.
 technique: [flat]
 subject: [physics]
 lineage: []
@@ -18,4 +19,4 @@ variants:
     label: Half fallen
   late:
     label: Nearly all fallen
-    description: Nearly the whole curving chain of dominoes is down. One is caught mid-fall near the end, and a few beyond still stand.
+    alt: Nearly all of a curving row of dominoes lies flat, with one tipping and the last few standing at the far right.

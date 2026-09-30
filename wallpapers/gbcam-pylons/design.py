@@ -1,4 +1,4 @@
-"""Three pylons crossing a field at dusk as a Game Boy Camera photo, 128 by 112 cells in four shades of 4x4 Bayer dither, on a thermal strip hanging from the top edge."""
+"""Pylons at dusk as a Game Boy Camera photo in four-shade Bayer dither on a thermal strip."""
 
 from itertools import pairwise
 

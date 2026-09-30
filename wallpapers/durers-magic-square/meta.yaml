@@ -1,0 +1,21 @@
+title: Dürer's magic square
+description: Dürer's magic square from Melencolia I adds to 34 along every row, column and diagonal.
+alt: Dot clusters in a four-by-four square count from 1 to 16, joined by one zigzag line; the bottom middle pair read 15 and 14.
+notes: |
+  Joining the numbers of the square in order with one line is an idea from Vera Molnár's plotter drawings. Each cell also holds its number as a count of dots, and the bottom row's middle pair gives the year the square was engraved, 1514.
+technique: [line]
+subject: [maths]
+lineage: [early-computer-art]
+sources:
+  - kind: inspiration
+    title: Hommage à Dürer
+    author: Vera Molnár
+    year: 1990
+    url: https://dam.org/museum/artists_ui/artists/molnar-vera/works_vera_molnar/hommage-a-durer/
+  - kind: reference
+    title: Melencolia I
+    author: Albrecht Dürer
+    year: 1514
+    url: https://en.wikipedia.org/wiki/Melencolia_I
+added: 2026-09-27
+model: claude-opus-5-5

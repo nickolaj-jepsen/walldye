@@ -1,4 +1,4 @@
-"""A half-set sun over perspective rows of dashes; those in line with it are lit as a glitter path."""
+"""Sun glitter on water as perspective rows of dashes under a half-set sun."""
 
 import math
 

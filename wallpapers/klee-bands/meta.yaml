@@ -1,7 +1,8 @@
 title: Sunset over ruled bands
-description: Six buckled bands of ruled and crossed cells, with a sun drawn at six moments as it drops towards them. The last, filled in, sets behind the top line.
+description: Bands of ruled cells whose lines are random walks, paths that take each step in a random direction.
+alt: Six uneven bands of cells, some crossed, some hatched, with five sun outlines curving down to a filled sun half hidden behind the top band.
 notes: |
-  The bands take their method from Frieder Nake's plotter drawing *Hommage à Paul Klee 13/9/65 Nr. 2*: each band line is a random walk across the width, cut into cells by verticals, some crossed with diagonals and some hatched. The circles here are one sun, spaced along its path so it drops faster as it nears the bands, and its last position is cut off by the top line.
+  The method comes from Frieder Nake's plotter drawing *Hommage à Paul Klee 13/9/65 Nr. 2*: verticals cut each band line into cells, some crossed with diagonals and some hatched. The six circles are one sun at six points on its path, spaced so it drops faster as it nears the bands, and the last is cut off by the top line.
 technique: [line]
 subject: []
 lineage: [early-computer-art, modernism]

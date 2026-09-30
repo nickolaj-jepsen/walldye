@@ -1,7 +1,8 @@
 title: Hex dump
-description: An xxd dump of a Linux executable's first bytes. One string-table name is selected, the cursor just past it.
+description: xxd prints a Linux executable's bytes in hexadecimal, each line followed by the same bytes as text.
+alt: Rows of hexadecimal bytes beside a column of characters, fading toward the top and bottom, with one name running across two lines selected.
 notes: |
-  The bytes follow a 64-bit ELF file: its header, one program header, the first instructions of a function, then the names of its sections and symbols. The selected name breaks across two lines, and the rows around it stand out a little from the rest.
+  The bytes follow a 64-bit ELF file: its header, one program header, the first instructions of a function, then the names of its sections and symbols.
 
   On a tall screen the dump shows eight bytes per line instead of sixteen, as `xxd -c 8` prints it.
 technique: [glyph]

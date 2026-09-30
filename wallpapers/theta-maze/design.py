@@ -1,4 +1,4 @@
-"""A theta maze carved by a recursive backtracker in concentric rings, its one solution traced as a thread from the rim gate to the center."""
+"""A theta maze carved by a recursive backtracker, with its solution traced."""
 
 import math
 from collections import deque

@@ -95,7 +95,7 @@ describe('recolor matches the Python renders (b)', () => {
   );
 
   it('is byte-equal to the Python reference recolor', () => {
-    const [slug, aspect, theme] = ['schotter', '16:9', 'nord'];
+    const [slug, aspect, theme] = ['loose-squares', '16:9', 'nord'];
     const picked = select(slotsOf(slug), aspect, seeds(theme));
     const out = recolor(
       read(`wallpapers/${slug}/build/${picked.entry.file}`),

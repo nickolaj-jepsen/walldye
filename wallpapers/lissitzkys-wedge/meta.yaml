@@ -1,0 +1,15 @@
+title: Lissitzky's wedge
+description: In El Lissitzky's 1919 poster, a wedge for the Bolsheviks drives into a circle for their opponents.
+alt: A narrow wedge enters a large disc from the lower left, with small fragments and a thin line continuing along its axis past the rim.
+technique: [flat]
+subject: []
+lineage: [modernism]
+sources:
+  - kind: recreation
+    title: Beat the Whites with the Red Wedge
+    author: El Lissitzky
+    year: 1919
+    url: https://en.wikipedia.org/wiki/Beat_the_Whites_with_the_Red_Wedge
+added: 2026-09-27
+model: claude-opus-5-5
+license: CC0-1.0

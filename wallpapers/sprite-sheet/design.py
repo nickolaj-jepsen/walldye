@@ -1,4 +1,4 @@
-"""A PICO-8-style sprite editor: a campfire sprite zoomed on the edit grid beside the half-filled sheet it was picked from, in pixel runs and bitmap labels."""
+"""A PICO-8-style sprite editor with a zoomed sprite beside its sheet."""
 
 from walldye import (
     ACCENT,

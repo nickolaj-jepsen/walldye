@@ -1,4 +1,4 @@
-"""A watch movement in plan: wheels, bridges and balance as a technical drawing in which each part hides the ones beneath, with the hairspring picked out."""
+"""A watch movement in plan, drawn as a technical drawing where each part hides the ones beneath."""
 
 import math
 from dataclasses import dataclass

@@ -1,5 +1,6 @@
 title: Iron filings
-description: Iron filings bristle at the ends of a tilted bar magnet and chain from pole to pole.
+description: Iron filings become tiny magnets and line up along the field lines of a bar magnet.
+alt: Short dashes crowd the ends of a small bar magnet and curve in loops from one end to the other, thinning out toward the edges.
 notes: |
   Faraday fixed patterns like this on waxed paper in 1851. Here each stroke is turned along the field of point poles set just inside each magnet's ends, and the strokes gather on curves where the Stokes stream function is constant.
 technique: [field]
@@ -21,7 +22,9 @@ variants:
     label: Bar magnet
   repelling:
     label: Like poles facing
-    description: Two bar magnets lie end to end with their north poles facing, so the filings between them turn aside and stream out sideways.
+    alt: Two bar magnets lie end to end, each wrapped in its own loops of short dashes, with an empty gap between them.
+    description: Facing like poles repel, so the filings between two bar magnets turn aside instead of joining them.
   horseshoe:
     label: Horseshoe magnet
-    description: Iron filings drawn as short strokes bridge the two tips of a horseshoe magnet and fan out around its arms.
+    alt: A horseshoe magnet stands open end up, with short dashes crowded between its two tips and curving out in loops around the arms.
+    description: A horseshoe magnet bends a bar into a U to bring both poles close, which strengthens the field between them.

@@ -1,4 +1,4 @@
-"""A flat Miura-ori crease pattern with one lens of it folded up, each facet shaded in steps by how it faces the light."""
+"""A Miura-ori crease pattern with one patch folded up and shaded."""
 
 import math
 

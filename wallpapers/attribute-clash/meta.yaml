@@ -1,7 +1,8 @@
 title: Attribute clash
-description: A night road in ordered dither on a ZX Spectrum screen. The car's tail lights recolor every 8x8 attribute cell they touch.
+description: A night road on a ZX Spectrum screen, where each 8x8 block of pixels holds only two colors.
+alt: 'A straight road with a dashed center line runs to a dotted hill line under scattered stars; a car''s tail lights leave dashed streaks below.'
 notes: |
-  The ZX Spectrum stored color once per 8x8 block of pixels, one ink and one paper for the whole block. Anything lit inside a block recolors every ink pixel in it, and that spill is attribute clash.
+  A block has one ink, the color of its lit pixels, and one paper. Anything lit inside a block recolors every ink pixel in it, and that spill is attribute clash.
 technique: [pixel, dither]
 subject: [computing]
 lineage: [vintage-computers]

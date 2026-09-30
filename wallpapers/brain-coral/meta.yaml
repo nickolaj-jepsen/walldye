@@ -1,7 +1,8 @@
 title: Brain coral
-description: Alone on a bare seabed, a brain coral's reaction-diffusion ridges step down into shadow from the upper left.
+description: A brain coral head is one colony of genetically identical polyps, with a grooved surface like a brain's.
+alt: A dome of winding, maze-like ridges rests on a flat seabed line, its surface stepping down in flat tones from the upper left.
 notes: |
-  Two simulated chemicals react and spread across a wrap-around grid for ten thousand steps until they settle into winding ridges, with feed and kill rates close to those Karl Sims gives for coral growth. The grid is mapped onto the dome and stretched towards the rim, so the grooves bunch up where the surface turns away. Shading from one light above and to the left is cut into four flat bands, and a thin bare margin runs between the ridges and the outline.
+  Two simulated chemicals react and spread across a wrap-around grid for ten thousand steps until they settle into winding ridges, with feed and kill rates close to those Karl Sims gives for coral growth. The grid is mapped onto the dome and stretched towards the rim, so the grooves bunch up where the surface turns away. Shading from one light above and to the left is cut into four flat bands.
 technique: [simulation]
 subject: [flora-fauna]
 lineage: []

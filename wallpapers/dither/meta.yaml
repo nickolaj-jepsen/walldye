@@ -1,5 +1,6 @@
 title: Banded dither
-description: Ordered dither in four bands rises from the bottom edge and thins out before the top third.
+description: Ordered dither compares each pixel with a fixed, repeating threshold pattern, so equal tones always give the same dots.
+alt: Small square dots fill the lower two thirds in bands, solid along the bottom edge and thinning upward to bare background.
 technique: [dither]
 subject: []
 lineage: []

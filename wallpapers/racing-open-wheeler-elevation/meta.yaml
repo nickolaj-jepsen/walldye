@@ -1,9 +1,10 @@
 title: Open-wheeler elevation
-description: A 2026 Formula 1 car dimensioned in side elevation. An enlarged section of its rear wing shows the flap in both positions.
+description: A side view of a 2026 Formula 1 car, whose wheelbase the rules cut by 200 mm to 3400 mm.
+alt: A side view of an open-wheel race car with dimension lines for height and length, and a circled enlargement of its rear wing.
 notes: |
-  The drawing is laid out in the coordinates of the FIA's 2026 technical regulations, which describe most of the car as volumes it has to fit inside. The wheelbase is at most 3400 mm, the nose ends no more than 1300 mm ahead of the front axle, the roll hoop may reach 970 mm above the flat reference plane under the floor, and the rear crash structure ends 750 mm behind the final drive. The tires are 705 mm across at the front and 710 mm at the rear, on 18-inch rims. Compared with the 2022 cars, the beam wing under the rear wing and the arches over the front wheels are gone, and a tall board stands on the floor ahead of each sidepod. Where the rules leave room, the shapes follow photos of the 2026 cars on track.
+  The drawing is laid out in the coordinates of the FIA's 2026 technical regulations, which describe most of the car as volumes it has to fit inside. The nose ends no more than 1300 mm ahead of the front axle, the roll hoop may reach 970 mm above the flat reference plane under the floor, and the rear crash structure ends 750 mm behind the final drive. The tires are 705 mm across at the front and 710 mm at the rear, on 18-inch rims. Compared with the 2022 cars, the beam wing under the rear wing and the arches over the front wheels are gone, and a tall board stands on the floor ahead of each sidepod. Where the rules leave room, the shapes follow photos of the 2026 cars on track.
 
-  Both wings now move. On the straights the rear wing's two flaps turn flatter together about a hinge in their back half, the dashed position in detail A. The regulations leave the angle to each team, so the one drawn is a guess. Every wing element is a NACA four-digit section turned upside down, and the streamlines are sketched rather than simulated.
+  Both wings now move. On the straights the rear wing's two flaps turn flatter together about a hinge in their back half. The regulations leave the angle to each team, so the one drawn is a guess. Every wing element is a NACA four-digit section turned upside down, and the streamlines are sketched rather than simulated.
 technique: [drafting]
 subject: [sport, machines]
 lineage: [patent-drawings]
@@ -41,4 +42,4 @@ variants:
     label: With dimensions
   undimensioned:
     label: Without dimensions
-    description: A 2026 Formula 1 car in side elevation. An enlarged section of its rear wing shows the flap in both positions.
+    alt: A side view of an open-wheel race car on a ground line, with a circled enlargement of its rear wing showing the flaps.

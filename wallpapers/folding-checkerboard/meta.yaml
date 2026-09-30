@@ -1,0 +1,16 @@
+title: Folding checkerboard
+description: Squares of one height that shrink in width toward a line make a flat checkerboard seem to fold.
+alt: A four-row checkerboard narrows to thin strips at a shallow fold on the left and a tinted, deeper fold on the right.
+notes: |
+  The narrowing columns come from Bridget Riley's *Movement in Squares* (1961), where they narrow toward the center of the painting. Here the narrowing happens at two folds of different depth, in a frieze instead of a square canvas.
+technique: [flat]
+subject: []
+lineage: [op-art]
+sources:
+  - kind: inspiration
+    title: Movement in Squares
+    author: Bridget Riley
+    year: 1961
+    url: https://www.artscouncilcollection.org.uk/artwork/movement-squares
+added: 2026-09-27
+model: claude-opus-5-5

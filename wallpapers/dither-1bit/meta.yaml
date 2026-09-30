@@ -1,5 +1,6 @@
 title: Diagonal dither
-description: Single-ink ordered dither in fine square cells thickens diagonally, from an empty upper left to a dense lower right corner.
+description: A one-bit image has only two tones, so a diagonal ramp has to be made from the density of dots.
+alt: From an empty upper left, square dots grow more frequent toward the lower right corner, where they pack into a dense checker.
 technique: [dither]
 subject: []
 lineage: []

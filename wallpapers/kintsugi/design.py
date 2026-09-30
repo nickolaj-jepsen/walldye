@@ -1,4 +1,4 @@
-"""A bowl seen from above, its cracks mended with lacquer seams of varying width and one rim chip filled solid."""
+"""A bowl seen from above with kintsugi seams mending its cracks."""
 
 import math
 

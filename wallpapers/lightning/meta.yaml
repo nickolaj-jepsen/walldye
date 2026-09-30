@@ -1,9 +1,10 @@
 title: Lightning
-description: One jagged channel of lightning drops from a dithered cloud base and lights the ground where it lands. Its branches fork downward and thin out.
+description: A lightning flash is the return stroke back up the path a stepped leader took to the ground.
+alt: A single jagged bolt drops from a band of cloud at the top to the ground at the bottom, with thinner branches forking off downward.
 notes: |
   The channel is built by midpoint displacement. The straight line from cloud to ground is split at its middle and the new point pushed sideways at random, then each half is split the same way until the segments are short. Every push scales with the segment it bends, so the large kinks and the small ones look alike. Branches leave the channel twenty to fifty degrees off its heading, always pointing down and shorter the lower they start, and a few fork again.
 
-  In a real strike the stepped leader branches as it works its way down, and the branch that touches the ground carries the return stroke, the most luminous part of the flash. Here that channel glows through a stack of strokes, widest and faintest outside, and the dither thickens where the flash reaches the cloud and the ground.
+  The channel glows through a stack of strokes, the widest on the outside.
 technique: [line, dither]
 subject: [physics, landscape]
 lineage: []

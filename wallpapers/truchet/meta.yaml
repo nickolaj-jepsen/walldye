@@ -1,5 +1,6 @@
 title: Truchet tiles
-description: Randomly turned quarter-circle tiles join into winding paths and rings, a round patch right of center picked out.
+description: Truchet tiles carry two quarter-circle arcs ending at edge midpoints, so any arrangement joins into continuous curves.
+alt: A field of quarter-circle arcs joined into winding paths and closed rings, with one round patch right of center in a different tone.
 technique: [tiling]
 subject: [maths]
 lineage: []

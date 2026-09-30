@@ -1,5 +1,6 @@
 title: Dithered sun
-description: Square cells build a solid sun inside a halo that dithers out into checkers and loose dots.
+description: Haze scatters sunlight forward, so the sky around the sun is bright and fades with distance.
+alt: A solid round sun right of center, ringed by a wide halo that thins from flat bands to fine dots and then scattered dots.
 technique: [dither]
 subject: [space]
 lineage: []

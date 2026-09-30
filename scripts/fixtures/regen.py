@@ -32,9 +32,9 @@ from fixtures.pieces import RECOLOR_THEMES, install
 
 REFERENCE = paths.ROOT / "tests/fixtures"
 # Every template of these pieces gets reference renders under RECOLOR_THEMES.
-REFERENCE_PIECES = ["dither-moon", "radar-sweep", "schotter"]
+REFERENCE_PIECES = ["dither-moon", "radar-sweep", "loose-squares"]
 # The resvg-wasm parity reference: slug, aspect, theme, width in px.
-RESVG = ("schotter", "16:9", "nord", 960)
+RESVG = ("loose-squares", "16:9", "nord", 960)
 THEMES_SEED, THEMES_PER_REGIME = 1, 20
 # Seed triples where regime selection is closest to a tie.
 EDGE_CASES = [

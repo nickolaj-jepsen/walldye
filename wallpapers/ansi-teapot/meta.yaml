@@ -1,7 +1,8 @@
 title: ANSI teapot
-description: The Utah teapot in text-mode block characters, shaded with half blocks and dotted glyphs that thicken into a glint on its belly.
+description: The Utah teapot, a standard test model in 3D graphics, in text-mode block characters.
+alt: A teapot of square character cells faces left, with faint steam above the lid and a glint on its belly.
 notes: |
-  The body and lid are turned from the profile curves of Martin Newell's 1975 teapot, and the handle and spout are swept tubes. Each character cell takes one of five shading steps: solid shadow, three densities of dotted shade glyph, or solid highlight. Half blocks trace the silhouette at twice the vertical detail, and cells where the lid, handle and spout meet the body drop to the shadow step, like inked seams. Where the belly turns toward the light, the shading carries on past the solid highlight: the same three glyphs, now in a second color, pick out a glint and close on a solid core, the way ANSI artists blend one color into the next.
+  The body and lid are turned from the profile curves of Martin Newell's 1975 teapot, and the handle and spout are swept tubes. Each character cell takes one of five shading steps: solid shadow, three densities of dotted shade glyph, or solid highlight. Half blocks trace the silhouette at twice the vertical detail, and cells where the lid, handle and spout meet the body drop to the shadow step. Where the belly turns toward the light, the shading carries on past the solid highlight in a second color: the same three glyphs, closing on a solid core, as ANSI artists blend one color into the next.
 technique: [glyph]
 subject: [computing]
 lineage: [vintage-computers]

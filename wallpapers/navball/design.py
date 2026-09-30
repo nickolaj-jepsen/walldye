@@ -1,4 +1,4 @@
-"""A spacecraft attitude ball at an odd tilt: an orthographic latitude-longitude sphere split at its horizon, in a ticked bezel."""
+"""A spacecraft attitude ball in orthographic projection, split at its horizon inside a ticked bezel."""
 
 import math
 

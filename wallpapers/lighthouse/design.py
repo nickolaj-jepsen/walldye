@@ -1,4 +1,4 @@
-"""Patent-style elevation of a lighthouse on its rock, the lamp's rays ruled out across the sea."""
+"""A lighthouse on its rock as a patent-style elevation."""
 
 import math
 

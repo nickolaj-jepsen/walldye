@@ -1,4 +1,4 @@
-"""Iron filings over a magnet: short strokes turned along the field of point poles, gathered into chains on the level sets of its stream function."""
+"""Iron filings over a magnet: short strokes turned along the field of point poles, gathered on the level sets of its stream function."""
 
 import math
 from typing import Literal

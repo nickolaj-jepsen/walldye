@@ -1,4 +1,4 @@
-"""A sunspot in solar granulation: inset Voronoi granules foreshortened towards the limb around tapered penumbral filaments and a lobed umbra."""
+"""A sunspot in solar granulation, in Voronoi cells and penumbral filaments."""
 
 import math
 

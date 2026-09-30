@@ -1,4 +1,4 @@
-"""Times-table string art: each nail on a ring is strung to the nail k times its number, and the strings are lit where their envelope folds into a cusp."""
+"""Times-table string art: each nail on a ring is strung to the nail at a multiple of its number."""
 
 import math
 from itertools import pairwise

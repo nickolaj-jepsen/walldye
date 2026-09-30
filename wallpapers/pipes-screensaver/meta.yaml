@@ -1,0 +1,19 @@
+title: Pipes screensaver
+description: pipes.sh is a Bash screensaver that grows pipes from box-drawing characters.
+alt: Right-angled lines cross the screen, a few broken where another passes over, and one line ends at the left in a small solid block.
+notes: |
+  Matthew Simpson posted pipes.sh to the Arch Linux forums in early 2010. Here each pipe is a random walk that has to leave the screen again. Of forty tries per pipe, the one that best fills the emptiest part of the screen is kept, and no pipe enters the top-left corner.
+technique: [glyph]
+subject: [computing]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: pipes.sh
+    author: Matthew Simpson and Pipeseroni
+    year: 2010
+    url: https://github.com/pipeseroni/pipes.sh
+  - kind: inspiration
+    topic: 3D Pipes
+    author: Microsoft
+added: 2026-09-27
+model: claude-opus-5-5

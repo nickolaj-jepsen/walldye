@@ -1,4 +1,4 @@
-"""Koi seen from above: bodies unioned from discs along swimming spines, noise-edged patches, teardrop fins and ripple rings."""
+"""Koi seen from above in flat shapes, with ripple rings."""
 
 import math
 from typing import NamedTuple

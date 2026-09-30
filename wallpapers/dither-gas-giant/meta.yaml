@@ -1,7 +1,10 @@
 title: Dithered gas giant
-description: A banded gas giant in Stucki dither fills the lower right. Under its one lit belt, a storm oval is flecked with grain.
+description: Jet streams that blow east and west in turn bound the bands of a gas giant.
+alt: A banded planet fills the lower right corner, with an oval storm of small dots on its face and a grainy edge.
 notes: |
-  The bands are a sine of latitude, roughened by value noise stretched along them and strongest at the band edges. The storm swirls those sampling coordinates inside an ellipse, and the disc dims toward its limb.
+  The bands are a sine of latitude, roughened by value noise stretched along them and strongest at the band edges. The storm swirls those sampling coordinates inside an ellipse, and the disc dims toward its limb, the planet's edge.
+
+  Stucki's error diffusion spreads each pixel's rounding error over twelve neighbors.
 technique: [dither]
 subject: [space]
 lineage: []

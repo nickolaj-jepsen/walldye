@@ -1,4 +1,4 @@
-"""An LP cut off by the screen edge: jittered concentric grooves in five tracks, two stepped sheen wedges and a lead-out spiral into the label."""
+"""An LP cut off by the screen edge: jittered concentric grooves in five tracks and a lead-out spiral."""
 
 import math
 from itertools import pairwise

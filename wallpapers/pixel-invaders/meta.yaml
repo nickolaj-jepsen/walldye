@@ -1,5 +1,6 @@
 title: Pixel invaders
-description: One crab peels away from five faint rows of pixel-art invaders and dives along a dotted trail.
+description: A *Space Invaders* formation, where the aliens speed up as fewer remain because the hardware has less to redraw.
+alt: Five rows of pixel aliens stand above three bunkers; a dotted curve leads from a gap in the rows to one crab below.
 notes: |
   Aliens that break formation and dive at the player came a year after *Space Invaders*, in Namco's *Galaxian*.
 technique: [pixel]

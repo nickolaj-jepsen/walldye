@@ -194,9 +194,9 @@ docstring and comments. On top of them:
 - Write the alt text from the preview, and the description's fact from the sources; don't
   open a description the way the last few pieces do (`walldye list` shows them).
 - Run the avoid-ai-tropes skill on every draft.
-- The color-word lint is a plain word list that also matches plurals, so "golden section",
-  "black" and "grays" trip it. It does not know temperatures ("warm", "cool"); avoid those by
-  hand.
+- The color-word lint is a plain word list that also matches plurals, so "black" and "grays"
+  trip it ("golden ratio" and its kin do not). It does not know temperatures ("warm",
+  "cool"); avoid those by hand.
 
 ## Examples
 
@@ -209,8 +209,8 @@ Start from the nearest of these published pieces, each at `wallpapers/<slug>/des
 | `glyph-terrain` | glyph roles, `by_regime` colors, a map turned for portrait screens |
 | `pixel-invaders` | sprites stamped into one `Pixels` grid, dive trail included |
 | `patent-lamp` | a patent figure placed by one transform, ruled shading and stipple |
-| `eclipse-contours` | iso-lines in a clip, in under 50 lines |
-| `ribbons` | a flow field of collision-checked streamlines |
+| `noise-contours` | iso-lines in a clip, in under 50 lines |
+| `flow-field-ribbons` | a flow field of collision-checked streamlines |
 | `hitomezashi` | a stitch tiling that runs past every edge |
 | `star-chart` | real data read with `s.data`, a `data` source, a variant for another sky |
 

@@ -1,4 +1,4 @@
-"""A stereographic star atlas: an RA/Dec graticule and the galactic equator over Hipparcos stars dotted by magnitude, with one constellation traced."""
+"""A stereographic star atlas page with Hipparcos stars and one constellation traced."""
 
 import itertools
 from typing import Literal, TypedDict

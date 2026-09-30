@@ -1,4 +1,4 @@
-"""Monaco as a figure-ground map of flat building blocks, the circuit traced through its streets and the blocks over its tunnel lit from below."""
+"""Monaco as a figure-ground map of flat building blocks with the circuit traced through its streets."""
 
 import math
 

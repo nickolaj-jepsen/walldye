@@ -1,4 +1,4 @@
-"""A curved CRT face whose only picture is a round lit patch, drawn by scanlines that swell where it is lit."""
+"""A curved CRT face drawn as scanlines that swell into one round patch."""
 
 import math
 

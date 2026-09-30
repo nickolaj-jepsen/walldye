@@ -1,5 +1,6 @@
 title: Pond ripples
-description: Raindrop ripples cross on a pond in perspective and cancel into checkers. The nearest ripple and its drop are picked out.
+description: Ripples from different raindrops pass through each other, so their rings overlap instead of bouncing apart.
+alt: Elliptical rings spread across the lower half, breaking into checkers where they overlap, with a tiny dot above the small set at the right.
 notes: |
   Each ring is a band between two ellipses. The far ripples are filled as one shape in which any spot covered twice is left empty, so where two ripples cross, their bands break into a checkerboard. Ring spacing grows with distance below the horizon, as on a level surface seen in perspective, and the farthest ripples fade out before they reach it.
 technique: [line]

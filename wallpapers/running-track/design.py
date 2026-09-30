@@ -1,4 +1,4 @@
-"""A 400 m athletics track in plan, drawn to scale and cropped past one bend: the 200 m staggered starts, and lane 4's race picked out to the finish."""
+"""A 400 m athletics track in plan, drawn to scale and cropped past one bend, with the 200 m staggered starts."""
 
 import math
 from itertools import pairwise

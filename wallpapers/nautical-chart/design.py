@@ -1,4 +1,4 @@
-"""A corner of a sea chart: a noise-field coast with isobaths traced from its distance field, soundings, the marks and lights of one way in, and a compass rose."""
+"""A sea chart: noise-field coast, depth contours, soundings, lights and a track."""
 
 import math
 from collections.abc import Callable

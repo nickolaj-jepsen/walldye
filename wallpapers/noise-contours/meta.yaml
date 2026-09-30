@@ -1,0 +1,16 @@
+title: Noise contours
+description: A disc of contour lines from fractal noise, which adds finer detail at every scale.
+alt: Contour lines fill a disc, packed close near its edge and around a blank patch at left, inside a heavy ring and a faint one.
+technique: [field]
+subject: [space]
+lineage: []
+sources:
+  - kind: reference
+    topic: Marching squares
+    url: https://en.wikipedia.org/wiki/Marching_squares
+  - kind: reference
+    topic: FBM
+    author: Inigo Quilez
+    url: https://iquilezles.org/articles/fbm/
+added: 2026-09-27
+model: claude-opus-5-5

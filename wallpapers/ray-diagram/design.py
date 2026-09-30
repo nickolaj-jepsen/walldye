@@ -1,4 +1,4 @@
-"""A Keplerian telescope as a paraxial ray diagram with section-hatched lenses; one star's rays are lit between objective and eyepiece."""
+"""A Keplerian telescope as a paraxial ray diagram with hatched lenses."""
 
 import math
 from collections.abc import Sequence

@@ -1,4 +1,4 @@
-"""An Apollonian gasket grown from four tangent circles by Descartes' theorem, drawn as hairlines, with one tangent chain into a cusp filled in."""
+"""An Apollonian gasket grown from four tangent circles by Descartes' theorem, drawn as hairlines."""
 
 import math
 from collections import deque

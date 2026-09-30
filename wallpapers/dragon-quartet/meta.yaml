@@ -1,7 +1,8 @@
 title: Dragon quartet
-description: 'Four Heighway dragons pinwheel from one point: three in faint outline, the fourth filled in.'
+description: A paper strip folded in half repeatedly and opened to right angles at each crease forms a Heighway dragon.
+alt: Four jagged dragon shapes built from small squares are arranged around one point; three are thin outlines and the fourth is solid.
 notes: |
-  Fold a strip of paper in half ten times, open every crease to a right angle, and its edge traces a Heighway dragon of 1,024 steps. Here each step becomes a small square with the step as its diagonal. Four copies, each a quarter turn from the next around their shared start, fit together without overlapping.
+  Ten folds give a dragon of 1,024 steps. Here each step becomes a small square with the step as its diagonal. Four copies, each a quarter turn from the next around their shared start, fit together without overlapping.
 technique: [line, flat]
 subject: [maths]
 lineage: []

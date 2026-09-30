@@ -1,4 +1,4 @@
-"""Sand splines after Anders Hoff: dash-stippled Catmull-Rom strands random-walk from near-pinned ends and pile into grainy bands, one picked out where it frays."""
+"""Sand splines: dash-stippled Catmull-Rom strands that random-walk into grainy bands."""
 
 import numpy as np
 

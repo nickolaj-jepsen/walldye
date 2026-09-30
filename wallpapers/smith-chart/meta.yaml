@@ -1,5 +1,6 @@
 title: Smith chart
-description: 'An impedance match on a Smith chart: a dashed arc for the line, then a series reactance down to the center.'
+description: A Smith chart maps every transmission-line impedance into one circle, with a perfect match at the center.
+alt: A circular grid of arcs, crossed by a dashed arc from an open ring and a solid curve down to a dot at the center.
 notes: |
   Phillip H. Smith published the chart in 1939 as a calculator for transmission lines. Each point on it is a reflection coefficient; the circles hold resistance constant and the arcs reactance, and all of them meet at the open-circuit point.
 

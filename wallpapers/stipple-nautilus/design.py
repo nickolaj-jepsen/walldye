@@ -1,4 +1,4 @@
-"""A halved nautilus shell as a weighted-Voronoi stipple plate, its innermost chambers picked out."""
+"""A halved nautilus shell as a weighted-Voronoi stipple plate."""
 
 import math
 

@@ -1,4 +1,4 @@
-"""A great comet: syndyne dust lines, integrated along a parabolic orbit, fan from the nucleus and curl away from a straight ion tail."""
+"""A comet's dust tail as syndyne lines integrated along a parabolic orbit, beside a straight ion tail."""
 
 import math
 

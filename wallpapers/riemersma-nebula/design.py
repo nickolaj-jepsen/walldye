@@ -1,4 +1,4 @@
-"""An emission nebula cut by dust lanes beside open starfield, quantized to square cells by Riemersma dithering along a Hilbert curve."""
+"""An emission nebula with dust lanes, dithered along a Hilbert curve by Riemersma's method."""
 
 import numpy as np
 from numpy.typing import NDArray

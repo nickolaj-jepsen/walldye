@@ -1,9 +1,10 @@
 title: Emission nebula
-description: Dithered along a Hilbert curve, an emission nebula thins from its core through dust-torn gas into open sky.
+description: An emission nebula glows because ultraviolet light from a nearby hot star ionizes its gas.
+alt: A rounded cloud in grainy speckle fills the upper right, dense at its center and ragged at the edges, against sparse specks of stars.
 notes: |
   Riemersma dithering visits the cells in the order of a Hilbert curve, a path that fills the grid without crossing itself. Each cell takes on the rounding errors of the last few cells before it on the path, the most recent counting most.
 
-  The gas is a warped noise field inside two tilted ovals, a wide thin one and a small dense one, with ridged noise for the dust. Stars over the nebula are fewer and fainter than in the open sky.
+  The gas is a warped noise field inside two tilted ovals, a wide thin one and a small dense one, with ridged noise for the dust.
 technique: [dither]
 subject: [space]
 lineage: []

@@ -106,7 +106,7 @@ def test_gauss_is_the_exp_idiom():
 
 
 def attractor(n=48):
-    """A smooth blobby density on an n x n grid, like dejong-veil's histogram after blurring."""
+    """A smooth blobby density on an n x n grid, like de-jong-attractor's histogram after blurring."""
     y, x = np.mgrid[0:n, 0:n] / n
     return np.exp(-((x - 0.35) ** 2 + (y - 0.4) ** 2) / 0.02) + 0.8 * np.exp(
         -((x - 0.7) ** 2 + (y - 0.62) ** 2) / 0.01
@@ -200,7 +200,7 @@ def test_sample_field_matches_v1_on_eclipse_contours():
     cx, cy = 900, 540
     ox, oy = cx - half * cell, cy - half * cell
 
-    def f(i, j):  # eclipse-contours' scalar field, as v1's sample_field called it
+    def f(i, j):  # noise-contours' scalar field, as v1's sample_field called it
         dx, dy = ox + i * cell - cx, oy + j * cell - cy
         d = math.hypot(dx, dy) / 330
         return n.fbm(2.95 + dx / 420, 1.29 + dy / 420, 4) - 0.9 * max(0.0, d - 0.85)

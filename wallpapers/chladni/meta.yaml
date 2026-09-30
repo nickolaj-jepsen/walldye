@@ -1,5 +1,6 @@
 title: Chladni figure
-description: 'Sand marks the still lines of a vibrating plate: two diagonals and a ring of small loops around a lit one.'
+description: 'Sand on a vibrating plate collects along the lines that stay still.'
+alt: 'Thin lines of dots form two diagonals and a cross, with a ring of small loops around one larger loop in a second tone.'
 notes: |
   Ernst Chladni bowed the edges of sand-covered plates and drew the figures the sand made where the plate stood still. This plate follows a common approximation for a square plate, cos(nπx) cos(mπy) − cos(mπx) cos(nπy), where n and m count half-waves across it. When both are odd the diagonals and midlines always stay still, and a larger pair sounds a higher note.
 technique: [stipple]
@@ -18,7 +19,7 @@ variants:
     label: Middle note
   low:
     label: Lower note
-    description: At a lower note, sand on the square plate traces diagonals, midlines and edge arcs around one wide loop.
+    alt: Thin lines of dots form two diagonals and a cross, with a few arcs at the edges around one wide loop in a second tone.
   high:
     label: Higher note
-    description: A higher note shakes the sand into a lattice of small loops along the plate's diagonals and midlines.
+    alt: Thin lines of dots form two diagonals and a cross, with a lattice of many small loops around one small loop in a second tone.

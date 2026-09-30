@@ -1,4 +1,4 @@
-"""A ringed planet lit from behind in flat pixel shading: a thin crescent, a banded night side, a tilted ring."""
+"""A ringed planet lit from behind in flat pixel shading."""
 
 import math
 

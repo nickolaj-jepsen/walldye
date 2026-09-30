@@ -1,4 +1,4 @@
-"""A Smith chart too large for the screen, its grid drawn as exact arcs, with a two-step matching path from a load to the center."""
+"""A Smith chart with a two-step impedance match from a load to the center."""
 
 import math
 

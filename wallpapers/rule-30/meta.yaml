@@ -1,7 +1,8 @@
 title: Rule 30
-description: Rule 30 grows from one cell into a triangle of irregular cells, its random center column picked out.
+description: Each row of Rule 30 follows from the one above by a fixed rule, yet its center column looks random.
+alt: A triangle of small squares widens from one at the top edge, its interior irregular, with a broken vertical line down the center.
 notes: |
-  Each row is the next generation of the row above: a cell becomes `left XOR (center OR right)` of the three cells over it. Diagonal stripes run down the left flank, while the rest shows no repeating pattern. Wolfram proposed the center column as a random number generator, and Mathematica once used it to make random integers.
+  Each row is the next generation of the row above: a cell becomes `left XOR (center OR right)` of the three cells over it. Wolfram proposed the center column as a random number generator, and Mathematica once used it to make random integers.
 technique: [simulation, pixel]
 subject: [maths]
 lineage: []
@@ -21,7 +22,9 @@ variants:
     label: Rule 30
   rule-90:
     label: Rule 90
-    description: Rule 90 grows from one cell into a Sierpinski triangle of nested empty triangles, both edges lit.
+    alt: Nested empty triangles fill a larger triangle that widens down the screen, its two slanting edges drawn as lines of squares.
+    description: 'Rule 90 adds each cell''s two neighbors modulo 2, which draws a Sierpinski triangle from a single cell.'
   rule-110:
     label: Rule 110
-    description: Rule 110 grows leftward from one cell into a wedge of interlocking triangles along a straight, lit edge.
+    alt: A wedge of interlocking small triangles widens leftward from a straight vertical edge at the right.
+    description: Rule 110 is Turing complete, so a row of cells can in principle run any computation.

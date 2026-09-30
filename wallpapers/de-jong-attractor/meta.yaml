@@ -1,0 +1,21 @@
+title: De Jong attractor
+description: A point moved again and again by Peter de Jong's sine and cosine formula settles onto a folded shape.
+alt: A curled, shell-like form of overlapping bands fills the right half of the screen, its densest stretch near the middle drawn as a narrow streak.
+notes: |
+  Peter de Jong's map moves a point to `x' = sin(a y) - cos(b x)`, `y' = sin(c x) - cos(d y)`. Four hundred thousand random starting points take 170 steps each, and every position after the first twenty is counted on a grid. The counts are smoothed on a log scale and cut at fixed levels, so the edge of each step follows a fold. The default version uses a = -2, b = -2, c = -1.2 and d = 2, one of the sets on Paul Bourke's page.
+technique: [simulation]
+subject: [maths]
+lineage: [creative-coding]
+sources:
+  - kind: reference
+    topic: Peter de Jong Attractors
+    author: Paul Bourke
+    url: https://paulbourke.net/fractals/peterdejong/
+added: 2026-09-27
+model: claude-opus-5-5
+variants:
+  default:
+    label: Curled shell
+  dome:
+    label: Dome over a cusp
+    alt: Overlapping bands form a dome, notched at its lower right, across the right half of the screen, with a narrow streak down its middle.

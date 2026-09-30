@@ -1,7 +1,8 @@
 title: Lorenz attractor
-description: A faint Lorenz trajectory loops both wings of the attractor. One crossing between them is lit.
+description: Solutions to Edward Lorenz's three equations for convection circle two wings and never settle or repeat.
+alt: Fine overlapping loops form two lobes side by side, and a single stroke sweeps from the top of the left lobe into the right one.
 notes: |
-  Edward Lorenz cut a model of convection down to three equations, `dx/dt = σ(y − x)`, `dy/dt = x(ρ − z) − y` and `dz/dt = xy − βz`. With σ = 10, ρ = 28 and β = 8/3 a solution never settles and never repeats: it circles one wing, then the other, in no fixed order. This one starts near the origin and takes 25,500 fourth-order Runge–Kutta steps of 0.004, of which the first 500 are dropped. It is seen from the side, across x and z, turned 14 degrees. The lit stretch is the crossing that follows its longest stay on one wing in the first half of the run.
+  The equations are `dx/dt = σ(y − x)`, `dy/dt = x(ρ − z) − y` and `dz/dt = xy − βz`, from Lorenz's 1963 reduction of a convection model. With σ = 10, ρ = 28 and β = 8/3 the orbit circles one wing, then the other, in no fixed order. This one starts near the origin and takes 25,500 fourth-order Runge–Kutta steps of 0.004, of which the first 500 are dropped. It is seen from the side, across x and z, turned 14 degrees.
 technique: [simulation, line]
 subject: [maths]
 lineage: []

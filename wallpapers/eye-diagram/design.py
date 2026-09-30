@@ -1,4 +1,4 @@
-"""An oscilloscope eye diagram: random bit streams folded onto two bit periods and dithered in square cells, with a hexagonal test mask and three hits inside it."""
+"""An oscilloscope eye diagram of random bit streams, dithered in square cells, with a hexagonal test mask."""
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray

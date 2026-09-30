@@ -1,7 +1,8 @@
 title: Roguelike level
-description: In a NetHack-style text dungeon, the @ carries a torch through an unlit room, lighting the floor in rings.
+description: NetHack shows a level with - and | for walls, . for floor and @ for the player.
+alt: Six walled rooms drawn in text characters, joined by corridors, all faint except the floor around an @ in the lower middle room.
 notes: |
-  The map is split in two again and again, with one room in each piece. Every corridor is the cheapest path between two rooms and reuses earlier corridors and doors where it can. The west of the level is still unexplored, so it stays blank.
+  The map is split in two again and again, with one room in each piece. Every corridor is the cheapest path between two rooms and reuses earlier corridors and doors where it can.
 technique: [glyph]
 subject: [games]
 lineage: []

@@ -109,7 +109,7 @@ afterEach(() => {
 describe('resolution and persistence', () => {
   let env: Env;
   beforeEach(() => {
-    env = stubBrowser('https://walldye.com/schotter');
+    env = stubBrowser('https://walldye.com/loose-squares');
   });
 
   it('follows the system scheme while nothing is shared or saved', () => {
@@ -209,11 +209,11 @@ describe('resolution and persistence', () => {
   });
 
   it('copies a valid ?t= into the session and strips it from the address', () => {
-    env = stubBrowser('https://walldye.com/schotter?crop=0.4&t=2E3440-ECEFF4-88c0d0#x');
+    env = stubBrowser('https://walldye.com/loose-squares?crop=0.4&t=2E3440-ECEFF4-88c0d0#x');
     takeSharedParam();
     expect(env.session.getItem(STORAGE_KEY)).toBe('nord');
     expect(env.local.getItem(STORAGE_KEY)).toBeNull();
-    expect(env.replaced).toEqual(['https://walldye.com/schotter?crop=0.4#x']);
+    expect(env.replaced).toEqual(['https://walldye.com/loose-squares?crop=0.4#x']);
     expect(resolveTheme().source).toBe('shared');
   });
 

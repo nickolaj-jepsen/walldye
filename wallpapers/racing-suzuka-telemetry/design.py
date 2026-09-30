@@ -1,4 +1,4 @@
-"""Verstappen's 2024 Suzuka pole lap as a telemetry plot of speed, throttle and brake over distance, the heavy stops picked out on a track map."""
+"""Verstappen's 2024 Suzuka pole lap as a speed, throttle and brake telemetry plot with a track map."""
 
 import numpy as np
 from numpy.typing import NDArray

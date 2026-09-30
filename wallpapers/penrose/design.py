@@ -1,4 +1,4 @@
-"""Penrose P3 rhomb tiling by Robinson-triangle deflation; the rhombs round one five-fold vertex are filled in rings that fade outward."""
+"""Penrose P3 rhomb tiling by Robinson-triangle deflation."""
 
 from typing import Literal
 

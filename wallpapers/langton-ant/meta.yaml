@@ -1,9 +1,10 @@
 title: Langton's ant
-description: Langton's ant churns a chaotic blob for ten thousand steps, then builds a diagonal highway off the screen.
+description: Langton's ant follows two turning rules on a grid, and its path looks random for about ten thousand steps.
+alt: A tangled cluster of square cells near the center, and a straight diagonal band of zigzag cells runs from it off the lower right edge.
 notes: |
-  The ant walks a grid of empty cells. On an empty cell it turns one way and on a filled one the other; either way it flips the cell and steps forward. For about ten thousand steps the pattern looks random. Then the ant falls into a cycle of 104 steps that carries it two cells along a diagonal, over and over. Every finite starting pattern tried so far ends in the same highway, but no one has proved that all of them do.
+  The ant walks a grid of empty cells. On an empty cell it turns one way and on a filled one the other; either way it flips the cell and steps forward. Then it falls into a cycle of 104 steps that carries it two cells along a diagonal, over and over. Every finite starting pattern tried so far ends in the same highway, but no one has proved that all of them do.
 
-  Each cell is toned by when the ant first reached it. The first stretch of the highway keeps the tones of the blob; after that its edges light up, then fade again towards the frame.
+  Each cell is toned by when the ant first reached it.
 technique: [simulation, pixel]
 subject: [maths]
 lineage: []

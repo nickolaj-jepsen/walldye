@@ -1,4 +1,4 @@
-"""A tiling window manager's spiral layout: windows cut from each side in turn, winding in to the focused one, as thin outlines."""
+"""A tiling window manager's spiral layout drawn as thin window outlines."""
 
 from typing import NamedTuple
 
