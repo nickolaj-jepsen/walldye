@@ -1,0 +1,18 @@
+title: Tiled windows
+description: Window outlines spiral inward with even gaps, each cut taking one side of what is left, down to a focused window holding a few lines of code.
+notes: |
+  The layout follows a tiling window manager's spiral scheme: each new window splits the focused one from the next side in turn, so the windows wind in on themselves. The text in the focused window is made up, drawn as bars.
+technique: [flat]
+subject: [computing]
+lineage: []
+sources:
+  - kind: inspiration
+    topic: bspwm
+    url: https://github.com/baskerville/bspwm
+  - kind: reference
+    topic: i3
+    url: https://i3wm.org/
+added: 2026-09-30
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}

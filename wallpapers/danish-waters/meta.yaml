@@ -1,0 +1,24 @@
+title: Great Belt depths
+description: The Great Belt between Funen and Zealand in depth contours every five meters. The 50 m line around its deepest hole, under the East Bridge, is picked out.
+notes: |
+  The depths come from EMODnet's bathymetry grid for European seas, resampled to 250 m and softened before the contours are traced. A heavier line falls every 10 m, the coast is rounded further so harbor moles blend into the shore, and the smallest shoals, islets, inlets and lakes are left out, as are slivers of land or water at the edges. In deep water a 5 m line gives way where it crowds against a 10 m line.
+
+  The Belt's deep water runs in a narrow, winding channel. At Sprogø it squeezes into the East Channel, where it drops below 50 m in a trough about five kilometers long. The 50 m contour around that trough is picked out, with the 45 m contour faintly beside it. The map is north up, on every screen shape.
+technique: [line]
+subject: [maps]
+lineage: []
+sources:
+  - kind: data
+    title: EMODnet Digital Bathymetry (DTM 2024)
+    author: EMODnet Bathymetry Consortium
+    url: https://sextant.ifremer.fr/record/cf51df64-56f9-4a99-b1aa-36b8d7b743a1
+  - kind: reference
+    topic: Great Belt
+    url: https://en.wikipedia.org/wiki/Great_Belt
+  - kind: reference
+    topic: Great Belt Bridge
+    url: https://en.wikipedia.org/wiki/Great_Belt_Bridge
+added: 2026-09-30
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}

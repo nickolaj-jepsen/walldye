@@ -1,0 +1,23 @@
+title: Routes from Copenhagen
+description: Each of Copenhagen's 121 direct routes drawn as a great-circle hairline over dotted land, bowing north on a flat map. The longest, to Singapore, is picked out.
+notes: |
+  Routes and airport positions come from OpenFlights. Its route list stopped being updated in June 2014, so this is Copenhagen's network as it stood then. Land is Natural Earth's 1:50m outline, simplified, and sampled on a grid of dots.
+
+  The map uses Miller's cylindrical projection. A great circle is the shortest path over the globe, and on a map like this one it bends toward the pole, so the flights to North America arch north and west out of the picture, and the ones to East Asia swing north before dropping to their airports.
+technique: [line]
+subject: [maps]
+lineage: []
+sources:
+  - kind: data
+    topic: OpenFlights airport and route databases
+    url: https://openflights.org/data.php
+  - kind: data
+    topic: Natural Earth 1:50m land
+    url: https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/
+  - kind: reference
+    topic: Miller cylindrical projection
+    url: https://en.wikipedia.org/wiki/Miller_cylindrical_projection
+added: 2026-09-30
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}

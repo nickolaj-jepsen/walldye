@@ -1,0 +1,24 @@
+title: Voyager grand tour
+description: Both Voyagers' paths seen from above the planets' orbits, with a tick at each flyby. Voyager 1, picked out, turns away after Saturn; Voyager 2 goes on to Neptune.
+notes: |
+  Positions come from JPL's Horizons ephemerides, flattened onto the plane of Earth's orbit. Past the last flybys, the paths follow JPL's reconstructed and predicted trajectories, carried on to 2040. The smallest ring is Earth's orbit, where both paths begin.
+
+  Each tick marks where a planet stood on the day of a flyby: Jupiter in March and July 1979, Saturn in November 1980 and August 1981, Uranus in January 1986 and Neptune in August 1989. After Saturn, Voyager 1 climbs steeply out of that plane, so seen from above its path runs shorter than it is.
+technique: [drafting, line]
+subject: [space]
+lineage: [scientific-illustration]
+sources:
+  - kind: data
+    topic: JPL Horizons
+    author: NASA/JPL
+    url: https://ssd.jpl.nasa.gov/horizons/
+  - kind: reference
+    topic: Voyager program
+    url: https://en.wikipedia.org/wiki/Voyager_program
+  - kind: reference
+    topic: Grand Tour program
+    url: https://en.wikipedia.org/wiki/Grand_Tour_program
+added: 2026-09-30
+model: claude-opus-5-5
+draft: true
+proposed_facets: {}
