@@ -59,8 +59,8 @@ These rules cover everything a visitor reads that a wallpaper supplies: meta.yam
 A visitor can see the picture, so nothing but the alt text describes it. Every field has one job:
 
 - Title: the name a visitor would search for, the subject plus the technique when the technique is the point ("Dithered sun"). No imagery words (veil, whirling, struck) unless they are the subject's own name. The slug follows the title.
-- Description: one sentence of at most 20 words saying what the piece is and the one thing about it worth knowing, about the subject or the method. When nothing is worth knowing, a plain label. It never describes the picture or its highlight. It is also the meta description.
-- Alt text (`alt`): one sentence of at most 25 words saying what is visible, in plain literal words: the subject, where it sits, and what is picked out. No technique names ("grainy", not "Floyd-Steinberg"), no "image of", no figurative verbs (frays, breaks ranks, gathers). Each named version has its own.
+- Description: one sentence of at most 20 words saying what the piece is and the one thing about it worth knowing: how the subject works, what it is for, where or when it comes from. The method is the fact only when the method is the subject (a dither specimen). A plain label is the last resort, never "X in technique Y". Credit goes in `sources:` and the notes, so no "after X". It never describes the picture or its highlight. It is also the meta description.
+- Alt text (`alt`): one sentence of at most 25 words saying what is visible, in plain literal words: the subject, where it sits, and the one thing set apart, told by what it is or shows ("one clock reads 11:22", "a light where the struts meet") rather than by "picked out" or "filled in". No technique names ("grainy", not "Floyd-Steinberg"), no "image of", no figurative verbs (frays, breaks ranks, gathers). Each named version has its own.
 - Notes: how the subject works, how the drawing is made, and what comes from an inspiration and what changes, in at most two short paragraphs. A technical term gets one clause saying what it does. They never describe the picture again or repeat the description, and are left out when there is nothing to add.
 - Docstring: one line naming the subject and the technique, the way a programmer labels a function.
 
@@ -77,13 +77,16 @@ In every field:
 |---|---|---|
 | Title | Struck pane | Cracked pane |
 | Description | Sand marks the still lines of a vibrating plate: two diagonals and a ring of small loops around a lit one. | Sand on a vibrating plate collects along the lines that stay still. |
-| Alt text | (the description) | Thin lines of dots form two diagonals and a ring of small loops around one filled loop. |
+| Alt text | (the description) | Lines of dots form two diagonals and a ring of small loops around one solid loop at the center. |
+| Alt text | (the description) | A wall of round clocks whose hands slant in one diagonal wave, except one clock that reads 11:22. |
+| Description | A single-cylinder engine in hatched section at top dead center. A spray of dots lights the chamber under the spark plug. | A four-stroke cylinder at top dead center, its charge squeezed to the smallest volume. |
+| Description | Nine bamboo stalks crowd the left edge, fainter the farther back they stand. One in the middle row is lit. | Bamboo is a grass, and its hollow stalks are closed off at every node. |
 | Description | Looking up key 417 in a three-level B+-tree lights one pointer per level, then the key in its leaf. | Finding a key in a B+-tree reads one node per level, from the root to a leaf. |
 | Description | Incense smoke rises from a lit ember as one braided thread, then curls and frays into dithered veils. | Incense smoke rises as a smooth thread, then turns turbulent. |
 | Notes | A take on East Asian ink bamboo painting in flat shapes. [...] The late sun on that stalk nods to Kawase Hasui's shin-hanga landscapes. | East Asian ink bamboo painting, redrawn in flat shapes. The low sun on one stalk comes from Kawase Hasui's shin-hanga prints. |
 | Docstring | A radio telescope at dusk in 1-bit Atkinson dither: an empty sky above, grain gathering in the bowl and along the horizon. | A radio telescope at dusk in one-bit Atkinson dither. |
 
-`walldye check` rejects internal terms in version labels and a missing alt text, and warns on color words in design.py and on every copy problem in meta.yaml and the docstring: color words, banned adjectives, stock and gesture phrases, internal terms, license identifiers, machinery numbers, theme roles as nouns, imagery in a title, the highlight in a description, a named version without its own alt text, a description or alt text over its length, and a docstring over one line (`walldye/tools/lint/words.py`). pytest runs the same copy lint over the whole catalog and fails on any finding.
+`walldye check` rejects internal terms in version labels and a missing alt text, and warns on color words in design.py and on every copy problem in meta.yaml and the docstring: color words, banned adjectives, stock and gesture phrases, internal terms, license identifiers, machinery numbers, theme roles as nouns, imagery in a title, the highlight in a description, a named version without its own alt text, "after" in a description, "picked out" or "filled in" in an alt text, a description or alt text over its length, and a docstring over one line (`walldye/tools/lint/words.py`). pytest runs the same copy lint over the whole catalog and fails on any finding.
 
 ## Licensing
 
