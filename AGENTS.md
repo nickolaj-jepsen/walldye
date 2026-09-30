@@ -28,6 +28,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 - `src/`: the site. `src/lib/` is the code the build and the browser share: the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for facet values and licenses. `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time.
 - `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs and `regen.py`), `unit/` (vitest), `e2e/` (Playwright), and `fixtures/`, the Python renders the TypeScript recoloring is checked against. `regen.py` writes those renders and the other generated fixtures, which are gitignored.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
+- `scripts/promo/`: records the site's promo loop into `promo/`, gitignored: the index's themes and shapes, the plate carried to its page, and a Download.
 - `scripts/views/`: fetches the daily page views that `.github/workflows/views.yml` stores on the `stats` branch; CI checks that branch out as `stats/`, gitignored, for the index's view sorts.
 - `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.
 - `infra/www-redirect/`: the Worker that sends www.walldye.com to the apex, deployed by hand.
@@ -53,9 +54,10 @@ pnpm lint                             # Biome: formatting (line length 100), lin
 pnpm format                           # Biome, fixing what it can
 pnpm astro build
 pnpm e2e:nix                          # Playwright on NixOS outside `nix develop`; `pnpm e2e` elsewhere
+pnpm promo                            # the promo loop in promo/: builds and serves the site itself; --skip-build, --piece, --stills
 ```
 
-On NixOS, `nix develop` opens a shell with the locked Python environment (the checkout installed editable), Node, pnpm and Playwright's browsers, where `uv run` and `pnpm e2e` work as they are; outside it the Python wheels need `programs.nix-ld.enable`. `flake.nix` also packages the CLI and renders wallpapers for a NixOS config (README).
+On NixOS, `nix develop` opens a shell with the locked Python environment (the checkout installed editable), Node, pnpm, Playwright's browsers, and ffmpeg, gifski and libwebp for `pnpm promo`, where `uv run` and `pnpm e2e` work as they are; outside it the Python wheels need `programs.nix-ld.enable`. `flake.nix` also packages the CLI and renders wallpapers for a NixOS config (README).
 
 ## Rules
 

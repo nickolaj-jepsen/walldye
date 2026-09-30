@@ -38,6 +38,8 @@ result-*
 playwright-report/
 test-results/
 .claude/worktrees/
+# the promo loop, from scripts/promo/record.ts
+/promo/
 
 # walldye output: `walldye build` and tests/python/fixtures/regen.py write these, and CI makes its own
 wallpapers/*/build/

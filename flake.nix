@@ -211,6 +211,10 @@
               pkgs.nodejs_24
               pkgs.pnpm
               pkgs.inkscape
+              # scripts/promo/record.ts
+              pkgs.ffmpeg-headless
+              pkgs.gifski
+              pkgs.libwebp
             ];
             env = {
               # uv runs the Nix venv as is instead of syncing its own.
