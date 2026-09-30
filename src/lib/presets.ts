@@ -5,6 +5,11 @@ export interface Preset extends Seeds {
   name: string;
 }
 
+/** Two theme tokens, shown under a dark and a light system scheme. */
+export type Pair = readonly [dark: string, light: string];
+/** The pair nothing saved stands for, and what the favicon shows without JavaScript. */
+export const SYSTEM_PAIR: Pair = ['fireproof', 'flexoki-light'];
+
 /** The theme pages are rendered in before the theme boot runs. */
 export const DEFAULT_PRESET: Preset = { name: DEFAULT_THEME, ...PRESETS[DEFAULT_THEME] };
 

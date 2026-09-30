@@ -14,34 +14,27 @@ import {
   FORMATS,
   isAspect,
 } from '../../lib/content';
-import { tokenOf } from '../../lib/theme';
-import { copyText, flash } from '../clipboard';
-import { must, readJson, replaceAddress } from '../dom';
-import {
-  canEncodeWebp,
-  prefetchRasterizer,
-  type RasterFormat,
-  rasterizeSvg,
-  save,
-} from '../export/rasterize';
 import {
   cellWidths,
-  crispPixels,
   cropAxis,
   cropSpan,
   type ExportShape,
   exportScale,
   nearestAspect,
-  rasterSvg,
+  objectPosition,
   renderCommand,
-  svgExport,
   withinLimits,
-} from '../export/shape';
+} from '../../lib/shape';
+import { tokenOf } from '../../lib/theme';
+import { copyText, flash } from '../clipboard';
+import { must, readJson, replaceAddress } from '../dom';
 import { plateGrid } from '../grid';
-import { getSlots, keepShowing, type PlateData, plateData, recolored } from '../plates';
+import { getSlots, keepShowing, keyedShow, type PlateData, plateData } from '../plates';
 import { retrying } from '../retry';
-import { exportAspect, screenPx } from '../screen';
+import { exportAspect, markShape, NARROW_QUERY, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
+import { dragCrop, placeCrop } from './crop';
+import { setUpExport } from './export';
 import { type DetailState, keptCrop, readAddress, shapeOf, sizeFor, writeAddress } from './state';
 
 const spread = must('.spread');
@@ -86,8 +79,7 @@ const native = new Set(
   aspectRadios.filter((r) => r.hasAttribute('data-native')).map((r) => r.value),
 );
 const screenAspect = nearestAspect(...screenPx());
-// Keep in step with site.css's phone query.
-const narrow = matchMedia('(max-width: 60rem)');
+const narrow = matchMedia(NARROW_QUERY);
 
 /** Whether the plate shows `shape`'s crop itself: narrow screens, tall shapes cropped from 16:9 (the page's CSS). */
 function cropsInPlace(shape: ExportShape): boolean {
@@ -155,33 +147,14 @@ function render(): void {
   shapeHint.hidden = shape.native;
   cropRow.hidden = shape.native;
   range.value = String(shape.t);
-  spread.dataset.aspect = state.aspect;
-  const t = `${shape.t * 100}%`;
-  plate.style.setProperty('--pos', cropAxis(shape.aspect) === 'x' ? `${t} 0%` : `0% ${t}`);
+  markShape(spread, 'aspect', state.aspect);
+  plate.style.setProperty('--pos', objectPosition(shape.aspect, shape.t));
   for (const win of [cropWindow, mapWindow]) placeCrop(win, shape);
   renderSizes();
   renderNames(shape);
   renderPlate();
   if (cropsInPlace(shape)) renderMap();
   seeAlso?.setShape(state.aspect);
-}
-
-/** Frames `shape`'s crop with `win`, a `.crop` inside a plate showing the 16:9 picture. */
-function placeCrop(win: HTMLElement, shape: ExportShape): void {
-  win.hidden = shape.native;
-  if (shape.native) return;
-  const span = cropSpan(shape.aspect);
-  const offset = shape.t * (1 - span);
-  const axis = cropAxis(shape.aspect);
-  win.dataset.axis = axis;
-  // Heights are fractions of the picture's (site.css .plate::after), not the plate's, which ends in a 0-7px rounding strip.
-  const tall = (f: number) => `calc(${f} * 100cqw / var(--ratio))`;
-  Object.assign(
-    win.style,
-    axis === 'x'
-      ? { left: `${offset * 100}%`, width: `${span * 100}%`, top: '0', height: tall(1) }
-      : { left: '0', width: '100%', top: tall(offset), height: tall(span) },
-  );
 }
 
 /** Shows the current shape's sizes, disabling those past the canvas limits. */
@@ -236,41 +209,35 @@ function sourceAspect(): Aspect {
   return native.has(state.aspect) ? state.aspect : '16:9';
 }
 
-let plateKey = '';
-let stopPlate = () => {};
+const showPlate = keyedShow();
 function renderPlate(): void {
   const seeds = currentSeeds();
-  const key = `${state.variant} ${sourceAspect()} ${tokenOf(seeds)}`;
-  if (key === plateKey) return;
-  plateKey = key;
-  stopPlate();
-  stopPlate = keepShowing(plate, dataOf(state.variant), sourceAspect(), seeds);
-}
-
-let thumbsKey = '';
-let stopThumbs: (() => void)[] = [];
-/** Each version's 16:9 picture in the current theme. */
-function renderThumbs(): void {
-  const seeds = currentSeeds();
-  const key = tokenOf(seeds);
-  if (key === thumbsKey) return;
-  thumbsKey = key;
-  for (const stop of stopThumbs) stop();
-  stopThumbs = thumbs.map((t) =>
-    keepShowing(t, dataOf(t.dataset.version ?? DEFAULT_VARIANT), '16:9', seeds),
+  showPlate(`${state.variant} ${sourceAspect()} ${tokenOf(seeds)}`, () =>
+    keepShowing(plate, dataOf(state.variant), sourceAspect(), seeds),
   );
 }
 
-let mapKey = '';
-let stopMap = () => {};
+const showThumbs = keyedShow();
+/** Each version's 16:9 picture in the current theme. */
+function renderThumbs(): void {
+  const seeds = currentSeeds();
+  showThumbs(tokenOf(seeds), () => {
+    const stops = thumbs.map((t) =>
+      keepShowing(t, dataOf(t.dataset.version ?? DEFAULT_VARIANT), '16:9', seeds),
+    );
+    return () => {
+      for (const stop of stops) stop();
+    };
+  });
+}
+
+const showMap = keyedShow();
 /** The crop map's 16:9 picture in the current version and theme. */
 function renderMap(): void {
   const seeds = currentSeeds();
-  const key = `${state.variant} ${tokenOf(seeds)}`;
-  if (key === mapKey) return;
-  mapKey = key;
-  stopMap();
-  stopMap = keepShowing(cropMap, dataOf(state.variant), '16:9', seeds);
+  showMap(`${state.variant} ${tokenOf(seeds)}`, () =>
+    keepShowing(cropMap, dataOf(state.variant), '16:9', seeds),
+  );
 }
 
 let stopSlots = () => {};
@@ -323,29 +290,8 @@ panel.addEventListener('change', (e) => {
 
 range.addEventListener('input', () => update({ crop: Number(range.value) }));
 
-/**
- * Moves the crop with the drag `e` starts on `el`: the position changes by 1 / `travel` per pixel
- * moved, along the crop's axis, against the pointer when `reverse`.
- */
-function dragCrop(el: HTMLElement, e: PointerEvent, travel: number, reverse = false): void {
-  const x = cropAxis(state.aspect) === 'x';
-  const start = x ? e.clientX : e.clientY;
-  const from = shapeOf(state, native, focus).t;
-  el.setPointerCapture(e.pointerId);
-  const move = (ev: PointerEvent) => {
-    const d = ((x ? ev.clientX : ev.clientY) - start) * (reverse ? -1 : 1);
-    const next = Math.min(1, Math.max(0, from + (travel > 0 ? d / travel : 0)));
-    update({ crop: Math.round(next * 1000) / 1000 });
-  };
-  const end = () => {
-    el.removeEventListener('pointermove', move);
-    el.removeEventListener('pointerup', end);
-    el.removeEventListener('pointercancel', end);
-  };
-  el.addEventListener('pointermove', move);
-  el.addEventListener('pointerup', end);
-  el.addEventListener('pointercancel', end);
-}
+const moveCrop = (t: number) => update({ crop: t });
+const cropFrom = () => shapeOf(state, native, focus).t;
 
 // The crop window, on the plate or the map, travels over the rest of the 16:9 picture.
 for (const [win, box] of [
@@ -357,7 +303,7 @@ for (const [win, box] of [
     e.preventDefault();
     const x = cropAxis(state.aspect) === 'x';
     const picture = x ? box.clientWidth : (box.querySelector('img')?.clientHeight ?? 0);
-    dragCrop(win, e, picture * (1 - cropSpan(state.aspect)));
+    dragCrop(win, e, state.aspect, cropFrom(), picture * (1 - cropSpan(state.aspect)), moveCrop);
   });
 }
 
@@ -366,97 +312,49 @@ plate.addEventListener('pointerdown', (e) => {
   const img = plate.querySelector<HTMLImageElement>(':scope > img[data-aspect="16:9"]');
   if (e.button !== 0 || !img || !cropsInPlace(shapeOf(state, native, focus))) return;
   e.preventDefault();
-  dragCrop(plate, e, (img.clientHeight * 16) / 9 - img.clientWidth, true);
+  const travel = (img.clientHeight * 16) / 9 - img.clientWidth;
+  dragCrop(plate, e, state.aspect, cropFrom(), travel, moveCrop, true);
 });
 
 // ---- export ----
 
-const piece = {
-  title: document.querySelector('.label h1')?.textContent?.trim() ?? slug,
-  license: panel.dataset.license ?? '',
-  // "walldye.com/<slug>" from the canonical URL, so previews and local builds name the real site.
-  address: (() => {
-    const href =
-      document.querySelector<HTMLLinkElement>('link[rel=canonical]')?.href ?? location.href;
-    const u = new URL(href);
-    return `${u.host}${u.pathname}`;
-  })(),
-};
-
-let busy = false;
-
-/** Sets both Download buttons' word and busy state. */
-function preparing(on: boolean): void {
-  for (const btn of downloadBtns) {
-    if (on) btn.setAttribute('aria-busy', 'true');
-    else btn.removeAttribute('aria-busy');
-    must('.k', btn).textContent = on ? 'Preparing…' : 'Download';
-  }
-}
-
-/** Makes and saves the file; a failure writes `#export-error` and, from `from` outside the panel, scrolls it into view. */
-async function runExport(from: HTMLElement): Promise<void> {
-  if (busy) return;
-  busy = true;
-  preparing(true);
-  exportError.textContent = '';
-  try {
+setUpExport({
+  panel,
+  buttons: downloadBtns,
+  error: exportError,
+  formatRadios,
+  formatHint,
+  slug,
+  job: () => {
     const f = format();
     const shape = shapeOf(state, native, focus);
     const seeds = currentSeeds();
-    const data = dataOf(state.variant);
-    const slots = await getSlots(data.slots);
-    const r = await recolored(data, sourceAspect(), seeds);
-    const svg = Array.isArray(slots.cells) && slots.cells.length ? crispPixels(r.svg) : r.svg;
     const token = tokenOf(seeds);
-    const [w, h] = sizePx(state.size);
+    const size = sizePx(state.size);
     const name = downloadName(
       slug,
       state.variant,
       token,
       f,
-      `${w}x${h}`,
+      `${size[0]}x${size[1]}`,
       state.aspect,
       !shape.native,
     );
-    if (f.value === 'svg') {
-      const address =
-        state.variant === DEFAULT_VARIANT ? piece.address : `${piece.address}?v=${state.variant}`;
-      const about = [address, piece.license, `theme ${token}`].filter(Boolean).join(' · ');
-      save(new Blob([svgExport(svg, shape, piece.title, about)], { type: 'image/svg+xml' }), name);
-    } else {
-      const raster = rasterSvg(svg, shape, w, h);
-      save(await rasterizeSvg(raster.svg, seeds.bg, f.value as RasterFormat), name);
-    }
-  } catch {
-    exportError.textContent = 'The file could not be made.';
-    if (!panel.contains(from)) exportError.scrollIntoView({ block: 'center' });
-  } finally {
-    busy = false;
-    preparing(false);
-  }
-}
-
-for (const btn of downloadBtns) btn.addEventListener('click', () => void runExport(btn));
-
-const seen = new IntersectionObserver((entries) => {
-  if (!entries.some((e) => e.isIntersecting)) return;
-  seen.disconnect();
-  prefetchRasterizer();
-  canEncodeWebp().then((ok) => {
-    const webp = formatRadios.find((r) => r.value === 'webp');
-    if (!webp || ok) return;
-    webp.disabled = true;
-    webp.setAttribute('aria-describedby', 'format-hint');
-    formatHint.hidden = false;
-    if (webp.checked) {
-      for (const r of formatRadios) r.checked = r.value === 'png';
-      render();
-    }
-  });
+    const data = dataOf(state.variant);
+    return {
+      variant: state.variant,
+      data,
+      source: sourceAspect(),
+      shape,
+      seeds,
+      token,
+      format: f,
+      size,
+      name,
+    };
+  },
+  onFormatChange: render,
 });
-seen.observe(panel);
-seen.observe(quickBtn);
 
 // ---- keys ----
 

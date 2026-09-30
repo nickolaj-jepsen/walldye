@@ -3,15 +3,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page } from '@playwright/test';
 import { decode } from 'fast-png';
-import {
-  DEFAULT_LICENSE,
-  isDraft,
-  licenseOf,
-  namedVariants,
-  smartQuotes,
-} from '../../src/lib/meta';
-import type { Slots, SlotsEntry } from '../../src/lib/recolor';
+import { templateUrl as entryUrl, type Slots, type SlotsEntry } from '../../src/lib/recolor';
 import { findColors, skeleton } from '../../src/lib/tokenize';
+import { smartQuotes } from '../../src/lib/typeset';
+import { DEFAULT_LICENSE, isDraft, licenseOf, namedVariants } from '../../src/server/meta';
 import { loadMeta, slugs } from '../catalog';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -25,9 +20,9 @@ export const slotsOf = (slug: string, variant = 'default'): Slots =>
     readText(`wallpapers/${slug}/build/${variant === 'default' ? '' : `${variant}/`}slots.json`),
   ) as Slots;
 
-/** The served URL of a version's dark template at `aspect`, /t/<sha256[:12]>.svg. */
+/** The served URL of a version's dark template at `aspect`. */
 export const templateUrl = (slots: Slots, aspect: string): string =>
-  `/t/${(slots[`${aspect}/dark`] as SlotsEntry).sha256.slice(0, 12)}.svg`;
+  entryUrl(slots[`${aspect}/dark`] as SlotsEntry);
 
 export interface CatalogVersion {
   name: string;

@@ -9,7 +9,7 @@ import {
   DEFAULT_VARIANT,
   fileStem,
   SITE_ASPECTS,
-} from '../../lib/content';
+} from './content';
 
 export interface Box {
   x: number;
@@ -60,6 +60,12 @@ export function focusPosition(aspect: string, focus: readonly [number, number]):
   const f = cropAxis(aspect) === 'x' ? focus[0] : focus[1];
   const t = (f - span / 2) / (1 - span);
   return Math.round(Math.min(1, Math.max(0, t)) * 1000) / 1000;
+}
+
+/** CSS object-position showing the crop of the 16:9 picture to `aspect` at position `t`. */
+export function objectPosition(aspect: string, t: number): string {
+  const p = `${t * 100}%`;
+  return cropAxis(aspect) === 'x' ? `${p} 0%` : `0% ${p}`;
 }
 
 /** The largest box of width/height `ratio` inside `box`, centered in it. */

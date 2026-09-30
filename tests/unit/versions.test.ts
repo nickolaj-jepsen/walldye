@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { downloadName, FORMATS, fileStem, type Piece, versionCount } from '../../src/lib/content';
-import { namedVariants, variantsMeta } from '../../src/lib/meta';
+import { namedVariants, variantsMeta } from '../../src/server/meta';
 
 /** "<path>: <message>" for each problem variantsMeta finds in `value`. */
 function problems(value: unknown): string[] {

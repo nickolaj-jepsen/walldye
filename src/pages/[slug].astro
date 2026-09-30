@@ -11,7 +11,7 @@ import Base from '../layouts/Base.astro';
 import { DEFAULT_FORMAT, DEFAULT_SIZE_INDEX, EXPORT_SIZES, FORMATS, captionSources, filterGroups, fitsAnyScreen, formatAdded, indexQuery, relatedPieces, type Piece } from '../lib/content';
 import { LICENSE_LINES, TAKEDOWN_CONTACT, type TaxonomyFacet } from '../lib/labels';
 import { TAXONOMY, facetLabel } from '../server/taxonomy';
-import { DEFAULT_LICENSE, FAN_WORK } from '../lib/meta';
+import { DEFAULT_LICENSE, FAN_WORK } from '../server/meta';
 import { inlineScript } from '../server/inline-script';
 
 export async function getStaticPaths() {
@@ -141,46 +141,25 @@ const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
     height: var(--h);
     box-shadow: inset 0 0 0 1px var(--text);
   }
-  /* Width over height of each shape a piece may have its own template for. */
-  .spread :global(.plate:has(> img[data-aspect='16:10'])) {
-    --shape: 1.6;
-  }
-  .spread :global(.plate:has(> img[data-aspect='21:9'])) {
-    --shape: calc(21 / 9);
-  }
-  .spread :global(.plate:has(> img[data-aspect='32:9'])) {
-    --shape: calc(32 / 9);
-  }
-  .spread :global(.plate:has(> img[data-aspect='9:19.5'])) {
-    --shape: calc(9 / 19.5);
-  }
-  .spread :global(.plate:has(> img[data-aspect='10:16'])) {
-    --shape: 0.625;
-  }
   /* Phones in a tall shape: the plate takes that shape, showing the crop itself rather than 16:9 with the crop window, and a sideways drag moves the crop. */
   @media (max-width: 60rem) {
     /* Plate, title, attribution (up to two lines) and Download share the first screen: 25u of gaps and lines, plus 1u for the round-up. */
-    .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate) {
+    .spread[data-tall] :global(.plate) {
+      --ratio: var(--shape-ratio);
       width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 26 * var(--u)) * var(--ratio))));
       margin-inline: auto;
       touch-action: pan-y;
     }
-    .spread[data-aspect='9:19.5'] :global(.plate) {
-      --ratio: calc(9 / 19.5);
-    }
-    .spread[data-aspect='10:16'] :global(.plate) {
-      --ratio: 0.625;
-    }
-    .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate > img[data-aspect='16:9']) {
+    .spread[data-tall] :global(.plate > img[data-aspect='16:9']) {
       object-fit: cover;
       object-position: var(--pos, 50% 50%);
       cursor: ew-resize;
     }
-    .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate > .crop) {
+    .spread[data-tall] :global(.plate > .crop) {
       display: none;
     }
     /* The shape's own template fills the plate, so the plate's own frame comes back. */
-    .spread:is([data-aspect='9:19.5'], [data-aspect='10:16']) :global(.plate:has(> img:not([data-aspect='16:9']))::after) {
+    .spread[data-tall] :global(.plate:has(> img:not([data-aspect='16:9']))::after) {
       left: 0;
       top: 0;
       width: auto;

@@ -49,7 +49,7 @@ variants:                    # only when design.py declares named variants
 - Variants: the keys are exactly `default` plus the names design.py declares. Each needs a `label` of one to four plain words, unique within the piece, naming what that version shows. A named variant may add a `description`, which replaces the piece's while that version is shown, and `draft`.
 - Slugs: lowercase words joined by single hyphens. The site's routes reserve about, index, t, og, fonts, 404, robots, sitemap*, favicon and anything starting with `_`.
 
-`walldye check` enforces these rules at build, and the content schema in `src/content.config.ts` enforces them at site build.
+`walldye check` enforces these rules at build; the content schema (`src/server/catalog/schema.ts`) checks only what a page needs to render.
 
 ## Copy
 

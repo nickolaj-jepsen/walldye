@@ -8,6 +8,7 @@
  */
 
 import { faviconUrl } from '../../lib/favicon';
+import { type Pair, SYSTEM_PAIR } from '../../lib/presets';
 import { cssVars, parseToken, regimeOf, type Seeds, tokenOf } from '../../lib/theme';
 
 export const STORAGE_KEY = 'walldye.theme';
@@ -15,11 +16,6 @@ export const STORAGE_KEY = 'walldye.theme';
 export const THEME_EVENT = 'walldye:theme';
 const LIGHT_QUERY = '(prefers-color-scheme: light)';
 const PAIR_PREFIX = 'pair:';
-
-/** Two theme tokens, shown under a dark and a light system scheme. */
-export type Pair = readonly [dark: string, light: string];
-/** The pair nothing saved stands for. */
-export const SYSTEM_PAIR: Pair = ['fireproof', 'flexoki-light'];
 
 export type ThemeSource = 'shared' | 'saved' | 'system';
 export interface ResolvedTheme {

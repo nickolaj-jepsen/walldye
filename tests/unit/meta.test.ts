@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { captionParts, type Source } from '../../src/lib/content';
-import { licenseOf, smartQuotes, typesetMeta } from '../../src/lib/meta';
+import { smartQuotes, typesetMeta } from '../../src/lib/typeset';
+import { licenseOf } from '../../src/server/meta';
 
 describe("typographer's quotes outside the notes", () => {
   it('curls apostrophes and quotes, and leaves primes after figures', () => {

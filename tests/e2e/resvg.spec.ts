@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
-import { rasterSvg } from '../../src/client/export/shape';
+import { rasterSvg } from '../../src/lib/shape';
 import { decodeRgb, MANIFEST, type PixelDiff, pixelDiff, ROOT } from './helpers';
 import { expect, test } from './test';
 

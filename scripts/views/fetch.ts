@@ -8,7 +8,7 @@
  */
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DAY_FILE, type Day, dayNumber, isoDay, pathSlug } from '../../src/lib/views.ts';
+import { DAY_FILE, type Day, dayNumber, isoDay, pathSlug } from '../../src/server/views.ts';
 
 const API = 'https://api.cloudflare.com/client/v4/graphql';
 const HOST = 'walldye.com';

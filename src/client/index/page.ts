@@ -5,7 +5,7 @@
 import { aspectLabel, isSortOrder, type SortOrder } from '../../lib/content';
 import { formParams, must, replaceAddress } from '../dom';
 import { plateGrid } from '../grid';
-import { deviceAspect } from '../screen';
+import { deviceAspect, WIDE_QUERY } from '../screen';
 import {
   countFor,
   type Filterable,
@@ -133,7 +133,7 @@ showResults.addEventListener('click', () => {
   toggle.scrollIntoView({ block: 'start' });
 });
 
-const wide = matchMedia('(min-width: 60.0625rem)');
+const wide = matchMedia(WIDE_QUERY);
 wide.addEventListener('change', () => {
   details.open = wide.matches;
 });

@@ -17,6 +17,7 @@ import {
 } from '../lib/recolor';
 import { isFireproof, type Regime, regimeOf, type Seeds } from '../lib/theme';
 import { readJson } from './dom';
+import { Queue } from './queue';
 import { retrying } from './retry';
 
 export const MAX_FETCHES = 6;
@@ -34,14 +35,6 @@ export interface PlateData {
   alt: string;
 }
 
-/** A place in a queue. */
-interface Turn {
-  /** The element whose distance from the viewport orders the waiters; without one, first come first served. */
-  near?: Element;
-  /** Whether the task is still wanted, asked while it waits; one no longer wanted rejects. */
-  wanted?: () => boolean;
-}
-
 /** The default version's data a server-rendered `.plate` carries. */
 export function plateData(plate: HTMLElement): PlateData {
   return {
@@ -52,66 +45,6 @@ export function plateData(plate: HTMLElement): PlateData {
 }
 
 // ---- the queues ----
-
-interface Waiter extends Turn {
-  start: () => void;
-  drop: () => void;
-}
-
-/** Pixels between `el` and the viewport, 0 when it is in view or there is no element. */
-function offscreen(el: Element | undefined): number {
-  if (!el) return 0;
-  const r = el.getBoundingClientRect();
-  return r.bottom < 0 ? -r.bottom : r.top > innerHeight ? r.top - innerHeight : 0;
-}
-
-class Queue {
-  #active = 0;
-  readonly #waiting = new Set<Waiter>();
-
-  constructor(readonly limit: number) {}
-
-  /**
-   * Runs `task` once fewer than `limit` of this queue's tasks are running, the waiter nearest the
-   * viewport first. Rejects without running `task` when it stops being wanted while it waits.
-   */
-  async run<T>(task: () => Promise<T>, turn: Turn = {}): Promise<T> {
-    if (this.#active < this.limit) {
-      this.#active++;
-    } else {
-      await new Promise<void>((resolve, reject) => {
-        const drop = () => reject(new DOMException('no longer wanted', 'AbortError'));
-        this.#waiting.add({ ...turn, start: resolve, drop });
-      });
-    }
-    try {
-      return await task();
-    } finally {
-      this.#release();
-    }
-  }
-
-  #release(): void {
-    let next: Waiter | undefined;
-    let gap = Infinity;
-    for (const w of this.#waiting) {
-      if (w.wanted && !w.wanted()) {
-        this.#waiting.delete(w);
-        w.drop();
-        continue;
-      }
-      const d = offscreen(w.near);
-      if (d < gap) [next, gap] = [w, d];
-    }
-    // Hand the slot straight to the next waiter so a new caller cannot slip in between.
-    if (next) {
-      this.#waiting.delete(next);
-      next.start();
-    } else {
-      this.#active--;
-    }
-  }
-}
 
 const fetches = new Queue(MAX_FETCHES);
 const plates = new Queue(MAX_PLATES);
@@ -195,8 +128,8 @@ export async function recolored(
   const picked = pickTemplate(slots, aspect, regimeOf(seeds));
   const url = data.templates[picked.key] ?? templateUrl(picked.entry);
   const tpl = await getTemplate(url);
-  // A template whose URL does not carry its slots hash is not the one the coefficients were made for.
-  if (!url.includes(`/${picked.entry.sha256.slice(0, 12)}.`)) {
+  // A template served under another hash is not the one the coefficients were made for.
+  if (url !== templateUrl(picked.entry)) {
     return { svg: tpl.svg, url, untouched: true };
   }
   await yieldToMain();
@@ -254,6 +187,8 @@ async function swapIn(
   img.style.opacity = '0';
   if (old) old.after(img);
   else plate.insertBefore(img, plate.querySelector(':scope > .crop'));
+  // The frame site.css draws around a template that is not 16:9 takes this shape.
+  plate.style.setProperty('--shape', String(w / h));
   // Read layout so the opacity change below transitions instead of applying at once.
   img.getBoundingClientRect();
   img.style.opacity = '';
@@ -325,5 +260,20 @@ export function keepShowing(
   return () => {
     stop();
     ctrl.abort();
+  };
+}
+
+/**
+ * A slot for one showing that restarts only when its key changes: `show(key, start)` stops the
+ * running showing and calls `start` for a new one, and does nothing when `key` is the last one's.
+ */
+export function keyedShow(): (key: string, start: () => () => void) => void {
+  let shown: string | undefined;
+  let stop = () => {};
+  return (key, start) => {
+    if (key === shown) return;
+    shown = key;
+    stop();
+    stop = start();
   };
 }
