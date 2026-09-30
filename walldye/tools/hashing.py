@@ -1,9 +1,11 @@
 """Content hashes that tell `walldye build` when templates are stale.
 
 Every hash is the sha256 of UTF-8 lines `<key>\\t<value>\\n`, sorted by line; for a file the
-key is its posix path relative to the repo root and the value the sha256 of its bytes.
+key is its posix path relative to the repo root and the value the sha256 of its bytes, or for
+a library module the sha256 of its code (code_line).
 """
 
+import ast
 import hashlib
 import subprocess
 import tomllib
@@ -27,6 +29,26 @@ def digest(lines: Sequence[str]) -> str:
 def file_line(key: str, path: Path) -> str:
     """`<key>\\t<sha256 of the bytes at path>`; `key` is the file's repo-relative posix path."""
     return f"{key}\t{sha256(path.read_bytes())}"
+
+
+def _without_docstrings(tree: ast.Module) -> ast.Module:
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            body = node.body
+            first = body[0].value if len(body) > 0 and isinstance(body[0], ast.Expr) else None
+            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                node.body = body[1:] if len(body) > 1 else [ast.Pass()]
+    return tree
+
+
+def code_line(key: str, path: Path) -> str:
+    """file_line() for a .py file hashed by its code: the sha256 of its AST without docstrings
+    or positions, so editing a comment, a docstring or the layout keeps the hash. Other files
+    hash by their bytes."""
+    if path.suffix != ".py":
+        return file_line(key, path)
+    tree = _without_docstrings(ast.parse(path.read_bytes(), str(path)))
+    return f"{key}\t{sha256(ast.dump(tree, include_attributes=False).encode())}"
 
 
 def data_files(slug: str) -> list[Path]:
@@ -65,9 +87,9 @@ def _git_files() -> list[str]:
 
 
 def render_lib_lines() -> list[str]:
-    """Hash lines of the render inputs: the walldye/ files git tracks or would track, minus
-    walldye/tools/** and __pycache__; the RENDER_DEPS versions pinned in uv.lock; and
-    .python-version."""
+    """Hash lines of the render inputs: the code (code_line) of the walldye/ files git tracks or
+    would track, minus walldye/tools/** and __pycache__; the RENDER_DEPS versions pinned in
+    uv.lock; and .python-version."""
     files = sorted({
         p for p in _git_files()
         if not p.startswith("walldye/tools/") and "__pycache__" not in p.split("/") and (common.ROOT / p).is_file()
@@ -85,7 +107,7 @@ def render_lib_lines() -> list[str]:
         raise ValueError(f"uv.lock pins none of: {', '.join(sorted(missing))}")
     deps = [f"dep\t{name}=={version}" for name, version in sorted(pinned.items())]
     python = (common.ROOT / ".python-version").read_text().strip()
-    return [*(file_line(p, common.ROOT / p) for p in files), *deps, f"python\t{python}"]
+    return [*(code_line(p, common.ROOT / p) for p in files), *deps, f"python\t{python}"]
 
 
 def render_lib_sha() -> str:

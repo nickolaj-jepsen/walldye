@@ -68,7 +68,7 @@ export function normalizeSeeds(seeds: RawSeeds): Seeds {
   return out;
 }
 
-/** Every preset but fireproof as `bg-fg-accent`, the site's token form, in walldye.PRESETS order. */
+/** Every preset but fireproof as `bg-fg-accent`, the site's token form, in walldye.tools.themes.PRESETS order. */
 const PRESET_SEEDS: Readonly<Record<string, string>> = {
   'flexoki-light': 'FFFCF0-100F0F-BC5215',
   'ayu-dark': '0B0E14-BFBDB6-E6B450',
@@ -89,7 +89,7 @@ const PRESET_SEEDS: Readonly<Record<string, string>> = {
   'tokyo-night-day': 'E1E2E7-3760BF-9854F1',
 };
 
-/** Preset seeds in walldye.PRESETS order (the picker's order; the first match names a theme). */
+/** Preset seeds in walldye.tools.themes.PRESETS order (the picker's order; the first match names a theme). */
 export const PRESETS: Readonly<Record<string, Readonly<Seeds>>> = {
   fireproof: normalizeSeeds(FIREPROOF),
   ...Object.fromEntries(

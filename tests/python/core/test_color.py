@@ -29,6 +29,7 @@ from walldye import (
     ramp,
 )
 from walldye._color import resolve, token
+from walldye.tools.themes import PRESETS, parse_theme
 
 TOKEN_NAMES = [t for t in _theme.TOKENS if t != "orange_dark"]
 
@@ -40,9 +41,7 @@ def all_themes() -> list[dict[str, str]]:
         {k: f"#{r.getrandbits(24):06X}" for k in _theme.SEEDS}
         for _ in range(40)  # both regimes turn up in 40 draws
     ]
-    return [_theme.parse_theme(name) for name in _theme.PRESETS] + [
-        _theme.theme_tokens(s) for s in randoms
-    ]
+    return [parse_theme(name) for name in PRESETS] + [_theme.theme_tokens(s) for s in randoms]
 
 
 THEMES = all_themes()

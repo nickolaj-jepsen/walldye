@@ -14,8 +14,8 @@ from shapely.geometry import LineString
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 from ._affine import Affine
-from ._path import _points, ngon_vertices
-from ._vec import Num, Point, Rect, Vec, angle, num
+from ._path import catmull_rom, ngon_vertices
+from ._vec import Num, Point, Rect, Vec, angle, box, count, num, points, py_random
 
 __all__ = [
     "Affine",
@@ -32,17 +32,6 @@ __all__ = [
 
 type _F = NDArray[np.float64]
 type _Reals = NDArray[np.integer | np.floating]
-
-
-def _count(n: object, what: str, least: int) -> int:
-    """`n` as an int of at least `least`. Raises TypeError for a non-int (or bool) and
-    ValueError below `least`."""
-    if isinstance(n, bool) or not isinstance(n, (int, np.integer)):
-        raise TypeError(f"{what} takes an int, got {n!r}")
-    v = int(n)
-    if v < least:
-        raise ValueError(f"{what} takes an int >= {least}, got {n!r}")
-    return v
 
 
 def _normals(p: _F, closed: bool) -> _F:
@@ -86,7 +75,7 @@ class Polyline:
         `closed`."""
         if not isinstance(closed, bool):
             raise TypeError(f"Polyline closed takes a bool, got {closed!r}")
-        p = _points(pts, "Polyline")
+        p = points(pts, "Polyline")
         if len(p) > 1:
             keep = np.ones(len(p), dtype=bool)
             keep[1:] = np.any(p[1:] != p[:-1], axis=1)
@@ -187,19 +176,12 @@ def spline_points(pts: ArrayLike, n: int, *, closed: bool = False) -> _F:
 
     Raises ValueError for n < 1 or points not of shape (N, 2).
     """
-    per = _count(n, "spline_points n", 1)
-    p = _points(pts, "spline_points")
+    per = count(n, "spline_points n", 1)
+    p = points(pts, "spline_points")
     m = len(p)
     if m < 3:
         return p.copy()
-    i = np.arange(m if closed else m - 1)
-    if closed:
-        p0, p3 = p[(i - 1) % m], p[(i + 2) % m]
-    else:
-        p0, p3 = p[np.maximum(i - 1, 0)], p[np.minimum(i + 2, m - 1)]
-    p1, p2 = p[i], p[(i + 1) % m]
-    k = 1.0 / 6
-    c1, c2 = p1 + (p2 - p0) * k, p2 - (p3 - p1) * k
+    p1, c1, c2, p2 = catmull_rom(p, closed, 1.0 / 6)
     t = (np.arange(per) / per)[None, :, None]
     u = 1 - t
     curve = (
@@ -218,8 +200,8 @@ def bezier_points(ctrl: ArrayLike, n: int) -> _F:
 
     Raises ValueError for another number of control points or n < 1.
     """
-    per = _count(n, "bezier_points n", 1)
-    c = _points(ctrl, "bezier_points")
+    per = count(n, "bezier_points n", 1)
+    c = points(ctrl, "bezier_points")
     t = np.linspace(0, 1, per + 1)[:, None]
     p0, p1, p2, p3 = c[0:1], c[1:2], c[2:3], c[3:4]
     if len(c) == 3:
@@ -237,7 +219,7 @@ def ribbon(pts: ArrayLike, width: Num | ArrayLike) -> _F:
     Raises ValueError for fewer than 2 points, consecutive repeated points, a width array of
     another length, or non-finite values.
     """
-    p = _points(pts, "ribbon")
+    p = points(pts, "ribbon")
     if len(p) < 2:
         raise ValueError(f"ribbon takes at least 2 points, got {len(p)}")
     if bool(np.any(np.all(p[1:] == p[:-1], axis=1))):
@@ -330,17 +312,6 @@ def ngon(
     return ngon_vertices(c, r, n, angle(deg, rad, bearing, "ngon"), inner)
 
 
-def _box(rect: Rect, what: str) -> tuple[float, float, float, float]:
-    x, y, w, h = rect
-    return num(x, what), num(y, what), num(w, what), num(h, what)
-
-
-def _rng(rng: object, what: str) -> random.Random:
-    if not isinstance(rng, random.Random):
-        raise TypeError(f"{what} takes a random.Random from s.rng(key), got {rng!r}")
-    return rng
-
-
 def scatter(
     n: int,
     rect: Rect,
@@ -357,10 +328,10 @@ def scatter(
     `min_dist`; stops at `n` kept points, so it may return fewer. Raises ValueError for n < 0,
     tries < 1 or a negative min_dist, and TypeError when `rng` is not a random.Random.
     """
-    want = _count(n, "scatter n", 0)
-    per = _count(tries, "scatter tries", 1)
-    x0, y0, w, h = _box(rect, "scatter rect")
-    r = _rng(rng, "scatter")
+    want = count(n, "scatter n", 0)
+    per = count(tries, "scatter tries", 1)
+    x0, y0, w, h = box(rect, "scatter rect")
+    r = py_random(rng, "scatter")
     md = num(min_dist, "scatter min_dist")
     if md < 0:
         raise ValueError(f"scatter takes min_dist >= 0, got {min_dist!r}")
@@ -391,12 +362,12 @@ def poisson_disk(rect: Rect, radius: Num, rng: random.Random, *, k: int = 30) ->
     Draws from `rng` in the order tests/python/fixtures/v1_pins pins. Raises ValueError unless
     radius > 0 and k >= 1, and TypeError when `rng` is not a random.Random.
     """
-    x0, y0, width, height = _box(rect, "poisson_disk rect")
+    x0, y0, width, height = box(rect, "poisson_disk rect")
     rad = num(radius, "poisson_disk radius")
     if rad <= 0:
         raise ValueError(f"poisson_disk takes a radius above 0, got {radius!r}")
-    tries = _count(k, "poisson_disk k", 1)
-    r = _rng(rng, "poisson_disk")
+    tries = count(k, "poisson_disk k", 1)
+    r = py_random(rng, "poisson_disk")
     cs = rad / math.sqrt(2)
     gw, gh = int(width / cs) + 1, int(height / cs) + 1
     # Hot loop: a flat grid with a 2-cell border of None, so the 5x5 scan needs no clamping.

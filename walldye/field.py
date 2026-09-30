@@ -12,7 +12,7 @@ from numpy.typing import ArrayLike, NDArray
 from skimage.measure import approximate_polygon, find_contours
 
 from ._noise import Noise
-from ._vec import NUM_TYPES, Num, Point, Rect, num, point
+from ._vec import Num, Point, Rect, box, count, is_scalar, np_generator, num, point, positive
 
 __all__ = [
     "Noise",
@@ -27,24 +27,6 @@ __all__ = [
 
 type _F = NDArray[np.float64]
 type _I = NDArray[np.int64]
-
-
-def _count(n: object, what: str, least: int) -> int:
-    """`n` as an int of at least `least`. Raises TypeError for a non-int (or bool) and
-    ValueError below `least`."""
-    if isinstance(n, bool) or not isinstance(n, (int, np.integer)):
-        raise TypeError(f"{what} takes an int, got {n!r}")
-    v = int(n)
-    if v < least:
-        raise ValueError(f"{what} takes an int >= {least}, got {n!r}")
-    return v
-
-
-def _positive(v: object, what: str) -> float:
-    f = num(v, what)
-    if f <= 0:
-        raise ValueError(f"{what} takes a number above 0, got {v!r}")
-    return f
 
 
 def _dot(vx: _F, vy: _F, ix: _I, iy: _I, dx: _F, dy: _F) -> _F:
@@ -70,12 +52,11 @@ def noise_grid(
     they were tuned on. Raises ValueError for sizes or octaves below 1 or a scale not above 0, and
     TypeError when `rng` is not a numpy Generator.
     """
-    nc, nr = _count(cols, "noise_grid cols", 1), _count(rows, "noise_grid rows", 1)
-    sc = _positive(scale, "noise_grid scale")
-    n_oct = _count(octaves, "noise_grid octaves", 1)
+    nc, nr = count(cols, "noise_grid cols", 1), count(rows, "noise_grid rows", 1)
+    sc = positive(scale, "noise_grid scale")
+    n_oct = count(octaves, "noise_grid octaves", 1)
     g = num(gain, "noise_grid gain")
-    if not isinstance(rng, np.random.Generator):
-        raise TypeError(f"noise_grid takes a numpy Generator from s.np_rng(key), got {rng!r}")
+    rng = np_generator(rng, "noise_grid")
     out: _F = np.zeros((nr, nc))
     amp, norm = 1.0, 0.0
     for o in range(n_oct):
@@ -110,18 +91,13 @@ def cells(rect: Rect, cell: Num) -> tuple[_F, _F]:
 
     Raises ValueError unless cell > 0.
     """
-    c = _positive(cell, "cells cell")
-    x, y, w, h = (num(v, "cells rect") for v in rect)
+    c = positive(cell, "cells cell")
+    x, y, w, h = box(rect, "cells rect")
     cols, rows = int(w // c), int(h // c)
     xs = x + (np.arange(cols) + 0.5) * c
     ys = y + (np.arange(rows) + 0.5) * c
     gx, gy = np.meshgrid(xs, ys)
     return gx.astype(np.float64), gy.astype(np.float64)
-
-
-def _scalar(v: object) -> bool:
-    """Whether `v` takes the scalar path; bools do, so that num() rejects them."""
-    return isinstance(v, NUM_TYPES)
 
 
 @overload
@@ -134,9 +110,9 @@ def falloff(d: ArrayLike, r: Num, power: Num = 1.0) -> float | _F:
 
     Raises ValueError unless r > 0.
     """
-    rr = _positive(r, "falloff r")
+    rr = positive(r, "falloff r")
     k = num(power, "falloff power")
-    if _scalar(d):
+    if is_scalar(d):
         v = 1 - num(d, "falloff d") / rr
         t = 0.0 if v < 0 else min(v, 1.0)
         return math.pow(t, k)
@@ -155,8 +131,8 @@ def gauss(d: ArrayLike, sigma: Num) -> float | _F:
 
     Raises ValueError unless sigma > 0.
     """
-    sg = _positive(sigma, "gauss sigma")
-    if _scalar(d):
+    sg = positive(sigma, "gauss sigma")
+    if is_scalar(d):
         return math.exp(-((num(d, "gauss d") / sg) ** 2))
     a = np.asarray(d, dtype=np.float64)
     out: _F = np.exp(-((a / sg) ** 2))
@@ -183,7 +159,7 @@ def iso_lines(
     if f.ndim != 2 or f.shape[0] < 2 or f.shape[1] < 2:
         raise ValueError(f"iso_lines takes a 2-D field of at least 2 x 2, got shape {f.shape}")
     lv = num(level, "iso_lines level")
-    c = _positive(cell, "iso_lines cell")
+    c = positive(cell, "iso_lines cell")
     ox, oy = point(origin, "iso_lines origin")
     tol = num(simplify, "iso_lines simplify")
     if tol < 0:
@@ -219,7 +195,7 @@ def sample_field(fn: Callable[[_I, _I], ArrayLike], cols: int, rows: int) -> _F:
 
     Raises ValueError for sizes below 1 or a result that does not broadcast to the shape.
     """
-    nc, nr = _count(cols, "sample_field cols", 1), _count(rows, "sample_field rows", 1)
+    nc, nr = count(cols, "sample_field cols", 1), count(rows, "sample_field rows", 1)
     j, i = np.indices((nr + 1, nc + 1), dtype=np.int64)
     out = np.asarray(fn(i, j), dtype=np.float64)
     return np.broadcast_to(out, (nr + 1, nc + 1)).copy()

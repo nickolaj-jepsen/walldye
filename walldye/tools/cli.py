@@ -15,9 +15,10 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
 
-from walldye._aspect import aspect_label, canvas_size, supports
-from walldye._theme import DEFAULT_THEME, parse_seeds, theme_token
-from walldye.tools import common, listing, new, preview, review, sheet
+from walldye._aspect import canvas_size, supports
+from walldye.tools import common, listing, new, preview, review, sheet, themes
+from walldye.tools.paths import aspect_label
+from walldye.tools.themes import DEFAULT_THEME, parse_seeds, theme_token
 
 COMMANDS = "new,preview,render,check,build,review,sheet,params,list,drop,themes"
 SET_REFUSED = "--set is for exploring; give the values a named variant in design.py"
@@ -121,8 +122,8 @@ def _cmd_render(a: argparse.Namespace) -> int:
     from walldye._design import RenderSpec
 
     drawn = "16:9" if fit else aspect
-    doc = common.draw(piece, RenderSpec(variant, params, drawn, common.regime_of(seeds)))
-    svg = doc.to_svg(common.tokens_of(seeds))
+    doc = common.draw(piece, RenderSpec(variant, params, drawn, themes.regime_of(seeds)))
+    svg = doc.to_svg(themes.tokens_of(seeds))
     if fit:
         focus = common.template_focus(slug, variant, overrides)
         crop = common.fit_crop(aspect, focus)

@@ -9,11 +9,11 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-from walldye._aspect import aspect_label
 from walldye._design import RenderSpec
-from walldye._theme import theme_token
-from walldye.tools import common, knobs
+from walldye.tools import common, knobs, themes
+from walldye.tools.paths import aspect_label
 from walldye.tools.preview import preview_dir
+from walldye.tools.themes import theme_token
 
 PAD, LABEL = 8, 22
 
@@ -151,7 +151,7 @@ def run_fresh(
         raise common.UsageError(f"{n} cells is over the limit of {knobs.MAX_CELLS}")
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
-    regime, tokens = common.regime_of(seeds), common.tokens_of(seeds)
+    regime, tokens = themes.regime_of(seeds), themes.tokens_of(seeds)
     cells: list[tuple[str, Image.Image]] = []
     for combo in itertools.product(*(v for _, v in axes)):
         try:

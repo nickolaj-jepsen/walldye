@@ -2,8 +2,9 @@
 
 import numpy as np
 
-from walldye._theme import SEEDS, parse_seeds
+from walldye._theme import SEEDS
 from walldye.tools import build, coefs, common, new
+from walldye.tools.themes import parse_seeds
 from walldye.tools.tokenize import skeleton
 
 LEGACY_SOURCE = (

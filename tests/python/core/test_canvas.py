@@ -23,10 +23,11 @@ from walldye import (
     mix,
 )
 from walldye._affine import Affine
-from walldye._canvas import Ref
+from walldye._canvas import close
 from walldye._document import Builder
 from walldye._noise import Noise
-from walldye._theme import parse_theme
+from walldye._svg import Ref
+from walldye.tools.themes import parse_theme
 
 HERE = Path(__file__).parent
 PIXELS = HERE / "designs" / "pixels" / "design.py"
@@ -391,7 +392,7 @@ def test_pixel_path_records_one_grid_per_origin():
 
 def test_closed_canvas():
     s, _ = canvas()
-    s._close()
+    close(s)
     for use in (
         lambda: s.w,
         lambda: s.light,

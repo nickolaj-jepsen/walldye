@@ -1,12 +1,11 @@
 """Documents: a drawn SVG cut at every color, serialized under any theme of its regime."""
 
 from collections.abc import Mapping, Sequence
-from typing import Final, Literal, final
+from typing import Final, final
 
 from ._color import Color, MaskColor, coefs, resolve
-from ._theme import Coefs, is_light
+from ._theme import Coefs, Regime, is_light
 
-type Regime = Literal["dark", "light"]
 type Fragment = str | Color | MaskColor
 type Line = list[Fragment]
 

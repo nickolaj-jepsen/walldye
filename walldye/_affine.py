@@ -117,7 +117,7 @@ class Affine:
         return Vec(self.a * x + self.c * y + self.e, self.b * x + self.d * y + self.f)
 
     def apply(self, pts: ArrayLike) -> NDArray[np.float64]:
-        """The images of the (N, 2) `pts`, as an (N, 2) array.
+        """The images of the (N, 2) `pts`, as an (N, 2) array; NaN coordinates map to NaN.
 
         Raises ValueError for another shape.
         """

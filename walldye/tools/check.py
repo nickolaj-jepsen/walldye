@@ -22,14 +22,13 @@ from typing import Final
 import numpy as np
 from numpy.typing import NDArray
 
-from walldye import _check_themes
 from walldye._aspect import canvas_size
 from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
-from walldye.tools import common, hashing, knobs, lint
+from walldye._theme import REGIMES, Regime
+from walldye.tools import common, hashing, knobs, lint, themes
 from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialize_aspect
-from walldye.tools.common import Regime
 
 HASH_SEED: Final = "4242"
 NEAR_CLONE: Final = 0.93
@@ -178,13 +177,13 @@ def probe_hashes(docs: Mapping[tuple[str, Regime], Document]) -> dict[str, str]:
     """slots.json `probes`: sha256 of the 16:9 dark document under fireproof, and of each
     regime's 16:9 document under its sample theme."""
     probes = {"fireproof": _sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
-    for regime in common.REGIMES:
-        probes[regime] = _sha(docs["16:9", regime], _check_themes.SAMPLE[regime])
+    for regime in REGIMES:
+        probes[regime] = _sha(docs["16:9", regime], themes.SAMPLE[regime])
     return probes
 
 
-def _sha(doc: Document, theme: common.Theme) -> str:
-    return hashing.sha256(doc.to_svg(common.tokens_of(theme)).encode())
+def _sha(doc: Document, theme: themes.Theme) -> str:
+    return hashing.sha256(doc.to_svg(themes.tokens_of(theme)).encode())
 
 
 def check_variant(task: Task) -> Result:
@@ -212,7 +211,7 @@ def _check(task: Task, r: Result) -> None:
     params = piece.params(variant)
     docs: dict[tuple[str, Regime], Document] = {}
     if task.probes is not None:
-        for regime in common.REGIMES:
+        for regime in REGIMES:
             docs["16:9", regime] = draw(piece, RenderSpec(variant, params, "16:9", regime))
         r.probes = probe_hashes(docs)
         if r.probes == dict(task.probes):
@@ -222,7 +221,7 @@ def _check(task: Task, r: Result) -> None:
     keys = {
         (aspect, regime): common.key(slug, variant, aspect, regime)
         for aspect in piece.aspects
-        for regime in common.REGIMES
+        for regime in REGIMES
     }
     # The fresh process draws while this one does; it only needs the keys.
     fresh = _start_fresh(list(keys.values()))
@@ -232,7 +231,7 @@ def _check(task: Task, r: Result) -> None:
             spec = RenderSpec(variant, params, aspect, regime)
             first = docs[aspect, regime] if (aspect, regime) in docs else draw(piece, spec)
             docs[aspect, regime] = first
-            tokens = common.tokens_of(_check_themes.SAMPLE[regime])
+            tokens = themes.tokens_of(themes.SAMPLE[regime])
             a, b = first.to_svg(tokens), draw(piece, spec).to_svg(tokens)
             if a != b:
                 r.errors.append(
@@ -257,9 +256,7 @@ def _check(task: Task, r: Result) -> None:
         if (got := common.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
             r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
     for aspect in piece.aspects:
-        templates, entries, errors = serialize_aspect(
-            {g: docs[aspect, g] for g in common.REGIMES}, aspect
-        )
+        templates, entries, errors = serialize_aspect({g: docs[aspect, g] for g in REGIMES}, aspect)
         r.templates.update(templates)
         r.entries.update(entries)
         r.errors += errors
@@ -268,7 +265,7 @@ def _check(task: Task, r: Result) -> None:
         r.errors += [f"{name}: {e}" for e in errors]
         r.warnings += [f"{name}: {w}" for w in warnings]
     for aspect in piece.aspects:
-        grids = [g for regime in common.REGIMES for g in docs[aspect, regime].pixel_grids]
+        grids = [g for regime in REGIMES for g in docs[aspect, regime].pixel_grids]
         r.warnings += [f"{aspect}: {w}" for w in lint.pixel_origins(grids)]
     r.cells = sorted({cell for doc in docs.values() for cell, _, _ in doc.pixel_grids})
     r.probes = probe_hashes(docs)
@@ -319,9 +316,9 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
     the shared document serialized under the same theme."""
     errors: list[str] = []
     for (aspect, regime), doc in docs.items():
-        rest = _check_themes.PROBES[regime] + _check_themes.HELD_OUT[regime]
+        rest = themes.PROBES[regime] + themes.HELD_OUT[regime]
         for theme in [TEMPLATE_THEMES[regime], *rest]:
-            tokens = common.tokens_of(theme)
+            tokens = themes.tokens_of(theme)
             try:
                 piece = common.fresh(slug)
             except Exception as e:  # whatever the import raises fails the check
@@ -352,7 +349,7 @@ def hashes_main(args: Sequence[str]) -> int:
         spec = RenderSpec(
             variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
         )
-        out[k] = _sha(common.draw(piece, spec, cache=False), _check_themes.SAMPLE[spec.regime])
+        out[k] = _sha(common.draw(piece, spec, cache=False), themes.SAMPLE[spec.regime])
     print(json.dumps(out))
     return 0
 

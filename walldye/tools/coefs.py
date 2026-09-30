@@ -3,7 +3,7 @@ c*accent + d.
 
 Per regime, each slot's six coefficients [a, b, c, dr, dg, db] come from its color's formula
 (Document.coefs), with seeds and d in 0..255 channel units, and are checked against renders
-under the held-out themes (walldye._check_themes). The browser evaluates
+under the held-out themes (walldye.tools.themes). The browser evaluates
 `((a*bg + b*fg) + c*accent) + d` per channel, rounds half to even and clamps to 0..255.
 """
 
@@ -16,12 +16,11 @@ from typing import Final, TypedDict
 import numpy as np
 from numpy.typing import NDArray
 
-from walldye import _check_themes
-from walldye._aspect import template_name
-from walldye._check_themes import Theme
 from walldye._document import Document
-from walldye._theme import SEEDS, hex_to_rgb, rgb_to_hex, theme_token
-from walldye.tools.common import Regime, tokens_of
+from walldye._theme import SEEDS, Regime, Seeds, hex_to_rgb, rgb_to_hex
+from walldye.tools import themes
+from walldye.tools.paths import template_name
+from walldye.tools.themes import theme_token, tokens_of
 from walldye.tools.tokenize import TAG, find_colors, skeleton
 
 TEMPLATE_THEMES: Final[dict[Regime, str]] = {"dark": "fireproof", "light": "flexoki-light"}
@@ -44,7 +43,7 @@ class Entry(TypedDict):
     occ: list[int]
 
 
-def label(theme: str | Theme) -> str:
+def label(theme: str | Seeds) -> str:
     """A theme's name in messages: the preset name or the bg-fg-accent token."""
     return theme if isinstance(theme, str) else theme_token(dict(zip(SEEDS, theme, strict=True)))
 
@@ -70,7 +69,7 @@ def compact(coefs: Floats) -> tuple[list[list[float]], list[int]]:
     return [list(r) for r in rows], occ
 
 
-def predict(coefs: Floats, theme: Theme) -> Floats:
+def predict(coefs: Floats, theme: Seeds) -> Floats:
     """(n, 3) RGB the browser computes from `coefs` (n, 6) under `theme`."""
     bg, fg, accent = (np.array(hex_to_rgb(c), dtype=np.float64) for c in theme)
     v: Floats = coefs[:, [0]] * bg + coefs[:, [1]] * fg + coefs[:, [2]] * accent + coefs[:, 3:]
@@ -207,7 +206,7 @@ def serialize_aspect(
         ref_theme = TEMPLATE_THEMES[regime]
         own = doc.skeleton()
         differ = [
-            (label(t), s) for t in (ref_theme, *_check_themes.PROBES[regime])
+            (label(t), s) for t in (ref_theme, *themes.PROBES[regime])
             if (s := skeleton(doc.to_svg(tokens_of(t)))) != own
         ]  # fmt: skip
         if len(differ) > 0:
@@ -231,8 +230,8 @@ def serialize_aspect(
             else np.zeros((0, 6))
         )
         # (error, theme, slot, actual, predicted) per held-out theme off by more than MAX_ERROR
-        misses: list[tuple[float, Theme, int, str, str]] = []
-        for t in _check_themes.HELD_OUT[regime]:
+        misses: list[tuple[float, Seeds, int, str, str]] = []
+        for t in themes.HELD_OUT[regime]:
             actual, predicted = rgb(doc.hexes(tokens_of(t))), predict(table, t)
             err: Floats = np.abs(predicted - actual).max(axis=1, initial=0)
             if float(err.max(initial=0)) > MAX_ERROR:
@@ -244,7 +243,7 @@ def serialize_aspect(
             worst, t, i, a_hex, p_hex = max(misses, key=lambda m: m[0])
             line = _line(templates[name], find_colors(templates[name])[i][0])
             errors.append(
-                f"{aspect} {regime}: {len(misses)} of {len(_check_themes.HELD_OUT[regime])} held-out themes miss by more than {MAX_ERROR} units; "
+                f"{aspect} {regime}: {len(misses)} of {len(themes.HELD_OUT[regime])} held-out themes miss by more than {MAX_ERROR} units; "
                 f"worst {label(t)}, off by {worst:.0f} at the slot on line {line} of {name} ({a_hex}, predicted {p_hex}): "
                 "rounding piled up through mixes of mixes?"
             )

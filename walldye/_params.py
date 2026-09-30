@@ -11,7 +11,7 @@ from typing import Final, Literal, dataclass_transform, final, overload
 
 import numpy as np
 
-from ._vec import NUM_TYPES
+from ._vec import NUM_TYPES, integer
 
 type Kind = Literal["int", "float", "bool", "str", "seed"]
 type Value = int | float | bool | str | None
@@ -97,7 +97,7 @@ class _Field:
         if self.kind == "seed":
             if v is None:
                 return None
-            n = _int(v, what)
+            n = integer(v, what)
             if n < 0:
                 raise ValueError(f"{what} takes None or an int >= 0, got {v!r}")
             return n
@@ -107,7 +107,7 @@ class _Field:
             return v
         out: Value
         if self.kind == "int":
-            out = _int(v, what)
+            out = integer(v, what)
         elif self.kind == "float":
             if isinstance(v, bool) or not isinstance(v, NUM_TYPES):
                 raise TypeError(f"{what} takes a float, got {v!r}")
@@ -122,12 +122,6 @@ class _Field:
             if allowed is not None and out not in allowed:
                 raise ValueError(f"{what} takes one of {', '.join(map(repr, allowed))}, got {v!r}")
         return out
-
-
-def _int(v: object, what: str) -> int:
-    if isinstance(v, bool) or not isinstance(v, (int, np.integer)):
-        raise TypeError(f"{what} takes an int, got {v!r}")
-    return int(v)
 
 
 _FIELDS: Final[weakref.WeakKeyDictionary[type, tuple[_Field, ...]]] = weakref.WeakKeyDictionary()

@@ -1,11 +1,10 @@
-"""Aspect ratios, canvas sizes and template file names.
+"""Aspect ratios and canvas sizes.
 
 The short side of every canvas is SHORT pixels; the long side follows the aspect ratio, so
 stroke widths read the same on every screen shape.
 """
 
 import math
-import re
 from collections.abc import Sequence
 from typing import Final, Literal
 
@@ -13,7 +12,6 @@ type Aspect = Literal["16:9", "16:10", "21:9", "32:9", "9:19.5", "10:16"]
 
 SHORT: Final = 1080
 SITE_ASPECTS: Final[tuple[Aspect, ...]] = ("16:9", "16:10", "21:9", "32:9", "9:19.5", "10:16")
-TEMPLATE_NAME: Final = re.compile(r"(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)(\.light)?\.svg")
 
 
 def canvas_size(aspect: str | float = "16:9") -> tuple[int, int]:
@@ -54,25 +52,3 @@ def supports(declared: Literal["any"] | Sequence[str], aspect: str) -> bool:
 def native_aspects(declared: Literal["any"] | Sequence[str]) -> tuple[Aspect, ...]:
     """The SITE_ASPECTS a design declaring `declared` renders natively, in order; always 16:9."""
     return tuple(a for a in SITE_ASPECTS if supports(declared, a))
-
-
-def aspect_label(aspect: str) -> str:
-    """File label of an aspect: '9:19.5' -> '9x19.5'."""
-    a, b = aspect.lower().replace("x", ":").split(":")
-    return f"{float(a):g}x{float(b):g}"
-
-
-def template_name(aspect: str, light: bool = False) -> str:
-    """Template file name: '16:9' -> '16x9.svg'; '9:19.5' with `light` -> '9x19.5.light.svg'."""
-    return f"{aspect_label(aspect)}{'.light' if light else ''}.svg"
-
-
-def parse_template_name(name: str) -> tuple[str, bool]:
-    """(aspect, light) of a template file name: '9x19.5.light.svg' -> ('9:19.5', True).
-
-    Raises ValueError when `name` is not a template name.
-    """
-    m = TEMPLATE_NAME.fullmatch(name)
-    if m is None:
-        raise ValueError(f"not a template name: {name!r}")
-    return f"{m.group(1)}:{m.group(2)}", m.group(3) is not None

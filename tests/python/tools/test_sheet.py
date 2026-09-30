@@ -4,8 +4,8 @@ import pytest
 from PIL import Image
 from tools_support import FLAT, built, piece, versions
 
-from walldye._theme import parse_seeds
 from walldye.tools import cli, common, sheet
+from walldye.tools.themes import parse_seeds
 
 
 def test_sheet_recolors_through_slots(wallpapers, tmp_path, capsys):
