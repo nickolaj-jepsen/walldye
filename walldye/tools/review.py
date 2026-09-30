@@ -18,14 +18,15 @@ import yaml
 
 from walldye._aspect import SITE_ASPECTS, canvas_size
 from walldye._theme import SEEDS
-from walldye.tools import common
-from walldye.tools.new import dump_yaml, write_meta
+from walldye.tools import metadata, paths
+from walldye.tools.errors import UsageError
+from walldye.tools.metadata import dump_yaml, write_meta
 from walldye.tools.paths import aspect_label, template_name
 from walldye.tools.sheet import themed
 from walldye.tools.themes import PRESETS, parse_seeds
 
-STATE_FILE = common.ROOT / ".walldye-review.json"
-LABELS = common.ROOT / "src/lib/labels.ts"
+STATE_FILE = paths.ROOT / ".walldye-review.json"
+LABELS = paths.ROOT / "src/lib/labels.ts"
 PAGE = Path(__file__).with_name("review_page")
 STATIC = {"review.js": "text/javascript", "review.css": "text/css"}
 # facet: its legend on the page
@@ -59,25 +60,25 @@ def load_state() -> State:
         data: object = json.loads(STATE_FILE.read_text())
     except (OSError, ValueError):
         return {}
-    state = common.as_dict(data)
+    state = metadata.as_dict(data)
     if state is None:
         return {}
-    return {k: v for k, e in state.items() if (v := common.as_dict(e)) is not None}
+    return {k: v for k, e in state.items() if (v := metadata.as_dict(e)) is not None}
 
 
 def save_state(state: Mapping[str, object]) -> None:
     STATE_FILE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
 
 
-def variants(meta: common.Meta) -> dict[str, dict[str, object]]:
+def variants(meta: metadata.Meta) -> dict[str, dict[str, object]]:
     """The named variants of meta.yaml `meta` in file order, as {name: entry}."""
-    return {k: v for k, v in common.meta_variants(meta).items() if k != "default"}
+    return {k: v for k, v in metadata.meta_variants(meta).items() if k != "default"}
 
 
-def versions(meta: common.Meta) -> list[tuple[str, bool]]:
+def versions(meta: metadata.Meta) -> list[tuple[str, bool]]:
     """(name, published) for each version of meta.yaml `meta`, "default" first: published
     when the piece is not a draft and, for a named variant, its entry is not `draft: true`."""
-    shown = not common.is_draft(meta)
+    shown = not metadata.is_draft(meta)
     named = [(n, shown and e.get("draft") is not True) for n, e in variants(meta).items()]
     return [("default", shown), *named]
 
@@ -93,9 +94,9 @@ def queue(slugs: Sequence[str], everything: bool = False) -> list[Step]:
     every piece, or with `everything` all versions, unpublished ones first. Each piece's
     versions keep meta.yaml order. An unreadable meta.yaml is skipped with a note on stderr."""
     steps: list[Step] = []
-    for slug in slugs if len(slugs) > 0 else common.slugs():
+    for slug in slugs if len(slugs) > 0 else paths.slugs():
         try:
-            meta = common.load_meta(slug)
+            meta = metadata.load_meta(slug)
         except (OSError, ValueError) as e:
             print(f"review: skipped {slug}: {e}", file=sys.stderr)
             continue
@@ -106,7 +107,7 @@ def queue(slugs: Sequence[str], everything: bool = False) -> list[Step]:
     return hidden + [s for s in steps if s.published] if everything else hidden
 
 
-def _license(meta: common.Meta) -> str:
+def _license(meta: metadata.Meta) -> str:
     from walldye.tools.lint import license_of
 
     license = license_of(meta)
@@ -123,12 +124,12 @@ def _text(entry: Mapping[str, object], key: str) -> str:
 
 
 def _dict(value: object) -> dict[str, object]:
-    d = common.as_dict(value)
+    d = metadata.as_dict(value)
     return {} if d is None else d
 
 
 def _list(value: object) -> list[object]:
-    items = common.as_list(value)
+    items = metadata.as_list(value)
     return [] if items is None else items
 
 
@@ -207,7 +208,7 @@ def _put(d: dict[str, object], key: str, value: object, after: str) -> dict[str,
     return out
 
 
-def _drafted(m: common.Meta, draft: bool) -> common.Meta:
+def _drafted(m: metadata.Meta, draft: bool) -> metadata.Meta:
     """`m` published, with no draft key, or when `draft` with `draft: true` placed after the
     credit and license keys, where `walldye new` writes it."""
     rest = {k: v for k, v in m.items() if k != "draft"}
@@ -226,7 +227,7 @@ def _clean(value: str, block: bool) -> str:
     return text + "\n" if "\n" in text else text
 
 
-def edited(meta: common.Meta, entry: Mapping[str, object]) -> common.Meta:
+def edited(meta: metadata.Meta, entry: Mapping[str, object]) -> metadata.Meta:
     """`meta` with the edits and proposed-facet decisions of review state `entry`, draft flags
     untouched. An accepted proposed value joins its facet, and decided values leave
     proposed_facets, which goes once empty. Emptied notes are removed."""
@@ -261,12 +262,12 @@ def edited(meta: common.Meta, entry: Mapping[str, object]) -> common.Meta:
             m["proposed_facets"] = left
         else:
             m.pop("proposed_facets", None)
-    own = common.as_dict(m.get("variants"))
+    own = metadata.as_dict(m.get("variants"))
     changes = _dict(edits.get("variants"))
     if own is not None and len(changes) > 0:
         out: dict[str, object] = {}
         for name, value in own.items():
-            e, c = common.as_dict(value), _dict(changes.get(name))
+            e, c = metadata.as_dict(value), _dict(changes.get(name))
             if e is None:
                 out[name] = value
                 continue
@@ -283,7 +284,7 @@ def edited(meta: common.Meta, entry: Mapping[str, object]) -> common.Meta:
 
 
 def _new_values(
-    m: common.Meta, known: Mapping[str, Sequence[str]], labels: Labels
+    m: metadata.Meta, known: Mapping[str, Sequence[str]], labels: Labels
 ) -> list[tuple[str, str, str]]:
     """(facet, value, label) for each value of `m`'s facets missing from `known`, with its
     label from `labels` ("" when it has none)."""
@@ -297,8 +298,8 @@ def _new_values(
 
 def _problems(
     slug: str,
-    before: common.Meta,
-    after: common.Meta,
+    before: metadata.Meta,
+    after: metadata.Meta,
     known: Mapping[str, Sequence[str]],
     labels: Labels,
 ) -> tuple[list[str], list[str], list[str]]:
@@ -325,12 +326,12 @@ def _problems(
 
 def _taxonomy() -> tuple[str, dict[str, object], dict[str, list[str]]]:
     """(taxonomy.yaml text, parsed, {facet: values}); ValueError when a facet is not a list."""
-    text = common.TAXONOMY.read_text() if common.TAXONOMY.exists() else ""
+    text = paths.TAXONOMY.read_text() if paths.TAXONOMY.exists() else ""
     parsed = _dict(yaml.safe_load(text))
     known: dict[str, list[str]] = {}
     for facet, values in parsed.items():
-        if (items := common.as_list(values)) is None:
-            raise ValueError(f"{common.TAXONOMY}: {facet} must be a list of values")
+        if (items := metadata.as_list(values)) is None:
+            raise ValueError(f"{paths.TAXONOMY}: {facet} must be a list of values")
         known[facet] = [str(v) for v in items]
     return text, parsed, known
 
@@ -409,14 +410,14 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
     labels = facet_labels(labels_text)
     merged = _merged(labels, _typed_labels(state))
     added: Labels = {}
-    changed: dict[str, common.Meta] = {}
+    changed: dict[str, metadata.Meta] = {}
     written: list[str] = []
     unpublished: list[Step] = []
     sent_back: list[Step] = []
     out: dict[str, list[object]] = {k: [] for k in RESULT_KEYS if k != "new_facets"}
     for slug, group in _grouped(steps).items():
         entry = _dict(state.get(slug))
-        meta = common.load_meta(slug)
+        meta = metadata.load_meta(slug)
         m = edited(meta, entry)
         status = _statuses(entry)
         known_now = {f: [*known.get(f, []), *added.get(f, {})] for f in {*known, *added}}
@@ -446,7 +447,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
                     results["unpublished"].append(item)
                     mine.append(step)
                 continue
-            if (e := common.as_dict(own.get(step.variant))) is None or dropped:
+            if (e := metadata.as_dict(own.get(step.variant))) is None or dropped:
                 continue
             if not step.published and s == "keep":
                 own[step.variant] = {k: v for k, v in e.items() if k != "draft"}
@@ -480,7 +481,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
             taxonomy[f] = [*known.get(f, []), *vs]
         lines = tax_text.splitlines(keepends=True)
         header = "".join(itertools.takewhile(lambda line: line.startswith("#"), lines))
-        common.TAXONOMY.write_text(header + dump_yaml(taxonomy, flow_lists=False))
+        paths.TAXONOMY.write_text(header + dump_yaml(taxonomy, flow_lists=False))
     if labels_out != labels_text:
         LABELS.write_text(labels_out)
     for slug, meta in changed.items():
@@ -496,7 +497,7 @@ def apply(steps: Sequence[Step], state: State) -> dict[str, object]:
     return {**out, "new_facets": new_facets}
 
 
-def _diff(slug: str, before: common.Meta, after: common.Meta) -> list[object]:
+def _diff(slug: str, before: metadata.Meta, after: metadata.Meta) -> list[object]:
     """{slug, variant, field, before, after} for each changed text, facet or version text."""
     rows: list[object] = []
     for key in (*TEXT, *FACETS):
@@ -553,16 +554,16 @@ def _missing(steps: Sequence[Step]) -> list[str]:
     return [
         s.slug if s.variant == "default" else f"{s.slug} ({s.variant})"
         for s in steps
-        if not all((common.build_dir(s.slug, s.variant) / f).exists() for f in files)
+        if not all((paths.build_dir(s.slug, s.variant) / f).exists() for f in files)
     ]
 
 
-def _piece(slug: str, meta: common.Meta) -> dict[str, object]:
+def _piece(slug: str, meta: metadata.Meta) -> dict[str, object]:
     """What the page shows and edits of one piece."""
     shown: dict[str, object] = {}
     for name, _ in versions(meta):
         entry = _dict(_dict(meta.get("variants")).get(name))
-        d = common.build_dir(slug, name)
+        d = paths.build_dir(slug, name)
         shown[name] = {
             "label": _text(entry, "label"),
             "description": _text(entry, "description"),
@@ -587,7 +588,7 @@ def config(steps: Sequence[Step]) -> dict[str, object]:
         known: dict[str, list[str]] = {}
     return {
         "steps": [{"slug": s.slug, "variant": s.variant, "published": s.published} for s in steps],
-        "pieces": {slug: _piece(slug, common.load_meta(slug)) for slug in _grouped(steps)},
+        "pieces": {slug: _piece(slug, metadata.load_meta(slug)) for slug in _grouped(steps)},
         "facets": [[f, legend] for f, legend in FACETS.items()],
         "text": [[k, label, rows] for k, (label, rows) in TEXT.items()],
         "taxonomy": {f: sorted(known.get(f, [])) for f in FACETS},
@@ -601,7 +602,7 @@ def config(steps: Sequence[Step]) -> dict[str, object]:
 def check_entry(slug: str, entry: Mapping[str, object], state: State) -> dict[str, object]:
     """{errors, warnings, fresh} for `slug` as review state `entry` edits it (_problems);
     labels typed for any piece in `state` count."""
-    meta = common.load_meta(slug)
+    meta = metadata.load_meta(slug)
     merged = _merged(_labels(), _typed_labels({**state, slug: dict(entry)}))
     errors, warnings, fresh = _problems(slug, meta, edited(meta, entry), _taxonomy()[2], merged)
     return {"errors": errors, "warnings": warnings, "fresh": fresh}
@@ -619,15 +620,15 @@ def run(
     steps = queue(slugs, everything)
     if len(steps) == 0:
         if len(slugs) > 0 or everything:
-            raise common.UsageError("nothing to review")
-        raise common.UsageError("no drafts to review; name slugs or pass --all")
+            raise UsageError("nothing to review")
+        raise UsageError("no drafts to review; name slugs or pass --all")
     missing = _missing(steps)
     if len(missing) > 0:
         todo = " ".join(dict.fromkeys(m.split(" ")[0] for m in missing))
         sys.exit(f"not built: {', '.join(missing)} (run walldye build {todo})")
     scope = {s.slug for s in steps}
     # Every version of a piece in the queue, so a named one can be compared with its default.
-    names = {(s, n) for s in scope for n, _ in versions(common.load_meta(s))}
+    names = {(s, n) for s in scope for n, _ in versions(metadata.load_meta(s))}
     nothing: dict[str, object] = {k: [] for k in RESULT_KEYS}
 
     lock, done = threading.Lock(), threading.Event()
@@ -678,7 +679,7 @@ def run(
             length = self.headers.get("Content-Length")
             body = self.rfile.read(0 if length is None else int(length))
             try:
-                data = common.as_dict(json.loads(body if len(body) > 0 else b"{}"))
+                data = metadata.as_dict(json.loads(body if len(body) > 0 else b"{}"))
             except ValueError:
                 data = None
             if data is None:
@@ -687,7 +688,7 @@ def run(
                 with lock:
                     state = load_state()
                     for s in scope:
-                        entry = common.as_dict(data.get(s))
+                        entry = metadata.as_dict(data.get(s))
                         if entry is not None and len(entry) > 0:
                             state[s] = entry
                         else:
@@ -740,9 +741,9 @@ def run(
 def unfeature(slugs: Sequence[str]) -> list[str]:
     """Remove the `- <slug>` lines of `slugs` from featured.yaml, keeping every other line;
     returns the slugs that were on it."""
-    if not common.FEATURED.exists():
+    if not paths.FEATURED.exists():
         return []
-    lines = common.FEATURED.read_text().splitlines(keepends=True)
+    lines = paths.FEATURED.read_text().splitlines(keepends=True)
     entry = re.compile(r"-\s+['\"]?([a-z0-9-]+)['\"]?\s*(?:#.*)?$")
     kept: list[str] = []
     gone: list[str] = []
@@ -753,7 +754,7 @@ def unfeature(slugs: Sequence[str]) -> list[str]:
         else:
             kept.append(line)
     if len(gone) > 0:
-        common.FEATURED.write_text("".join(kept))
+        paths.FEATURED.write_text("".join(kept))
     return gone
 
 
@@ -761,7 +762,7 @@ def drop(slugs: Sequence[str], yes: bool) -> int:
     """Delete wallpapers/<slug>/ for each of `slugs` after a y/N prompt (skipped with `yes`),
     then take them off featured.yaml, regenerate index.json and forget their review state.
     Returns 1 when the prompt is declined."""
-    dirs = [common.piece_dir(s) for s in slugs]
+    dirs = [paths.piece_dir(s) for s in slugs]
     if not yes:
         try:
             answer = input(f"Delete {', '.join(str(d) for d in dirs)}? [y/N] ")
@@ -774,7 +775,7 @@ def drop(slugs: Sequence[str], yes: bool) -> int:
         shutil.rmtree(d)
         print(f"removed {d}")
     for slug in unfeature(slugs):
-        print(f"took {slug} off {common.FEATURED.name}")
+        print(f"took {slug} off {paths.FEATURED.name}")
     state = load_state()
     if any(s in state for s in slugs):
         save_state({k: v for k, v in state.items() if k not in slugs})

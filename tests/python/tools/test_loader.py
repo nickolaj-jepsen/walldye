@@ -6,29 +6,30 @@ from tools_support import legacy
 
 from walldye._design import Design, RenderSpec
 from walldye._theme import mix
-from walldye.tools import common
+from walldye.tools import loader, paths
+from walldye.tools.errors import UsageError
 from walldye.tools.themes import parse_theme
 
 
 def test_load_imports_once_per_file_content(wallpapers):
     pieces.install(wallpapers, "versions", "two-words")
-    first = common.load("two-words")
+    first = loader.load("two-words")
     assert isinstance(first, Design)
-    assert common.load("two-words") is first
+    assert loader.load("two-words") is first
     mod = sys.modules["_walldye_two_words"]
     assert mod.draw is first
     assert str(wallpapers) not in sys.path
     assert not (wallpapers / "two-words/__pycache__").exists()
     design = wallpapers / "two-words/design.py"
     design.write_text(design.read_text().replace("hour=8", "hour=9"))
-    again = common.load("two-words")
+    again = loader.load("two-words")
     assert again is not first and again.params("late").hour == 9
 
 
 def test_fresh_imports_anew_without_caching(wallpapers):
     pieces.install(wallpapers, "leaky")
-    loaded = common.load("leaky")
-    a, b = common.fresh("leaky"), common.fresh("leaky")
+    loaded = loader.load("leaky")
+    a, b = loader.fresh("leaky"), loader.fresh("leaky")
     assert a is not b and a is not loaded
     assert not any(k.startswith("_walldye_leaky_fresh") for k in sys.modules)
 
@@ -37,16 +38,16 @@ def test_load_errors(wallpapers):
     pieces.install(wallpapers, "collision", "v1-style")
     (wallpapers / "v1-style/design.py").write_text("def draw(s):\n    pass\n")
     with pytest.raises(ValueError, match=r"design.py must define @design\(\.\.\.\) def draw"):
-        common.load("v1-style")
+        loader.load("v1-style")
     pieces.install(wallpapers, "collision", "broken")
     (wallpapers / "broken/design.py").write_text("def draw(s)\n    pass\n")
     with pytest.raises(SyntaxError):
-        common.load("broken")
+        loader.load("broken")
     (wallpapers / "empty").mkdir()
     with pytest.raises(FileNotFoundError):
-        common.load("empty")
+        loader.load("empty")
     with pytest.raises(ValueError):
-        common.piece_dir("../etc")
+        paths.piece_dir("../etc")
 
 
 def test_prints_go_to_stderr(wallpapers, capsys):
@@ -56,65 +57,65 @@ def test_prints_go_to_stderr(wallpapers, capsys):
         "def draw(s: Canvas) -> None:\n", "def draw(s: Canvas) -> None:\n    print('drawing')\n"
     )
     design.write_text(text + "\nprint('imported')\n")
-    common.render("chatty", "nord")
+    loader.render("chatty", "nord")
     captured = capsys.readouterr()
     assert captured.out == "" and captured.err == "imported\ndrawing\n"
 
 
 def test_render_serializes_the_regime_document(wallpapers):
     pieces.install(wallpapers, "light-branch")
-    dark = common.render("light-branch", "nord")
+    dark = loader.render("light-branch", "nord")
     assert f'fill="{parse_theme("nord")["accent"]}"' in dark and "A100 100" in dark
-    light = common.render("light-branch", "flexoki-light", "10:16")
+    light = loader.render("light-branch", "flexoki-light", "10:16")
     assert 'viewBox="0 0 1080 1728"' in light and "A100 100" not in light
-    by_seeds = common.render("light-branch", {"bg": "2e3440", "fg": "#ECEFF4", "accent": "88c0d0"})
+    by_seeds = loader.render("light-branch", {"bg": "2e3440", "fg": "#ECEFF4", "accent": "88c0d0"})
     assert by_seeds == dark
 
 
 def test_render_variants_and_overrides(wallpapers):
     pieces.install(wallpapers, "versions")
-    default = common.render("versions", "nord")
-    late = common.render("versions", "nord", variant="late")
+    default = loader.render("versions", "nord")
+    late = loader.render("versions", "nord", variant="late")
     assert late != default
-    assert common.render("versions", "nord", overrides=["hour=8"]) == late
+    assert loader.render("versions", "nord", overrides=["hour=8"]) == late
     with pytest.raises(KeyError):
-        common.render("versions", "nord", variant="early")
+        loader.render("versions", "nord", variant="early")
 
 
 def test_draw_caches_by_spec(wallpapers):
     pieces.install(wallpapers, "collision")
-    piece = common.load("collision")
+    piece = loader.load("collision")
     spec = RenderSpec("default", piece.params(), "16:9", "dark")
-    doc = common.draw(piece, spec)
-    assert common.draw(piece, spec) is doc
-    assert common.draw(piece, spec, cache=False) is not doc
+    doc = loader.draw(piece, spec)
+    assert loader.draw(piece, spec) is doc
+    assert loader.draw(piece, spec, cache=False) is not doc
 
 
 def test_variant_of(wallpapers):
     pieces.install(wallpapers, "versions")
-    piece = common.load("versions")
-    assert common.variant_of(piece, "versions", "late") == "late"
+    piece = loader.load("versions")
+    assert loader.variant_of(piece, "versions", "late") == "late"
     with pytest.raises(
-        common.UsageError, match=r"versions has no variant 'x' \(have: default, late, bare\)"
+        UsageError, match=r"versions has no variant 'x' \(have: default, late, bare\)"
     ):
-        common.variant_of(piece, "versions", "x")
+        loader.variant_of(piece, "versions", "x")
 
 
 def test_legacy_piece(wallpapers):
     legacy(wallpapers)
-    assert common.is_legacy("old")
-    piece = common.load("old")
-    assert isinstance(piece, common.LegacyPiece)
+    assert paths.is_legacy("old")
+    piece = loader.load("old")
+    assert isinstance(piece, loader.LegacyPiece)
     assert piece.variant_names() == ("default",) and piece.aspects == ("16:9",)
-    fire = common.render("old", "fireproof")
+    fire = loader.render("old", "fireproof")
     assert 'fill="#1C1B1A"' in fire and 'fill="#CF6A4C"' in fire
     t = parse_theme("nord")
-    nord = common.render("old", "nord")
+    nord = loader.render("old", "nord")
     assert f'fill="{t["bg"]}"' in nord and f'fill="{t["accent"]}"' in nord
     assert f'stroke="{mix(t["bg_deep"], t["accent_8"], 0.68)}"' in nord
-    assert common.render("old", "flexoki-light").count("#") == 3
+    assert loader.render("old", "flexoki-light").count("#") == 3
     with pytest.raises(ValueError, match="only exists at 16:9"):
-        common.render("old", "nord", "21:9")
+        loader.render("old", "nord", "21:9")
     with pytest.raises(KeyError):
         piece.params("late")
 
@@ -127,7 +128,7 @@ def test_legacy_palette_maps_slots_not_hex_strings(wallpapers):
     )
     legacy(wallpapers, source=source, palette='"#FFF": fg\n"#C0FFEE": accent\n')
     t = parse_theme("nord")
-    assert common.render("old", "nord") == source.replace(
+    assert loader.render("old", "nord") == source.replace(
         'fill="#fff"', f'fill="{t["fg"]}"'
     ).replace('stroke="white"', f'stroke="{t["fg"]}"').replace(
         'stroke="#C0FFEE"', f'stroke="{t["accent"]}"'
@@ -146,4 +147,4 @@ def test_legacy_palette_maps_slots_not_hex_strings(wallpapers):
 def test_legacy_palette_errors(wallpapers, palette, error):
     legacy(wallpapers, palette=palette)
     with pytest.raises(ValueError, match=error):
-        common.load("old")
+        loader.load("old")

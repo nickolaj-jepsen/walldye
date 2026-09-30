@@ -5,7 +5,7 @@ from fixtures import pieces
 from walldye import ACCENT, BG, FG, MUTED, UI, by_regime, mix
 from walldye._design import RenderSpec
 from walldye._document import Document
-from walldye.tools import coefs, common, themes
+from walldye.tools import coefs, loader, themes
 from walldye.tools.themes import parse_theme
 from walldye.tools.tokenize import find_colors
 
@@ -103,11 +103,11 @@ def test_slot_rule():
 
 def test_collision_needs_per_occurrence_slots(wallpapers):
     pieces.install(wallpapers, "collision")
-    template = [c for _, _, c in find_colors(common.render("collision", "fireproof"))]
+    template = [c for _, _, c in find_colors(loader.render("collision", "fireproof"))]
     assert template[1] == template[2]  # two roles, one fireproof hex
-    piece = common.load("collision")
+    piece = loader.load("collision")
     docs = {
-        r: common.draw(piece, RenderSpec("default", piece.params(), "16:9", r))
+        r: loader.draw(piece, RenderSpec("default", piece.params(), "16:9", r))
         for r in ("dark", "light")
     }
     _, entries, errors = coefs.serialize_aspect(docs, "16:9")
@@ -117,7 +117,7 @@ def test_collision_needs_per_occurrence_slots(wallpapers):
     # Keyed by hex instead, the second role would take the first one's row.
     rows = np.array(entry["coefs"])[[entry["occ"][0], entry["occ"][1], entry["occ"][1]]]
     worst = max(
-        np.abs(coefs.predict(rows, t) - coefs.colors(common.render("collision", t))).max()
+        np.abs(coefs.predict(rows, t) - coefs.colors(loader.render("collision", t))).max()
         for t in themes.HELD_OUT["dark"]
     )
     assert worst > coefs.MAX_ERROR

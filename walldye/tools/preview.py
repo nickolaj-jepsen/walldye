@@ -13,10 +13,11 @@ from PIL import Image
 
 from walldye._aspect import canvas_size, supports
 from walldye._design import RenderSpec
-from walldye.tools import common, themes
 from walldye.tools import lint as lints
-from walldye.tools.common import Crop
+from walldye.tools import loader, metadata, paths, raster, themes
+from walldye.tools.errors import UsageError
 from walldye.tools.paths import aspect_label
+from walldye.tools.raster import Crop
 from walldye.tools.themes import theme_token
 
 
@@ -47,14 +48,14 @@ def lint(
     meta.yaml copy, whole-unit origins of `grids`, the document's pixel grids)."""
     errors, warnings = lints.svg(svg)
     w, h = canvas_size(aspect)
-    if common.viewbox(svg) != f"0 0 {w} {h}":
+    if raster.viewbox(svg) != f"0 0 {w} {h}":
         errors.append(f'viewBox is not "0 0 {w} {h}"')
-    design = common.piece_dir(slug) / "design.py"
+    design = paths.piece_dir(slug) / "design.py"
     if design.exists():
         source_errors, source_warnings = lints.design(design)
         errors, warnings = errors + source_errors, warnings + source_warnings
-    if (common.piece_dir(slug) / "meta.yaml").exists():
-        warnings = warnings + lints.copy_words(common.load_meta(slug))
+    if (paths.piece_dir(slug) / "meta.yaml").exists():
+        warnings = warnings + lints.copy_words(metadata.load_meta(slug))
     return errors, warnings + lints.pixel_origins(grids)
 
 
@@ -70,9 +71,9 @@ def file_name(slug: str, variant: str, token: str, aspect: str, overrides: Seque
 
 
 def _light_geometry(slug: str, spec: RenderSpec) -> str:
-    piece = common.load(slug)
+    piece = loader.load(slug)
     dark, light = (
-        common.draw(piece, RenderSpec(spec.variant, spec.params, spec.aspect, r))
+        loader.draw(piece, RenderSpec(spec.variant, spec.params, spec.aspect, r))
         for r in ("dark", "light")
     )
     if dark.skeleton() == light.skeleton():
@@ -85,7 +86,7 @@ def _inkscape(svg: str, width: int, crop: Crop | None) -> Image.Image:
         sys.exit("inkscape not found on PATH (drop --renderer inkscape to use resvg)")
     with tempfile.TemporaryDirectory() as d:
         src, png = Path(d, "in.svg"), Path(d, "out.png")
-        src.write_text(common.crop_svg(svg, crop) if crop is not None else svg)
+        src.write_text(raster.crop_svg(svg, crop) if crop is not None else svg)
         subprocess.run(
             ["inkscape", "-w", str(width), str(src), "-o", str(png)],
             check=True,
@@ -109,17 +110,17 @@ def run(
     long side (of `crop`, when given). Prints lint lines, the regime, whether light geometry
     differs, then the PNG path last; soft-range warnings go to stderr. UsageError for an
     undeclared variant or a bad override; design errors propagate."""
-    piece = common.load(slug)
-    common.variant_of(piece, slug, variant)
+    piece = loader.load(slug)
+    loader.variant_of(piece, slug, variant)
     try:
-        params, set_warnings = common.params_for(piece, variant, overrides)
+        params, set_warnings = loader.params_for(piece, variant, overrides)
     except (ValueError, TypeError) as e:
-        raise common.UsageError(str(e)) from None
+        raise UsageError(str(e)) from None
     for w in set_warnings:
         print(f"warning: {w}", file=sys.stderr)
     token = theme_token(seeds)
     spec = RenderSpec(variant, params, aspect, themes.regime_of(seeds))
-    doc = common.draw(piece, spec)
+    doc = loader.draw(piece, spec)
     svg = doc.to_svg(themes.tokens_of(seeds))
     errors, warnings = lint(slug, svg, aspect, doc.pixel_grids)
     if not supports(piece.declared_aspects, aspect):
@@ -128,7 +129,7 @@ def run(
 
     _, _, bw, bh = crop if crop is not None else (0.0, 0.0, *map(float, canvas_size(aspect)))
     px = width if bw >= bh else round(width * bw / bh)
-    img = _inkscape(svg, px, crop) if renderer == "inkscape" else common.rasterize(svg, px, crop)
+    img = _inkscape(svg, px, crop) if renderer == "inkscape" else raster.rasterize(svg, px, crop)
     name = file_name(slug, variant, token, aspect, overrides)
     if crop is not None:
         name += "-crop-" + "-".join(f"{v:g}" for v in crop)

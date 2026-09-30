@@ -11,7 +11,7 @@ from typing import TypedDict
 
 from walldye._aspect import SITE_ASPECTS
 from walldye._theme import SEEDS, hex_to_rgb, is_light, normalize_seed, rgb_to_hex
-from walldye.tools import check, common, hashing, lint
+from walldye.tools import check, hashing, lint, metadata, paths
 from walldye.tools.paths import TEMPLATE_NAME
 from walldye.tools.themes import PRESETS
 from walldye.tools.tokenize import find_colors, substitute
@@ -42,14 +42,14 @@ def dump_slots(slots: Mapping[str, object]) -> str:
 def load_slots(slug: str, variant: str = "default") -> dict[str, object] | None:
     """Parsed slots.json of a variant, None when absent; ValueError naming the file unless it
     holds a JSON object."""
-    path = common.build_dir(slug, variant) / "slots.json"
+    path = paths.build_dir(slug, variant) / "slots.json"
     if not path.exists():
         return None
     try:
         data: object = json.loads(path.read_text())
     except ValueError as e:
         raise ValueError(f"{path}: not valid JSON: {e}") from e
-    slots = common.as_dict(data)
+    slots = metadata.as_dict(data)
     if slots is None:
         raise ValueError(f"{path}: not a JSON object")
     return slots
@@ -62,15 +62,15 @@ def entries(slots: Mapping[str, object]) -> dict[str, SlotsEntry]:
     for k, value in slots.items():
         if "/" not in k:
             continue
-        e = common.as_dict(value)
-        rows = common.as_list(None if e is None else e.get("coefs"))
-        occ = common.as_list(None if e is None else e.get("occ"))
+        e = metadata.as_dict(value)
+        rows = metadata.as_list(None if e is None else e.get("coefs"))
+        occ = metadata.as_list(None if e is None else e.get("occ"))
         if e is None or rows is None or occ is None:
             raise ValueError(f"slots.json: {k} is not a template entry")
         file, sha, n = e.get("file"), e.get("sha256"), e.get("n")
         coefs = [
             [float(v) for v in r if isinstance(v, (int, float))]
-            for r in map(common.as_list, rows)
+            for r in map(metadata.as_list, rows)
             if r is not None
         ]
         if not isinstance(file, str) or not isinstance(sha, str) or not isinstance(n, int):
@@ -88,7 +88,7 @@ def _current(slug: str, variant: str, slots: Mapping[str, object], design_sha: s
     """Whether `slots` still describe the variant's inputs: same design_sha and walldye
     version, and every template it names present with its recorded sha256. The render inputs
     are compared separately, through `render_lib` and the probes."""
-    d = common.build_dir(slug, variant)
+    d = paths.build_dir(slug, variant)
     try:
         listed = entries(slots).values()
     except ValueError:
@@ -110,7 +110,7 @@ def _name(slug: str, variant: str) -> str:
 def _write(slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Result) -> list[str]:
     """Write a checked variant's templates and slots.json, removing the templates it no
     longer has; returns the written files relative to build/."""
-    d = common.build_dir(slug, variant)
+    d = paths.build_dir(slug, variant)
     d.mkdir(parents=True, exist_ok=True)
     for stale in d.glob("*.svg"):
         if TEMPLATE_NAME.fullmatch(stale.name) is not None and stale.name not in r.templates:
@@ -140,7 +140,7 @@ def _write(slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Resu
 
 def _prune(slug: str, names: Sequence[str]) -> None:
     """Remove build/<dir>/ for every directory that is not a declared variant."""
-    b = common.build_dir(slug)
+    b = paths.build_dir(slug)
     if not b.is_dir():
         return
     for p in b.iterdir():
@@ -153,7 +153,7 @@ def _restamp(slug: str, variant: str, lib_sha: str) -> None:
     """Record in a variant's slots.json that its templates hold under render inputs `lib_sha`."""
     slots = load_slots(slug, variant)
     assert slots is not None
-    (common.build_dir(slug, variant) / "slots.json").write_text(
+    (paths.build_dir(slug, variant) / "slots.json").write_text(
         dump_slots({**slots, "render_lib": lib_sha})
     )
 
@@ -162,11 +162,11 @@ def _drafts(slug: str) -> tuple[bool, set[str]]:
     """Whether meta.yaml marks `slug` a draft, and its draft named variants; (False, set())
     when meta.yaml cannot be read, so the check reports it."""
     try:
-        m = common.load_meta(slug)
+        m = metadata.load_meta(slug)
     except (OSError, ValueError):
         return False, set()
-    named = common.meta_variants(m).items()
-    return common.is_draft(m), {v for v, e in named if v != "default" and e.get("draft") is True}
+    named = metadata.meta_variants(m).items()
+    return metadata.is_draft(m), {v for v, e in named if v != "default" and e.get("draft") is True}
 
 
 @dataclass
@@ -198,12 +198,12 @@ def _plan(slug: str, variant: str | None, lib_sha: str, force: bool, published: 
         except ValueError as e:
             print(f"{_name(slug, v)}: {e}; rebuilding")
             old = None
-        task = check.Task(str(common.WALLPAPERS), slug, v)
+        task = check.Task(str(paths.WALLPAPERS), slug, v)
         if old is not None and _current(slug, v, old, plan.shas[v]):
             if old.get("render_lib") == lib_sha:
                 plan.current.append(v)
                 continue
-            probes = common.as_dict(old.get("probes"))
+            probes = metadata.as_dict(old.get("probes"))
             known = {} if probes is None else {k: str(x) for k, x in probes.items()}
             task = check.Task(task.wallpapers, slug, v, probes=known)
         plan.tasks.append(task)
@@ -225,7 +225,7 @@ def run(
     variants are removed. Returns 1 if any piece failed, 2 if there is nothing to build, else 0.
     UsageError for an undeclared `variant`.
     """
-    targets = common.slugs() if all else list(slugs)
+    targets = paths.slugs() if all else list(slugs)
     if published:
         drafts = [s for s in targets if _drafts(s)[0]]
         targets = [s for s in targets if s not in drafts]
@@ -279,18 +279,18 @@ def write_index() -> None:
     is null when meta.yaml breaks the license rules. A piece whose meta.yaml or slots.json cannot
     be read is left out, with a note on stderr."""
     index: dict[str, object] = {}
-    for slug in common.slugs():
+    for slug in paths.slugs():
         try:
             slots = load_slots(slug)
             if slots is None:
                 continue
-            m = common.load_meta(slug)
+            m = metadata.load_meta(slug)
             keys = entries(slots)
         except (OSError, ValueError) as e:
             print(f"index.json: left out {slug}: {e}", file=sys.stderr)
             continue
         variants: dict[str, object] = {}
-        for name, entry in common.meta_variants(m).items():
+        for name, entry in metadata.meta_variants(m).items():
             if name != "default":
                 label = entry.get("label")
                 variants[name] = {
@@ -299,12 +299,12 @@ def write_index() -> None:
                 }
         index[slug] = {
             "aspects": [a for a in SITE_ASPECTS if any(k.startswith(f"{a}/") for k in keys)],
-            "draft": common.is_draft(m),
+            "draft": metadata.is_draft(m),
             "license": lint.license_of(m),
             "title": m.get("title"),
             "variants": variants,
         }
-    (common.WALLPAPERS / "index.json").write_text(
+    (paths.WALLPAPERS / "index.json").write_text(
         json.dumps(index, indent=2, ensure_ascii=False, default=str) + "\n"
     )
 

@@ -2,7 +2,7 @@ import pytest
 from PIL import Image
 from tools_support import FLAT, TINY, legacy, piece
 
-from walldye.tools import cli, common, preview
+from walldye.tools import cli, loader, preview
 
 
 def test_preview_writes_png_and_reports(wallpapers, tmp_path, monkeypatch, capsys):
@@ -66,7 +66,7 @@ def test_preview_legacy_piece(wallpapers, tmp_path, monkeypatch, capsys):
 
 def test_lint_checks_the_viewbox(wallpapers):
     piece(wallpapers, "tiny")
-    svg = common.render("tiny", "fireproof")
+    svg = loader.render("tiny", "fireproof")
     assert preview.lint("tiny", svg, "16:9", []) == ([], [])
     assert preview.lint("tiny", svg, "21:9", [])[0] == ['viewBox is not "0 0 2520 1080"']
 

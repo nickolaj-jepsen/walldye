@@ -27,7 +27,7 @@ from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye._theme import REGIMES, Regime
-from walldye.tools import common, hashing, knobs, lint, themes
+from walldye.tools import hashing, knobs, lint, loader, metadata, paths, raster, themes
 from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialize_aspect
 
 HASH_SEED: Final = "4242"
@@ -53,7 +53,7 @@ def design_error(e: BaseException, what: str) -> DesignError:
 
 @dataclass(frozen=True)
 class Task:
-    """One (slug, variant) to check. `wallpapers` is common.WALLPAPERS in the parent, which
+    """One (slug, variant) to check. `wallpapers` is paths.WALLPAPERS in the parent, which
     pool workers adopt; with `probes`, the check stops early when the variant's fresh probe
     hashes equal them (build's test for unchanged renders)."""
 
@@ -107,7 +107,7 @@ class Target:
 
     slug: str
     report: Report
-    piece: common.Piece | None = None
+    piece: loader.Piece | None = None
     variants: tuple[str, ...] = ()
 
 
@@ -117,7 +117,7 @@ def prepare(slug: str, variant: str | None = None) -> Target:
     UsageError when the design does not declare it."""
     t = Target(slug, Report(slug))
     try:
-        meta = common.load_meta(slug)
+        meta = metadata.load_meta(slug)
     except (OSError, ValueError) as e:
         t.report.errors.append(str(e))
         return t
@@ -125,13 +125,15 @@ def prepare(slug: str, variant: str | None = None) -> Target:
         t.piece = load(slug)
     except DesignError as e:
         t.report.errors.append(str(e))
-    names = ("default", *common.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
+    names = (
+        ("default", *metadata.meta_variants(meta)) if t.piece is None else t.piece.variant_names()
+    )
     errors, warnings = lint.meta(slug, meta, lint.load_taxonomy(), names)
     t.report.errors += errors
     t.report.warnings += warnings
     if t.piece is not None:
         if variant is not None:
-            common.variant_of(t.piece, slug, variant)
+            loader.variant_of(t.piece, slug, variant)
         t.variants = t.piece.variant_names() if variant is None else (variant,)
         infos = describe(t.piece.params_type)
         for v, params in t.piece.variants.items():
@@ -146,7 +148,7 @@ def prepare(slug: str, variant: str | None = None) -> Target:
 def lint_source(t: Target) -> None:
     """Add the design lint and the data/ rules of t.slug to its report; a design that does
     not parse is left to the import error prepare() reported."""
-    path = common.piece_dir(t.slug) / "design.py"
+    path = paths.piece_dir(t.slug) / "design.py"
     if not path.exists():
         return
     try:
@@ -157,18 +159,18 @@ def lint_source(t: Target) -> None:
     t.report.warnings += warnings
 
 
-def load(slug: str) -> common.Piece:
-    """common.load(slug), with anything the import raises turned into a DesignError."""
+def load(slug: str) -> loader.Piece:
+    """loader.load(slug), with anything the import raises turned into a DesignError."""
     try:
-        return common.load(slug)
+        return loader.load(slug)
     except Exception as e:  # whatever the import raises fails the check
         raise design_error(e, "import") from e
 
 
-def draw(piece: common.Piece, spec: RenderSpec) -> Document:
+def draw(piece: loader.Piece, spec: RenderSpec) -> Document:
     """An uncached draw, with anything the design raises turned into a DesignError."""
     try:
-        return common.draw(piece, spec, cache=False)
+        return loader.draw(piece, spec, cache=False)
     except Exception as e:  # whatever a design raises fails the check
         raise design_error(e, f"{spec.aspect} {spec.regime}: draw") from e
 
@@ -192,7 +194,7 @@ def check_variant(task: Task) -> Result:
     constant-slot rule, the template limits, pixel origins, probes and focus,
     and with task.paranoid a fresh import per serialization. A determinism failure stops it
     before any geometry step; so does an exception from the design."""
-    common.WALLPAPERS = Path(task.wallpapers)
+    paths.WALLPAPERS = Path(task.wallpapers)
     start = time.perf_counter()
     r = Result(task.slug, task.variant)
     try:
@@ -219,7 +221,7 @@ def _check(task: Task, r: Result) -> None:
             return
 
     keys = {
-        (aspect, regime): common.key(slug, variant, aspect, regime)
+        (aspect, regime): paths.key(slug, variant, aspect, regime)
         for aspect in piece.aspects
         for regime in REGIMES
     }
@@ -253,7 +255,7 @@ def _check(task: Task, r: Result) -> None:
 
     for (aspect, regime), doc in docs.items():
         w, h = canvas_size(aspect)
-        if (got := common.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
+        if (got := raster.viewbox(doc.skeleton())) != f"0 0 {w} {h}":
             r.errors.append(f'{aspect} {regime}: viewBox must be "0 0 {w} {h}", not {got!r}')
     for aspect in piece.aspects:
         templates, entries, errors = serialize_aspect({g: docs[aspect, g] for g in REGIMES}, aspect)
@@ -271,8 +273,8 @@ def _check(task: Task, r: Result) -> None:
     r.probes = probe_hashes(docs)
     dark = r.templates.get("16x9.svg")
     if dark is not None:
-        r.focus = common.focus(common.rasterize(dark, common.FOCUS_WIDTH), common.background(dark))
-    if task.paranoid and not isinstance(piece, common.LegacyPiece):
+        r.focus = raster.focus(raster.rasterize(dark, raster.FOCUS_WIDTH), raster.background(dark))
+    if task.paranoid and not isinstance(piece, loader.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
 
 
@@ -280,9 +282,9 @@ def _start_fresh(keys: Sequence[str]) -> subprocess.Popen[str]:
     """A running `python -m walldye _hashes` subprocess under PYTHONHASHSEED for `keys`; read
     it with communicate() and judge it with _fresh_errors()."""
     return subprocess.Popen(
-        [sys.executable, "-m", "walldye", "_hashes", str(common.WALLPAPERS), *keys],
+        [sys.executable, "-m", "walldye", "_hashes", str(paths.WALLPAPERS), *keys],
         env={**os.environ, "PYTHONHASHSEED": HASH_SEED},
-        cwd=common.ROOT,
+        cwd=paths.ROOT,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -295,7 +297,7 @@ def _fresh_errors(run: subprocess.CompletedProcess[str], expected: Mapping[str, 
     if run.returncode != 0:
         return [f"determinism subprocess failed: {run.stderr.strip()[-600:]}"]
     try:
-        got = common.as_dict(json.loads(run.stdout))
+        got = metadata.as_dict(json.loads(run.stdout))
     except ValueError:
         got = None
     if got is None:
@@ -320,7 +322,7 @@ def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Documen
         for theme in [TEMPLATE_THEMES[regime], *rest]:
             tokens = themes.tokens_of(theme)
             try:
-                piece = common.fresh(slug)
+                piece = loader.fresh(slug)
             except Exception as e:  # whatever the import raises fails the check
                 raise design_error(e, "fresh import") from e
             got = draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
@@ -339,17 +341,17 @@ def hashes_main(args: Sequence[str]) -> int:
     """`python -m walldye _hashes <wallpapers dir> <slug@variant@aspect@regime>...`: print a
     JSON object mapping each key to the sha256 of that draw serialized under the regime's
     sample theme, made in this process. Design errors propagate (non-zero exit)."""
-    common.WALLPAPERS = Path(args[0])
+    paths.WALLPAPERS = Path(args[0])
     out: dict[str, str] = {}
     for k in args[1:]:
         slug, variant, aspect, regime = k.split("@")
         if regime not in ("dark", "light"):
             raise ValueError(f"bad key {k!r}")
-        piece = common.load(slug)
+        piece = loader.load(slug)
         spec = RenderSpec(
             variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
         )
-        out[k] = _sha(common.draw(piece, spec, cache=False), themes.SAMPLE[spec.regime])
+        out[k] = _sha(loader.draw(piece, spec, cache=False), themes.SAMPLE[spec.regime])
     print(json.dumps(out))
     return 0
 
@@ -379,11 +381,11 @@ def run_tasks[T, R](fn: Callable[[T], R], tasks: Sequence[T], jobs: int) -> Iter
 def built_ink(slug: str, variant: str) -> Ink | None:
     """The ink map of a variant's build/[<variant>/]16x9.svg, measured from its own
     background; None when not built."""
-    path = common.build_dir(slug, variant) / "16x9.svg"
+    path = paths.build_dir(slug, variant) / "16x9.svg"
     if not path.exists():
         return None
     svg = path.read_text()
-    return common.ink_map(common.rasterize(svg, INK_WIDTH), common.background(svg))
+    return raster.ink_map(raster.rasterize(svg, INK_WIDTH), raster.background(svg))
 
 
 def print_report(report: Report) -> None:
@@ -404,7 +406,7 @@ def near_clones(slugs: Sequence[str]) -> None:
     built template."""
     maps: dict[str, Ink] = {}
     skipped: list[str] = []
-    for slug in sorted(set(common.slugs()) | set(slugs)):
+    for slug in sorted(set(paths.slugs()) | set(slugs)):
         ink = built_ink(slug, "default")
         if ink is not None:
             maps[slug] = ink
@@ -433,13 +435,13 @@ def run(
     `variant`, print a report per piece in slug order and, with `similar`, the near-clone
     advisory. Returns 1 if any piece has errors, 2 if there is nothing to check, else 0
     (warnings, notes and the advisory never fail). UsageError for an undeclared `variant`."""
-    targets = [prepare(s, variant) for s in (common.slugs() if all else slugs)]
+    targets = [prepare(s, variant) for s in (paths.slugs() if all else slugs)]
     if len(targets) == 0:
         print("nothing to check: name a slug or pass --all", file=sys.stderr)
         return 2
     for t in targets:
         lint_source(t)
-    tasks = [Task(str(common.WALLPAPERS), t.slug, v, paranoid) for t in targets for v in t.variants]
+    tasks = [Task(str(paths.WALLPAPERS), t.slug, v, paranoid) for t in targets for v in t.variants]
     results = run_tasks(check_variant, tasks, workers(jobs, len(tasks)))
     failed = 0
     for t in targets:

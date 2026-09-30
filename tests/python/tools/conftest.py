@@ -1,6 +1,6 @@
 import pytest
 
-from walldye.tools import common, lint, review
+from walldye.tools import lint, paths, review
 
 
 @pytest.fixture
@@ -8,7 +8,7 @@ def wallpapers(tmp_path, monkeypatch):
     """An empty wallpapers/ directory that the tools resolve slugs against."""
     root = tmp_path / "wallpapers"
     root.mkdir()
-    monkeypatch.setattr(common, "WALLPAPERS", root)
+    monkeypatch.setattr(paths, "WALLPAPERS", root)
     return root
 
 
@@ -20,6 +20,6 @@ def review_files(tmp_path, monkeypatch):
     monkeypatch.setattr(review, "STATE_FILE", files / ".walldye-review.json")
     monkeypatch.setattr(review, "LABELS", files / "labels.ts")
     monkeypatch.setattr(lint, "LABELS", files / "labels.ts")
-    monkeypatch.setattr(common, "TAXONOMY", files / "taxonomy.yaml")
-    monkeypatch.setattr(common, "FEATURED", files / "featured.yaml")
+    monkeypatch.setattr(paths, "TAXONOMY", files / "taxonomy.yaml")
+    monkeypatch.setattr(paths, "FEATURED", files / "featured.yaml")
     return files

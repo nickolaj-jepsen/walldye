@@ -3,7 +3,7 @@ import importlib.metadata
 from fixtures import pieces
 from tools_support import legacy
 
-from walldye.tools import common, hashing
+from walldye.tools import hashing, paths
 
 
 def test_design_lines(wallpapers):
@@ -44,7 +44,7 @@ def test_render_lib_lines():
         f"dep\t{name}=={importlib.metadata.version(name)}"
         for name in ("numpy", "scikit-image", "scipy", "shapely")
     ]
-    assert f"python\t{(common.ROOT / '.python-version').read_text().strip()}" in lines
+    assert f"python\t{(paths.ROOT / '.python-version').read_text().strip()}" in lines
 
 
 def test_code_line_ignores_comments_docstrings_and_layout(tmp_path):

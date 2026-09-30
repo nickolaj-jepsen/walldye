@@ -12,7 +12,7 @@ from typing import Final
 
 import yaml
 
-from walldye.tools import common
+from walldye.tools import metadata, paths
 
 MAX_BYTES, WARN_BYTES = 1_000_000, 600_000
 MAX_ELEMENTS, WARN_ELEMENTS = 20_000, 15_000
@@ -94,8 +94,8 @@ FAN_WORK: Final = "LicenseRef-fan-work"
 DEFAULT_LICENSE: Final = "CC0-1.0"
 # Kinds of source that say where the files in data/ come from.
 DATA_KINDS: Final = ("data", "recreation")
-LICENSES = common.ROOT / "LICENSES"
-LABELS = common.ROOT / "src" / "lib" / "labels.ts"
+LICENSES = paths.ROOT / "LICENSES"
+LABELS = paths.ROOT / "src" / "lib" / "labels.ts"
 _MODEL_ENTRY: Final = re.compile(r"^\s*'([^']+)': '")
 DATA_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.(json|txt|npy)")
 _HEX_STRING: Final = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
@@ -633,7 +633,7 @@ def design(path: Path) -> Lints:
 def data(slug: str) -> list[str]:
     """Errors for wallpapers/<slug>/data/: only files named like `points.json`, `names.txt`
     or `grid.npy`, and no subdirectories."""
-    d = common.piece_dir(slug) / "data"
+    d = paths.piece_dir(slug) / "data"
     if not d.is_dir():
         return []
     errors: list[str] = []
@@ -645,7 +645,7 @@ def data(slug: str) -> list[str]:
     return errors
 
 
-def _text(m: common.Meta, key: str) -> str:
+def _text(m: metadata.Meta, key: str) -> str:
     value = m.get(key)
     return value if isinstance(value, str) else ""
 
@@ -654,14 +654,14 @@ def _mappings(value: object) -> list[dict[str, object]] | None:
     """The mappings of a YAML list, [] for None, and None when it is not a list of mappings."""
     if value is None:
         return []
-    items = common.as_list(value)
+    items = metadata.as_list(value)
     if items is None:
         return None
-    out = [e for e in map(common.as_dict, items) if e is not None]
+    out = [e for e in map(metadata.as_dict, items) if e is not None]
     return out if len(out) == len(items) else None
 
 
-def license_of(meta: common.Meta) -> str | None:
+def license_of(meta: metadata.Meta) -> str | None:
     """The folder's license: `license:`, else FAN_WORK when `franchise:` is set, else
     DEFAULT_LICENSE for a piece a model made (`model:`) with no recreation source, else None
     (no license can be resolved)."""
@@ -695,13 +695,13 @@ def model_names() -> set[str] | None:
 def load_taxonomy() -> dict[str, set[str]] | None:
     """Allowed values per facet from taxonomy.yaml (each facet a list of values, or a mapping
     keyed by value); None when the file does not exist."""
-    if not common.TAXONOMY.exists():
+    if not paths.TAXONOMY.exists():
         return None
-    facets = common.as_dict(yaml.safe_load(common.TAXONOMY.read_text()))
+    facets = metadata.as_dict(yaml.safe_load(paths.TAXONOMY.read_text()))
     out: dict[str, set[str]] = {}
     for facet, values in (facets if facets is not None else dict[str, object]()).items():
-        listed = common.as_list(values)
-        keyed = common.as_dict(values)
+        listed = metadata.as_list(values)
+        keyed = metadata.as_dict(values)
         found = listed if listed is not None else list[object]() if keyed is None else list(keyed)
         out[facet] = {str(v) for v in found}
     return out
@@ -709,7 +709,7 @@ def load_taxonomy() -> dict[str, set[str]] | None:
 
 def meta(
     slug: str,
-    m: common.Meta,
+    m: metadata.Meta,
     taxonomy: dict[str, set[str]] | None,
     variants: Sequence[str] = ("default",),
 ) -> Lints:
@@ -745,7 +745,7 @@ def meta(
             )
         if all(_text(s, k).strip() == "" for k in ("title", "topic", "author")):
             errors.append("a source needs a title, a topic or an author")
-    if (common.WALLPAPERS / slug / "data").is_dir() and not any(
+    if (paths.WALLPAPERS / slug / "data").is_dir() and not any(
         s.get("kind") in DATA_KINDS for s in sources
     ):
         errors.append("data/ needs a kind: data source (or the recreation it comes from)")
@@ -764,7 +764,7 @@ def meta(
         errors.append(
             f"license {license!r} has no LICENSES/{license}.txt; add the license text or fix the id"
         )
-    franchise = common.as_dict(m.get("franchise"))
+    franchise = metadata.as_dict(m.get("franchise"))
     if fan and (franchise is None or "" in (_text(franchise, "title"), _text(franchise, "owner"))):
         errors.append("franchise needs a title and an owner")
     if taxonomy is None:
@@ -772,7 +772,7 @@ def meta(
     else:
         for facet, allowed in taxonomy.items():
             raw = m.get(facet)
-            values = list[object]() if raw is None else common.as_list(raw)
+            values = list[object]() if raw is None else metadata.as_list(raw)
             if values is None:
                 errors.append(f"{facet} must be a list")
                 continue
@@ -781,20 +781,20 @@ def meta(
                     errors.append(
                         f"{facet}: {v!r} is not in taxonomy.yaml (suggest it under proposed_facets)"
                     )
-    if m.get("proposed_facets") not in (None, {}) and not common.is_draft(m):
+    if m.get("proposed_facets") not in (None, {}) and not metadata.is_draft(m):
         errors.append("proposed_facets are only allowed while draft: true")
     variant_errors, variant_warnings = _variants(m, variants)
     return errors + variant_errors, warnings + copy_words(m) + variant_warnings
 
 
-def _variants(m: common.Meta, names: Sequence[str]) -> Lints:
+def _variants(m: metadata.Meta, names: Sequence[str]) -> Lints:
     """The variants: rules: keys exactly the declared names, a unique plain label for each,
     and description and draft only on named variants."""
     if len(names) <= 1:
         if "variants" in m:
             return ["variants: is only for designs that declare named variants"], []
         return [], []
-    entries = common.as_dict(m.get("variants"))
+    entries = metadata.as_dict(m.get("variants"))
     if entries is None:
         return [f"meta.yaml needs variants: with a label for each of {', '.join(names)}"], []
     errors: list[str] = []
@@ -809,7 +809,7 @@ def _variants(m: common.Meta, names: Sequence[str]) -> Lints:
         )
     labels: dict[str, str] = {}
     for name, value in entries.items():
-        entry = common.as_dict(value)
+        entry = metadata.as_dict(value)
         if entry is None:
             errors.append(f"variants: {name} must be a mapping with a label")
             continue
@@ -842,7 +842,7 @@ def _variants(m: common.Meta, names: Sequence[str]) -> Lints:
     return errors, warnings
 
 
-def copy_words(m: common.Meta) -> list[str]:
+def copy_words(m: metadata.Meta) -> list[str]:
     """A warning naming the color words in the title, description and notes of meta.yaml
     `m`, or []."""
     words = color_words("\n".join(_text(m, k) for k in ("title", "description", "notes")))

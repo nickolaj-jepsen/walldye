@@ -5,7 +5,7 @@ import pytest
 
 from walldye import _theme
 from walldye._theme import SEEDS
-from walldye.tools import common, themes
+from walldye.tools import paths, themes
 from walldye.tools.themes import PRESETS, parse_seeds, theme_token
 
 NORD = {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"}
@@ -13,7 +13,7 @@ FIREPROOF_SEEDS = {"bg": "#1C1B1A", "fg": "#DAD8CE", "accent": "#CF6A4C"}
 
 # --- theme token grammar ------------------------------------------------------
 
-TOKEN_SPEC = json.loads((common.ROOT / "src/lib/__fixtures__/theme-tokens.json").read_text())
+TOKEN_SPEC = json.loads((paths.ROOT / "src/lib/__fixtures__/theme-tokens.json").read_text())
 
 
 @pytest.mark.parametrize("case", TOKEN_SPEC["valid"], ids=lambda c: repr(c["spec"]))

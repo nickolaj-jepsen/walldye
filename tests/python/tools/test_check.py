@@ -7,7 +7,8 @@ import pytest
 from fixtures import pieces
 from tools_support import built, legacy, versions
 
-from walldye.tools import check, common, hashing, themes
+from walldye.tools import check, hashing, loader, paths, themes
+from walldye.tools.errors import UsageError
 
 TEXT_SOURCE = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">\n'
@@ -27,7 +28,7 @@ def report(slug: str, **kw) -> check.Report:
     t = check.prepare(slug, kw.pop("variant", None))
     check.lint_source(t)
     for v in t.variants:
-        t.report.add(check.check_variant(check.Task(str(common.WALLPAPERS), slug, v, **kw)))
+        t.report.add(check.check_variant(check.Task(str(paths.WALLPAPERS), slug, v, **kw)))
     return t.report
 
 
@@ -149,7 +150,7 @@ def test_paranoid_reports_a_failing_fresh_import(wallpapers, monkeypatch):
     def gone(slug):
         raise ImportError(f"{slug} is gone")
 
-    monkeypatch.setattr(common, "fresh", gone)
+    monkeypatch.setattr(loader, "fresh", gone)
     task = check.Task(str(wallpapers), "collision", "default", paranoid=True)
     assert check.check_variant(task).errors == [
         "fresh import failed: ImportError: collision is gone"
@@ -181,7 +182,7 @@ def test_one_variant_is_checked_alone(wallpapers):
     versions(wallpapers)
     r = report("versions", variant="late")
     assert r.errors == [] and r.notes == [] and list(r.results) == ["late"]
-    with pytest.raises(common.UsageError, match="has no variant 'early'"):
+    with pytest.raises(UsageError, match="has no variant 'early'"):
         check.prepare("versions", "early")
 
 
@@ -234,12 +235,12 @@ def test_hashes_subprocess(wallpapers):
     )  # fmt: skip
     got = json.loads(run.stdout)
     assert list(got) == keys
-    piece = common.load("versions")
+    piece = loader.load("versions")
     for k in keys:
         _, variant, aspect, regime = k.split("@")
         from walldye._design import RenderSpec
 
-        doc = common.draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
+        doc = loader.draw(piece, RenderSpec(variant, piece.params(variant), aspect, regime))
         want = doc.to_svg(themes.tokens_of(themes.SAMPLE[regime]))
         assert got[k] == hashing.sha256(want.encode())
 

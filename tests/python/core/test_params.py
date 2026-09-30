@@ -8,10 +8,10 @@ from typing import Literal
 
 import numpy as np
 import pytest
+from fixtures import toolchain
 
 from walldye import Params, knob
 from walldye._params import KnobInfo, describe
-from walldye.tools import common
 
 TYPING = Path(__file__).parent / "typing"
 
@@ -146,9 +146,9 @@ def test_describe():
 
 def pyrefly_errors(*files: Path) -> set[tuple[str, int, str]]:
     """Pyrefly's findings in `files` at the level walldye check types designs at."""
-    exe = common.tool("pyrefly")
+    exe = toolchain.tool("pyrefly")
     assert exe is not None
-    cmd = [str(exe), "check", "-c", str(common.DESIGN_PYREFLY), "--output-format", "json"]
+    cmd = [str(exe), "check", "-c", str(toolchain.DESIGN_PYREFLY), "--output-format", "json"]
     out = subprocess.run([*cmd, *map(str, files)], capture_output=True, text=True, check=False)
     return {(Path(e["path"]).name, e["line"], e["name"]) for e in json.loads(out.stdout)["errors"]}
 

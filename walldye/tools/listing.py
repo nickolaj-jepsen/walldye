@@ -8,7 +8,7 @@ import sys
 
 from walldye import _theme
 from walldye._params import KnobInfo, describe
-from walldye.tools import check, common, themes
+from walldye.tools import check, loader, metadata, paths, themes
 
 
 def run_list() -> int:
@@ -16,9 +16,9 @@ def run_list() -> int:
     native aspects and its named variants, each comma-joined (`error` and nothing when the
     design cannot be imported). A piece whose meta.yaml cannot be read is left out, with a
     note on stderr."""
-    for slug in common.slugs():
+    for slug in paths.slugs():
         try:
-            meta = common.load_meta(slug)
+            meta = metadata.load_meta(slug)
         except (OSError, ValueError) as e:
             print(f"list: left out {slug}: {e}", file=sys.stderr)
             continue
@@ -31,7 +31,7 @@ def run_list() -> int:
             re.sub(r"\s+", " ", "" if (v := meta.get(k)) is None else str(v)).strip()
             for k in ("title", "description")
         ]
-        draft = "draft" if common.is_draft(meta) else "-"
+        draft = "draft" if metadata.is_draft(meta) else "-"
         print("\t".join([slug, *one_line, draft, aspects, variants]))
     return 0
 
@@ -52,7 +52,7 @@ def _span(k: KnobInfo) -> str:
     return f"{'' if k.lo is None else f'{k.lo:g}'}..{'' if k.hi is None else f'{k.hi:g}'}"
 
 
-def _changes(piece: common.Piece) -> dict[str, dict[str, object]]:
+def _changes(piece: loader.Piece) -> dict[str, dict[str, object]]:
     """{variant: {field: value}} with each named variant's fields that differ from the default."""
     default = piece.params()
     names = [k.name for k in describe(piece.params_type)]
@@ -65,7 +65,7 @@ def _changes(piece: common.Piece) -> dict[str, dict[str, object]]:
 def params(slug: str) -> dict[str, object]:
     """`walldye params --json` for `slug`: {slug, class, knobs: [KnobInfo as an object],
     variants: {name: {field: value}}} with only the fields that differ from the default."""
-    piece = common.load(slug)
+    piece = loader.load(slug)
     return {
         "slug": slug,
         "class": piece.params_type.__name__,
@@ -82,7 +82,7 @@ def run_params(slug: str, as_json: bool) -> int:
     if as_json:
         print(json.dumps(params(slug), indent=2))
         return 0
-    piece = common.load(slug)
+    piece = loader.load(slug)
     rows = [
         [k.name, k.kind, _value(k.default), _span(k), k.unit, k.doc]
         for k in describe(piece.params_type)
@@ -91,7 +91,7 @@ def run_params(slug: str, as_json: bool) -> int:
     print(piece.params_type.__name__)
     for r in rows:
         print("  " + "  ".join(c.ljust(w) for c, w in zip(r, widths, strict=True)).rstrip())
-    labels = common.meta_variants(common.load_meta(slug))
+    labels = metadata.meta_variants(metadata.load_meta(slug))
     for name, fields in _changes(piece).items():
         values = " ".join(f"{k}={_value(v)}" for k, v in fields.items())
         entry = labels.get(name, {})

@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import cast
 
 from walldye._aspect import canvas_size, supports
-from walldye.tools import common, listing, new, preview, review, sheet, themes
+from walldye.tools import listing, loader, new, paths, preview, raster, review, sheet, themes
+from walldye.tools.errors import UsageError
 from walldye.tools.paths import aspect_label
 from walldye.tools.themes import DEFAULT_THEME, parse_seeds, theme_token
 
@@ -35,7 +36,7 @@ def _seeds(value: str) -> dict[str, str]:
 
 def _slug(value: str) -> str:
     try:
-        d = common.piece_dir(value)
+        d = paths.piece_dir(value)
     except ValueError as e:
         raise argparse.ArgumentTypeError(str(e)) from e
     if not d.is_dir():
@@ -44,7 +45,7 @@ def _slug(value: str) -> str:
 
 
 def _aspect(value: str) -> str:
-    if not common.is_aspect(value):
+    if not paths.is_aspect(value):
         raise argparse.ArgumentTypeError(f"bad aspect {value!r} (e.g. 16:9, 9:19.5, 3440x1440)")
     return value
 
@@ -59,7 +60,7 @@ def _positive(value: str) -> int:
     return n
 
 
-def _crop(value: str) -> common.Crop:
+def _crop(value: str) -> raster.Crop:
     try:
         return preview.parse_crop(value)
     except ValueError as e:
@@ -89,7 +90,7 @@ def _cmd_preview(a: argparse.Namespace) -> int:
         _str(a, "slug"),
         cast("dict[str, str]", a.theme),
         _str(a, "aspect"),
-        cast("common.Crop | None", a.crop),
+        cast("raster.Crop | None", a.crop),
         cast("int", a.width),
         _str(a, "renderer"),
         _str(a, "variant"),
@@ -100,41 +101,41 @@ def _cmd_preview(a: argparse.Namespace) -> int:
 def _cmd_render(a: argparse.Namespace) -> int:
     slug, aspect, variant = _str(a, "slug"), _str(a, "aspect"), _str(a, "variant")
     seeds = cast("dict[str, str]", a.theme)
-    crop = cast("common.Crop | None", a.crop)
-    piece = common.load(slug)
-    common.variant_of(piece, slug, variant)
+    crop = cast("raster.Crop | None", a.crop)
+    piece = loader.load(slug)
+    loader.variant_of(piece, slug, variant)
     native = supports(piece.declared_aspects, aspect)
     fit = cast("bool", a.fit) and not native
     if not native and not fit:
-        raise common.UsageError(
+        raise UsageError(
             f"{slug} declares aspects={piece.declared_aspects!r}, not {aspect};"
             " pass --fit, or render 16:9 with --crop"
         )
     if fit and crop is not None:
-        raise common.UsageError(f"--fit picks the crop for {aspect} itself; drop --crop")
+        raise UsageError(f"--fit picks the crop for {aspect} itself; drop --crop")
     overrides = _items(a, "set")
     try:
-        params, warnings = common.params_for(piece, variant, overrides)
+        params, warnings = loader.params_for(piece, variant, overrides)
     except (ValueError, TypeError) as e:
-        raise common.UsageError(str(e)) from None
+        raise UsageError(str(e)) from None
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
     from walldye._design import RenderSpec
 
     drawn = "16:9" if fit else aspect
-    doc = common.draw(piece, RenderSpec(variant, params, drawn, themes.regime_of(seeds)))
+    doc = loader.draw(piece, RenderSpec(variant, params, drawn, themes.regime_of(seeds)))
     svg = doc.to_svg(themes.tokens_of(seeds))
     if fit:
-        focus = common.template_focus(slug, variant, overrides)
-        crop = common.fit_crop(aspect, focus)
+        focus = raster.template_focus(slug, variant, overrides)
+        crop = raster.fit_crop(aspect, focus)
     drawn_svg = svg
     if crop is not None:
-        svg = common.crop_svg(svg, crop)
+        svg = raster.crop_svg(svg, crop)
     output = _opt(a, "output", str)
     width = _opt(a, "width", int)
     png = output is not None and output.lower().endswith(".png")
     if width is not None and not png:
-        raise common.UsageError("--width sizes a PNG; name one with -o PATH.png")
+        raise UsageError("--width sizes a PNG; name one with -o PATH.png")
     if output == "-":
         sys.stdout.write(svg)
         return 0
@@ -142,7 +143,7 @@ def _cmd_render(a: argparse.Namespace) -> int:
     tail = "-crop" if crop is not None else ""
     default = f"{name}-{theme_token(seeds)}-{aspect_label(aspect)}{tail}.svg"
     out = Path(output if output is not None else default)
-    wallpapers, target = common.WALLPAPERS.resolve(), out.resolve()
+    wallpapers, target = paths.WALLPAPERS.resolve(), out.resolve()
     if target.is_relative_to(wallpapers) and "build" in target.relative_to(wallpapers).parts[1:2]:
         sys.exit(f"refusing to write {out}: only walldye build writes into build/")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -150,7 +151,7 @@ def _cmd_render(a: argparse.Namespace) -> int:
         cw, ch = canvas_size(drawn)
         box = crop if crop is not None else (0.0, 0.0, float(cw), float(ch))
         px = width if width is not None else round(box[2])
-        common.rasterize(drawn_svg, px, box).save(out)
+        raster.rasterize(drawn_svg, px, box).save(out)
     else:
         out.write_text(svg)
     print(out)
@@ -186,21 +187,21 @@ def _cmd_build(a: argparse.Namespace) -> int:
 def _cmd_review(a: argparse.Namespace) -> int:
     slugs, everything = _items(a, "slugs"), cast("bool", a.all)
     if everything and len(slugs) > 0:
-        raise common.UsageError("review takes slugs or --all, not both")
+        raise UsageError("review takes slugs or --all, not both")
     timeout, port = cast("float", a.timeout), cast("int", a.port)
     return review.run(slugs, timeout, port, not a.no_open, everything)
 
 
 def _cmd_sheet(a: argparse.Namespace) -> int:
     seeds = cast("dict[str, str]", a.theme)
-    slugs = common.slugs() if a.all else _items(a, "slugs")
+    slugs = paths.slugs() if a.all else _items(a, "slugs")
     cols, thumb, out = _opt(a, "cols", int), cast("int", a.thumb), _opt(a, "output", str)
     variant, aspect = _str(a, "variant"), _str(a, "aspect")
     wedges, overrides, seeds_range = _items(a, "wedge"), _items(a, "set"), _opt(a, "seeds", str)
     if len(wedges) == 0 and len(overrides) == 0 and seeds_range is None:
         return sheet.run(slugs, seeds, cols, thumb, out, variant, aspect)
     if len(slugs) != 1:
-        raise common.UsageError("--wedge, --seeds and --set draw one slug afresh; name one")
+        raise UsageError("--wedge, --seeds and --set draw one slug afresh; name one")
     return sheet.run_fresh(
         slugs[0], seeds, cols, thumb, out, variant, aspect, overrides, wedges, seeds_range
     )
@@ -404,5 +405,5 @@ def main(argv: Sequence[str] | None = None) -> int:
     fn = cast("Command", a.fn)
     try:
         return fn(a)
-    except common.UsageError as e:
+    except UsageError as e:
         ap.error(str(e))

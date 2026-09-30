@@ -3,9 +3,9 @@ import re
 import pytest
 import yaml
 
-from walldye.tools import common
+from walldye.tools import paths
 
-SKILL = common.ROOT / ".claude/skills/walldye/SKILL.md"
+SKILL = paths.ROOT / ".claude/skills/walldye/SKILL.md"
 
 
 def examples() -> list[str]:
@@ -20,7 +20,7 @@ def test_the_skill_lists_examples():
 # The skill points builders at these pieces, so a dropped or hidden one would teach nothing.
 @pytest.mark.parametrize("slug", examples())
 def test_each_skill_example_is_a_published_design(slug):
-    folder = common.piece_dir(slug)
+    folder = paths.piece_dir(slug)
     assert (folder / "design.py").is_file()
     meta = yaml.safe_load((folder / "meta.yaml").read_text())
     assert meta.get("draft") is not True

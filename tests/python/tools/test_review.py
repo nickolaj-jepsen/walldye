@@ -8,7 +8,8 @@ import urllib.request
 import pytest
 from tools_support import VERSION_LABELS, built, versions
 
-from walldye.tools import cli, common, new, review, sheet
+from walldye.tools import cli, metadata, paths, review, sheet
+from walldye.tools.errors import UsageError
 from walldye.tools.review import Step
 from walldye.tools.themes import parse_seeds
 
@@ -49,15 +50,15 @@ def piece(wallpapers, slug, **meta):
         "model": "claude-opus-5-5",
         "draft": True,
     }
-    new.write_meta(slug, {k: v for k, v in {**fields, **meta}.items() if v is not None})
+    metadata.write_meta(slug, {k: v for k, v in {**fields, **meta}.items() if v is not None})
 
 
 def meta(slug):
-    return common.load_meta(slug)
+    return metadata.load_meta(slug)
 
 
 def vocabulary():
-    common.TAXONOMY.write_text(TAXONOMY)
+    paths.TAXONOMY.write_text(TAXONOMY)
     review.LABELS.write_text(LABELS_TS)
 
 
@@ -85,7 +86,7 @@ def test_queue_orders_versions(wallpapers, capsys):
 
 
 def test_facet_labels_read_and_extend_labels_ts():
-    real = review.facet_labels((common.ROOT / "src/lib/labels.ts").read_text())
+    real = review.facet_labels((paths.ROOT / "src/lib/labels.ts").read_text())
     assert real["technique"]["dither"] == "dithering"
     assert real["lineage"]["early-computer-art"] == "early computer art"
     text = review.add_labels(
@@ -173,7 +174,7 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
         {"slug": "b", "reason": "subject: moon needs the words visitors see"}
     ]
     assert result["published"] == ["c"] and result["new_facets"] == []
-    assert meta("b")["draft"] is True and common.TAXONOMY.read_text() == TAXONOMY
+    assert meta("b")["draft"] is True and paths.TAXONOMY.read_text() == TAXONOMY
     assert review.LABELS.read_text() == LABELS_TS
     assert "facets" in review.load_state()["b"]
 
@@ -197,7 +198,7 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
     b = meta("b")
     assert "draft" not in b and "proposed_facets" not in b
     assert (b["technique"], b["subject"]) == (["drafting", "weave"], ["moon"])
-    assert common.TAXONOMY.read_text() == (
+    assert paths.TAXONOMY.read_text() == (
         "# Facet vocabulary.\ntechnique:\n  - drafting\n  - weave\nsubject:\n  - flora-fauna\n  - moon\nlineage: []\n"
     )
     labels = review.facet_labels(review.LABELS.read_text())
@@ -212,7 +213,7 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
 def test_apply_unpublishes_and_asks_again(wallpapers, review_files):
     versions(wallpapers, "v", draft=False)
     labels = {**VERSION_LABELS, "late": {"label": "Eight o'clock", "draft": False}}
-    new.write_meta("v", {**meta("v"), "variants": labels})
+    metadata.write_meta("v", {**meta("v"), "variants": labels})
     piece(wallpapers, "p", draft=None)
     state = {
         "v": {"versions": {"default": {"status": "keep"}, "late": {"status": "drop", "note": "too dark"}, "bare": {"status": "keep"}}},
@@ -398,7 +399,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     assert cfg["facets"][2] == ["lineage", "Inspired by"]
     assert [t[0] for t in cfg["text"]] == ["title", "description", "notes"]
 
-    template = (common.build_dir("c", "late") / "16x9.svg").read_bytes()
+    template = (paths.build_dir("c", "late") / "16x9.svg").read_bytes()
     assert http(url + "img/c/late/16x9/fireproof.svg") == template
     # The default of a queued version, for comparing, though it is not a step itself.
     assert http(url + "img/c/default/10x16/nord.svg").decode() == sheet.themed(
@@ -470,7 +471,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
 def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, capsys):
     piece(wallpapers, "a")
     built(capsys, "a")
-    common.TAXONOMY.write_text("technique: {drafting: a mapping, not a list}\n")
+    paths.TAXONOMY.write_text("technique: {drafting: a mapping, not a list}\n")
     review.save_state({"a": {"versions": {"default": {"status": "keep"}}}})
     url, finish = serve(monkeypatch, capsys, ["a"])
     with pytest.raises(urllib.error.HTTPError) as e:
@@ -481,7 +482,7 @@ def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, ca
     assert printed == sent
     assert printed["finished"] is False and printed["published"] == []
     assert printed["approved"] == ["a"]
-    assert printed["error"] == f"ValueError: {common.TAXONOMY}: technique must be a list of values"
+    assert printed["error"] == f"ValueError: {paths.TAXONOMY}: technique must be a list of values"
     assert meta("a")["draft"] is True
 
 
@@ -508,8 +509,8 @@ def test_review_refuses_unbuilt_and_empty(wallpapers, review_files, capsys):
         review.run(["a", "versions", "raw"], 1, 0, False)
     for slug in ("raw", "versions"):
         (wallpapers / slug / "meta.yaml").unlink()
-    new.write_meta("a", {**meta("a"), "draft": False})
-    with pytest.raises(common.UsageError, match="no drafts"):
+    metadata.write_meta("a", {**meta("a"), "draft": False})
+    with pytest.raises(UsageError, match="no drafts"):
         review.run([], 1, 0, False)
     with pytest.raises(SystemExit) as e:
         cli.main(["review", "a", "--all"])

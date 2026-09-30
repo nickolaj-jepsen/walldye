@@ -21,16 +21,16 @@ from PIL import Image
 
 from walldye import _design, _theme
 from walldye._aspect import SITE_ASPECTS, canvas_size
-from walldye.tools import build, common, hashing, lint
+from walldye.tools import build, hashing, lint, loader, paths, raster
 from walldye.tools import themes as check_themes
 from walldye.tools.paths import aspect_label
 from walldye.tools.themes import parse_seeds
 from walldye.tools.tokenize import find_colors
 
-sys.path.insert(0, str(common.ROOT / "tests/python"))
+sys.path.insert(0, str(paths.ROOT / "tests/python"))
 from fixtures.pieces import RECOLOR_THEMES, install
 
-REFERENCE = common.ROOT / "tests/fixtures"
+REFERENCE = paths.ROOT / "tests/fixtures"
 # Every template of these pieces gets reference renders under RECOLOR_THEMES.
 REFERENCE_PIECES = ["dither-moon", "radar-sweep", "schotter"]
 # The resvg-wasm parity reference: slug, aspect, theme, width in px.
@@ -88,8 +88,8 @@ def crops() -> list[dict[str, object]]:
         {
             "aspect": aspect,
             "focus": list(focus),
-            "t": common.crop_position(aspect, focus),
-            "box": list(common.fit_crop(aspect, focus)),
+            "t": raster.crop_position(aspect, focus),
+            "box": list(raster.fit_crop(aspect, focus)),
         }
         for aspect in SITE_ASPECTS[1:]
         for focus in CROP_FOCI
@@ -102,7 +102,7 @@ def per_hex(slug: str) -> dict[str, object]:
     slots = build.load_slots(slug)
     assert slots is not None, f"{slug} is not built"
     entry = build.entries(slots)["16:9/dark"]
-    template = [c for _, _, c in find_colors((common.build_dir(slug) / entry["file"]).read_text())]
+    template = [c for _, _, c in find_colors((paths.build_dir(slug) / entry["file"]).read_text())]
     first: dict[str, int] = {}
     for i, c in enumerate(template):
         first.setdefault(c, i)
@@ -117,16 +117,16 @@ def per_hex(slug: str) -> dict[str, object]:
 def collision() -> dict[str, str]:
     """The collision piece as build writes it, its renders under RECOLOR_THEMES and its
     per-hex table."""
-    saved = common.WALLPAPERS
+    saved = paths.WALLPAPERS
     with tempfile.TemporaryDirectory() as tmp:
-        common.WALLPAPERS = Path(tmp)
+        paths.WALLPAPERS = Path(tmp)
         try:
-            install(common.WALLPAPERS, "collision")
+            install(paths.WALLPAPERS, "collision")
             with contextlib.redirect_stdout(io.StringIO()) as log:
                 if build.run(["collision"]) != 0:
                     raise RuntimeError(f"collision fixture failed to build:\n{log.getvalue()}")
-            b = common.build_dir("collision")
-            renders = {t: common.render("collision", t) for t in RECOLOR_THEMES}
+            b = paths.build_dir("collision")
+            renders = {t: loader.render("collision", t) for t in RECOLOR_THEMES}
             return {
                 "collision/16x9.svg": (b / "16x9.svg").read_text(),
                 "collision/slots.json": (b / "slots.json").read_text(),
@@ -134,7 +134,7 @@ def collision() -> dict[str, str]:
                 "collision/per-hex.json": json.dumps(per_hex("collision")) + "\n",
             }
         finally:
-            common.WALLPAPERS = saved
+            paths.WALLPAPERS = saved
 
 
 def outputs() -> dict[str, str]:
@@ -148,7 +148,7 @@ def outputs() -> dict[str, str]:
 
 
 def _rel(path: Path) -> str:
-    return path.relative_to(common.ROOT).as_posix()
+    return path.relative_to(paths.ROOT).as_posix()
 
 
 def _png(svg: str, width: int, height: int, background: str) -> bytes:
@@ -194,10 +194,10 @@ def references() -> dict[str, str | bytes]:
                 seeds = parse_seeds(theme)
                 key = build.select(slots, aspect, seeds)
                 rel = f"{slug}/{aspect_label(aspect)}.{theme}.svg"
-                out[rel] = common.render(slug, seeds, aspect)
+                out[rel] = loader.render(slug, seeds, aspect)
                 renders.append({
                     "slug": slug, "aspect": aspect, "theme": theme, "entry": key,
-                    "template": _rel(common.build_dir(slug) / table[key]["file"]), "sha256": table[key]["sha256"],
+                    "template": _rel(paths.build_dir(slug) / table[key]["file"]), "sha256": table[key]["sha256"],
                     "render": _rel(REFERENCE / rel),
                 })  # fmt: skip
     slug, aspect, theme, width = RESVG
@@ -206,9 +206,7 @@ def references() -> dict[str, str | bytes]:
     table = build.entries(slots)
     seeds = parse_seeds(theme)
     key = build.select(slots, aspect, seeds)
-    svg = build.recolor(
-        (common.build_dir(slug) / table[key]["file"]).read_text(), table[key], seeds
-    )
+    svg = build.recolor((paths.build_dir(slug) / table[key]["file"]).read_text(), table[key], seeds)
     w, h = canvas_size(aspect)
     height = round(width * h / w)
     name = f"resvg/{slug}.{aspect_label(aspect)}.{theme}"

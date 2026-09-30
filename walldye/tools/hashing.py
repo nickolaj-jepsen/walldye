@@ -12,7 +12,7 @@ import tomllib
 from collections.abc import Sequence
 from pathlib import Path
 
-from walldye.tools import common
+from walldye.tools import metadata, paths
 
 RENDER_DEPS = ("numpy", "scipy", "shapely", "scikit-image")
 
@@ -53,15 +53,15 @@ def code_line(key: str, path: Path) -> str:
 
 def data_files(slug: str) -> list[Path]:
     """The files in wallpapers/<slug>/data/, sorted by name ([] without the folder)."""
-    d = common.piece_dir(slug) / "data"
+    d = paths.piece_dir(slug) / "data"
     return sorted(p for p in d.iterdir() if p.is_file()) if d.is_dir() else []
 
 
 def design_lines(slug: str) -> list[str]:
     """Hash lines of a piece: design.py (or source.svg and palette.yaml) and every file in
     data/."""
-    d = common.piece_dir(slug)
-    names = ["source.svg", "palette.yaml"] if common.is_legacy(slug) else ["design.py"]
+    d = paths.piece_dir(slug)
+    names = ["source.svg", "palette.yaml"] if paths.is_legacy(slug) else ["design.py"]
     return [
         *(file_line(f"wallpapers/{slug}/{n}", d / n) for n in names),
         *(file_line(f"wallpapers/{slug}/data/{p.name}", p) for p in data_files(slug)),
@@ -78,7 +78,7 @@ def _git_files() -> list[str]:
     """The files under walldye/ that git tracks or would track (untracked but not ignored)."""
     run = subprocess.run(
         ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "walldye"],
-        cwd=common.ROOT,
+        cwd=paths.ROOT,
         capture_output=True,
         text=True,
         check=True,
@@ -92,22 +92,22 @@ def render_lib_lines() -> list[str]:
     uv.lock; and .python-version."""
     files = sorted({
         p for p in _git_files()
-        if not p.startswith("walldye/tools/") and "__pycache__" not in p.split("/") and (common.ROOT / p).is_file()
+        if not p.startswith("walldye/tools/") and "__pycache__" not in p.split("/") and (paths.ROOT / p).is_file()
     })  # fmt: skip
-    lock: object = tomllib.loads((common.ROOT / "uv.lock").read_text()).get("package")
-    packages = common.as_list(lock)
+    lock: object = tomllib.loads((paths.ROOT / "uv.lock").read_text()).get("package")
+    packages = metadata.as_list(lock)
     if packages is None:
         raise ValueError("uv.lock has no [[package]] tables")
     pinned: dict[str, str] = {}
     for package in packages:
-        p = common.as_dict(package)
+        p = metadata.as_dict(package)
         if p is not None and p.get("name") in RENDER_DEPS:
             pinned[str(p["name"])] = str(p.get("version"))
     if len(missing := set(RENDER_DEPS) - pinned.keys()) > 0:
         raise ValueError(f"uv.lock pins none of: {', '.join(sorted(missing))}")
     deps = [f"dep\t{name}=={version}" for name, version in sorted(pinned.items())]
-    python = (common.ROOT / ".python-version").read_text().strip()
-    return [*(code_line(p, common.ROOT / p) for p in files), *deps, f"python\t{python}"]
+    python = (paths.ROOT / ".python-version").read_text().strip()
+    return [*(code_line(p, paths.ROOT / p) for p in files), *deps, f"python\t{python}"]
 
 
 def render_lib_sha() -> str:

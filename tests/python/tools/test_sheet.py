@@ -4,7 +4,7 @@ import pytest
 from PIL import Image
 from tools_support import FLAT, built, piece, versions
 
-from walldye.tools import cli, common, sheet
+from walldye.tools import cli, loader, paths, sheet
 from walldye.tools.themes import parse_seeds
 
 
@@ -50,7 +50,7 @@ def test_sheet_recolors_through_slots(wallpapers, tmp_path, capsys):
     assert cli.main(args) == 0
     assert capsys.readouterr().err == "skip tiny: no variant late\n"
     assert Image.open(out).size == (8 + 90 + 8, 144 + 8 + 22 + 8)
-    shutil.rmtree(common.build_dir("versions", "late"))
+    shutil.rmtree(paths.build_dir("versions", "late"))
     with pytest.raises(SystemExit, match="nothing to put on a sheet"):
         cli.main([a for a in args if a != "tiny"])
     assert (
@@ -62,10 +62,10 @@ def test_sheet_recolors_through_slots(wallpapers, tmp_path, capsys):
 def test_themed_matches_a_render(wallpapers, capsys):
     piece(wallpapers, "tiny")
     built(capsys, "tiny")
-    template = (common.build_dir("tiny") / "16x9.svg").read_text()
+    template = (paths.build_dir("tiny") / "16x9.svg").read_text()
     assert sheet.themed("tiny", parse_seeds("1C1B1A-DAD8CE-CF6A4C")) == template
     light = parse_seeds("flexoki-light")
-    assert sheet.themed("tiny", light) == common.render("tiny", "flexoki-light")
+    assert sheet.themed("tiny", light) == loader.render("tiny", "flexoki-light")
     with pytest.raises(KeyError):
         sheet.themed("tiny", parse_seeds("nord"), aspect="4:3")
 

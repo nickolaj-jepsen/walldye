@@ -3,7 +3,7 @@
 import numpy as np
 
 from walldye._theme import SEEDS
-from walldye.tools import build, coefs, common, new
+from walldye.tools import build, coefs, loader, metadata, paths
 from walldye.tools.themes import parse_seeds
 from walldye.tools.tokenize import skeleton
 
@@ -46,9 +46,9 @@ def assert_recolors(slug: str, theme, aspect: str = "16:9", variant: str = "defa
     table = build.entries(slots)
     s = seeds(theme)
     k = build.select(slots, aspect, s)
-    template = (common.build_dir(slug, variant) / table[k]["file"]).read_text()
+    template = (paths.build_dir(slug, variant) / table[k]["file"]).read_text()
     got = build.recolor(template, table[k], s)
-    want = common.render(slug, s, aspect, variant)
+    want = loader.render(slug, s, aspect, variant)
     assert skeleton(got) == skeleton(want)
     assert np.abs(coefs.colors(got) - coefs.colors(want)).max(initial=0) <= coefs.MAX_ERROR
 
@@ -99,9 +99,9 @@ def piece(wallpapers, slug, design=TINY, **meta):
         "description": "A test piece.",
         "model": "claude-opus-5-5",
     }
-    new.write_meta(slug, {**fields, "draft": True, **meta})
+    metadata.write_meta(slug, {**fields, "draft": True, **meta})
     return d
 
 
 def meta(slug):
-    return common.load_meta(slug)
+    return metadata.load_meta(slug)
