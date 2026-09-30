@@ -388,7 +388,7 @@ test.describe('detail on a 16:10 screen', () => {
   }) => {
     // Without the module only the inline boots run, so what they show is the first paint.
     await page.route('**/_astro/*.js', (route) => route.abort());
-    await page.goto('/schotter');
+    await page.goto('/loose-squares');
     await expect(page.locator('#export input[name=asp][value="16:10"]')).toBeChecked();
     await expect(page.locator('#export input[name=size][value=screen]')).toBeChecked();
     await expect(page.locator('#export input[name=size][value="2560x1440"]')).toBeHidden();
