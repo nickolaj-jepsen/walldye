@@ -3,15 +3,15 @@
 # production builds. `walldye drop` takes a dropped piece off this list.
 - dither-moon
 - attribute-clash
+- dither-wave
 - brain-coral
-- racing-spa-minisectors
 - pulsar-map
 - blinkenlights
 - wefax-cyclone
 - chladni
 - stipple-nautilus
 - metro
-- dither-wave
+- racing-spa-minisectors
 - red-wedge
 - lighthouse
 - electron-cloud
