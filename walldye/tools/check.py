@@ -22,7 +22,18 @@ from walldye._design import RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye._theme import REGIMES, Regime
-from walldye.tools import determinism, hashing, knobs, lint, loader, metadata, paths, raster, themes
+from walldye.tools import (
+    determinism,
+    hashing,
+    knobs,
+    lint,
+    loader,
+    metadata,
+    paths,
+    raster,
+    slotfile,
+    themes,
+)
 from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, serialize_aspect
 from walldye.tools.similar import near_clones
 
@@ -45,20 +56,20 @@ def design_error(e: BaseException, what: str) -> DesignError:
 @dataclass(frozen=True)
 class Task:
     """One (slug, variant) to check. `wallpapers` is paths.WALLPAPERS in the parent, which
-    pool workers adopt; with `probes`, the check stops early when the variant's fresh probe
-    hashes equal them (build's test for unchanged renders)."""
+    pool workers adopt; with `expect`, the check draws once and stops when the output_sha() of
+    what it drew equals it (build's test for unchanged output under a new toolchain)."""
 
     wallpapers: str
     slug: str
     variant: str
     paranoid: bool = False
-    probes: Mapping[str, str] | None = None
+    expect: str | None = None
 
 
 @dataclass
 class Result:
-    """What checking one (slug, variant) found and made; templates, entries, cells, probes
-    and focus are complete only when errors is empty."""
+    """What checking one (slug, variant) found and made; templates, entries, cells and focus
+    are complete only when errors is empty."""
 
     slug: str
     variant: str
@@ -67,10 +78,9 @@ class Result:
     templates: dict[str, str] = field(default_factory=dict[str, str])  # file name -> svg
     entries: dict[str, Entry] = field(default_factory=dict[str, Entry])  # "<aspect>/<regime>"
     cells: list[float] = field(default_factory=list[float])
-    probes: dict[str, str] = field(default_factory=dict[str, str])
     focus: tuple[float, float] | None = None
     seconds: float = 0.0
-    unchanged: bool = False  # build: the probes matched, so nothing else was checked
+    unchanged: bool = False  # build: the output matched `expect`, so nothing else was checked
 
 
 @dataclass
@@ -171,21 +181,31 @@ def draw(piece: loader.Piece, spec: RenderSpec) -> Document:
         raise design_error(e, f"{spec.aspect} {spec.regime}: draw") from e
 
 
-def probe_hashes(docs: Mapping[tuple[str, Regime], Document]) -> dict[str, str]:
-    """slots.json `probes`: sha256 of the 16:9 dark document under fireproof, and of each
-    regime's 16:9 document under its sample theme."""
-    probes = {"fireproof": determinism.sample_sha(docs["16:9", "dark"], TEMPLATE_THEMES["dark"])}
-    for regime in REGIMES:
-        probes[regime] = determinism.sample_sha(docs["16:9", regime], themes.SAMPLE[regime])
-    return probes
+def output(r: Result) -> dict[str, object]:
+    """The part of slots.json a checked variant's renders decide: focus (the center when there
+    is no 16:9 dark template), cells and one entry per template, each with its sha256."""
+    focus = r.focus if r.focus is not None else (0.5, 0.5)
+    entries: dict[str, object] = {
+        k: {
+            "file": e["file"],
+            "sha256": hashing.sha256(r.templates[e["file"]].encode()),
+            "n": e["n"],
+            "coefs": e["coefs"],
+            "occ": e["occ"],
+        }
+        for k, e in r.entries.items()
+    }
+    return {"focus": list(focus), "cells": r.cells, **entries}
 
 
 def check_variant(task: Task) -> Result:
     """Check one (slug, variant): determinism (two in-process draws per native aspect and
     regime, then a PYTHONHASHSEED subprocess), viewBox, the templates and their slot tables, the
-    constant-slot rule, the template limits, pixel origins, probes and focus,
-    and with task.paranoid a fresh import per serialization. A determinism failure stops it
-    before any geometry step; so does an exception from the design."""
+    constant-slot rule, the template limits, pixel origins and focus, and with task.paranoid a
+    fresh import per serialization. A determinism failure stops it before any geometry step;
+    so does an exception from the design. With task.expect, the draws and the steps after
+    determinism run first, and a result without errors whose output() hashes to task.expect is
+    returned as unchanged, unchecked for determinism."""
     paths.WALLPAPERS = Path(task.wallpapers)
     start = time.perf_counter()
     r = Result(task.slug, task.variant)
@@ -204,13 +224,17 @@ def _check(task: Task, r: Result) -> None:
     piece = load(slug)
     params = piece.params(variant)
     docs: dict[tuple[str, Regime], Document] = {}
-    if task.probes is not None:
-        for regime in REGIMES:
-            docs["16:9", regime] = draw(piece, RenderSpec(variant, params, "16:9", regime))
-        r.probes = probe_hashes(docs)
-        if r.probes == dict(task.probes):
+    if task.expect is not None:
+        for aspect in piece.aspects:
+            for regime in REGIMES:
+                docs[aspect, regime] = draw(piece, RenderSpec(variant, params, aspect, regime))
+        _serialize(r, piece, docs)
+        if len(r.errors) == 0 and slotfile.output_sha(output(r)) == task.expect:
             r.unchanged = True
             return
+        # The full check below finds them again.
+        r.errors.clear()
+        r.warnings.clear()
 
     keys = {
         (aspect, regime): paths.key(slug, variant, aspect, regime)
@@ -245,6 +269,16 @@ def _check(task: Task, r: Result) -> None:
     if len(r.errors) > 0:
         return
 
+    _serialize(r, piece, docs)
+    if task.paranoid and not isinstance(piece, loader.LegacyPiece):
+        r.errors += _paranoid(slug, variant, docs)
+
+
+def _serialize(r: Result, piece: loader.Piece, docs: Mapping[tuple[str, Regime], Document]) -> None:
+    """The steps after determinism, on one draw per native aspect and regime: viewBox, the
+    templates and their slot tables, the template limits, pixel origins, cells and focus."""
+    r.templates.clear()
+    r.entries.clear()
     for (aspect, regime), doc in docs.items():
         r.errors += [
             f"{aspect} {regime}: {e}" for e in lint.templates.viewbox(doc.skeleton(), aspect)
@@ -262,12 +296,12 @@ def _check(task: Task, r: Result) -> None:
         grids = [g for regime in REGIMES for g in docs[aspect, regime].pixel_grids]
         r.warnings += [f"{aspect}: {w}" for w in lint.templates.pixel_origins(grids)]
     r.cells = sorted({cell for doc in docs.values() for cell, _, _ in doc.pixel_grids})
-    r.probes = probe_hashes(docs)
     dark = r.templates.get("16x9.svg")
-    if dark is not None:
-        r.focus = raster.focus(raster.rasterize(dark, raster.FOCUS_WIDTH), raster.background(dark))
-    if task.paranoid and not isinstance(piece, loader.LegacyPiece):
-        r.errors += _paranoid(slug, variant, docs)
+    r.focus = (
+        None
+        if dark is None
+        else raster.focus(raster.rasterize(dark, raster.FOCUS_WIDTH), raster.background(dark))
+    )
 
 
 def _paranoid(slug: str, variant: str, docs: Mapping[tuple[str, Regime], Document]) -> list[str]:

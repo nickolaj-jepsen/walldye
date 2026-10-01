@@ -25,7 +25,7 @@ Three workflows run on pushes to `main`, on pull requests and on manual runs (Ac
 - On a pull request a newer run cancels the older one. On `main` runs queue instead, so a push never throws away a render or a deploy in progress.
 - The deploy job has no checkout. It runs `wrangler pages deploy dist --project-name=walldye --branch=<branch> --commit-hash=<sha>` through `cloudflare/wrangler-action`, so wrangler gets the commit explicitly. Its `wranglerVersion` is pinned there.
 
-Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days (the daily redeploy below reads it whenever a day had views), and the next run then renders the whole catalog from scratch, hence the 120-minute timeout. A render cut short is saved as it stands, and the next run on `main` picks up from there: `walldye build` re-hashes every template it keeps and redraws what doesn't match. A change to `walldye/` outside `tools/`, or to the render dependencies in `uv.lock`, re-renders every piece's probes, which takes a few minutes.
+Only `main` saves the render cache, so a pull request starts from main's last build and redraws only what it changed. GitHub drops a cache that goes unread for 7 days (the daily redeploy below reads it whenever a day had views), and the next run then renders the whole catalog from scratch, hence the 120-minute timeout. A render cut short is saved as it stands, and the next run on `main` picks up from there: `walldye build` re-hashes every template it keeps and redraws what doesn't match. A change to the toolchain (architecture.md, Build and check) draws every piece once and compares, in about a third of the time of a full render.
 
 ## Page views
 

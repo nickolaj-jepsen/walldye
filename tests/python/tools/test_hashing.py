@@ -1,9 +1,12 @@
 import importlib.metadata
+import platform
+from pathlib import Path
 
 from fixtures import pieces
 from tools_support import legacy
 
-from walldye.tools import hashing, paths
+import walldye
+from walldye.tools import hashing
 
 
 def test_design_lines(wallpapers):
@@ -35,16 +38,35 @@ def test_data_files_and_variants_join_the_design_sha(wallpapers):
     assert hashing.design_sha("data") != default
 
 
-def test_render_lib_lines():
-    lines = hashing.render_lib_lines()
+def test_toolchain_lines():
+    lines = hashing.toolchain_lines()
     keys = [line.split("\t")[0] for line in lines]
-    assert "walldye/__init__.py" in keys and "walldye/_theme.py" in keys
-    assert not any(k.startswith("walldye/tools/") or "__pycache__" in k for k in keys)
-    assert [line for line in lines if line.startswith("dep\t")] == [
-        f"dep\t{name}=={importlib.metadata.version(name)}"
-        for name in ("numpy", "scikit-image", "scipy", "shapely")
-    ]
-    assert f"python\t{(paths.ROOT / '.python-version').read_text().strip()}" in lines
+    for key in ("walldye/__init__.py", "walldye/_theme.py", "walldye/tools/coefs.py"):
+        assert key in keys
+    assert "walldye/tools/cli.py" not in keys
+    assert not any(k.startswith(("walldye/tools/lint/", "walldye/tools/review/")) for k in keys)
+    assert not any("__pycache__" in k or k.endswith(".pyc") for k in keys)
+    deps = [line for line in lines if line.startswith("dep\t")]
+    assert deps == [f"dep\t{n}=={v}" for n, v in sorted(hashing.runtime_dists().items())]
+    names = hashing.runtime_dists()
+    assert {"numpy", "resvg-py", "scikit-image"} <= names.keys()
+    assert names["numpy"] == importlib.metadata.version("numpy")
+    assert "pytest" not in names and "walldye" not in names
+    assert f"python\tcpython {platform.python_version()} {platform.machine()}" in lines
+
+
+def test_neutral_names_existing_modules():
+    package = Path(walldye.__file__).parent
+    for name in hashing.NEUTRAL:
+        path = package.parent / name
+        assert path.is_dir() if name.endswith("/") else path.is_file(), name
+
+
+def test_requirement_names():
+    assert hashing._requirement_name("numpy>=2.5.3") == "numpy"
+    assert hashing._requirement_name("resvg-py (>=0.5)") == "resvg-py"
+    assert hashing._requirement_name('tomli; python_version < "3.11"') == "tomli"
+    assert hashing._requirement_name('pytest>=8; extra == "test"') is None
 
 
 def test_code_line_ignores_comments_docstrings_and_layout(tmp_path):

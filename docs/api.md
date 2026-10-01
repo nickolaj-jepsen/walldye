@@ -20,7 +20,7 @@ Designs import only these four. Each defines `__all__` with exactly these names,
 | `walldye.field` | `Noise`, `noise_grid`, `cells`, `falloff`, `gauss`, `iso_lines`, `runs`, `sample_field` |
 | `walldye.pixel` | `Pixels`, `grid_runs`, `dither`, `bayer`, `blue_noise`, `threshold_matrix`, `sprite`, `glyph`, `glyphs`, `text_width`, `Font`, `DitherMethod` |
 
-The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import. The code under `walldye/` except `tools/` feeds the render-lib hash (architecture.md, Build and check).
+The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import. The code under `walldye/`, most of `tools/` included, feeds the toolchain hash (architecture.md, Build and check).
 
 ## 3. Design files
 
@@ -343,10 +343,9 @@ One element per line, with a trailing newline and no XML declaration: the `<svg>
 
 One per variant directory, with one top-level key per line and each value compact JSON:
 - `design_sha`: the hash of design.py (or source.svg and palette.yaml) and every data file, plus a `variant\t<name>` line for a named variant, which also gets a `"variant"` key;
+- `toolchain`: the hash of the code and packages that built it;
 - `focus`: the ink-weighted centroid of the 16:9 dark template, which centers crops and social cards;
 - `cells`: the cell sizes of pixel pieces;
-- `probes` and `render_lib`: the probe render hashes and the render-lib hash they were made under;
-- `checked`: the walldye version that last checked it;
 - one `"<aspect>/<regime>"` entry per template, `{file, sha256, n, coefs, occ}`: `coefs` holds the deduplicated `[a, b, c, dr, dg, db]` rows at 5 decimals, and `occ` the row for each of the `n` color occurrences.
 
 architecture.md (Build and check) says how the hashes decide what to redraw.

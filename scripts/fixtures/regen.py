@@ -159,12 +159,12 @@ def _png(svg: str, width: int, height: int, background: str) -> bytes:
 
 
 def references_current() -> bool:
-    """Whether every REFERENCE_PIECES build matches its design and the render inputs, so
+    """Whether every REFERENCE_PIECES build matches its design and the toolchain, so
     references() can be made."""
-    lib_sha = hashing.render_lib_sha()
+    toolchain = hashing.toolchain_sha()
     for slug in REFERENCE_PIECES:
         slots = slotfile.load(slug)
-        if slots is None or not slots.current(hashing.design_sha(slug), lib_sha):
+        if slots is None or not slots.current(hashing.design_sha(slug), toolchain):
             return False
     return True
 

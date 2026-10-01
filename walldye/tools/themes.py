@@ -188,5 +188,5 @@ PROBES: dict[Regime, list[Seeds]] = {
     "light": [Seeds("#818181", "#808080", "#808080"), Seeds("#00C0C0", "#3F0000", "#FF0000")],
 }
 
-# An ordinary theme per regime that determinism checks and slots.json `probes` hash draws under.
+# An ordinary theme per regime that the determinism check hashes draws under.
 SAMPLE: dict[Regime, Seeds] = {r: _HELD_OUT_RANDOM[r][0] for r in REGIMES}
