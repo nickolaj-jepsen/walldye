@@ -287,7 +287,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     s.add_argument("--set", action="append", help=argparse.SUPPRESS)  # refused in main()
     s.add_argument("--published", action="store_true", help="skip draft pieces and draft versions")
-    # walldye/tools/ is outside every hash, so a tools change alone never triggers a rebuild.
+    # Only a redraw reruns the determinism check, so a stricter one reaches built pieces this way.
     s.add_argument("--force", action="store_true", help="rebuild even when slots.json is current")
     s.set_defaults(fn=_cmd_build, need_targets=True)
 

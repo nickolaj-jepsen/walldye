@@ -1,20 +1,22 @@
 """Content hashes that tell `walldye build` when templates are stale.
 
 Every hash is the sha256 of UTF-8 lines `<key>\\t<value>\\n`, sorted by line; for a file the
-key is its posix path relative to the repo root and the value the sha256 of its bytes, or for
-a library module the sha256 of its code (code_line).
+key is its posix path relative to the repo root (for the package, relative to its parent) and
+the value the sha256 of its bytes, or for a module the sha256 of its code (code_line).
 """
 
 import ast
 import hashlib
-import subprocess
-import tomllib
+import importlib.metadata
+import platform
+import re
+import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Final
 
-from walldye.tools import metadata, paths
-
-RENDER_DEPS = ("numpy", "scipy", "shapely", "scikit-image")
+import walldye
+from walldye.tools import paths
 
 
 def sha256(data: bytes) -> str:
@@ -74,41 +76,79 @@ def design_sha(slug: str, variant: str = "default") -> str:
     return digest(lines if variant == "default" else [*lines, f"variant\t{variant}"])
 
 
-def _git_files() -> list[str]:
-    """The files under walldye/ that git tracks or would track (untracked but not ignored)."""
-    run = subprocess.run(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "walldye"],
-        cwd=paths.ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return [p for p in run.stdout.split("\0") if p != ""]
+# Modules that cannot change what build writes: the CLI around it, and checks that either run
+# on every build (the lints) or only on a redraw (determinism). Everything else is an input.
+NEUTRAL: Final = (
+    "walldye/__main__.py",
+    "walldye/tools/cli.py",
+    "walldye/tools/determinism.py",
+    "walldye/tools/drop.py",
+    "walldye/tools/index.py",
+    "walldye/tools/lint/",
+    "walldye/tools/listing.py",
+    "walldye/tools/new.py",
+    "walldye/tools/preview.py",
+    "walldye/tools/recolor.py",
+    "walldye/tools/render.py",
+    "walldye/tools/review/",
+    "walldye/tools/sheet.py",
+    "walldye/tools/similar.py",
+)
 
 
-def render_lib_lines() -> list[str]:
-    """Hash lines of the render inputs: the code (code_line) of the walldye/ files git tracks or
-    would track, minus walldye/tools/** and __pycache__; the RENDER_DEPS versions pinned in
-    uv.lock; and .python-version."""
-    files = sorted({
-        p for p in _git_files()
-        if not p.startswith("walldye/tools/") and "__pycache__" not in p.split("/") and (paths.ROOT / p).is_file()
-    })  # fmt: skip
-    lock: object = tomllib.loads((paths.ROOT / "uv.lock").read_text()).get("package")
-    packages = metadata.as_list(lock)
-    if packages is None:
-        raise ValueError("uv.lock has no [[package]] tables")
-    pinned: dict[str, str] = {}
-    for package in packages:
-        p = metadata.as_dict(package)
-        if p is not None and p.get("name") in RENDER_DEPS:
-            pinned[str(p["name"])] = str(p.get("version"))
-    if len(missing := set(RENDER_DEPS) - pinned.keys()) > 0:
-        raise ValueError(f"uv.lock pins none of: {', '.join(sorted(missing))}")
-    deps = [f"dep\t{name}=={version}" for name, version in sorted(pinned.items())]
-    python = (paths.ROOT / ".python-version").read_text().strip()
-    return [*(code_line(p, paths.ROOT / p) for p in files), *deps, f"python\t{python}"]
+def _neutral(key: str) -> bool:
+    return any(key == n or (n.endswith("/") and key.startswith(n)) for n in NEUTRAL)
 
 
-def render_lib_sha() -> str:
-    return digest(render_lib_lines())
+def _requirement_name(requirement: str) -> str | None:
+    """The distribution a Requires-Dist line names, None when only an extra asks for it."""
+    spec, _, marker = requirement.partition(";")
+    if re.search(r"\bextra\s*==", marker) is not None:
+        return None
+    match = re.match(r"\s*([A-Za-z0-9][A-Za-z0-9._-]*)", spec)
+    return None if match is None else match[1]
+
+
+def runtime_dists() -> dict[str, str]:
+    """Name -> version of every installed distribution walldye needs at run time, found by
+    following Requires-Dist from walldye (extras left out; walldye itself excluded, its code
+    is hashed instead). Names are normalized as PEP 503 does."""
+    found: dict[str, str] = {}
+    requires = importlib.metadata.requires("walldye")
+    todo: list[str] = [] if requires is None else list(requires)
+    while len(todo) > 0:
+        name = _requirement_name(todo.pop())
+        if name is None:
+            continue
+        key = re.sub(r"[-_.]+", "-", name).lower()
+        if key in found:
+            continue
+        try:
+            dist = importlib.metadata.distribution(name)
+        except importlib.metadata.PackageNotFoundError:
+            continue  # a marker excludes it here
+        found[key] = dist.version
+        if dist.requires is not None:
+            todo += dist.requires
+    return found
+
+
+def toolchain_lines() -> list[str]:
+    """Hash lines of what turns a design into build output: the code (code_line) of every file
+    in the imported walldye package outside NEUTRAL, the runtime_dists() versions, and the
+    Python version and machine."""
+    package = Path(walldye.__file__).parent
+    files = {
+        f"walldye/{p.relative_to(package).as_posix()}": p
+        for p in package.rglob("*")
+        if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
+    }
+    code = [code_line(k, p) for k, p in sorted(files.items()) if not _neutral(k)]
+    deps = [f"dep\t{name}=={version}" for name, version in sorted(runtime_dists().items())]
+    python = f"{sys.implementation.name} {platform.python_version()} {platform.machine()}"
+    return [*code, *deps, f"python\t{python}"]
+
+
+def toolchain_sha() -> str:
+    """The digest of toolchain_lines(); slots.json records it as `toolchain`."""
+    return digest(toolchain_lines())

@@ -6,14 +6,14 @@ import sys
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 
-from walldye.tools import check, hashing, index, metadata, paths, slotfile
+from walldye.tools import check, hashing, index, lint, metadata, paths, slotfile
 from walldye.tools.paths import TEMPLATE_NAME
 
 
 def _current(slug: str, variant: str, slots: slotfile.Slots, design_sha: str) -> bool:
-    """Whether `slots` still describe the variant's inputs: same design_sha and walldye
-    version, and every template it names present with its recorded sha256. The render inputs
-    are compared separately, through `render_lib` and the probes."""
+    """Whether `slots` still describe the variant's design: same design_sha, and every
+    template it names present with its recorded sha256. The toolchain is compared
+    separately."""
     d = paths.build_dir(slug, variant)
     return slots.current(design_sha) and all(
         (d / e["file"]).exists() and hashing.sha256((d / e["file"]).read_bytes()) == e["sha256"]
@@ -25,9 +25,9 @@ def _name(slug: str, variant: str) -> str:
     return slug if variant == "default" else f"{slug} ({variant})"
 
 
-def _write(slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Result) -> list[str]:
-    """Write a checked variant's templates and slots.json, removing the templates it no
-    longer has; returns the written files relative to build/."""
+def _write(slug: str, variant: str, slots: dict[str, object], r: check.Result) -> list[str]:
+    """Write a checked variant's templates and `slots`, removing the templates it no longer
+    has; returns the written files relative to build/."""
     d = paths.build_dir(slug, variant)
     d.mkdir(parents=True, exist_ok=True)
     for stale in d.glob("*.svg"):
@@ -35,22 +35,6 @@ def _write(slug: str, variant: str, design_sha: str, lib_sha: str, r: check.Resu
             stale.unlink()
     for name, text in r.templates.items():
         (d / name).write_bytes(text.encode())
-    slots: dict[str, object] = {"design_sha": design_sha}
-    if variant != "default":
-        slots["variant"] = variant
-    focus = r.focus if r.focus is not None else (0.5, 0.5)
-    slots |= {"focus": list(focus), "cells": r.cells, "probes": r.probes}
-    slots |= {"render_lib": lib_sha, "checked": slotfile.version()}
-    for k, e in r.entries.items():
-        sha = hashing.sha256(r.templates[e["file"]].encode())
-        entry: slotfile.Entry = {
-            "file": e["file"],
-            "sha256": sha,
-            "n": e["n"],
-            "coefs": e["coefs"],
-            "occ": e["occ"],
-        }
-        slots[k] = entry
     (d / "slots.json").write_text(slotfile.dump(slots))
     prefix = "" if variant == "default" else f"{variant}/"
     return [f"{prefix}{n}" for n in (*r.templates, "slots.json")]
@@ -67,13 +51,24 @@ def _prune(slug: str, names: Sequence[str]) -> None:
             print(f"{slug}: removed build/{p.name}/, not a declared variant")
 
 
-def _restamp(slug: str, variant: str, lib_sha: str) -> None:
-    """Record in a variant's slots.json that its templates hold under render inputs `lib_sha`."""
-    slots = slotfile.load(slug, variant)
-    assert slots is not None
-    (paths.build_dir(slug, variant) / "slots.json").write_text(
-        slots.restamped(render_lib=lib_sha).dump()
-    )
+def _restamp(slug: str, variant: str, design_sha: str, toolchain: str) -> None:
+    """Record in a variant's slots.json that `toolchain` draws what it holds."""
+    old = slotfile.load(slug, variant)
+    assert old is not None
+    slots = slotfile.compose(design_sha, variant, toolchain, old.output())
+    (paths.build_dir(slug, variant) / "slots.json").write_text(slotfile.dump(slots))
+
+
+def _lint_templates(slug: str, variant: str, slots: slotfile.Slots) -> list[str]:
+    """The template lint errors of a current variant's built templates."""
+    d = paths.build_dir(slug, variant)
+    prefix = "" if variant == "default" else f"{variant}: "
+    files = dict.fromkeys(e["file"] for e in slots.entries.values())
+    return [
+        f"{prefix}{name}: {e}"
+        for name in files
+        for e in lint.templates.svg((d / name).read_text())[0]
+    ]
 
 
 def _drafts(slug: str) -> tuple[bool, set[str]]:
@@ -92,21 +87,22 @@ class _Plan:
     """A piece to build: its check so far, what each variant needs, and its tasks."""
 
     target: check.Target
-    lib_sha: str
+    toolchain: str
     shas: dict[str, str] = field(default_factory=dict[str, str])
     current: list[str] = field(default_factory=list[str])
     tasks: list[check.Task] = field(default_factory=list[check.Task])
 
 
-def _plan(slug: str, variant: str | None, lib_sha: str, force: bool, published: bool) -> _Plan:
-    """What `slug` needs: variants whose slots.json is current are skipped while its
-    render_lib matches `lib_sha`, else re-drawn only for their probes; the rest are checked.
-    With `published`, draft named variants are left out."""
+def _plan(slug: str, variant: str | None, toolchain: str, force: bool, published: bool) -> _Plan:
+    """What `slug` needs: variants whose slots.json is current are skipped while their
+    toolchain matches `toolchain` (their templates are linted again), else drawn once and
+    compared with what they hold; the rest are checked. With `published`, draft named
+    variants are left out."""
     t = check.prepare(slug, variant)
     if published:
         _, drafts = _drafts(slug)
         t.variants = tuple(v for v in t.variants if v not in drafts)
-    plan = _Plan(t, lib_sha)
+    plan = _Plan(t, toolchain)
     if t.piece is None or len(t.report.errors) > 0:
         return plan
     for v in t.variants:
@@ -118,10 +114,11 @@ def _plan(slug: str, variant: str | None, lib_sha: str, force: bool, published: 
             old = None
         task = check.Task(str(paths.WALLPAPERS), slug, v)
         if old is not None and _current(slug, v, old, plan.shas[v]):
-            if old.text("render_lib") == lib_sha:
+            if old.text("toolchain") == toolchain:
                 plan.current.append(v)
+                t.report.errors += _lint_templates(slug, v, old)
                 continue
-            task = check.Task(task.wallpapers, slug, v, probes=old.probes())
+            task = check.Task(task.wallpapers, slug, v, expect=slotfile.output_sha(old.output()))
         plan.tasks.append(task)
     return plan
 
@@ -150,12 +147,10 @@ def run(
     if len(targets) == 0:
         print("nothing to build: name a slug or pass --all", file=sys.stderr)
         return 2
-    lib_sha = hashing.render_lib_sha()
-    plans = [_plan(slug, variant, lib_sha, force, published) for slug in targets]
-    # The static steps for what is checked afresh, and for pieces that already failed.
+    toolchain = hashing.toolchain_sha()
+    plans = [_plan(slug, variant, toolchain, force, published) for slug in targets]
     for p in plans:
-        if len(p.target.report.errors) > 0 or any(t.probes is None for t in p.tasks):
-            check.lint_source(p.target)
+        check.lint_source(p.target)
     tasks = [task for p in plans for task in p.tasks]
     results = check.run_tasks(check.check_variant, tasks, check.workers(jobs, len(tasks)))
     failed = [p.target.slug for p in plans if not _finish(p, results, variant)]
@@ -178,12 +173,11 @@ def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -
         print(f"{_name(t.slug, v)}: up to date")
     for v, r in t.report.results.items():
         if r.unchanged:
-            _restamp(t.slug, v, plan.lib_sha)
-            print(
-                f"{_name(t.slug, v)}: up to date (probe renders unchanged under the new render inputs)"
-            )
+            _restamp(t.slug, v, plan.shas[v], plan.toolchain)
+            print(f"{_name(t.slug, v)}: up to date (the new toolchain draws the same output)")
         else:
-            written = _write(t.slug, v, plan.shas[v], plan.lib_sha, r)
+            slots = slotfile.compose(plan.shas[v], v, plan.toolchain, check.output(r))
+            written = _write(t.slug, v, slots, r)
             print(f"{_name(t.slug, v)}: wrote {', '.join(written)}")
     if variant is None:
         _prune(t.slug, t.piece.variant_names())

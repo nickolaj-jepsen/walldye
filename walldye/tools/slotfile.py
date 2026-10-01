@@ -1,10 +1,10 @@
 """slots.json: a built version's templates with their slot coefficients, and the stamps that
 say what they were built from."""
 
-import importlib.metadata
+import hashlib
 import json
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from walldye.tools import coefs, metadata, paths
 
@@ -15,9 +15,17 @@ class Entry(coefs.Entry):
     sha256: str
 
 
-def version() -> str:
-    """The walldye version, which slots.json records as `checked`."""
-    return importlib.metadata.version("walldye")
+def compose(
+    design_sha: str, variant: str, toolchain: str, output: Mapping[str, object]
+) -> dict[str, object]:
+    """A slots.json object: the stamps (`variant` only for a named variant), then `output`."""
+    named: dict[str, object] = {} if variant == "default" else {"variant": variant}
+    return {"design_sha": design_sha, **named, "toolchain": toolchain, **output}
+
+
+def output_sha(output: Mapping[str, object]) -> str:
+    """The sha256 of dump(output), so a fresh draw's output compares to Slots.output()."""
+    return hashlib.sha256(dump(output).encode()).hexdigest()
 
 
 def dump(slots: Mapping[str, object]) -> str:
@@ -39,23 +47,20 @@ class Slots:
         value = self.fields.get(key)
         return value if isinstance(value, str) else None
 
-    def probes(self) -> dict[str, str]:
-        """The probe render hashes by name; {} without any."""
-        probes = metadata.as_dict(self.fields.get("probes"))
-        return {} if probes is None else {k: str(v) for k, v in probes.items()}
-
-    def current(self, design_sha: str, render_lib: str | None = None) -> bool:
-        """Whether these slots were checked by this walldye version for `design_sha`, and,
-        when given, under the render inputs `render_lib`."""
-        return (
-            self.text("design_sha") == design_sha
-            and self.text("checked") == version()
-            and (render_lib is None or self.text("render_lib") == render_lib)
+    def current(self, design_sha: str, toolchain: str | None = None) -> bool:
+        """Whether these slots were built for `design_sha`, and, when given, by `toolchain`."""
+        return self.text("design_sha") == design_sha and (
+            toolchain is None or self.text("toolchain") == toolchain
         )
 
-    def restamped(self, **fields: object) -> "Slots":
-        """These slots with `fields` replaced or added, keeping the key order."""
-        return replace(self, fields={**self.fields, **fields})
+    def output(self) -> dict[str, object]:
+        """What a build drew for these slots: focus, cells and the template entries, the part
+        of slots.json that does not say what it was built from."""
+        return {
+            "focus": self.fields.get("focus"),
+            "cells": self.fields.get("cells"),
+            **self.entries,
+        }
 
     def to_dict(self) -> dict[str, object]:
         """The slots.json object: the fields in order, then the entries."""

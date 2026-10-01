@@ -18,11 +18,9 @@ export interface SlotsEntry {
 /** A parsed build/slots.json: the piece fields plus one SlotsEntry per "<aspect>/<regime>" key. */
 export interface Slots {
   design_sha: string;
+  toolchain: string;
   focus: [number, number];
   cells: number[];
-  probes: Record<string, string>;
-  render_lib: string;
-  checked: string;
   [key: string]: unknown;
 }
 

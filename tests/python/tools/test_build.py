@@ -47,27 +47,10 @@ def test_collision_builds_and_recolors(wallpapers, capsys):
     template = (b / "16x9.svg").read_text()
     assert template == loader.render("collision", "fireproof")
     s = slots("collision")
-    assert list(s) == [
-        "design_sha",
-        "focus",
-        "cells",
-        "probes",
-        "render_lib",
-        "checked",
-        "16:9/dark",
-        "16:9/light",
-    ]
+    assert list(s) == ["design_sha", "toolchain", "focus", "cells", "16:9/dark", "16:9/light"]
     assert s["design_sha"] == hashing.design_sha("collision")
-    assert s["checked"] == slotfile.version() == "0.2.0"
-    assert s["render_lib"] == hashing.render_lib_sha()
+    assert s["toolchain"] == hashing.toolchain_sha()
     assert s["cells"] == [] and s["focus"] == [0.5, 0.5]
-    assert s["probes"] == {
-        "fireproof": hashing.sha256(template.encode()),
-        **{
-            r: hashing.sha256(loader.render("collision", themes.SAMPLE[r]).encode())
-            for r in ("dark", "light")
-        },
-    }
     table = slotfile.parse(s).entries
     for regime in ("dark", "light"):
         entry = table[f"16:9/{regime}"]
@@ -187,7 +170,7 @@ def test_variant_layout(wallpapers, capsys):
             "slots.json",
         ]
         s = slots("versions", name)
-        assert list(s)[:3] == ["design_sha", "variant", "focus"]
+        assert list(s)[:4] == ["design_sha", "variant", "toolchain", "focus"]
         assert s["variant"] == name and s["design_sha"] == hashing.design_sha("versions", name)
         assert slotfile.parse(s).entries["16:9/dark"]["file"] == "16x9.svg"
         assert_recolors("versions", "nord", "10:16", name)
@@ -254,12 +237,15 @@ def test_failed_check_writes_nothing(wallpapers, capsys):
     assert not paths.build_dir("unseeded").exists()
 
 
-def old_render_lib(slug: str, **changes: object) -> None:
-    """Make `slug`'s slots.json look built under other render inputs, with `changes`."""
-    s = slots(slug)
-    (paths.build_dir(slug) / "slots.json").write_text(
-        slotfile.dump({**s, "render_lib": "0" * 64, **changes})
+def old_toolchain(slug: str, variant: str = "default", **changes: object) -> None:
+    """Make a variant's slots.json look built by another toolchain, with `changes`."""
+    s = slots(slug, variant)
+    (paths.build_dir(slug, variant) / "slots.json").write_text(
+        slotfile.dump({**s, "toolchain": "0" * 64, **changes})
     )
+
+
+SAME = "up to date (the new toolchain draws the same output)"
 
 
 def test_skip_restamp_and_rebuild(wallpapers, capsys):
@@ -267,13 +253,14 @@ def test_skip_restamp_and_rebuild(wallpapers, capsys):
     built(capsys, "collision")
     assert "collision: up to date" in built(capsys, "collision")
 
-    old_render_lib("collision")
-    assert "probe renders unchanged" in built(capsys, "collision")
-    assert slots("collision")["render_lib"] == hashing.render_lib_sha()
+    old_toolchain("collision")
+    assert f"collision: {SAME}" in built(capsys, "collision")
+    assert slots("collision")["toolchain"] == hashing.toolchain_sha()
     assert "collision: up to date" in built(capsys, "collision")
 
-    old_render_lib("collision", probes={**slots("collision")["probes"], "dark": "0"})
+    old_toolchain("collision", focus=[0.25, 0.5])
     assert "collision: wrote" in built(capsys, "collision")
+    assert slots("collision")["focus"] == [0.5, 0.5]
 
     design = paths.piece_dir("collision") / "design.py"
     design.write_text(design.read_text() + "\n\n# edited\n")
@@ -283,12 +270,47 @@ def test_skip_restamp_and_rebuild(wallpapers, capsys):
     template = paths.build_dir("collision") / "16x9.svg"
     template.write_text(template.read_text() + "<!-- hand edit -->\n")
     assert "collision: wrote" in built(capsys, "collision")
-    s = slots("collision")
-    (paths.build_dir("collision") / "slots.json").write_text(
-        slotfile.dump({**s, "checked": "0.1.0"})
-    )
-    assert "collision: wrote" in built(capsys, "collision")
     assert "collision: up to date" in built(capsys, "collision")
+
+
+def test_any_output_change_is_redrawn(wallpapers, capsys):
+    pieces.install(wallpapers, "pixels")
+    built(capsys, "pixels")
+    table = slots("pixels")
+    entry = dict(table["21:9/light"])
+    entry["coefs"] = [[*row[:5], row[5] + 1] for row in entry["coefs"]]
+    old_toolchain("pixels", **{"21:9/light": entry})
+    assert "pixels: wrote" in built(capsys, "pixels")
+    assert slots("pixels") == {**table, "toolchain": hashing.toolchain_sha()}
+    old_toolchain("pixels", cells=[2])
+    assert "pixels: wrote" in built(capsys, "pixels")
+
+
+def test_slots_from_the_probe_era_are_restamped(wallpapers, capsys):
+    pieces.install(wallpapers, "collision")
+    built(capsys, "collision")
+    s = slots("collision")
+    del s["toolchain"]
+    stamps = {"probes": {"dark": "0"}, "render_lib": "0" * 64, "checked": "0.2.0"}
+    (paths.build_dir("collision") / "slots.json").write_text(slotfile.dump({**s, **stamps}))
+    assert f"collision: {SAME}" in built(capsys, "collision")
+    assert list(slots("collision"))[:2] == ["design_sha", "toolchain"]
+    assert not stamps.keys() & slots("collision").keys()
+
+
+def test_current_templates_are_linted_again(wallpapers, capsys):
+    pieces.install(wallpapers, "collision")
+    built(capsys, "collision")
+    template = paths.build_dir("collision") / "16x9.svg"
+    text = template.read_text().replace("</svg>", "<text>hi</text>\n</svg>")
+    template.write_text(text)
+    s = slots("collision")
+    for k in ("16:9/dark", "16:9/light"):
+        s[k] = {**s[k], "sha256": hashing.sha256(text.encode())}
+    (paths.build_dir("collision") / "slots.json").write_text(slotfile.dump(s))
+    assert build.run(["collision"], jobs=1) == 1
+    out = capsys.readouterr().out
+    assert "error: 16x9.svg:" in out and "collision: not written" in out
 
 
 def test_data_files_trigger_rebuilds(wallpapers, capsys):
@@ -322,19 +344,19 @@ def test_unreadable_slots_json_is_rebuilt(wallpapers, capsys):
     assert "collision: wrote" in built(capsys, "collision", force=True)
 
 
-def test_probe_failure_is_reported_and_the_run_goes_on(wallpapers, capsys):
+def test_redraw_failure_is_reported_and_the_run_goes_on(wallpapers, capsys):
     pieces.install(wallpapers, "collision")
     pieces.install(wallpapers, "collision", "other")
     built(capsys, all=True)
-    old_render_lib("other")
+    old_toolchain("other")
     # design.py now fails to draw, but slots.json is made to look current for it
     design = wallpapers / "collision/design.py"
     design.write_text(design.read_text().replace("s.fill(P().rect(0, 0", 's.fill(P().rect(-1, "x"'))
-    old_render_lib("collision", design_sha=hashing.design_sha("collision"))
+    old_toolchain("collision", design_sha=hashing.design_sha("collision"))
     assert build.run([], all=True, jobs=1) == 1
     out = capsys.readouterr().out
     assert "draw failed: TypeError" in out and "collision: not written" in out
-    assert "other: up to date (probe renders unchanged" in out
+    assert f"other: {SAME}" in out
 
 
 def test_unreadable_siblings_are_left_out(wallpapers, capsys):
