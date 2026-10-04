@@ -145,25 +145,32 @@ const Table = z
     }),
   );
 
-const EventsFile = z.strictObject(
-  {
-    visitors: Count,
-    downloads: z.record(z.string(), Count, { error: 'must be an object of slug: visitors' }),
-    ...(Object.fromEntries(EVENT_NAMES.map((e) => [e, Table])) as Record<EventName, typeof Table>),
-  },
-  { error: 'must be an object of visitors, downloads and the event tables' },
+const EventsFile = z.catchall(
+  z.object(
+    {
+      visitors: Count,
+      downloads: z.record(z.string(), Count, { error: 'must be an object of slug: visitors' }),
+    },
+    { error: 'must be an object of visitors, downloads and event tables' },
+  ),
+  Table,
 );
 
 /**
- * An events day file's JSON as an EventsDay. Throws unless it has exactly the EventsDay keys, counts
- * that are non-negative integers, and tables whose columns are distinct lowercase names ending in
- * `n`, without `visitor`. Each cell must be of the type and within the bounds src/lib/events.ts sets
- * for its field, `n` at least 1; a field the model no longer has takes any short text, number or
- * boolean. A file keeps the columns it was written with, so a change to the event fields leaves the
- * files already written readable.
+ * An events day file's JSON as an EventsDay. Throws unless `visitors` and `downloads` hold
+ * non-negative integer counts and every other key is a table whose columns are distinct lowercase
+ * names ending in `n`, without `visitor`. Each cell must be of the type and within the bounds
+ * src/lib/events.ts sets for its field, `n` at least 1; a field the model no longer has takes any
+ * short text, number or boolean. A file keeps the columns it was written with, and an event the file
+ * lacks reads as no rows while one the model no longer has is checked and dropped, so a change to
+ * the event model leaves the files already written readable.
  */
 export function parseEvents(text: string): EventsDay {
-  return parse(EventsFile, JSON.parse(text));
+  const { visitors, downloads, ...tables } = parse(EventsFile, JSON.parse(text));
+  const events = Object.fromEntries(
+    EVENT_NAMES.map((e) => [e, tables[e] ?? { columns: eventColumns(e), rows: [] }]),
+  );
+  return { visitors, downloads, ...events } as EventsDay;
 }
 
 /** Old slug to new slug, from the `/<old> /<new> 301` lines of public/_redirects. */

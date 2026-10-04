@@ -199,11 +199,20 @@ describe('parseEvents', () => {
     expect(parseEvents(text(older))).toEqual(older);
   });
 
+  it('reads an event the file lacks as no rows and drops one the model no longer has', () => {
+    const { share: _, ...v } = valid();
+    const retired = { columns: ['page', 'n'], rows: [['index', 1]] };
+    expect(parseEvents(text({ ...v, retired }))).toEqual(valid());
+  });
+
   it('rejects anything else', () => {
     const bad: [string, (v: ReturnType<typeof valid>) => unknown][] = [
       ['not an object', () => []],
-      ['extra key', (v) => ({ ...v, extra: 1 })],
-      ['missing table', ({ share: _, ...v }) => v],
+      ['extra key not a table', (v) => ({ ...v, extra: 1 })],
+      [
+        'retired table with a visitor column',
+        (v) => ({ ...v, old: { columns: ['visitor', 'n'], rows: [] } }),
+      ],
       ['negative visitors', (v) => ({ ...v, visitors: -1 })],
       ['fractional download', (v) => ({ ...v, downloads: { a: 1.5 } })],
       [
