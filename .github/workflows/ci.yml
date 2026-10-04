@@ -329,3 +329,7 @@ jobs:
           check "/no-such-piece-$GITHUB_RUN_ID" 404 '<title>Not found'
           check "/${templates[0]#dist/}" 200 '^cache-control: public, max-age=31536000, immutable'
           check /about 200 '^cache-control: public, max-age=0, must-revalidate'
+          # Only walldye.com is measured; a missing beacon would save days of zero views.
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            check / 200 'cloudflareinsights\.com/beacon'
+          fi
