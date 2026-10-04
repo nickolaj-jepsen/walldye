@@ -1,6 +1,7 @@
 """`walldye new`: scaffold wallpapers/<slug>/ with a starter design.py and a draft meta.yaml."""
 
 import datetime
+from collections.abc import Mapping
 
 from walldye.tools import lint, metadata, paths
 from walldye.tools.errors import UsageError
@@ -18,10 +19,10 @@ def draw(s: Canvas) -> None:
 '''
 
 
-def run(slug: str, model: str) -> int:
-    """Create wallpapers/<slug>/ holding DESIGN and a meta.yaml made by `model`, added today,
-    draft true and with no license line. UsageError if `slug` is malformed, reserved or already
-    taken."""
+def run(slug: str, credit: Mapping[str, str]) -> int:
+    """Create wallpapers/<slug>/ holding DESIGN and a meta.yaml credited to `credit` (`{"model":
+    id}` or `{"author": name}`), added today, draft true and with no license line. UsageError if
+    `slug` is malformed, reserved or already taken."""
     try:
         d = paths.piece_dir(slug)
     except ValueError as e:
@@ -41,7 +42,7 @@ def run(slug: str, model: str) -> int:
         "lineage": [],
         "sources": [],
         "added": datetime.datetime.now().astimezone().date(),
-        "model": model,
+        **credit,
         "draft": True,
         "proposed_facets": {},
     })  # fmt: skip

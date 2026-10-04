@@ -88,7 +88,9 @@ def _items(a: argparse.Namespace, name: str) -> list[str]:
 
 
 def _cmd_new(a: argparse.Namespace) -> int:
-    return new.run(_str(a, "slug"), _str(a, "model"))
+    model = cast("str | None", a.model)
+    credit = {"model": model} if model is not None else {"author": _str(a, "author")}
+    return new.run(_str(a, "slug"), credit)
 
 
 def _cmd_preview(a: argparse.Namespace) -> int:
@@ -232,7 +234,9 @@ def _parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("new", help="scaffold wallpapers/<slug>/ (design.py + draft meta.yaml)")
     s.add_argument("slug")
-    s.add_argument("--model", required=True, help="model id, e.g. claude-opus-5-5")
+    who = s.add_mutually_exclusive_group(required=True)
+    who.add_argument("--model", help="model id, e.g. claude-opus-5-5")
+    who.add_argument("--author", help="your name, for a piece you made yourself")
     s.set_defaults(fn=_cmd_new)
 
     s = sub.add_parser(

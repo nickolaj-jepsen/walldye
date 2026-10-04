@@ -26,6 +26,19 @@ def test_new_scaffolds_a_draft(wallpapers, capsys):
     assert t.report.errors == ["meta.yaml needs a description", "meta.yaml needs alt text"]
 
 
+def test_new_credits_an_author(wallpapers):
+    assert cli.main(["new", "ring-two", "--author", "Ada"]) == 0
+    m = meta("ring-two")
+    assert m["author"] == "Ada" and "model" not in m and "license" not in m
+
+
+@pytest.mark.parametrize("credit", [[], ["--model", "m", "--author", "Ada"]])
+def test_new_takes_one_credit(wallpapers, credit):
+    with pytest.raises(SystemExit) as e:
+        cli.main(["new", "ring-three", *credit])
+    assert e.value.code == 2
+
+
 @pytest.mark.parametrize(
     "slug", ["about", "sitemap-index", "og", "Bad_Slug", "-x", "a--b", "taken"]
 )
