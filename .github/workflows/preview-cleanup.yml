@@ -1,0 +1,47 @@
+name: Preview cleanup
+
+# Deletes a pull request's Preview once it closes; the free plan keeps 100 per Worker.
+on:
+  pull_request:
+    types: [closed]
+
+permissions: {}
+
+# Joins ci.yml's group for a pull request it deploys, so a deploy still running is cancelled rather
+# than left to recreate the Preview after the delete. Other pull requests keep their CI runs.
+concurrency:
+  group: >-
+    ${{ github.event.pull_request.head.repo.full_name == github.repository
+    && github.event.pull_request.user.login != 'dependabot[bot]'
+    && format('ci-{0}', github.event.pull_request.number)
+    || format('preview-cleanup-{0}', github.event.pull_request.number) }}
+  cancel-in-progress: true
+
+jobs:
+  delete:
+    # The same pull requests ci.yml deploys.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # No checkout: wrangler installs alone and the Worker is named here. A pull request may have no
+      # Preview (CI skipped, cancelled or never deployed, or evicted), which wrangler reports as
+      # API code 10025 (or 10007 before the Worker exists).
+      - name: Delete the Preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW: pr-${{ github.event.pull_request.number }}
+        run: |
+          # Dependabot can't see this pin; bump it by hand with ci.yml's.
+          if out=$(npx --yes wrangler@4.143.0 preview delete --name="$PREVIEW" \
+            --worker-name=walldye --skip-confirmation 2>&1); then
+            echo "$out"
+          elif grep -qE '\[code: (10025|10007)\]' <<< "$out"; then
+            echo "No Preview $PREVIEW to delete."
+          else
+            echo "$out"
+            exit 1
+          fi

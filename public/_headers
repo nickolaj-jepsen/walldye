@@ -1,4 +1,4 @@
-# Cloudflare Pages response headers.
+# Response headers for the static assets of the walldye Worker.
 # Rules that match one request add up and repeat headers are comma-joined, so no two
 # Cache-Control rules below may match the same path.
 
@@ -14,5 +14,6 @@
 /:page
   Cache-Control: public, max-age=0, must-revalidate
 
-https://:project.pages.dev/*
+# Preview and version URLs on workers.dev; only walldye.com gets indexed.
+https://:host.:subdomain.workers.dev/*
   X-Robots-Tag: noindex
