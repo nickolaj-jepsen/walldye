@@ -12,7 +12,7 @@ import subprocess
 import sys
 import time
 import traceback
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -82,6 +82,10 @@ class Result:
     seconds: float = 0.0
     unchanged: bool = False  # build: the output matched `expect`, so nothing else was checked
 
+    def output(self) -> dict[str, object]:
+        """slotfile.output() of what this check made."""
+        return slotfile.output(self.templates, self.entries, self.cells, self.focus)
+
 
 @dataclass
 class Report:
@@ -94,11 +98,15 @@ class Report:
     results: dict[str, Result] = field(default_factory=dict[str, Result])
 
     def add(self, result: Result) -> None:
-        """Take in a variant's result, prefixing its messages with a named variant's name."""
-        prefix = "" if result.variant == "default" else f"{result.variant}: "
-        self.errors += [prefix + e for e in result.errors]
-        self.warnings += [prefix + w for w in result.warnings]
+        """Take in a variant's result and its messages (add_messages)."""
+        self.add_messages(result.variant, result.errors, result.warnings)
         self.results[result.variant] = result
+
+    def add_messages(self, variant: str, errors: Sequence[str], warnings: Sequence[str]) -> None:
+        """Add a variant's messages, each prefixed with a named variant's name."""
+        prefix = "" if variant == "default" else f"{variant}: "
+        self.errors += [prefix + e for e in errors]
+        self.warnings += [prefix + w for w in warnings]
 
 
 @dataclass
@@ -165,6 +173,24 @@ def lint_source(t: Target) -> None:
     t.report.warnings += warnings
 
 
+def lint_templates(templates: Mapping[str, str]) -> tuple[list[str], list[str]]:
+    """The template lint errors and warnings of `templates` (file name -> svg), each prefixed
+    with its file name."""
+    errors: list[str] = []
+    warnings: list[str] = []
+    for name, text in templates.items():
+        e, w = lint.templates.svg(text)
+        errors += [f"{name}: {m}" for m in e]
+        warnings += [f"{name}: {m}" for m in w]
+    return errors, warnings
+
+
+def lint_built(t: Target, variant: str, files: Iterable[str]) -> None:
+    """Add the template lints of a built variant's template `files` to t's report."""
+    d = paths.build_dir(t.slug, variant)
+    t.report.add_messages(variant, *lint_templates({n: (d / n).read_text() for n in files}))
+
+
 def load(slug: str) -> loader.Piece:
     """loader.load(slug), with anything the import raises turned into a DesignError."""
     try:
@@ -181,36 +207,20 @@ def draw(piece: loader.Piece, spec: RenderSpec) -> Document:
         raise design_error(e, f"{spec.aspect} {spec.regime}: draw") from e
 
 
-def output(r: Result) -> dict[str, object]:
-    """The part of slots.json a checked variant's renders decide: focus (the center when there
-    is no 16:9 dark template), cells and one entry per template, each with its sha256."""
-    focus = r.focus if r.focus is not None else (0.5, 0.5)
-    entries: dict[str, object] = {
-        k: {
-            "file": e["file"],
-            "sha256": hashing.sha256(r.templates[e["file"]].encode()),
-            "n": e["n"],
-            "coefs": e["coefs"],
-            "occ": e["occ"],
-        }
-        for k, e in r.entries.items()
-    }
-    return {"focus": list(focus), "cells": r.cells, **entries}
-
-
 def check_variant(task: Task) -> Result:
     """Check one (slug, variant): determinism (two in-process draws per native aspect and
-    regime, then a PYTHONHASHSEED subprocess), viewBox, the templates and their slot tables, the
-    constant-slot rule, the template limits, pixel origins and focus, and with task.paranoid a
-    fresh import per serialization. A determinism failure stops it before any geometry step;
-    so does an exception from the design. With task.expect, the draws and the steps after
-    determinism run first, and a result without errors whose output() hashes to task.expect is
-    returned as unchanged, unchecked for determinism."""
+    regime, back to back, then a PYTHONHASHSEED subprocess), viewBox, the templates and their
+    slot tables, the constant-slot rule, the template limits, pixel origins and focus, and with
+    task.paranoid a fresh import per serialization. A determinism failure stops it before any
+    geometry step; so does an exception from the design, added to what was found before it.
+    With task.expect, it first draws once and serializes, and returns that result as unchanged,
+    unchecked for determinism, when it has no errors and its output() hashes to task.expect;
+    otherwise the determinism check reuses those draws, so no redraw is back to back."""
     paths.WALLPAPERS = Path(task.wallpapers)
     start = time.perf_counter()
     r = Result(task.slug, task.variant)
     try:
-        _check(task, r)
+        r = _check(task, r)
     except DesignError as e:
         r.errors.append(str(e))
     r.seconds = time.perf_counter() - start
@@ -219,34 +229,31 @@ def check_variant(task: Task) -> Result:
     return r
 
 
-def _check(task: Task, r: Result) -> None:
+def _check(task: Task, r: Result) -> Result:
+    """`r` filled in by the full check, or a new Result when task.expect matched."""
     slug, variant = task.slug, task.variant
     piece = load(slug)
     params = piece.params(variant)
-    docs: dict[tuple[str, Regime], Document] = {}
-    if task.expect is not None:
-        for aspect in piece.aspects:
-            for regime in REGIMES:
-                docs[aspect, regime] = draw(piece, RenderSpec(variant, params, aspect, regime))
-        _serialize(r, piece, docs)
-        if len(r.errors) == 0 and slotfile.output_sha(output(r)) == task.expect:
-            r.unchanged = True
-            return
-        # The full check below finds them again.
-        r.errors.clear()
-        r.warnings.clear()
-
-    keys = {
-        (aspect, regime): paths.key(slug, variant, aspect, regime)
+    specs = {
+        (aspect, regime): RenderSpec(variant, params, aspect, regime)
         for aspect in piece.aspects
         for regime in REGIMES
     }
+    docs: dict[tuple[str, Regime], Document] = {}
+    if task.expect is not None:
+        docs = {k: draw(piece, spec) for k, spec in specs.items()}
+        trial = Result(slug, variant)
+        _serialize(trial, piece, docs)
+        if len(trial.errors) == 0 and slotfile.output_sha(trial.output()) == task.expect:
+            trial.unchanged = True
+            return trial
+
+    keys = {k: paths.key(slug, variant, *k) for k in specs}
     # The fresh process draws while this one does; it only needs the keys.
     fresh = determinism.start_fresh(list(keys.values()))
     try:
         expected: dict[str, str] = {}
-        for (aspect, regime), k in keys.items():
-            spec = RenderSpec(variant, params, aspect, regime)
+        for (aspect, regime), spec in specs.items():
             first = docs[aspect, regime] if (aspect, regime) in docs else draw(piece, spec)
             docs[aspect, regime] = first
             tokens = themes.tokens_of(themes.SAMPLE[regime])
@@ -256,9 +263,9 @@ def _check(task: Task, r: Result) -> None:
                     f"{aspect} {regime}: two draws differ, {first_diff(a, b)}: does draw change"
                     " module-level state, or use randomness outside s.rng?"
                 )
-            expected[k] = hashing.sha256(a.encode())
+            expected[keys[aspect, regime]] = hashing.sha256(a.encode())
         if len(r.errors) > 0:
-            return
+            return r
         out, err = fresh.communicate()
         done = subprocess.CompletedProcess(fresh.args, fresh.wait(), out, err)
     finally:
@@ -267,18 +274,17 @@ def _check(task: Task, r: Result) -> None:
             fresh.wait()
     r.errors += determinism.fresh_errors(done, expected)
     if len(r.errors) > 0:
-        return
+        return r
 
     _serialize(r, piece, docs)
     if task.paranoid and not isinstance(piece, loader.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
+    return r
 
 
 def _serialize(r: Result, piece: loader.Piece, docs: Mapping[tuple[str, Regime], Document]) -> None:
-    """The steps after determinism, on one draw per native aspect and regime: viewBox, the
-    templates and their slot tables, the template limits, pixel origins, cells and focus."""
-    r.templates.clear()
-    r.entries.clear()
+    """The steps on one draw per native aspect and regime: viewBox, the templates and their
+    slot tables, the template limits, pixel origins, cells and focus."""
     for (aspect, regime), doc in docs.items():
         r.errors += [
             f"{aspect} {regime}: {e}" for e in lint.templates.viewbox(doc.skeleton(), aspect)
@@ -288,10 +294,9 @@ def _serialize(r: Result, piece: loader.Piece, docs: Mapping[tuple[str, Regime],
         r.templates.update(templates)
         r.entries.update(entries)
         r.errors += errors
-    for name, text in r.templates.items():
-        errors, warnings = lint.templates.svg(text)
-        r.errors += [f"{name}: {e}" for e in errors]
-        r.warnings += [f"{name}: {w}" for w in warnings]
+    errors, warnings = lint_templates(r.templates)
+    r.errors += errors
+    r.warnings += warnings
     for aspect in piece.aspects:
         grids = [g for regime in REGIMES for g in docs[aspect, regime].pixel_grids]
         r.warnings += [f"{aspect}: {w}" for w in lint.templates.pixel_origins(grids)]

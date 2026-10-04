@@ -96,10 +96,6 @@ NEUTRAL: Final = (
 )
 
 
-def _neutral(key: str) -> bool:
-    return any(key == n or (n.endswith("/") and key.startswith(n)) for n in NEUTRAL)
-
-
 def _requirement_name(requirement: str) -> str | None:
     """The distribution a Requires-Dist line names, None when only an extra asks for it."""
     spec, _, marker = requirement.partition(";")
@@ -141,9 +137,9 @@ def toolchain_lines() -> list[str]:
     files = {
         f"walldye/{p.relative_to(package).as_posix()}": p
         for p in package.rglob("*")
-        if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
+        if p.is_file() and "__pycache__" not in p.parts
     }
-    code = [code_line(k, p) for k, p in sorted(files.items()) if not _neutral(k)]
+    code = [code_line(k, p) for k, p in sorted(files.items()) if not k.startswith(NEUTRAL)]
     deps = [f"dep\t{name}=={version}" for name, version in sorted(runtime_dists().items())]
     python = f"{sys.implementation.name} {platform.python_version()} {platform.machine()}"
     return [*code, *deps, f"python\t{python}"]
