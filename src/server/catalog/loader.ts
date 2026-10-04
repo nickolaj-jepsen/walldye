@@ -6,12 +6,12 @@ import { typesetMeta, typesetNotes } from '../../lib/typeset';
 import { isDraft } from '../meta';
 import { parseYaml } from '../yaml';
 import { attach } from './build';
-import { loadFeatured, loadViews, ROOT, rootPath, WALLPAPERS } from './files';
+import { loadFeatured, loadStats, ROOT, rootPath, WALLPAPERS } from './files';
 
 /**
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
  * templates and their content-hashed URLs, the same for each named variant, design.py, the
- * resolved license, the page views in stats/views/ and the place on featured.yaml. Draft pieces and draft variants load only in
+ * resolved license, the page views and downloads in stats/ and the place on featured.yaml. Draft pieces and draft variants load only in
  * `astro dev` or with WALLDYE_DRAFTS=1; notes Markdown is rendered into the entry (`render(entry)`), and the other visible
  * text gets typographer's quotes.
  */
@@ -25,7 +25,7 @@ export function wallpapers(): Loader {
 
       const sync = async () => {
         const seen = new Set<string>();
-        const views = loadViews();
+        const stats = loadStats();
         const slugs = readdirSync(WALLPAPERS, { withFileTypes: true })
           .filter((d) => d.isDirectory() && existsSync(join(WALLPAPERS, d.name, 'meta.yaml')))
           .map((d) => d.name)
@@ -58,7 +58,7 @@ export function wallpapers(): Loader {
             }
             throw e;
           }
-          const v = views.get(slug);
+          const v = stats.get(slug);
           const counts = { views: v?.views ?? 0, recent: Math.round((v?.recent ?? 0) * 100) / 100 };
           const rank = featured.get(slug);
           const data = await parseData<Record<string, unknown>>({

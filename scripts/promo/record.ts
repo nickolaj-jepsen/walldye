@@ -699,7 +699,7 @@ if (!args['skip-build']) run('pnpm', ['astro', 'build']);
 if (!existsSync('dist/index.html'))
   throw new Error('no dist/: build the site first, or drop --skip-build');
 if (!existsSync('stats'))
-  console.warn('no stats/: the index sort shows no view orders (docs/deploy.md, Page views)');
+  console.warn('no stats/: the index sort shows no view orders (docs/deploy.md, Stats)');
 
 mkdirSync(OUT, { recursive: true });
 const work = mkdtempSync(join(tmpdir(), 'walldye-promo-'));

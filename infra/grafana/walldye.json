@@ -1,0 +1,1805 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_ANALYTICS_ENGINE",
+      "label": "Analytics Engine",
+      "description": "Altinity ClickHouse data source pointed at the Analytics Engine SQL API",
+      "type": "datasource",
+      "pluginId": "vertamedia-clickhouse-datasource",
+      "pluginName": "Altinity plugin for ClickHouse"
+    },
+    {
+      "name": "DS_STATS",
+      "label": "walldye stats",
+      "description": "Infinity data source for the stats branch's events/all.json",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "13.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "vertamedia-clickhouse-datasource",
+      "name": "Altinity plugin for ClickHouse",
+      "version": "3.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "3.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "piechart",
+      "name": "Pie chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "description": "walldye.com product events: the last three months from Analytics Engine, the history from the stats branch.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "type": "row",
+      "id": 1,
+      "title": "Last three months (Analytics Engine)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "id": 2,
+      "title": "Visitors per day",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT $timeSeries AS t, count(DISTINCT visitor) AS visitors FROM (SELECT timestamp, blob6 AS visitor FROM walldye_events WHERE $timeFilter) GROUP BY t ORDER BY t",
+          "editorMode": "sql",
+          "format": "time_series",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "description": "Distinct daily visitor keys that sent any event.",
+      "interval": "1d"
+    },
+    {
+      "type": "timeseries",
+      "id": 3,
+      "title": "Exports per day by format",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT $timeSeries AS t, blob10 AS format, SUM(_sample_interval) AS exports FROM walldye_events WHERE $timeFilter AND index1 = 'export' GROUP BY t, format ORDER BY t",
+          "editorMode": "sql",
+          "format": "time_series",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "interval": "1d"
+    },
+    {
+      "type": "barchart",
+      "id": 4,
+      "title": "Top pieces by downloaders",
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT slug, count(DISTINCT visitor) AS downloaders FROM (SELECT blob8 AS slug, blob6 AS visitor FROM walldye_events WHERE $timeFilter AND index1 = 'export') GROUP BY slug ORDER BY downloaders DESC LIMIT 20",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "slug",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "description": "Distinct daily visitor keys that exported each piece."
+    },
+    {
+      "type": "barchart",
+      "id": 5,
+      "title": "Export sizes",
+      "gridPos": {
+        "h": 12,
+        "w": 6,
+        "x": 12,
+        "y": 9
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT blob12 AS size, SUM(_sample_interval) AS exports FROM walldye_events WHERE $timeFilter AND index1 = 'export' GROUP BY size ORDER BY exports DESC LIMIT 15",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "size",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "description": "`screen` is the screen-size choice, `svg` a vector export."
+    },
+    {
+      "type": "barchart",
+      "id": 6,
+      "title": "Export shapes",
+      "gridPos": {
+        "h": 12,
+        "w": 6,
+        "x": 18,
+        "y": 9
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT blob11 AS aspect, SUM(_sample_interval) AS exports FROM walldye_events WHERE $timeFilter AND index1 = 'export' GROUP BY aspect ORDER BY exports DESC LIMIT 15",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "aspect",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "piechart",
+      "id": 7,
+      "title": "Theme at export: preset or custom",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 21
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT if(theme = 'custom', 'custom', 'preset') AS theme_kind, SUM(_sample_interval) AS exports FROM (SELECT _sample_interval, blob3 AS theme FROM walldye_events WHERE $timeFilter AND index1 = 'export') GROUP BY theme_kind",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "piechart",
+      "id": 8,
+      "title": "Theme at export: source",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 21
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT blob5 AS source, SUM(_sample_interval) AS exports FROM walldye_events WHERE $timeFilter AND index1 = 'export' GROUP BY source",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "description": "`shared` from a link, `saved` from an earlier visit, `system` from the light or dark preference."
+    },
+    {
+      "type": "barchart",
+      "id": 9,
+      "title": "Top themes at export",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 21
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT blob3 AS theme, SUM(_sample_interval) AS exports FROM walldye_events WHERE $timeFilter AND index1 = 'export' GROUP BY theme ORDER BY exports DESC LIMIT 15",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "theme",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "table",
+      "id": 10,
+      "title": "Top custom tokens at export",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 21
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT token, count(DISTINCT visitor) AS visitors, SUM(_sample_interval) AS exports FROM (SELECT _sample_interval, blob3 AS theme, blob4 AS token, blob6 AS visitor FROM walldye_events WHERE $timeFilter AND index1 = 'export') WHERE theme = 'custom' GROUP BY token ORDER BY exports DESC LIMIT 20",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 11,
+      "title": "Theme changes by kind",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 29
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT blob13 AS kind, SUM(_sample_interval) AS changes FROM walldye_events WHERE $timeFilter AND index1 = 'theme' GROUP BY kind ORDER BY changes DESC",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "kind",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 12,
+      "title": "Theme changes by control",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 29
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT blob15 AS via, SUM(_sample_interval) AS changes FROM walldye_events WHERE $timeFilter AND index1 = 'theme' GROUP BY via ORDER BY changes DESC",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "via",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 13,
+      "title": "Copied links, kept and dropped shared themes",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 29
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT if(index1 = 'share', 'copied link', kind) AS action, SUM(_sample_interval) AS n FROM (SELECT index1, _sample_interval, blob13 AS kind FROM walldye_events WHERE $timeFilter) WHERE index1 = 'share' OR (index1 = 'theme' AND kind IN ('keep', 'drop')) GROUP BY action ORDER BY n DESC",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "action",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "table",
+      "id": 14,
+      "title": "Top screens",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 37
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT w, h, count(DISTINCT visitor) AS visitors FROM (SELECT double1 AS w, double2 AS h, blob6 AS visitor FROM walldye_events WHERE $timeFilter) GROUP BY w, h ORDER BY visitors DESC LIMIT 15",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "description": "Screen size in device pixels."
+    },
+    {
+      "type": "piechart",
+      "id": 15,
+      "title": "Phones",
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 8,
+        "y": 37
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT if(phone = 1, 'phone', 'other') AS device, count(DISTINCT visitor) AS visitors FROM (SELECT double4 AS phone, blob6 AS visitor FROM walldye_events WHERE $timeFilter) GROUP BY device",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "table",
+      "id": 16,
+      "title": "Device pixel ratio",
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 13,
+        "y": 37
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT dpr, count(DISTINCT visitor) AS visitors FROM (SELECT double3 AS dpr, blob6 AS visitor FROM walldye_events WHERE $timeFilter) GROUP BY dpr ORDER BY visitors DESC LIMIT 10",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "piechart",
+      "id": 17,
+      "title": "Light or dark",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 37
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT scheme, count(DISTINCT visitor) AS visitors FROM (SELECT blob2 AS scheme, blob6 AS visitor FROM walldye_events WHERE $timeFilter) GROUP BY scheme",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "description": "The system's color scheme preference."
+    },
+    {
+      "type": "barchart",
+      "id": 18,
+      "title": "Visitors by country",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 45
+      },
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${DS_ANALYTICS_ENGINE}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_ANALYTICS_ENGINE}"
+          },
+          "query": "SELECT country, count(DISTINCT visitor) AS visitors FROM (SELECT blob7 AS country, blob6 AS visitor FROM walldye_events WHERE $timeFilter) GROUP BY country ORDER BY visitors DESC LIMIT 20",
+          "editorMode": "sql",
+          "format": "table",
+          "database": "",
+          "table": "walldye_events",
+          "dateColDataType": "",
+          "dateTimeColDataType": "timestamp",
+          "dateTimeType": "DATETIME",
+          "round": "0s",
+          "intervalFactor": 1,
+          "extrapolate": false,
+          "skip_comments": true,
+          "add_metadata": false
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "country",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "row",
+      "id": 19,
+      "title": "History (stats branch)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 55
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "id": 20,
+      "title": "Visitors and downloads per day",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "days[date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "date",
+              "text": "date",
+              "type": "timestamp",
+              "timestampFormat": "2006-01-02"
+            },
+            {
+              "selector": "visitors",
+              "text": "visitors",
+              "type": "number"
+            },
+            {
+              "selector": "downloads",
+              "text": "downloads",
+              "type": "number"
+            }
+          ],
+          "filters": []
+        }
+      ],
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "description": "Downloads sum each piece's downloaders."
+    },
+    {
+      "type": "timeseries",
+      "id": 21,
+      "title": "Exports per day by format",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "counts[event = 'export' and field = 'format' and date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "date",
+              "text": "date",
+              "type": "timestamp",
+              "timestampFormat": "2006-01-02"
+            },
+            {
+              "selector": "value",
+              "text": "value",
+              "type": "string"
+            },
+            {
+              "selector": "n",
+              "text": "n",
+              "type": "number"
+            }
+          ],
+          "filters": []
+        }
+      ],
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "displayName": "${__field.labels.value}"
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "value"
+            ],
+            "keepFields": false,
+            "naming": {
+              "asLabels": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "id": 22,
+      "title": "Top pieces by downloaders",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 64
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "counts[event = 'downloads' and field = 'slug' and value != '(other)' and date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "value",
+              "text": "value",
+              "type": "string"
+            },
+            {
+              "selector": "n",
+              "text": "n",
+              "type": "number"
+            }
+          ],
+          "filters": [],
+          "summarizeExpression": "sum(n)",
+          "summarizeBy": "value",
+          "summarizeAlias": "downloaders"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "value",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "downloaders",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 20
+          }
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "id": 23,
+      "title": "Exports by country",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 64
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "counts[event = 'export' and field = 'country' and value != '(other)' and date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "value",
+              "text": "value",
+              "type": "string"
+            },
+            {
+              "selector": "n",
+              "text": "n",
+              "type": "number"
+            }
+          ],
+          "filters": [],
+          "summarizeExpression": "sum(n)",
+          "summarizeBy": "value",
+          "summarizeAlias": "exports"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "value",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "exports",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 20
+          }
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "id": 24,
+      "title": "Themes at export",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 74
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "counts[event = 'export' and field = 'theme' and value != '(other)' and date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "value",
+              "text": "value",
+              "type": "string"
+            },
+            {
+              "selector": "n",
+              "text": "n",
+              "type": "number"
+            }
+          ],
+          "filters": [],
+          "summarizeExpression": "sum(n)",
+          "summarizeBy": "value",
+          "summarizeAlias": "exports"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "value",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "exports",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 15
+          }
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "id": 25,
+      "title": "Theme changes by kind",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 74
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "counts[event = 'theme' and field = 'kind' and value != '(other)' and date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "value",
+              "text": "value",
+              "type": "string"
+            },
+            {
+              "selector": "n",
+              "text": "n",
+              "type": "number"
+            }
+          ],
+          "filters": [],
+          "summarizeExpression": "sum(n)",
+          "summarizeBy": "value",
+          "summarizeAlias": "changes"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "value",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "changes",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 10
+          }
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "id": 26,
+      "title": "Screens at export",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 74
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_STATS}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_STATS}"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/nickolaj-jepsen/walldye/stats/events/all.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "counts[event = 'export' and field = 'screen' and value != '(other)' and date >= '${__from:date:YYYY-MM-DD}' and date <= '${__to:date:YYYY-MM-DD}'][]",
+          "columns": [
+            {
+              "selector": "value",
+              "text": "value",
+              "type": "string"
+            },
+            {
+              "selector": "n",
+              "text": "n",
+              "type": "number"
+            }
+          ],
+          "filters": [],
+          "summarizeExpression": "sum(n)",
+          "summarizeBy": "value",
+          "summarizeAlias": "exports"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "value",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelMaxLength": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "exports",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 15
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "walldye"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "walldye",
+  "uid": "walldye",
+  "version": 1,
+  "weekStart": ""
+}

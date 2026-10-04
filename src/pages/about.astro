@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 
 const CC0 = 'https://creativecommons.org/publicdomain/zero/1.0/';
 const REPO = 'https://github.com/nickolaj-jepsen/walldye';
+const STATS = `${REPO}/tree/stats`;
 ---
 
 <Base title="About" description="How the Walldye wallpapers are made and recolored, how they are licensed, and what the site counts." nav="about" mainClass="about">
@@ -14,6 +15,6 @@ const REPO = 'https://github.com/nickolaj-jepsen/walldye';
   </div>
   <h2>What the site counts</h2>
   <div class="prose">
-    <p>Cloudflare Web Analytics counts page views. The site itself counts downloads, theme changes and copied links, along with details such as screen size and country. There are no cookies, the site stores no <abbr>IP</abbr> addresses, and it skips its own counting when your browser sends Global Privacy Control.</p>
+    <p>Cloudflare Web Analytics counts page views. The site itself counts downloads, theme changes and copied links, along with details such as screen size and country. There are no cookies, the site stores no <abbr>IP</abbr> addresses, and it skips its own counting when your browser sends Global Privacy Control. Each day's counts, without the key that tells visits apart, are published in the site's <a href={STATS}>repository</a>.</p>
   </div>
 </Base>

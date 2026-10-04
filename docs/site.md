@@ -137,7 +137,7 @@ Three squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px
 - Set like a book index: 20px entries with dot leaders and mono counts under small-caps legends, each row one full-width target, lowercase and sorted by label.
 - The groups are Technique, Subject, "Inspired by" (the lineage facet) and Other, which holds the computed facets: "has references", "fits any screen", "has source code", "made with Claude" and "human-made". Labels come from `src/lib/labels.ts`. An entry that matches no piece or more than nine in ten (`NARROW_SHARE`) is left out, since it would barely narrow the grid.
 - Counts are live: each shows how many pieces its box would add (OR within a facet, AND across facets). A box that would add none is disabled, its term in `--text-dim` and its count hidden.
-- Search matches the title, the description and the sources' authors, titles and topics. Sort is featured, newest, popular (views, recent ones weighted up), most viewed or title (`comparePieces()` and `defaultSort()` in `src/lib/content.ts`); featured is left out when nothing is listed, and the view orders when there are no views.
+- Search matches the title, the description and the sources' authors, titles and topics. Sort is featured, newest, popular (views and downloads, recent ones weighted up), most viewed or title (`comparePieces()` and `defaultSort()` in `src/lib/content.ts`); featured is left out when nothing is listed, and the view orders when there are no views.
 - Shape (16:9, 16:10, 21:9, 32:9, 9:19.5, 10:16, in mono) shows every plate in that shape: a piece's own template when it composes for it, else its 16:9 template cropped around its focus, as the export would crop it. Plate links then open the piece in that shape. Phones start on their screen's nearest shape, and "clear" keeps the shape.
 - Above the results line, "Colors" lists the families as swatch buttons (the family name is the accessible name and the tooltip), each showing the preset it would pick under the system scheme, then "Your own", which opens the picker. A click chooses the family, as its name does in the picker.
 - The results line is the page's one live region: "234 wallpapers" or "4 of 234 wallpapers", with "Try fewer filters or a shorter search." under it when nothing matches. "clear" shows while anything is checked or searched.
@@ -202,7 +202,7 @@ After the label, notes and sources, "See also" (a small-caps head over a `.hair-
 
 - About's heading is a side head in the index column, and the prose starts level with it.
 - Three short paragraphs: what the site is and how the three colors work, how the wallpapers are made and checked, and the licenses with a link to the code. No piece counts, colophon or font credits; the site has no footer.
-- Then the side head "What the site counts" and one paragraph: who counts page views, what the site counts itself, no cookies or stored addresses, and Global Privacy Control. It changes with `src/lib/events.ts`.
+- Then the side head "What the site counts" and one paragraph: who counts page views, what the site counts itself, no cookies or stored addresses, Global Privacy Control, and a link to each day's counts on the `stats` branch. It changes with `src/lib/events.ts`.
 - The 404 page uses the same layout: "Not found", one sentence and a link to the index.
 
 ### 6.13 Forced colors

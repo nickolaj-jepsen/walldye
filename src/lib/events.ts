@@ -96,6 +96,15 @@ export const BLOBS = [
 /** Booleans are stored as 0 or 1. */
 export const DOUBLES = ['w', 'h', 'dpr', 'phone', 'first'] as const;
 
+/** The Analytics Engine column holding `field` (`blob<n>` or `double<n>`); throws for a field no column holds. */
+export function column(field: string): string {
+  const blob = (BLOBS as readonly string[]).indexOf(field);
+  if (blob >= 0) return `blob${blob + 1}`;
+  const double = (DOUBLES as readonly string[]).indexOf(field);
+  if (double >= 0) return `double${double + 1}`;
+  throw new Error(`no column holds ${field}`);
+}
+
 export interface DataPoint {
   indexes: [string];
   blobs: string[];

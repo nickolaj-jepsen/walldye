@@ -166,16 +166,17 @@ export interface SortKey {
   added: string;
   /** Every recorded page view. */
   views: number;
-  /** Page views weighted towards the last few days. */
+  /** Page views and downloads, downloads weighted up and both towards the last few days. */
   recent: number;
   /** Place on featured.yaml, from 0; undefined when the piece is not on it. */
   featured?: number;
 }
 
 /**
- * Index order: newest first (added descending), by title, most views first (`popular` by recent
- * views, `views` by all of them), or `featured`: the featured pieces in their featured.yaml order,
- * then the rest as `popular`. Title ties go by slug; the others by newest, then slug.
+ * Index order: newest first (added descending), by title, most popular first (`popular` by recent
+ * views and downloads, `views` by all views), or `featured`: the featured pieces in their
+ * featured.yaml order, then the rest as `popular`. Title ties go by slug; the others by newest,
+ * then slug.
  */
 export function comparePieces(a: SortKey, b: SortKey, order: SortOrder = 'newest'): number {
   const newest = b.added.localeCompare(a.added);

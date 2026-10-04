@@ -131,7 +131,7 @@ export const wallpaper = z
     versions: z.array(version),
     /** Page views on walldye.com, all of them. */
     views: z.number().int().nonnegative(),
-    /** Page views weighted by age, a day's halving every HALF_LIFE_DAYS (src/server/views.ts); rounded to 0.01. */
+    /** Page views plus weighted downloaders, by age, as `recent` in src/server/stats.ts; rounded to 0.01. */
     recent: z.number().nonnegative(),
     /** Place on featured.yaml, from 0; absent when the piece is not on it. */
     featured: z.number().int().nonnegative().optional(),
