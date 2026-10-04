@@ -32,6 +32,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 - `scripts/promo/`: records the promo clip into `promo/`, gitignored.
 - `scripts/views/`: fetches the daily page views onto the `stats` branch, checked out as `stats/` (docs/deploy.md).
 - `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.
+- `wrangler.jsonc`: the Worker that serves `dist/` at walldye.com, deployed by CI.
 - `infra/www-redirect/`: the Worker that sends www.walldye.com to the apex, deployed by hand.
 - `.claude/skills/walldye/`: the skill for designing the wallpapers the owner names, or reworking one. `.claude/workflows/wallpaper-batch.js` invents a batch of new ones from research; `.claude/workflows/README.md` explains its arguments.
 

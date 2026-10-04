@@ -214,52 +214,59 @@ jobs:
         && github.event.pull_request.user.login != 'dependabot[bot]')
       || (github.event_name == 'workflow_dispatch' && inputs.deploy && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     # Records each deploy on GitHub; production only accepts main.
     environment:
       name: ${{ github.event_name != 'pull_request' && 'production' || 'preview' }}
       url: >-
         ${{ github.event_name != 'pull_request' && 'https://walldye.com'
-        || steps.deploy.outputs.pages-deployment-alias-url
-        || steps.deploy.outputs.deployment-url }}
-    # Only for the preview comment; the job never checks out code.
+        || steps.deploy.outputs.preview-url }}
+    # pull-requests only for the preview comment.
     permissions:
+      contents: read
       pull-requests: write
     steps:
+      # Only the files wrangler reads. With no package.json or lockfile, wrangler-action installs
+      # wrangler alone, so no dependency's code runs next to the token.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /wrangler.jsonc
       # A pull request with drafts deploys the dist that shows them; e2e tested the one without.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ needs.build.outputs.drafts != '' && 'preview' || 'dist' }}
           path: dist
-      # No checkout here, so wrangler can't read git and gets the commit explicitly.
+      # A pull request gets the Preview pr-<number>, which its later pushes update.
       - id: deploy
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Dependabot can't see this pin; bump it by hand.
+          # Dependabot can't see this pin; bump it by hand with preview-cleanup.yml's.
           wranglerVersion: '4.143.0'
           command: >-
-            pages deploy dist --project-name=walldye
-            --branch=${{ github.head_ref || github.ref_name }}
-            --commit-hash=${{ github.event.pull_request.head.sha || github.sha }}
+            ${{ github.event_name == 'pull_request'
+            && format('preview --name=pr-{0}', github.event.pull_request.number)
+            || 'deploy' }}
+            --message=${{ github.event.pull_request.head.sha || github.sha }}
       - name: Post or update the preview link
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
-          HEAD_REF: ${{ github.head_ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview-url }}
           CHANGED: ${{ needs.build.outputs.changed }}
           COLD: ${{ needs.build.outputs.cold }}
           DRAFTS: ${{ needs.build.outputs.drafts }}
           DRAFTS_FAILED: ${{ needs.build.outputs.drafts-failed }}
         run: |
-          # Fallback when wrangler reports no alias, named the way Pages names them.
-          alias=$(printf '%s' "$HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | cut -c1-28 | sed 's/-*$//')
-          url=${ALIAS_URL:-https://$alias.walldye.pages.dev}
+          url=${PREVIEW_URL:?wrangler reported no Preview URL}
+          url=${url%/}
           marker='<!-- walldye-preview -->'
           if [ "$COLD" = true ]; then
             changes='No cached build of main to compare with: every piece was drawn afresh.'
@@ -291,3 +298,34 @@ jobs:
             gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
           fi
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+      # What e2e's astro preview can't show: the Worker's 404 handling and the _headers rules.
+      - name: Check the deployed site
+        timeout-minutes: 5
+        env:
+          SITE: >-
+            ${{ github.event_name != 'pull_request' && 'https://walldye.com'
+            || steps.deploy.outputs.preview-url }}
+        run: |
+          site=${SITE%/}
+          templates=(dist/t/*)
+          # All checks share one retry budget while the deploy spreads; each gets at least one try.
+          deadline=$((SECONDS + 180))
+          # check <path> <status> <regex over headers and body>
+          check() {
+            local out
+            while :; do
+              out=$(curl -sS --connect-timeout 5 --max-time 15 -D - "$site$1" 2>&1) || true
+              if [[ $out =~ ^HTTP/[0-9.]+\ $2 ]] && grep -qiE "$3" <<< "$out"; then
+                echo "ok $1"
+                return 0
+              fi
+              ((SECONDS + 10 < deadline)) || break
+              sleep 10
+            done
+            echo "::error::$site$1: expected $2 and /$3/"
+            sed '/^\r*$/q' <<< "$out"
+            return 1
+          }
+          check "/no-such-piece-$GITHUB_RUN_ID" 404 '<title>Not found'
+          check "/${templates[0]#dist/}" 200 '^cache-control: public, max-age=31536000, immutable'
+          check /about 200 '^cache-control: public, max-age=0, must-revalidate'

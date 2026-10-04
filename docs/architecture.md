@@ -68,7 +68,7 @@ CI renders the catalog from main's last build in the Actions cache, so it only r
 
 ## The site
 
-walldye.com is a static Astro site on Cloudflare Pages.
+walldye.com is a static Astro site, served as the static assets of a Cloudflare Worker with no script.
 
 - The loader (`src/server/catalog/loader.ts`) reads meta.yaml the way PyYAML does and checks only what pages need to render; `walldye check` owns the rest. It attaches templates, slots.json and design.py, hides drafts outside `astro dev` and `WALLDYE_DRAFTS=1`, and curls quotes.
 - One page per design, `/<slug>`. Filters, sort, shape, version and crop are in the query string. Templates and slots are served by hash at `/t/` and cached as immutable. The index lists only 16:9 templates; other shapes look up their hash in slots.json, which keeps the page small. Each piece gets a 1200x630 social card cropped around its focus.
