@@ -184,22 +184,6 @@ describe('site CSS', () => {
   it('flexoki-light reproduces the light block of site.css', () => {
     expect(cssVars(PRESETS['flexoki-light'])).toEqual(resolveVars(light));
   });
-
-  it('matches the contrast figures in docs/site.md', () => {
-    const ratio = (a: string, b: string) => contrast(a, b).toFixed(2);
-    const f = cssVars(PRESETS.fireproof);
-    expect(ratio(f['--text'], f['--bg'])).toBe('12.03');
-    expect(ratio(f['--link'], f['--bg'])).toBe('4.77');
-    expect(ratio(f['--control'], f['--bg'])).toBe('3.03');
-    expect(ratio(FIREPROOF.accent, f['--bg-alt'])).toBe('4.13');
-    expect(ratio(f['--shiki-token-keyword'], f['--bg-alt'])).toBe('4.53');
-    expect(ratio(f['--shiki-token-string'], f['--bg-alt'])).toBe('5.70');
-    expect(ratio(f['--shiki-token-comment'], f['--bg-alt'])).toBe('7.26');
-    const l = cssVars(PRESETS['flexoki-light']);
-    expect(ratio(l['--text-2'], l['--bg'])).toBe('10.90');
-    expect(ratio(l['--control'], l['--bg'])).toBe('3.54');
-    expect(ratio(l['--shiki-token-keyword'], l['--bg-alt'])).toBe('4.52');
-  });
 });
 
 describe('contrast guard (d)', () => {

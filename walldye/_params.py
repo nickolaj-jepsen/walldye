@@ -60,8 +60,8 @@ def knob(
     doc: str = "",
     unit: str = "",
 ) -> object:
-    """A Params field with a default, an optional soft range [lo, hi] (bounds sweeps; --set
-    warns outside it), optional hard `choices`, a one-line `doc` and a display `unit`.
+    """A Params field with a default, an optional soft range [lo, hi] (--set, --wedge
+    and check warn outside it), optional hard `choices`, a one-line `doc` and a display `unit`.
 
     Every argument is keyword-only, so type checkers see the default. The class creating the
     field validates the arguments (see ParamsMeta).
