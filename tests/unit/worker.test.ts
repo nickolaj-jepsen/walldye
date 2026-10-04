@@ -164,6 +164,13 @@ describe('POST /e', () => {
     expect(error).toHaveBeenCalledTimes(1);
   });
 
+  it('answers a GET with 503 without EVENTS_KEY, so the deploy check fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { env } = fakeEnv(null);
+    const res = await handle(new Request('https://walldye.com/e'), env, DAY);
+    expect(res.status).toBe(503);
+  });
+
   it('answers 500 instead of throwing when the write fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const { env } = fakeEnv();

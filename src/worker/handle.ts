@@ -96,18 +96,20 @@ function countryOf(request: Request): string {
 }
 
 async function accept(request: Request, env: Env, url: URL, now: Date): Promise<Response> {
+  // First, so the deploy's GET of /e fails while the secret is missing.
+  if (!env.EVENTS_KEY) {
+    console.error('EVENTS_KEY is not set; event dropped');
+    return reply(503);
+  }
+  const key = env.EVENTS_KEY;
   if (request.method !== 'POST') return reply(405, { Allow: 'POST' });
   if (!sameOrigin(request, url)) return reply(403);
   const text = await readCapped(request, MAX_BODY);
   if (text === null) return reply(413);
   const event: ClientEvent | null = parseEvent(text);
   if (!event) return reply(400);
-  if (!env.EVENTS_KEY) {
-    console.error('EVENTS_KEY is not set; event dropped');
-    return reply(503);
-  }
   const visitor = await visitorKey(
-    env.EVENTS_KEY,
+    key,
     now,
     request.headers.get('CF-Connecting-IP') ?? '',
     request.headers.get('User-Agent') ?? '',
