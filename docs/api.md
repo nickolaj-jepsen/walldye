@@ -1,10 +1,9 @@
 # walldye design API
 
-The reference for the Python API designs draw with, the CLI, and the files the build writes. The docstrings in `walldye/` give the exact behavior, including every error a call raises; [architecture.md](architecture.md) explains why it works this way. When this file and the code disagree, fix one of them in the same change.
+The reference for the Python API designs draw with, the CLI, and the files the build writes. The docstrings in `walldye/` give the exact behavior, including every error a call raises; [architecture.md](architecture.md) explains why it works this way.
 
 ## 1. Conventions
 
-- Python 3.13 with PEP 695 generics. `ArrayLike` and `NDArray` are numpy's.
 - `type Num = float | np.integer | np.floating`. Every numeric parameter (coordinates, lengths, widths, radii, opacities, angles, mix amounts, `Style` values, the numbers in a `Point`) is `Num` in the code, so numpy scalars type-check; this file writes `float`. Return types, fields and `Params` declarations are `float`, and counts and indices are `int`. `Point = tuple[Num, Num]`, and a `Vec` is one.
 - Canvas units are pixels, and the short side is always 1080.
 - Runtime checks back up the static types: a `bool` where a number goes, NaN or infinity, or a raw color string raises even where the checker lets it through.
@@ -20,7 +19,7 @@ Designs import only these four. Each defines `__all__` with exactly these names,
 | `walldye.field` | `Noise`, `noise_grid`, `cells`, `falloff`, `gauss`, `iso_lines`, `runs`, `sample_field` |
 | `walldye.pixel` | `Pixels`, `grid_runs`, `dither`, `bayer`, `blue_noise`, `threshold_matrix`, `sprite`, `glyph`, `glyphs`, `text_width`, `Font`, `DitherMethod` |
 
-The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import. The code under `walldye/`, most of `tools/` included, feeds the toolchain hash (architecture.md, Build and check).
+The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import.
 
 ## 3. Design files
 
@@ -44,11 +43,9 @@ def draw(s: Canvas) -> None:
 
 The design lint (§13.1) enforces these rules:
 - The module docstring is one theme-neutral line (wallpapers.md, Copy).
-- Imports come from an allowlist: some standard-library modules, the four `walldye` modules, numpy, scipy, shapely and skimage. The design's folder is not on `sys.path`.
-- Module level holds constants, pure helper functions and classes, `Params` subclasses, the variants mapping, and exactly one `@design(...)` function named `draw`. Nothing there can depend on the canvas, the theme or the variant.
 - Nothing at module level is mutated while drawing. The same module object draws every render, so a list appended to in `draw` leaks into the next one; the determinism check catches what the lint misses.
 - Everything render-dependent arrives through `s`: size, regime, params, random streams and data files. A render depends only on the design file, its data, the params, the aspect and the regime. The theme is applied afterwards, when the document is serialized.
-- `print()` goes to stderr.
+- `print()` goes to stderr, and the design's folder is not on `sys.path`.
 
 For complete designs, see the Examples table in `.claude/skills/walldye/SKILL.md`; `wallpapers/radar-sweep/design.py` has params and a named variant.
 
@@ -57,12 +54,11 @@ For complete designs, see the Examples table in `.claude/skills/walldye/SKILL.md
 A `Color` is a formula over theme tokens, never a hex value (architecture.md, Designs draw in formulas).
 
 - `Color` and `MaskColor` have no public constructor; colors come from the tokens and the functions below. They compare and hash by formula, stably across processes, so `mix(a, b, 0.5) != mix(b, a, 0.5)` although both resolve to the same hex. Ordering, `str()` and `format()` raise `TypeError`: key and sort by index or role.
-- Mask colors are `MASK_WHITE` (shows), `MASK_BLACK` (hides) and mixes of the two, the same under every theme. Only a mask surface takes them, and it takes nothing else.
-- Each token and each `mix` rounds to 8 bits when resolved, so a long chain of nested mixes drifts, and check fails a color more than 2 units off (architecture.md, Recoloring).
+- A long chain of nested mixes drifts out of check's tolerance (architecture.md, Recoloring).
 
 ### 4.1 Tokens
 
-`Final[Color]` constants in `walldye`. `beyond` is black in the dark regime and white in the light one. In the light regime the four fractions marked * are multiplied by 1.6, capped at 0.5. The `fireproof` preset pins every token by hand, well off these fractions, so never assume a token equals its formula.
+`Final[Color]` constants in `walldye`. `beyond` is black in the dark regime and white in the light one. In the light regime the four fractions marked * are multiplied by 1.6, capped at 0.5. Fireproof pins its tokens by hand (architecture.md, Themes), so never assume a token equals its formula.
 
 | Token | Derivation | Token | Derivation |
 |---|---|---|---|
@@ -81,7 +77,7 @@ The site's 21st token, `orange_dark`, has no design constant.
 
 | Function | Result |
 |---|---|
-| `mix(a, b, t)` | `a` blended towards `b` by `t` in [0, 1]; both `Color` or both `MaskColor`. `t == 0` gives `a`, `t == 1` gives `b`, and `a == b` gives `a` |
+| `mix(a, b, t)` | `a` blended towards `b` by `t` in [0, 1]; both `Color` or both `MaskColor` |
 | `ramp(a, b, n)` | `n` colors evenly spaced from `a` to `b`, both included |
 | `ladder(stops, n)` | a `Ladder` of `n` rungs spaced evenly along the piecewise-linear path through two or more `stops`; `ladder((lo, ACCENT_4, hi), n)` is the usual accent ramp |
 | `by_regime(dark, light)` | `dark` in the dark regime and `light` in the light one, while both regimes keep one template |
@@ -150,7 +146,7 @@ Primitives each start a new subpath, so any number merge into one element:
 | `params` | this version's `Params` instance |
 | `center` | `Vec(w / 2, h / 2)` |
 
-`s.light` is the only theme fact a design can read, and branching on it costs a light template per aspect and variant. There is no `s.variant` or `s.aspect`: designs branch on params and on the canvas shape, never on names.
+`s.light` is the only theme fact a design can read (architecture.md, Designs draw in formulas). There is no `s.variant` or `s.aspect`: designs branch on params and on the canvas shape, never on names.
 
 ### 7.1 Layout
 
@@ -162,14 +158,7 @@ Primitives each start a new subpath, so any number merge into one element:
 
 `s.rng(key)` (a `random.Random`), `s.np_rng(key)` (a `np.random.Generator`) and `s.noise(key)` (a `Noise`) are the only randomness a design may use. Each call returns a fresh generator in the stream's initial state. A key is an int of at least 0, or a string.
 
-With `seed = s.params.seed`:
-
-| Case | `rng` | `np_rng` | `noise` |
-|---|---|---|---|
-| `seed is None` and `key` is an int | `random.Random(key)` | `np.random.default_rng(key)` | `Noise(key)` |
-| otherwise | `random.Random(name)` | `np.random.default_rng(int.from_bytes(sha256(name).digest()[:16], "big"))` | `Noise(name)` |
-
-`name = f"{'' if seed is None else seed}:{key!r}"`, so seed 11 with key 5 is `"11:5"`. With no seed, the literal keys a design was tuned with are its seeds; setting `seed` in a variant moves every stream at once. Neither form depends on `PYTHONHASHSEED`.
+With no `seed` set, an int key seeds the generator directly, so the literal keys a design was tuned with are its seeds; setting `seed` in a variant moves every stream at once. No stream depends on `PYTHONHASHSEED`.
 
 ### 7.3 Data files
 
@@ -209,11 +198,9 @@ class Style(TypedDict, total=False):
 
 Style has no `fill` key; the methods that take a fill take it as their own keyword. A shared style is a typed dict: `THIN: Style = {"stroke": UI, "stroke_width": 1.0}`, then `s.path(d, fill="none", **THIN)`.
 
-Values are checked at runtime as well (unknown keys, non-finite numbers, negative widths, opacities outside [0, 1], bad literals, paints as in §4.3), and attributes are written in one fixed order.
-
 ### 7.6 Groups and buckets
 
-- `with s.group(**style):` wraps what is drawn inside in a `<g>`. It takes no `fill`, because every element sets its own; children inherit an unset `stroke`, `stroke_width` or `fill_rule`.
+- `with s.group(**style):` wraps what is drawn inside in a `<g>`. It takes no `fill`, because every element sets its own; children inherit what they leave unset.
 - `with s.buckets(paints, kind, **style) as b:` gives one `Path` per paint, `b[i]`, and emits one element per non-empty bucket, in index order, where the block opened; anything else drawn inside lands above them. `kind="fill"` fills each with `paints[i]`; `kind="stroke"` strokes each, and `style` must set `stroke_width` but not `stroke`. Buckets are keyed by index, never by color, so two equal paints give two elements.
 
 ### 7.7 Clips, masks and patterns
@@ -236,11 +223,11 @@ Each surface collects its content inside the block and goes to `<defs>` when the
 
 ### 7.9 Pixel paths
 
-`s.pixel_path(d, fill, *, cell, origins, **style)`, which the `walldye.pixel` helpers call, emits a `<path class="px">` and records its grid. The class tells the exporter to draw these paths with crisp edges, and the grids give slots.json its `cells` and feed check's whole-origin warning.
+`s.pixel_path(d, fill, *, cell, origins, **style)`, which the `walldye.pixel` helpers call, emits a `<path class="px">`, which the exporter draws with crisp edges, and records its grid for slots.json's `cells` and check's whole-origin warning.
 
 ## 8. Params and knob
 
-A design's parameters are a frozen, typed subclass of `Params`. Its metaclass makes every subclass a frozen, keyword-only dataclass, and carries the `dataclass_transform` so that the checker sees the inherited `seed: int | None = None`.
+A design's parameters are a subclass of `Params`, which makes it a frozen, keyword-only dataclass with an inherited `seed: int | None = None`.
 
 ```python
 class Moon(Params):
@@ -251,9 +238,8 @@ class Moon(Params):
 ```
 
 - `knob` takes `default` and optionally `lo` and `hi` (numbers), `choices` (str or int), `doc` and `unit`, all by keyword, since PEP 681 checkers see a field's default only through `default=`. A field without `knob` is a plain default.
-- `lo` and `hi` are soft: they bound `sheet --wedge`, and `--set` and check warn outside them. `choices`, and the members of a `Literal` annotation, are hard.
+- `lo` and `hi` are soft: `--set`, `--wedge` and check warn outside them. `choices`, and the members of a `Literal` annotation, are hard.
 - Fields are `int`, `float`, `bool`, `str` or a `Literal` of str or int values, and all have defaults, since the default version is `Moon()`. There are no color params; a `Literal` chosen in `draw` covers role choices.
-- Instances validate their values, store floats as `float`, and hash and compare by value.
 
 ## 9. The design decorator
 
@@ -268,12 +254,10 @@ def design[Pm: Params](
 
 It decorates the one `draw(s: Canvas[Pm]) -> None` and replaces it with a `Design`.
 
-- `aspects`: `"any"` for every aspect in `SITE_ASPECTS`, or a tuple of them. 16:9 is always native, because the site's plates and social cards need it; a design that composes only for 16:9 leaves `aspects` out.
+- `aspects`: `"any"` for every aspect in `SITE_ASPECTS`, or a tuple of them. 16:9 is always native; a design that composes only for 16:9 leaves `aspects` out.
 - `variants`: at most 4 named variants, so 5 versions with the default. Each is an instance of exactly `draw`'s params class and differs from `Pm()` and from the others. Names match `[a-z0-9]+(-[a-z0-9]+)*`, are at most 24 characters and are not `default`. Labels, alt texts, descriptions and draft flags live in meta.yaml (wallpapers.md, meta.yaml).
 - `bg`: the color of the full-canvas rectangle drawn before `draw` runs; a `by_regime` color is fine.
 - The params class comes from `draw`'s annotation, `Canvas[X]`, so annotate it when there are variants.
-
-`Design.draw(spec)` draws one `RenderSpec(variant, params, aspect, regime)` into a `Document`, which the tools serialize under each theme they need.
 
 ## 10. Helper modules
 
@@ -322,9 +306,6 @@ Helpers take randomness as a generator from `s.rng`, `s.np_rng` or `s.noise`, ne
 
 ```
 wallpapers/<slug>/
-  design.py
-  data/                       # optional and flat; .json, .txt and .npy only
-  meta.yaml
   build/                      # generated and gitignored; only `walldye build` writes here
     16x9.svg                  # the default version under fireproof
     16x9.light.svg            # under flexoki-light, only when light geometry differs
@@ -352,27 +333,23 @@ architecture.md (Build and check) says how the hashes decide what to redraw.
 
 ### 11.4 index.json
 
-`wallpapers/index.json` summarizes every built piece, keyed by slug, for consumers outside the site: `aspects` (the native ones, from the default version's slots.json), `draft`, `license`, `title` and `variants` (named variants only, in meta.yaml order, each with `draft` and `label`; `{}` when there are none). Build, review and drop rewrite it, leaving out a piece that has no `build/slots.json` yet. It is gitignored.
-
-### 11.5 Tool API
-
-The tools and the batch workflow share these modules in `walldye/tools/`: `paths` (the repo, a piece's folders and the template names), `metadata` (meta.yaml), `loader` (`load(slug)`, `draw`, `render`), `raster` (`rasterize`, `crop_svg`, `fit_crop`, `ink_map`, `focus`), `themes` (the presets, the theme grammar and the check themes), `slotfile` (slots.json), `recolor` (the Python reference of the site's recolor), `lint` (`source` for design.py, `templates`, `piece` for meta.yaml and the folder) and `similar` (near-clones). `check` and `build` run one task per (slug, variant) in a process pool whose workers never write files; the parent prints and writes.
+`wallpapers/index.json` summarizes every built piece, keyed by slug, for consumers outside the site: `aspects` (the native ones, from the default version's slots.json), `draft`, `license`, `title` and `variants` (named variants only, in meta.yaml order, each with `draft` and `label`; `{}` when there are none). Build, review and drop rewrite it, leaving out a piece that has no `build/slots.json` yet.
 
 ## 12. CLI
 
-Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that take slugs need them named, or `--all`.
+Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that take slugs need them named, or `--all`; `review` defaults to the drafts.
 
 ### 12.1 Commands
 
 | Command | Does |
 |---|---|
-| `new <slug> --model M` | writes the starter design.py (§12.3) and a draft meta.yaml with `model: M`, today's date and no `license:` |
-| `preview <slug>` | a PNG in `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), printing the design lint, the regime and whether light geometry differs. `--theme`, `--aspect`, `--crop X,Y,W,H`, `--variant`, `--set k=v`, `--width`, `--renderer resvg\|inkscape` |
-| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. A PATH ending in `.png` gets an opaque PNG `--width PX` wide (default the canvas's). `--fit` cuts an aspect the piece doesn't declare from its 16:9 render around the focus, as the site does, instead of refusing it. Takes preview's `--theme`, `--aspect`, `--crop`, `--variant` and `--set` |
-| `check [<slug>... \| --all]` | the gate (architecture.md, Build and check). `--variant NAME`, `--jobs N` (default every core), `--paranoid` (redraw from a fresh import for every theme), `--similar` (near-clone pairs across pieces) |
-| `build [<slug>... \| --all]` | check, then write `build/` and index.json. `--variant`, `--jobs`, `--force`, `--published` (skip drafts; what CI runs). Refuses `--set`: published values belong in a named variant |
-| `review [<slug>... \| --all]` | the review page (§12.4). `--port`, `--timeout` (default 7200 s), `--no-open` |
-| `sheet [<slug>... \| --all]` | a contact sheet (§12.2). `--theme`, `--aspect`, `--variant`, `--set`, `--wedge k=SPEC`, `--seeds A..B`, `--cols`, `--thumb`, `-o PATH` |
+| `new <slug> --model M \| --author NAME` | writes a starter design.py and a draft meta.yaml with that credit, today's date and no `license:` |
+| `preview <slug>` | a PNG in `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), printing the design lint, the regime and whether light geometry differs |
+| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. A PATH ending in `.png` gets an opaque PNG `--width PX` wide (default the canvas's). `--fit` cuts an aspect the piece doesn't declare from its 16:9 render around the focus, as the site does, instead of refusing it. |
+| `check [<slug>... \| --all]` | the gate (architecture.md, Build and check) |
+| `build [<slug>... \| --all]` | check, then write `build/` and index.json. It has no `--set`: published values belong in a named variant |
+| `review [<slug>... \| --all]` | the review page (§12.3) |
+| `sheet [<slug>... \| --all]` | a contact sheet (§12.2) |
 | `params <slug>` | the params, their ranges and each named variant's values and label; `--json` for scripts |
 | `list` | slug, title, description, draft, native aspects and named variants, tab-separated |
 | `drop <slug>...` | deletes the folder after a y/N prompt and takes the piece off `featured.yaml`; `--yes` when the owner has already confirmed |
@@ -384,26 +361,11 @@ The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an in
 
 ### 12.2 Exploring
 
-- `--set k=v` overrides one params field in preview, render and sheet (`seed` takes an int or `none`).
+- `--set seed=none` clears the seed.
 - `sheet <slug> --wedge k=SPEC --seeds A..B` draws one piece for every combination into a labeled grid of at most 64 cells. `SPEC` is `a..b..step` or `v1,v2,...`.
 - Without `--wedge`, `--seeds` or `--set`, `sheet` tiles built templates recolored under `--theme`.
 
-### 12.3 The `walldye new` template
-
-```python
-"""TODO: one theme-neutral line, concept + technique."""
-
-from walldye import ACCENT, UI, Canvas, P, design
-
-
-@design()  # aspects="any" once the composition follows s.w and s.h
-def draw(s: Canvas) -> None:
-    c = s.pick(landscape=(0.62, 0.5), portrait=(0.5, 0.4))
-    s.stroke(P().circle(c, 240), UI, 2)
-    s.fill(P().circle(c, 10), ACCENT)
-```
-
-### 12.4 `walldye review`
+### 12.3 `walldye review`
 
 A localhost page that goes through versions one at a time and blocks until Apply. Without slugs its queue is every unpublished version; with slugs, every version of those pieces; with `--all`, everything. The sidebar edits the piece's words and facets and decides proposed facets; a new facet value needs a label. Each step is accepted (<kbd>A</kbd>), sent back for an edit (<kbd>E</kbd>), removed (<kbd>R</kbd>, which unpublishes a published version) or skipped (<kbd>S</kbd>). A note on an accept asks for more like it, and a note on an edit says what should change.
 
@@ -420,13 +382,11 @@ It then prints JSON:
 | `variants` | the same three keys over the unpublished named versions (`[{slug, variant, note?}]`) |
 | `edit` | `[{slug, variant, published, note}]`, every version sent back |
 | `notes` | `[{slug, variant, note}]`, every note |
-| `published`, `published_variants`, `unpublished` | `[{slug, variant}]`, what Apply changed |
+| `published` (slugs), `published_variants`, `unpublished` (`[{slug, variant}]`) | what Apply changed |
 | `refused` | `[{slug, reason}]` |
 | `edits` | `[{slug, variant, field, before, after}]` |
 | `new_facets` | `[{facet, value, label}]` |
 | `finished` | false after a timeout or an `error` |
-
-A rejection is never a reason to delete a piece: `drop` is a separate step the owner confirms.
 
 ## 13. Lint and typing
 
@@ -436,9 +396,10 @@ A rejection is never a reason to delete a piece: `drop` is a separate step the o
 
 | Rule | Fails |
 |---|---|
-| imports | anything off the allowlist: `math`, `cmath`, `itertools`, `functools`, `collections`, `heapq`, `bisect`, `operator`, `dataclasses`, `typing`, `enum`, `fractions`, `statistics`, `string`, `re`, `textwrap`, `json`, `base64`, `zlib`, `copy`, the four `walldye` modules, numpy (not `numpy.random`), scipy, shapely and skimage. Relative imports and `from __future__ import annotations` fail too |
+| imports | anything outside source.py's `STDLIB`, `LIBRARIES` and `WALLDYE_MODULES` (a few pure standard-library modules, numpy but not `numpy.random`, scipy, shapely, skimage and the four `walldye` modules). Relative imports and `from __future__ import annotations` fail too |
 | randomness | `numpy.random`, `scipy.stats.qmc`, and constructing generators or `Noise` directly; library samplers unless handed `s.np_rng(key)` |
 | constructors | calls of `Color`, `MaskColor`, `Ref`, `Canvas`, `Document` or `Design` |
+| colors | hex string literals, f-strings that build a hex, and `str()`, `format()`, `repr()`, `%` or f-string formatting of a color |
 | process state | the builtins `hash`, `id`, `open`, `exec`, `eval`, `compile`, `globals` and `__import__`, and `global` statements |
 | entry point | anything but exactly one module-level `draw` decorated with `@design(...)` |
 | module level | anything §13.2 does not allow |
@@ -446,7 +407,7 @@ A rejection is never a reason to delete a piece: `drop` is a separate step the o
 | data | files in `data/` other than `.json`, `.txt` and `.npy`, and subdirectories |
 | type escapes | `# type: ignore`, `# pyrefly: ignore`, `typing.cast` and `typing.Any` |
 
-Warnings: color words in docstrings and comments, a pixel-grid origin that is not a whole unit, and a variant whose check took more than 120 seconds.
+Warnings: color words in docstrings and comments, and copy problems in the module docstring. Check adds a pixel-grid origin that is not a whole unit and a variant whose check took more than 120 seconds.
 
 ### 13.2 Module level
 
@@ -454,16 +415,6 @@ A module-level statement is the docstring, an import, a `type` alias, an assignm
 
 A constant expression uses literals, displays, comprehensions and lambdas, names bound earlier and their attributes, any operator, and calls of pure builtins, `math` and `cmath`, numpy's array constructors and element-wise trigonometry, `walldye`'s color and vector functions, the design's own `Params` subclasses, functions defined earlier in the module, and string methods. The `CONST_*` sets in `walldye/tools/lint/source.py` have the exact lists. So `TILT = math.radians(6)` and `SPOKES = np.array([...])` pass, while `P()`, anything on `s`, and shapely, scipy or skimage calls belong in `draw`.
 
-### 13.3 Formatting
-
-Ruff, configured in pyproject.toml: line length 100 and import sorting. All Python passes `uv run ruff format --check .` and `uv run ruff check .`, including every ` ```python ` block in Markdown that parses; fix findings rather than adding a blanket `noqa`.
-
-### 13.4 Typing
-
-Pyrefly, with `scipy-stubs`, `types-shapely` and `types-pyyaml`, checks two levels:
-- The library, `walldye/` including `tools/`, at the strictest preset, `all`, except `unused-call-result`, because fluent `Path` calls are statements by design. `uv run pyrefly check` must report 0 errors. The only sanctioned suppressions are `s.data`'s `Any` and Vec's three `bad-override`s, and `test_typing.py` counts them.
-- Designs at the standard level, through `wallpapers/pyrefly.toml`.
-
-The prek hook and CI run ruff and both Pyrefly levels; `walldye check` runs none of them.
+### 13.3 Typing
 
 Pyrefly 1.3.1 wrongly reports `bad-argument-count` when a call star-unpacks a value of unknown length and then passes more positional arguments, as in `f(None, *p, 2.0)` with `p: list[float]`. Return points as `tuple[float, float]` or `Vec`, or index explicitly.

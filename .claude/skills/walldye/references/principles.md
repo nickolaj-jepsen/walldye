@@ -17,15 +17,9 @@ restrained accent "event". Pure vector: no text, no raster images, no filters, n
 
 ## Subjects
 
-- Subjects that work: instruments and science plots (radar, helicorder, Smith chart, navball),
-  dev artifacts (schematics, commit graphs, minimaps), crisp technical or patent drawings of
-  one contained object, dithered and pixel/glyph art, quiet full-bleed tilings or fields with
-  a small accent event, and a few bold single-gesture graphics.
-- Subjects that fail: literal illustration (trees, fireflies, icebergs, koi), maximalist
-  scenes, product mock-ups, and anything that reads as a UI.
 - Choose subjects with a system behind them (a simulation, a notation, an engineering figure),
   so the detail comes from rules.
-- Real rules beat vague homage. A real game record (shusaku), true Hollerith codes, actual star
+- Real rules beat vague homage. A real game record (shusaku), actual star
   positions (star-chart) or standard track geometry (running-track) give the details something
   to be right about, and viewers who know the subject notice.
 - A named real thing beats a generic one. Asked about a generic suspension bridge and a generic
@@ -35,10 +29,6 @@ restrained accent "event". Pure vector: no text, no raster images, no filters, n
   seed works, move to a new family or technique.
 
 ## Palette discipline
-
-Write every color as a theme token or a `mix()`, `ladder()` or `by_regime()` of tokens. A
-hex value is never a paint, and `walldye check` fails any color outside a mask that does not
-move with the theme.
 
 Grays carry the structure. Use them in this order of preference:
 
@@ -137,8 +127,6 @@ Surviving aspect changes (designs that declare `aspects="any"`):
 - Generate full-bleed fields by looping over the actual `s.w` and `s.h`.
 - A right-thirds focal point that works at 16:9 can be cramped at 9:19.5. `s.pick` takes a
   portrait position, and `s.landscape` can switch the layout when it needs more.
-  `walldye check` renders 16:9, 16:10, 21:9, 32:9, 9:19.5 and 10:16; preview at least 32:9
-  and the portrait cases yourself.
 
 ## Craft at 4K
 
@@ -149,9 +137,6 @@ The canvas short side is 1080 units, so 1 unit is 1 px at 1080p, 1.33 px at 1440
   lines usually 2-3 units. Very heavy strokes (8+ units) are rare and deliberate.
 - Things meant to be seen must survive 1080p: a 1-unit `BG_ALT` line or a 3-unit `UI`
   dot on a dark ground often disappears. Commit (raise a step or thicken) or cut it.
-- Merge geometry: one `<path>` per color and stroke style. Aim for under ~600 kB and
-  ~15k elements (`walldye check` warns above that and fails above 1 MB / 20k). Use `grid_runs`, `sprite` and `glyphs`,
-  which already merge runs.
 - Union same-color polygons with `shapely.unary_union` instead of stroking each piece to
   hide gaps; per-piece strokes leave seams at every shared edge.
 - A stroke is centered on its path, so half of it spills outside a filled shape. Inset
@@ -181,9 +166,6 @@ Pixel, dither and glyph work:
   Hilbert path) so each has its own grain.
 - Pixel art: 4-6 colors, deliberate clusters, clean silhouettes, no pillow shading, no
   anti-aliased edges. Glyph `px` is an integer (1-3).
-
-Draw every random number from `s.rng`, `s.np_rng` or `s.noise`. `check` fails designs whose
-output changes between renders or between processes.
 
 ## Critique checklist
 
@@ -220,7 +202,6 @@ busiest region. Then answer each question honestly:
 - [ ] Is it physically plausible: nothing balancing on an edge, nothing lost inside another
       body, and the science drawn to the real rule?
 - [ ] Does it read as a subject rather than a logo or badge?
-- [ ] Does `walldye check` pass?
 
 Scoring, on "would this sit proudly in the set as a daily wallpaper":
 
@@ -232,10 +213,6 @@ Scoring, on "would this sit proudly in the set as a daily wallpaper":
   tones, idea not legible, or two competing events. Needs a real revision.
 - **5 or below**: the approach fails (clip-art, loud accent mass, illegible concept).
   Rework the approach, not the parameters.
-
-Only 8+ goes to review. A design still under 8 after a real rework goes back to the owner with
-its score and the reasons (SKILL.md, Independent critique); never drop a piece the owner has
-seen without asking them.
 
 ## Failure modes and fixes
 
@@ -250,23 +227,13 @@ Each fix names the reviews that taught it, where there was one.
 | Reads as a logo or badge (a lone crest, a bare symmetric curve)           | Show its construction (compass arcs, a crease pattern, a drafting grid) or embed it in a system. The oscilloscope's sideways figure eight looked like the Meta logo. |
 | Busy full-sheet blueprint                                                 | Draw one contained object with generous margins; keep dimension and construction lines a step quieter. Orthographic projections, floor plans and exploded assemblies competed with the windows over them. |
 | Full-bleed texture too bright                                             | Drop to `BG_ALT` or thin `UI` lines, lower density, fade it away from the event.                       |
-| Brightest gray outshines the accent                                       | Knock that element down a gray step or thin it, so the accent is the first read.                       |
 | Two accent events (sun plus ridge, dot plus needle, scattered islands)    | Keep the single largest connected accent; turn the rest gray or a much darker ramp step.               |
 | Muddy tone steps (long fade into the background, brown smudges)           | Cut to 3-4 wide steps; end fades as outline-only strokes, not dark fills.                              |
-| Alpha overlaps                                                            | Compute the intersection with shapely and fill it with a token.                                        |
 | Stray accidental marks (orphan dots, lone counterweights, leftover rings) | Connect them to the main form or delete them.                                                          |
-| Salt-and-pepper noise, orphan cells                                       | Use deterministic bands or ordered dither; drop small components.                                      |
-| Symmetric dead-center composition                                         | Move the focal point to a thirds line and let one side stay empty.                                     |
-| Accidental-looking crop or near-tangent with the frame                    | Pull it inside with a real margin, or push it clearly off the edge.                                    |
 | Doesn't read at thumbnail size (event is a small smudge)                  | Enlarge the event or raise its contrast; make the idea's gesture bigger.                               |
-| Too faint: key parts only visible when zoomed                             | Raise a gray step or thicken to at least 1.2-1.5 units, or cut the part.                               |
-| Idea not legible (worked out, not seen)                                   | Exaggerate the one gesture, cut ~40% of the elements.                                                  |
 | Almost-even rhythm (table look) or random jitter (sloppy look)            | Make spacing strict, or vary it clearly with one thin and one wide interval.                           |
 | Seams, double lines, kinks, boolean notches                               | Union shapes, inset strokes, smooth joins, clamp minimum tip width.                                    |
 | Moiré or shimmer                                                          | Snap to integer units, coarsen or quiet fine periodic patterns, avoid packed near-parallel lines.      |
-| Upscaled-bitmap look                                                      | Commit to crisp pixels on an integer grid, or vectorize with `iso_lines()`.                             |
-| Near-duplicate of a sibling                                               | Change the subject or the composition, not just the parameters.                                        |
-| A variant that nudges a value, or a seed ladder offered as versions       | Keep one version, or pick a variant that shows something else (a phase, a moment, a rule).             |
 | A version that reads less clearly than the default                        | Drop it. Review dropped a full moon whose dither lost the terminator that makes it a sphere, birdsong that no longer read as a spectrogram, pendulums caught lined up in two rows, and a black hole seen from above that lost its bent far side. A pollution cloud that reached one nest further passed `check` and was still too close to its default. |
 | A time, date, counter or level that could pass for a live readout         | Show the mechanism or the motion, and leave the reading out. The clock wall's version that spelled 11:22 across its dials looked like a frozen display. |
 | An accent that looks pasted on (a solid block, a second motif)            | Carry the shading ramp on into the accent, or give it the one role the subject motivates. The ANSI teapot's solid knob and accent steam were replaced by the belly's shading ramp carried on into the accent. |

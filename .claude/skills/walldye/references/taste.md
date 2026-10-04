@@ -1,9 +1,5 @@
 # The owner's taste
 
-The family look is a quiet ground, a few gray steps between bg and fg, and one restrained
-accent event drawn from the accent ramp. Minimal, with plenty of empty space. The pieces named
-below are in `wallpapers/<slug>/`.
-
 Liked:
 
 - dither, with a different strategy each time, and pixel art: dither-moon, riemersma-nebula,
@@ -16,22 +12,14 @@ Liked:
 - nautical charts, schematics and early RFC diagrams, with more wanted;
 - logos drawn as construction drawings: nixos-logo and debian-swirl, which are openly
   licensed; fedora-logo, ubuntu-logo, linux-mint-logo and arch-logo, which the owner asked
-  for as fan work;
-- real, named subjects drawn to their real figures: the Great Belt Bridge in bridge-elevation,
-  a historic Go game in shusaku.
+  for as fan work.
 
 Rejected:
 
 - big, flat, saturated accent shapes;
 - clip-art illustration: a lone tree, fireflies, an iceberg, a moon behind rain;
 - maximalist low-poly landscapes;
-- busy full-sheet blueprints: orthographic projections, floor plans, exploded assemblies;
-- versions that read less clearly as their subject than the default, stay too close to it,
-  look like a logo, or show what could pass for a live readout.
-
-In practice: color only with tokens, keep accent areas small, and lean toward dither, pixel,
-technical and instrument subjects. Breadth comes first: a new subject beats another version of
-an old one, and a version earns its place only when it changes what is depicted.
+- busy full-sheet blueprints: orthographic projections, floor plans, exploded assemblies.
 
 ## Fan work
 

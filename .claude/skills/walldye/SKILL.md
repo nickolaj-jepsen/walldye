@@ -20,7 +20,7 @@ flags.
   both are gitignored, and CI renders its own. Never edit `walldye/`, other pieces, anything in
   `build/`, or `taxonomy.yaml` beyond the model line step 2 names.
 - Always name the slug; never `--all`.
-- Previews go to `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), never into the repo.
+- Previews go to `$WALLDYE_PREVIEW`, never into the repo.
 - A check or build takes from a few seconds to about half a minute per piece (a dense
   `aspects="any"` piece with variants, or a heavy simulation, is the slow end), so give each a
   600000 ms Bash timeout.
@@ -69,10 +69,9 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    uv run walldye sheet <slug> --wedge sweep=0..360..45  # choosing a knob's value
    ```
    `--set k=v` tries one params value in preview, render or sheet without publishing it.
-5. Light ladder. Stop at the first step that gives a good flexoki-light render: tokens only;
-   then a per-regime color, `by_regime(dark, light)`; then a geometry branch under
-   `if s.light:`, which costs a light template per aspect and version. There is no dark-only
-   opt-out. references/principles.md, Light themes, says what changes on paper.
+5. Light ladder (docs/architecture.md, Designs draw in formulas): stop at the first step that
+   gives a good flexoki-light render. references/principles.md, Light themes, says what
+   changes on paper.
 6. Variants, only where the piece has a natural one (Variant policy). Each is a `Params`
    instance in `@design(variants=...)`, previewed with `--variant <name>` and listed in
    meta.yaml with `draft: true`. Most pieces have none.
@@ -91,7 +90,7 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
     thumbnail nearly matches yours. A match is a duplicate: change the subject or the
     composition.
 11. Review. Run `uv run walldye review <slug>` with `run_in_background`: it serves a local page,
-    blocks until the owner presses Apply, then prints JSON (docs/api.md §12.4). Act on it:
+    blocks until the owner presses Apply, then prints JSON (docs/api.md §12.3). Act on it:
     - A note on an approved version usually asks for more, such as another version like it.
     - Rework each version in `edit` as its note says, then run steps 8 to 11 for it again. It
       keeps its draft flag until then.
@@ -175,22 +174,14 @@ docs/wallpapers.md, meta.yaml, has every field and rule. On top of it:
 - Fetch every source URL with WebFetch before writing it, and keep it only when the page loads
   and shows what you cite. Never write a URL from memory, and leave out any field you can't
   confirm.
-- A `recreation` source needs a `license:` the owner chooses, and `franchise:` needs their
-  approval: ask before writing either.
-- Each named variant gets a `label` and `draft: true`, and `default` gets a label too:
-  ```yaml
-  variants:
-    default: {label: Early in the turn}
-    late: {label: Late in the turn, draft: true}
-  ```
+- Ask the owner before writing `license:` or `franchise:`.
 
 ## Copy
 
 docs/wallpapers.md, Copy, has the rules for everything a visitor reads, including design.py's
 docstring and comments. On top of them:
 
-- A title is short and plain, in sentence case, like "Radar sweep" or "One-bit moon", and the
-  slug follows it.
+- A title is in sentence case, like "Radar sweep" or "One-bit moon".
 - Write the alt text from the preview, and the description's fact from the sources; don't
   open a description the way the last few pieces do (`walldye list` shows them).
 - Run the avoid-ai-tropes skill on every draft.
@@ -216,9 +207,9 @@ Start from the nearest of these published pieces, each at `wallpapers/<slug>/des
 
 ## References
 
-- references/api.md: drawing with the API in practice: composing for every aspect, colors,
-  buckets, clips and masks, random streams, fields, dither methods and their cost, glyphs,
-  shapely and scipy recipes, and staying under the limits. docs/api.md has the signatures.
+- references/api.md: worked examples (buckets, clips, masks, patterns, gradients, noise,
+  fields, dither, glyphs), dither costs, glyph coverage, shapely and scipy recipes, and the
+  size budget. docs/api.md has the signatures.
 - references/principles.md: the house style, light themes, subjects, the critique checklist,
   scoring, and the failure modes with the reviews that taught them.
 - references/taste.md: what the owner likes and rejects, and the fan-work rule.
