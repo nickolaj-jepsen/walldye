@@ -140,6 +140,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.5.14
         version: 2.5.14
+      '@cloudflare/workers-types':
+        specifier: ^5.20261003.1
+        version: 5.20261003.1
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -410,6 +413,9 @@ packages:
   '@clack/prompts@1.8.1':
     resolution: {integrity: sha512-dlT1m5e/0yUL0kRNcQn7yGLVThkgbB0Ga/1AmfDDC/8ik6AIiSf2QLQO2zPYvefsHP0aFgxO93cVLCCfDp7kzQ==}
     engines: {node: '>= 20.12.0'}
+
+  '@cloudflare/workers-types@5.20261003.1':
+    resolution: {integrity: sha512-Uii0J5qUd/R6lIDK/u0Sw8dEi7oI3ljXw7EDybuPntoXg2Yy5Y9H9UeNQ5R87oQ/Q4jq6uEJmYOOFQ3Z7C94lA==}
 
   '@emmetio/abbreviation@2.3.3':
     resolution: {integrity: sha512-mgv58UrU3rh4YgbE/TzgLQwJ3pFsHHhCLqY20aJq+9comytTXUDNGG/SMtSeMJdkpxgXSXunBGLD8Boka3JyVA==}
@@ -2320,6 +2326,8 @@ snapshots:
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
+
+  '@cloudflare/workers-types@5.20261003.1': {}
 
   '@emmetio/abbreviation@2.3.3':
     dependencies:

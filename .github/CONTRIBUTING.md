@@ -35,7 +35,7 @@ uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py
 uv run python scripts/fixtures/regen.py   # after a build, before pnpm test
 
 pnpm test                             # vitest
-pnpm check                            # astro check, after a build
+pnpm check                            # astro check (after a build) and tsc on the Worker
 pnpm lint                             # Biome; pnpm format fixes what it can
 pnpm astro build
 pnpm e2e                              # Playwright; pnpm e2e:nix on NixOS outside nix develop

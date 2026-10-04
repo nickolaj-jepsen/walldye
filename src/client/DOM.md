@@ -18,6 +18,10 @@ The theme boot (`applyTheme()` in `theme/store.ts`) sets the color properties, `
 
 `transition/boot.ts` names the carried plate by `.spread .plate[data-plate=<slug>]` or `.grid > li[data-slug=<slug>] .plate`; nothing else may set a view-transition-name. `[slug].astro` holds its first render until `#panel-boot` is parsed (`<link rel=expect blocking=render>`).
 
+### Page name
+
+`events.ts` names the page from `link[rel=canonical]`, which `Base.astro` leaves out on the 404 page (`noindex`).
+
 ### Header (`src/components/Masthead.astro`)
 
 | Hook | Element | Client does |

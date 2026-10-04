@@ -701,8 +701,8 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   grid-template-columns: var(--index-col) minmax(0, 1fr);
   column-gap: var(--col-gap);
 }
-/* A side head: the nav already names the page, so the heading stays quiet. */
-.about h1 {
+/* Side heads: the nav already names the page, so the headings stay quiet. */
+.about h1, .about h2 {
   grid-column: 1;
   font-size: var(--fs-2);
   line-height: var(--l);
@@ -711,6 +711,7 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   color: var(--text-2);
 }
 .about .prose { grid-column: 2; }
+.about h2, .about h2 + .prose { margin-top: calc(6 * var(--u)); }
 
 /* ---- picker ---- */
 
@@ -883,7 +884,8 @@ sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
   .run .cmd { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; }
 
   .about { display: block; }
-  .about h1 { margin-bottom: var(--u); }
+  .about h1, .about h2 { margin-bottom: var(--u); }
+  .about h2 + .prose { margin-top: 0; }
 
   .picker { left: var(--gutter); right: var(--gutter); width: auto; }
 }

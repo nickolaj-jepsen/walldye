@@ -226,14 +226,17 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      # Only the files wrangler reads. With no package.json or lockfile, wrangler-action installs
-      # wrangler alone, so no dependency's code runs next to the token.
+      # Only the files wrangler reads: its config and the Worker with the src/lib modules it imports.
+      # With no package.json or lockfile, wrangler-action installs wrangler alone, so no
+      # dependency's code runs next to the token.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /wrangler.jsonc
+            /src/worker/
+            /src/lib/events.ts
       # A pull request with drafts deploys the dist that shows them; e2e tested the one without.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -298,7 +301,7 @@ jobs:
             gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
           fi
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
-      # What e2e's astro preview can't show: the Worker's 404 handling and the _headers rules.
+      # What e2e's astro preview can't show: the Worker's 404 handling, the _headers rules and /e.
       - name: Check the deployed site
         timeout-minutes: 5
         env:
@@ -329,6 +332,8 @@ jobs:
           check "/no-such-piece-$GITHUB_RUN_ID" 404 '<title>Not found'
           check "/${templates[0]#dist/}" 200 '^cache-control: public, max-age=31536000, immutable'
           check /about 200 '^cache-control: public, max-age=0, must-revalidate'
+          # The Worker answers /e; a GET stores nothing.
+          check /e 405 '^allow: POST'
           # Only walldye.com is measured; a missing beacon would save days of zero views.
           if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
             check / 200 'cloudflareinsights\.com/beacon'

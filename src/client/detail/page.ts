@@ -283,6 +283,7 @@ setUpExport({
       token,
       format: f,
       size,
+      screen: state.size === 'screen',
       name,
     };
   },
