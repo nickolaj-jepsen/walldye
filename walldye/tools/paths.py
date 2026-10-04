@@ -27,6 +27,15 @@ FEATURED = WALLPAPERS / "featured.yaml"  # the site's featured pieces, one `- <s
 _SLUG: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
+def cache_dir() -> Path | None:
+    """Where preview, render and sheet keep @cached results: $WALLDYE_CACHE, else
+    .cache/cached/ in the checkout; None when $WALLDYE_CACHE is `off`."""
+    env = os.environ.get("WALLDYE_CACHE", "")
+    if env == "off":
+        return None
+    return Path(env) if env != "" else ROOT / ".cache" / "cached"
+
+
 def piece_dir(slug: str) -> Path:
     """wallpapers/<slug>/, whether or not it exists; ValueError unless `slug` is lowercase
     words joined by single hyphens."""

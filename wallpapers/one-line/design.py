@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.spatial import cKDTree
 
-from walldye import ACCENT, UI, Canvas, NpRng, P, Params, design, knob, polar
+from walldye import ACCENT, UI, Canvas, NpRng, P, Params, cached, design, knob, polar
 
 type Points = NDArray[np.float64]
 type Order = NDArray[np.intp]
@@ -37,6 +37,7 @@ def brightness(x: Points, y: Points, light: Points) -> Points:
     return np.where((rr < 1) & (lit > 0.04), 0.15 + 0.85 * np.clip(lit, 0, None) ** 1.3, 0)
 
 
+@cached
 def stipple(rng: NpRng, light: Points, iters: int = 12, res: int = 700) -> Points:
     """Weighted Voronoi stippling (Secord 2002) of the brightness field, in unit coordinates; the
     stipple count follows the field's total brightness, so the spacing is the same at every phase.
@@ -75,6 +76,7 @@ def nearest_neighbor(pts: Points, tree: cKDTree) -> Order:
     return np.array(order, np.intp)
 
 
+@cached
 def tour(pts: Points, k: int = 10) -> Order:
     """A closed tour visiting every point once: nearest-neighbor order, then 2-opt and Or-opt
     moves over each point's `k` nearest neighbors until no move shortens it."""

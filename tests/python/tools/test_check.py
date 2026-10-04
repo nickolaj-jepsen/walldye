@@ -237,9 +237,8 @@ def test_slow_variants_warn(wallpapers, monkeypatch):
     pieces.install(wallpapers, "collision")
     monkeypatch.setattr(check, "SLOW", 0.0)
     result = check.check_variant(check.Task(str(wallpapers), "collision", "default"))
-    assert result.warnings[-1].startswith("the check took") and result.warnings[-1].endswith(
-        "over 0 s"
-    )
+    assert result.warnings[-1].startswith("the check took")
+    assert "over 0 s; @cached shares" in result.warnings[-1]
 
 
 def test_pixel_grids_give_cells_and_origin_warnings(wallpapers):

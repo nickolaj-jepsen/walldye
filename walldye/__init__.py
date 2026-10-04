@@ -1,5 +1,6 @@
 """The core design API; the helpers live in walldye.geom, walldye.field and walldye.pixel."""
 
+from ._cache import cached
 from ._canvas import Canvas
 from ._color import (
     ACCENT,
@@ -101,6 +102,7 @@ __all__ = [
     "Style",
     "Vec",
     "by_regime",
+    "cached",
     "clamp",
     "design",
     "knob",

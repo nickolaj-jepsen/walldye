@@ -26,6 +26,7 @@ from walldye import (
     Params,
     Path,
     Vec,
+    cached,
     design,
     knob,
     ladder,
@@ -58,6 +59,7 @@ TONES = ladder((BG, BG_ALT, UI, UI_ALT), len(LEVELS) + 1)[1:]
 HALO, CORE = 6.85, 7.1  # log-density cuts for the rim round the picked-out fold, and the fold
 
 
+@cached
 def density(p: Attractor, g: NpRng) -> Field:
     """Visits per cell of an N x N grid (rows along y) over the attractor's square bounding
     window, from POINTS orbits of STEPS iterations each."""

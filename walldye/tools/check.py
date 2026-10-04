@@ -225,7 +225,10 @@ def check_variant(task: Task) -> Result:
         r.errors.append(str(e))
     r.seconds = time.perf_counter() - start
     if r.seconds > SLOW and not r.unchanged:
-        r.warnings.append(f"the check took {r.seconds:.0f} s, over {SLOW:.0f} s")
+        r.warnings.append(
+            f"the check took {r.seconds:.0f} s, over {SLOW:.0f} s; @cached shares work that"
+            " doesn't depend on the shape or regime"
+        )
     return r
 
 

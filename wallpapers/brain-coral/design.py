@@ -21,6 +21,7 @@ from walldye import (
     Params,
     Path,
     Vec,
+    cached,
     design,
     knob,
 )
@@ -61,6 +62,7 @@ def lap_into(a: Grid, out: Grid) -> Grid:
     return out
 
 
+@cached
 def gray_scott(rng: NpRng, gw: int, gh: int, f: float, k: float) -> Grid:
     """The V field after STEPS updates of a two-chemical reaction-diffusion with feed `f` and
     kill `k` on a wrap-around (gh, gw) grid, started from scattered 4x4 patches.

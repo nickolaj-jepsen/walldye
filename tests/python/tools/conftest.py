@@ -3,6 +3,12 @@ import pytest
 from walldye.tools import paths, review
 
 
+@pytest.fixture(autouse=True)
+def no_disk_cache(monkeypatch):
+    """Commands that turn on the @cached disk layer leave the checkout's .cache/ alone."""
+    monkeypatch.setenv("WALLDYE_CACHE", "off")
+
+
 @pytest.fixture
 def wallpapers(tmp_path, monkeypatch):
     """An empty wallpapers/ directory that the tools resolve slugs against."""

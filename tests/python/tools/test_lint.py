@@ -208,6 +208,40 @@ def test_module_level_failures(tmp_path, body, message):
     assert any(e.startswith(message) for e in found), found
 
 
+CACHED = "from walldye import cached\n\n\n@cached\ndef f(x: int) -> int:\n    return x\n"
+
+
+def test_cached_module_level_def_passes(tmp_path):
+    assert errors(tmp_path, CACHED) == []
+
+
+@pytest.mark.parametrize(
+    ("body", "draw", "message"),
+    [
+        (
+            "from walldye import cached\n\nF = cached\n",
+            DRAW,
+            "line 6: cached is only used as the @cached decorator on a module-level def",
+        ),
+        (
+            "from walldye import cached\n",
+            DRAW.replace(
+                "    s.fill", "    @cached\n    def f() -> int:\n        return 1\n\n    s.fill"
+            ),
+            "line 9: cached is only used as the @cached decorator on a module-level def",
+        ),
+        (
+            "import functools\n" + CACHED.replace("@cached", "@cached\n@functools.cache"),
+            DRAW,
+            "line 10: module-level functions are undecorated or @cached",
+        ),
+    ],
+)
+def test_cached_misuse(tmp_path, body, draw, message):
+    found = errors(tmp_path, body, draw)
+    assert any(e.startswith(message) for e in found), found
+
+
 @pytest.mark.parametrize(
     ("body", "draw_body", "flagged"),
     [

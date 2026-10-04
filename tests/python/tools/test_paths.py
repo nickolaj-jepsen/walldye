@@ -1,5 +1,6 @@
 import pytest
 
+from walldye.tools import paths
 from walldye.tools.paths import TEMPLATE_NAME, parse_template_name, template_name
 
 NORD = {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"}
@@ -36,3 +37,12 @@ def test_template_name_rejects(name):
     assert not TEMPLATE_NAME.fullmatch(name)
     with pytest.raises(ValueError):
         parse_template_name(name)
+
+
+def test_cache_dir(monkeypatch, tmp_path):
+    monkeypatch.setenv("WALLDYE_CACHE", "off")
+    assert paths.cache_dir() is None
+    monkeypatch.setenv("WALLDYE_CACHE", str(tmp_path))
+    assert paths.cache_dir() == tmp_path
+    monkeypatch.delenv("WALLDYE_CACHE")
+    assert paths.cache_dir() == paths.ROOT / ".cache" / "cached"

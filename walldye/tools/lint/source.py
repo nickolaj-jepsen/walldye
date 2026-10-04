@@ -128,6 +128,9 @@ _UNCHECKED: Final = "designs are type-checked as written; fix what Pyrefly repor
 _NO_TEXT: Final = "a color has no text form; pass it to a drawing call"
 
 
+_CACHED: Final = "walldye.cached"
+
+
 _ENTRY: Final = "a design has exactly one module-level @design(...) def draw(s: Canvas[...])"
 
 
@@ -338,6 +341,30 @@ def _entry_point(d: _Design) -> None:
             d.error(node, "design is only used as the @design(...) decorator on draw")
 
 
+def _is_cached(d: _Design, fn: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Whether `fn` is a plain def whose one decorator is a bare @cached."""
+    decs = fn.decorator_list
+    return isinstance(fn, ast.FunctionDef) and len(decs) == 1 and d.dotted(decs[0]) == _CACHED
+
+
+def _cached_uses(d: _Design) -> None:
+    allowed = {
+        id(n.decorator_list[0])
+        for n in d.tree.body
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and n.name != "draw"
+        and _is_cached(d, n)
+    }
+    for node in ast.walk(d.tree):
+        if (
+            isinstance(node, (ast.Name, ast.Attribute))
+            and id(node) not in allowed
+            and d.dotted(node) == _CACHED
+            and not isinstance(node.ctx, ast.Store)
+        ):
+            d.error(node, "cached is only used as the @cached decorator on a module-level def")
+
+
 def _plain_target(t: ast.expr) -> bool:
     if isinstance(t, ast.Name):
         return True
@@ -377,8 +404,11 @@ def _module_level(d: _Design) -> None:
                     if isinstance(dec, ast.Call):
                         for arg in [*dec.args, *(k.value for k in dec.keywords)]:
                             _constant(d, arg, scope, set())
-            elif len(node.decorator_list) > 0:
-                d.error(node, "module-level functions are undecorated, except @design on draw")
+            elif len(node.decorator_list) > 0 and not _is_cached(d, node):
+                d.error(
+                    node,
+                    "module-level functions are undecorated or @cached, except @design on draw",
+                )
             else:
                 scope.functions.add(node.name)
         elif isinstance(node, ast.ClassDef):
@@ -572,6 +602,7 @@ def design(path: Path) -> Lints:
     _imports(d)
     _process(d)
     _entry_point(d)
+    _cached_uses(d)
     _module_level(d)
     _mutation(d)
     _color_strings(d, docstrings)

@@ -14,7 +14,7 @@ Designs import only these four. Each defines `__all__` with exactly these names,
 
 | Module | Names |
 |---|---|
-| `walldye` | `design`, `Canvas`, `Params`, `knob`; `Color`, `MaskColor`, the 20 tokens (§4.1), `MASK_WHITE`, `MASK_BLACK`, `mix`, `ramp`, `ladder`, `Ladder`, `by_regime`; `Paint`, `MaskPaint`, `Ref`, `Style`, `Stop`, `MaskStop`, `LineCap`, `LineJoin`, `FillRule`; `Buckets`, `ClipSurface`, `MaskSurface`, `PatternSurface`, `Rng` and `NpRng` for annotating helpers, since designs may not name `random` or `numpy.random`; `P`, `Path`, `Vec`, `Rect`, `Point`, `Num`, `polar`, `lerp`, `clamp`, `smoothstep` |
+| `walldye` | `design`, `Canvas`, `Params`, `knob`, `cached`; `Color`, `MaskColor`, the 20 tokens (§4.1), `MASK_WHITE`, `MASK_BLACK`, `mix`, `ramp`, `ladder`, `Ladder`, `by_regime`; `Paint`, `MaskPaint`, `Ref`, `Style`, `Stop`, `MaskStop`, `LineCap`, `LineJoin`, `FillRule`; `Buckets`, `ClipSurface`, `MaskSurface`, `PatternSurface`, `Rng` and `NpRng` for annotating helpers, since designs may not name `random` or `numpy.random`; `P`, `Path`, `Vec`, `Rect`, `Point`, `Num`, `polar`, `lerp`, `clamp`, `smoothstep` |
 | `walldye.geom` | `Affine`, `Polyline`, `spline_points`, `bezier_points`, `ribbon`, `hatch`, `ngon`, `scatter`, `poisson_disk`, `parts` |
 | `walldye.field` | `Noise`, `noise_grid`, `cells`, `falloff`, `gauss`, `iso_lines`, `runs`, `sample_field` |
 | `walldye.pixel` | `Pixels`, `grid_runs`, `dither`, `bayer`, `blue_noise`, `threshold_matrix`, `sprite`, `glyph`, `glyphs`, `text_width`, `Font`, `DitherMethod` |
@@ -259,6 +259,17 @@ It decorates the one `draw(s: Canvas[Pm]) -> None` and replaces it with a `Desig
 - `bg`: the color of the full-canvas rectangle drawn before `draw` runs; a `by_regime` color is fine.
 - The params class comes from `draw`'s annotation, `Canvas[X]`, so annotate it when there are variants.
 
+### 9.1 `@cached`
+
+Check draws every shape and regime three times, so a simulation or search that doesn't depend on them reruns for nothing. Put that work in a module-level def under a bare `@cached`, taking its random stream as an argument:
+
+```python
+@cached
+def gray_scott(rng: NpRng, gw: int, gh: int, f: float, k: float) -> Grid: ...
+```
+
+The key is the function's code, every module-level name it reaches and its arguments, so editing `draw` keeps the result and editing the function or a constant it reads drops it. Its docstring lists the argument and result types. A process computes each distinct call once; `preview`, `render` and `sheet` also keep results on disk (§12.1).
+
 ## 10. Helper modules
 
 Helpers take randomness as a generator from `s.rng`, `s.np_rng` or `s.noise`, never as an integer seed. Point arrays are `NDArray[np.float64]` of shape `(N, 2)`.
@@ -359,6 +370,8 @@ Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that ta
 
 The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an installed copy, such as the Nix package, at another folder holding `wallpapers/`.
 
+`preview`, `render` and `sheet` keep `@cached` results (§9.1) in `$WALLDYE_CACHE`, else the gitignored `.cache/cached/`, keyed by the toolchain hash and pruned past 1 GB; `WALLDYE_CACHE=off` keeps them in memory only. `check` and `build` never read them.
+
 ### 12.2 Exploring
 
 - `--set seed=none` clears the seed.
@@ -402,6 +415,7 @@ It then prints JSON:
 | colors | hex string literals, f-strings that build a hex, and `str()`, `format()`, `repr()`, `%` or f-string formatting of a color |
 | process state | the builtins `hash`, `id`, `open`, `exec`, `eval`, `compile`, `globals` and `__import__`, and `global` statements |
 | entry point | anything but exactly one module-level `draw` decorated with `@design(...)` |
+| cached | `cached` anywhere but as the one, bare decorator of a module-level def |
 | module level | anything §13.2 does not allow |
 | mutation | mutating a module-level name inside a function |
 | data | files in `data/` other than `.json`, `.txt` and `.npy`, and subdirectories |
@@ -411,7 +425,7 @@ Warnings: color words in docstrings and comments, and copy problems in the modul
 
 ### 13.2 Module level
 
-A module-level statement is the docstring, an import, a `type` alias, an assignment (plain, annotated or augmented) of a constant expression to names, an `assert` of one, a `def` (undecorated, except `draw`), or a class (undecorated or `@dataclass(...)`). `if`, `for`, `while`, `with` and `try` fail.
+A module-level statement is the docstring, an import, a `type` alias, an assignment (plain, annotated or augmented) of a constant expression to names, an `assert` of one, a `def` (undecorated or `@cached`, except `draw`), or a class (undecorated or `@dataclass(...)`). `if`, `for`, `while`, `with` and `try` fail.
 
 A constant expression uses literals, displays, comprehensions and lambdas, names bound earlier and their attributes, any operator, and calls of pure builtins, `math` and `cmath`, numpy's array constructors and element-wise trigonometry, `walldye`'s color and vector functions, the design's own `Params` subclasses, functions defined earlier in the module, and string methods. The `CONST_*` sets in `walldye/tools/lint/source.py` have the exact lists. So `TILT = math.radians(6)` and `SPOKES = np.array([...])` pass, while `P()`, anything on `s`, and shapely, scipy or skimage calls belong in `draw`.
 

@@ -58,6 +58,8 @@ Pieces whose scripts were lost are a `source.svg` plus a `palette.yaml` mapping 
 - runs the held-out check, plus two probe themes: near-equal seeds, and hex values that sort opposite to fireproof's;
 - enforces the constant-slot rule, no text, filters or images, and at most 1 MB and 20,000 elements.
 
+A design's `@cached` functions (api.md §9.1) run once per process for each distinct call, so the in-process draws share them while the PYTHONHASHSEED process computes them afresh, which still tests that they are deterministic. Check and build never read the disk copies that preview, render and sheet keep: a stale file can mislead a preview, never a template.
+
 Build is incremental. slots.json records `design_sha` (the version's inputs) and `toolchain` (`walldye/tools/hashing.py`). A new `design_sha` rebuilds. A new `toolchain` alone draws once and compares the output; if it matches, only the stamp changes. Lints run on every piece at every build, so stricter rules apply at once; a stricter determinism check needs `walldye build --force`.
 
 ## CI

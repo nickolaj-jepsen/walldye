@@ -23,7 +23,8 @@ flags.
 - Previews go to `$WALLDYE_PREVIEW`, never into the repo.
 - A check or build takes from a few seconds to about half a minute per piece (a dense
   `aspects="any"` piece with variants, or a heavy simulation, is the slow end), so give each a
-  600000 ms Bash timeout.
+  600000 ms Bash timeout. Work that takes seconds and doesn't depend on the shape or regime goes
+  in a module-level `@cached` def (docs/api.md §9.1).
 - Leave the work uncommitted (step 13).
 
 ## Several pieces

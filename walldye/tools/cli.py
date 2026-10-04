@@ -13,8 +13,10 @@ import os
 from collections.abc import Callable, Sequence
 from typing import cast
 
+from walldye import _cache
 from walldye.tools import (
     drop,
+    hashing,
     listing,
     new,
     paths,
@@ -87,6 +89,11 @@ def _items(a: argparse.Namespace, name: str) -> list[str]:
     return [] if items is None else items
 
 
+def _disk_cache() -> None:
+    # Only commands that draw for a person look; what check and build write never comes off disk.
+    _cache.use_disk(paths.cache_dir(), hashing.toolchain_sha)
+
+
 def _cmd_new(a: argparse.Namespace) -> int:
     model = cast("str | None", a.model)
     credit = {"model": model} if model is not None else {"author": _str(a, "author")}
@@ -94,6 +101,7 @@ def _cmd_new(a: argparse.Namespace) -> int:
 
 
 def _cmd_preview(a: argparse.Namespace) -> int:
+    _disk_cache()
     return preview.run(
         _str(a, "slug"),
         cast("dict[str, str]", a.theme),
@@ -107,6 +115,7 @@ def _cmd_preview(a: argparse.Namespace) -> int:
 
 
 def _cmd_render(a: argparse.Namespace) -> int:
+    _disk_cache()
     return render.run(
         _str(a, "slug"),
         cast("dict[str, str]", a.theme),
@@ -164,6 +173,7 @@ def _cmd_sheet(a: argparse.Namespace) -> int:
         return sheet.run(slugs, seeds, cols, thumb, out, variant, aspect)
     if len(slugs) != 1:
         raise UsageError("--wedge, --seeds and --set draw one slug afresh; name one")
+    _disk_cache()
     return sheet.run_fresh(
         slugs[0], seeds, cols, thumb, out, variant, aspect, overrides, wedges, seeds_range
     )

@@ -7,7 +7,18 @@ import shapely
 from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter, zoom
 
-from walldye import ACCENT, ACCENT_2, BG_ALT, Canvas, NpRng, Params, design, knob, smoothstep
+from walldye import (
+    ACCENT,
+    ACCENT_2,
+    BG_ALT,
+    Canvas,
+    NpRng,
+    Params,
+    cached,
+    design,
+    knob,
+    smoothstep,
+)
 from walldye.field import iso_lines, noise_grid
 from walldye.geom import Polyline
 
@@ -47,6 +58,7 @@ def fields(
     return feed, kill, dead
 
 
+@cached
 def simulate(feed: Field, kill: Field, dead: Field, rng: NpRng) -> Field:
     """The v field after STEPS explicit Euler steps from seeds scattered over the live side."""
     rows, cols = feed.shape

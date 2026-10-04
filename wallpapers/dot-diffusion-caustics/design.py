@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter, label
 
-from walldye import ACCENT, ACCENT_3, ACCENT_6, UI, UI_ALT, Canvas, design
+from walldye import ACCENT, ACCENT_3, ACCENT_6, UI, UI_ALT, Canvas, cached, design
 from walldye.field import Noise, cells, gauss
 from walldye.pixel import bayer, grid_runs
 
@@ -73,6 +73,7 @@ def surface(noise: Noise, x: NDArray[np.floating], y: NDArray[np.floating]) -> F
     return h
 
 
+@cached
 def caustics(noise: Noise, x0: float, y0: float, cols: int, rows: int) -> Field:
     """Photon density on the pool floor over `cols` x `rows` cells whose top-left corner is at
     pool coordinates (x0, y0): one photon per unit, shifted along the surface slope, so the
