@@ -10,7 +10,7 @@ on:
       - 'scripts/fixtures/**'
       - 'wallpapers/*/design.py'
       - 'wallpapers/*/meta.yaml'
-      - 'taxonomy.yaml'
+      - 'wallpapers/taxonomy.yaml'
       - 'wallpapers/pyrefly.toml'
       - '.claude/skills/walldye/SKILL.md'
       - 'pyproject.toml'

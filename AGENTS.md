@@ -23,8 +23,8 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 
 - `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Changing its code outside the modules `NEUTRAL` in `walldye/tools/hashing.py` names makes the next build draw every piece once and compare.
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand, and `build/` is generated. `wallpapers/index.json` is generated too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
-- `taxonomy.yaml`: the allowed facet values for meta.yaml, each with the words the site shows for it, and the credit name of each model id.
-- `featured.yaml`: the pieces the index opens on, in order, chosen by the owner.
+- `wallpapers/taxonomy.yaml`: the allowed facet values for meta.yaml, each with the words the site shows for it, and the credit name of each model id.
+- `wallpapers/featured.yaml`: the pieces the index opens on, in order, chosen by the owner.
 - `src/`: the site. `src/lib/` is pure code any side may import (no DOM, Node or Astro runtime): the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for the facets and licenses (taxonomy.yaml has those for facet values and models). `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time (the collection in `src/server/catalog/`, meta.yaml's schema helpers and taxonomy.yaml).
 - `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs), `unit/` (vitest, self-contained), `parity/` (vitest against the Python output), `e2e/` (Playwright), and `fixtures/`, the gitignored Python renders and fixtures the parity tests read.
 - `scripts/fixtures/`: `regen.py` writes `tests/fixtures/` from a build.
@@ -37,7 +37,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 
 ## Commands
 
-CONTRIBUTING.md lists the commands and the steps for adding a wallpaper by hand. On NixOS, run them in `nix develop`.
+.github/CONTRIBUTING.md lists the commands and the steps for adding a wallpaper by hand. On NixOS, run them in `nix develop`.
 
 ## Rules
 

@@ -34,6 +34,7 @@ module-root = ""
 
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
+cache_dir = ".cache/pytest"
 # tests import the shared fixtures module as `fixtures`
 pythonpath = ["tests/python"]
 
@@ -50,6 +51,7 @@ dev = [
 
 [tool.ruff]
 line-length = 100
+cache-dir = ".cache/ruff"
 target-version = "py313"
 
 [tool.ruff.lint]

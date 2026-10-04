@@ -10,7 +10,7 @@ export const WALLPAPERS = join(ROOT, 'wallpapers');
 /** The `stats` branch's day files, checked out by CI; absent locally unless fetched. */
 const VIEWS = join(ROOT, 'stats', 'views');
 /** The index's featured pieces, in order. */
-export const FEATURED = join(ROOT, 'featured.yaml');
+export const FEATURED = join(WALLPAPERS, 'featured.yaml');
 
 /** `path` relative to the project root, with forward slashes; the endpoints read files by it. */
 export const rootPath = (path: string) => relative(ROOT, path).split(sep).join('/');

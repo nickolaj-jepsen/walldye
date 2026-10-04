@@ -357,7 +357,7 @@ Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that ta
 
 `--theme` takes a preset name or bg-fg-accent seeds (also `bg,fg,accent` and `bg=..,fg=..,accent=..`), defaulting to `$WALLDYE_THEME`, else fireproof. `--variant` takes `default` or a declared name.
 
-The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an installed copy, such as the Nix package, at another folder holding `wallpapers/` and `taxonomy.yaml`.
+The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an installed copy, such as the Nix package, at another folder holding `wallpapers/`.
 
 ### 12.2 Exploring
 
@@ -369,7 +369,7 @@ The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an in
 
 A localhost page that goes through versions one at a time and blocks until Apply. Without slugs its queue is every unpublished version; with slugs, every version of those pieces; with `--all`, everything. The sidebar edits the piece's words and facets and decides proposed facets; a new facet value needs a label. Each step is accepted (<kbd>A</kbd>), sent back for an edit (<kbd>E</kbd>), removed (<kbd>R</kbd>, which unpublishes a published version) or skipped (<kbd>S</kbd>). A note on an accept asks for more like it, and a note on an edit says what should change.
 
-Decisions are saved to the gitignored `.walldye-review.json` as they are made, so a review resumes where it stopped. Only Apply writes to the repository:
+Decisions are saved to the gitignored `.cache/walldye-review.json` as they are made, so a review resumes where it stopped. Only Apply writes to the repository:
 - Accepting an unpublished version removes its `draft:`, and removing a published one sets `draft: true`. Nothing else about a version changes; review never edits design.py.
 - Edits and facet decisions go to meta.yaml, and a new facet value to taxonomy.yaml with its label.
 - A piece is refused, and nothing of it written, when an edit adds a lint error, a new facet value has no label, or it would be published with proposed facets undecided.

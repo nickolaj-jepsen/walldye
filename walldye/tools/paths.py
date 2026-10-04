@@ -8,7 +8,7 @@ from typing import Final
 from walldye._aspect import canvas_size
 
 # An editable install sits in a checkout two levels up; an installed package (the Nix one) is
-# pointed at a folder holding wallpapers/ and taxonomy.yaml by $WALLDYE_ROOT.
+# pointed at a folder holding wallpapers/ by $WALLDYE_ROOT.
 _ROOT_ENV: Final = os.environ.get("WALLDYE_ROOT", "")
 
 
@@ -18,10 +18,10 @@ ROOT: Final = Path(_ROOT_ENV) if _ROOT_ENV != "" else Path(__file__).resolve().p
 WALLPAPERS = ROOT / "wallpapers"
 
 
-TAXONOMY = ROOT / "taxonomy.yaml"
+TAXONOMY = WALLPAPERS / "taxonomy.yaml"
 
 
-FEATURED = ROOT / "featured.yaml"  # the site's featured pieces, one `- <slug>` line each
+FEATURED = WALLPAPERS / "featured.yaml"  # the site's featured pieces, one `- <slug>` line each
 
 
 _SLUG: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")

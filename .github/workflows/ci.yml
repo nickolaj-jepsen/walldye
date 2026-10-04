@@ -199,8 +199,8 @@ jobs:
         with:
           name: playwright-report
           path: |
-            playwright-report/
-            test-results/
+            .cache/playwright/
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 3
 

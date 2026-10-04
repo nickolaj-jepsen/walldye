@@ -372,7 +372,7 @@ test.describe('index order', () => {
 
   test('the index opens on the featured pieces, in featured.yaml order', async ({ page }) => {
     const published = new Set(PIECES.map((p) => p.slug));
-    const featured = (YAML.parse(readText('featured.yaml')) as string[]).filter((s) =>
+    const featured = (YAML.parse(readText('wallpapers/featured.yaml')) as string[]).filter((s) =>
       published.has(s),
     );
     test.skip(featured.length === 0, 'nothing on featured.yaml is published');

@@ -1,6 +1,6 @@
 # Contributing
 
-[docs/architecture.md](docs/architecture.md) explains how walldye works.
+[docs/architecture.md](../docs/architecture.md) explains how walldye works.
 
 ## Setup
 
@@ -16,8 +16,8 @@ pnpm dev                     # http://localhost:4321, drafts included
 ## Adding a wallpaper
 
 1. `uv run walldye new <slug> --author "<your name>"` creates `wallpapers/<slug>/` with a starter `design.py` and a draft `meta.yaml`.
-2. Write `design.py` against [docs/api.md](docs/api.md). `uv run walldye preview <slug>` renders a PNG; try `--theme flexoki-light` and `--aspect 9:19.5` too.
-3. Fill in `meta.yaml`, including `license:`, following [docs/wallpapers.md](docs/wallpapers.md).
+2. Write `design.py` against [docs/api.md](../docs/api.md). `uv run walldye preview <slug>` renders a PNG; try `--theme flexoki-light` and `--aspect 9:19.5` too.
+3. Fill in `meta.yaml`, including `license:`, following [docs/wallpapers.md](../docs/wallpapers.md).
 4. `uv run walldye check <slug>`, then `uv run walldye build <slug>`.
 5. `uv run walldye review <slug>` opens a page to look the piece over and publish it.
 6. Commit `design.py`, `meta.yaml` and `data/`, and open a pull request. CI renders the rest.

@@ -6,7 +6,7 @@ import { typesetMeta, typesetNotes } from '../../lib/typeset';
 import { isDraft } from '../meta';
 import { parseYaml } from '../yaml';
 import { attach } from './build';
-import { FEATURED, loadFeatured, loadViews, ROOT, rootPath, WALLPAPERS } from './files';
+import { loadFeatured, loadViews, ROOT, rootPath, WALLPAPERS } from './files';
 
 /**
  * Loads wallpapers/<slug>/meta.yaml (the folder name is the id) with build/slots.json, the
@@ -90,11 +90,11 @@ export function wallpapers(): Loader {
       await sync();
 
       if (watcher) {
-        watcher.add([WALLPAPERS, FEATURED]);
+        watcher.add(WALLPAPERS);
         let timer: ReturnType<typeof setTimeout> | undefined;
         const onChange = (path: string) => {
           const at = resolve(path);
-          if (!at.startsWith(WALLPAPERS) && at !== FEATURED) return;
+          if (!at.startsWith(WALLPAPERS)) return;
           clearTimeout(timer);
           // `walldye build` writes a dozen files in a burst; resync once it settles.
           timer = setTimeout(() => sync().catch((e: Error) => logger.error(e.message)), 150);

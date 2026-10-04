@@ -26,17 +26,14 @@ pnpm-debug.log*
 # python
 __pycache__/
 .venv/
-.pytest_cache/
 
-# walldye
-.walldye-review.json
+# tool caches, review state and test output
+/.cache/
 
 # tooling
 result
 result-*
 .wrangler/
-playwright-report/
-test-results/
 .claude/worktrees/
 # the promo loop, from scripts/promo/record.ts
 /promo/

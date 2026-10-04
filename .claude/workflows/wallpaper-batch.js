@@ -370,7 +370,7 @@ The owner's brief for this batch: ${BRIEF}`
 const tool = () => `TOOLING (you are in the walldye repo; run every command from its root):
 - Read ${SKILL}/SKILL.md and follow its steps 2 to 8 for each of your designs, with ${SKILL}/references/api.md and the nearest piece in SKILL.md's Examples table. Its meta.yaml, Copy and Variant policy sections apply, and so do docs/wallpapers.md and docs/api.md, which it points to.
 - Look at ${REFS} before designing, and match the restraint and finish you see there.
-- Batch rules, which override the skill: create or edit only wallpapers/<your slugs>/ (design.py, meta.yaml). Never touch walldye/, taxonomy.yaml, other wallpapers, wallpapers/index.json or any build/ folder. Never run \`walldye build\`, \`drop\` or \`review\`, and don't start the skill's critic: this workflow runs its own. Always name your own slugs in preview, check and render. No git commands that change state.
+- Batch rules, which override the skill: create or edit only wallpapers/<your slugs>/ (design.py, meta.yaml). Never touch walldye/, wallpapers/taxonomy.yaml, other wallpapers, wallpapers/index.json or any build/ folder. Never run \`walldye build\`, \`drop\` or \`review\`, and don't start the skill's critic: this workflow runs its own. Always name your own slugs in preview, check and render. No git commands that change state.
 - ${TIMING} Give each check a 600000 ms Bash timeout.`
 
 const VARIANTS = `VARIANTS: the Variant policy in ${SKILL}/SKILL.md. Usually none; at most 3 per piece, each draft: true.`
@@ -401,7 +401,7 @@ const setup = await agent(`Prepare shared context for a batch of new wallpapers.
 1. Scratch dir: \`uv run python -c "from walldye.tools.preview import preview_dir; print(preview_dir())"\` prints the preview dir. Create <that dir>/batch; it is WORK. Return its absolute path as work.
 2. Existing names. \`uv run walldye list\` prints one line per piece: slug, title, description, draft, aspects and named variants, tab-separated. Write WORK/existing.txt with one line per piece, "slug: description", and return every slug as existing.
 3. Reference sheets. Pick about 30 pieces that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip the fan pieces, whose meta.yaml has \`franchise:\`) and sheet them as the family: \`uv run walldye sheet <slugs> --cols 6 -o WORK/reference.png\`. Then sheet the whole catalog small, for spotting look-alikes: \`uv run walldye sheet --all --cols 12 --thumb 160 -o WORK/catalog.png\`. Read both PNGs to confirm they rendered. Return the path of reference.png as references.
-4. Read taxonomy.yaml and return its technique, subject and lineage values as taxonomy.`, { label: 'setup', phase: 'Setup', schema: SETUP })
+4. Read wallpapers/taxonomy.yaml and return its technique, subject and lineage values as taxonomy.`, { label: 'setup', phase: 'Setup', schema: SETUP })
 
 if (!setup) throw new Error('wallpaper-batch: the setup agent returned nothing, and the existing-name list is needed to avoid slug collisions')
 WORK = setup.work.replace(/\/+$/, '')
@@ -847,7 +847,7 @@ if (review?.undecided.length) next.push(`Undecided pieces stay draft: true; revi
 if (review?.error) next.push(`walldye review ended with an error, so nothing was published: ${review.error}`)
 if (review?.refused?.length) next.push(`Approval refused for ${review.refused.map(r => r.slug).join(', ')} (see review.refused).`)
 if (lessons) next.push('Show the owner `proposed_lessons`, and write the ones they approve into .claude/skills/walldye/references/.')
-next.push(`Leave the new folders uncommitted. Offer the owner a commit that stages only wallpapers/{${survivors.join(',')}}/ and any lines review added to taxonomy.yaml; drafts land on main as draft: true.`)
+next.push(`Leave the new folders uncommitted. Offer the owner a commit that stages only wallpapers/{${survivors.join(',')}}/ and any lines review added to wallpapers/taxonomy.yaml; drafts land on main as draft: true.`)
 
 return {
   status: review?.finished ? 'reviewed' : built.length ? 'built' : 'build-failed',

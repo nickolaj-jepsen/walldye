@@ -25,18 +25,16 @@ function labels(value: unknown, what: string): Record<string, string> {
   return value as Record<string, string>;
 }
 
-/** The taxonomy.yaml of `root`; throws naming the part that is malformed. */
+/** The wallpapers/taxonomy.yaml of `root`; throws naming the part that is malformed. */
 export function loadTaxonomy(root = resolve('.')): Taxonomy {
-  const data = (parseYaml(readFileSync(join(root, 'taxonomy.yaml'), 'utf8')) ?? {}) as Record<
-    string,
-    unknown
-  >;
+  const text = readFileSync(join(root, 'wallpapers', 'taxonomy.yaml'), 'utf8');
+  const data = (parseYaml(text) ?? {}) as Record<string, unknown>;
   const facets = {} as Taxonomy['facets'];
   for (const facet of TAXONOMY_FACETS) facets[facet] = labels(data[facet], facet);
   return { facets, models: labels(data.models, 'models') };
 }
 
-// Astro runs from the project root, which is where taxonomy.yaml sits.
+// Astro runs from the project root.
 export const TAXONOMY = loadTaxonomy();
 
 /** The words visitors see for a facet value, or undefined when it has none. */

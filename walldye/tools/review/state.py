@@ -17,7 +17,7 @@ from walldye.tools.metadata import dump_yaml, write_meta
 from walldye.tools.paths import template_name
 from walldye.tools.themes import PRESETS
 
-STATE_FILE = paths.ROOT / ".walldye-review.json"
+STATE_FILE = paths.ROOT / ".cache" / "walldye-review.json"
 # facet: its legend on the page
 FACETS = {"technique": "Technique", "subject": "Subject", "lineage": "Inspired by"}
 # field: (its label on the page, rows in its text box)
@@ -61,6 +61,7 @@ def load_state() -> State:
 
 
 def save_state(state: Mapping[str, object]) -> None:
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
 
 

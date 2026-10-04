@@ -74,7 +74,6 @@
         pkgs.runCommand "walldye-catalog" { } ''
           mkdir $out
           cp -r ${wallpapersIn ./wallpapers} $out/wallpapers
-          cp ${./taxonomy.yaml} $out/taxonomy.yaml
         '';
 
       # A wallpaper built from its own folder alone, so editing one piece rebuilds only its images.
@@ -230,6 +229,7 @@
             shellHook = ''
               unset PYTHONPATH
               export REPO_ROOT=$(git rev-parse --show-toplevel)
+              export PYTHONPYCACHEPREFIX=$REPO_ROOT/.cache/pycache
             '';
           };
         }

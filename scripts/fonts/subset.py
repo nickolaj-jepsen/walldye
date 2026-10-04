@@ -5,7 +5,7 @@
 # ///
 """Rebuild src/assets/fonts/*.woff2 from the pinned upstream fonts listed in SOURCES.md.
 
-Usage: `uv run scripts/fonts/subset.py`. Downloads are cached in scripts/fonts/.cache/ and
+Usage: `uv run scripts/fonts/subset.py`. Downloads are cached in .cache/fonts/ and
 checked against their sha256. Exits non-zero if any output fails verification.
 """
 
@@ -22,7 +22,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import AxisTriple, instantiateVariableFont
 
 HERE = Path(__file__).resolve().parent
-CACHE = HERE / ".cache"
+CACHE = HERE.parents[1] / ".cache" / "fonts"
 OUT = HERE.parents[1] / "src" / "assets" / "fonts"
 
 GOOGLE_FONTS = "https://raw.githubusercontent.com/google/fonts/f8c1d3d6cc75e30d77130bdcbfbff27e3b6233fe/ofl/ebgaramond"
@@ -70,7 +70,7 @@ def fetch(name: str) -> Path:
     url, sha = SOURCES[name]
     path = CACHE / name
     if not path.exists():
-        CACHE.mkdir(exist_ok=True)
+        CACHE.mkdir(parents=True, exist_ok=True)
         print(f"fetch {url}")
         tmp = path.with_suffix(path.suffix + ".part")
         urllib.request.urlretrieve(url, tmp)
