@@ -6,14 +6,13 @@ import sys
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 
-from walldye.tools import check, hashing, index, lint, metadata, paths, slotfile
+from walldye.tools import check, hashing, index, metadata, paths, slotfile
 from walldye.tools.paths import TEMPLATE_NAME
 
 
 def _current(slug: str, variant: str, slots: slotfile.Slots, design_sha: str) -> bool:
     """Whether `slots` still describe the variant's design: same design_sha, and every
-    template it names present with its recorded sha256. The toolchain is compared
-    separately."""
+    template it names present with its recorded sha256."""
     d = paths.build_dir(slug, variant)
     return slots.current(design_sha) and all(
         (d / e["file"]).exists() and hashing.sha256((d / e["file"]).read_bytes()) == e["sha256"]
@@ -51,26 +50,6 @@ def _prune(slug: str, names: Sequence[str]) -> None:
             print(f"{slug}: removed build/{p.name}/, not a declared variant")
 
 
-def _restamp(slug: str, variant: str, design_sha: str, toolchain: str) -> None:
-    """Record in a variant's slots.json that `toolchain` draws what it holds."""
-    old = slotfile.load(slug, variant)
-    assert old is not None
-    slots = slotfile.compose(design_sha, variant, toolchain, old.output())
-    (paths.build_dir(slug, variant) / "slots.json").write_text(slotfile.dump(slots))
-
-
-def _lint_templates(slug: str, variant: str, slots: slotfile.Slots) -> list[str]:
-    """The template lint errors of a current variant's built templates."""
-    d = paths.build_dir(slug, variant)
-    prefix = "" if variant == "default" else f"{variant}: "
-    files = dict.fromkeys(e["file"] for e in slots.entries.values())
-    return [
-        f"{prefix}{name}: {e}"
-        for name in files
-        for e in lint.templates.svg((d / name).read_text())[0]
-    ]
-
-
 def _drafts(slug: str) -> tuple[bool, set[str]]:
     """Whether meta.yaml marks `slug` a draft, and its draft named variants; (False, set())
     when meta.yaml cannot be read, so the check reports it."""
@@ -87,7 +66,6 @@ class _Plan:
     """A piece to build: its check so far, what each variant needs, and its tasks."""
 
     target: check.Target
-    toolchain: str
     shas: dict[str, str] = field(default_factory=dict[str, str])
     current: list[str] = field(default_factory=list[str])
     tasks: list[check.Task] = field(default_factory=list[check.Task])
@@ -102,7 +80,7 @@ def _plan(slug: str, variant: str | None, toolchain: str, force: bool, published
     if published:
         _, drafts = _drafts(slug)
         t.variants = tuple(v for v in t.variants if v not in drafts)
-    plan = _Plan(t, toolchain)
+    plan = _Plan(t)
     if t.piece is None or len(t.report.errors) > 0:
         return plan
     for v in t.variants:
@@ -114,9 +92,9 @@ def _plan(slug: str, variant: str | None, toolchain: str, force: bool, published
             old = None
         task = check.Task(str(paths.WALLPAPERS), slug, v)
         if old is not None and _current(slug, v, old, plan.shas[v]):
-            if old.text("toolchain") == toolchain:
+            if old.current(plan.shas[v], toolchain):
                 plan.current.append(v)
-                t.report.errors += _lint_templates(slug, v, old)
+                check.lint_built(t, v, dict.fromkeys(e["file"] for e in old.entries.values()))
                 continue
             task = check.Task(task.wallpapers, slug, v, expect=slotfile.output_sha(old.output()))
         plan.tasks.append(task)
@@ -153,13 +131,16 @@ def run(
         check.lint_source(p.target)
     tasks = [task for p in plans for task in p.tasks]
     results = check.run_tasks(check.check_variant, tasks, check.workers(jobs, len(tasks)))
-    failed = [p.target.slug for p in plans if not _finish(p, results, variant)]
+    failed = [p.target.slug for p in plans if not _finish(p, results, variant, toolchain)]
     index.write()
     return 1 if len(failed) > 0 else 0
 
 
-def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -> bool:
-    """Collect a piece's results, print, and write when it passed."""
+def _finish(
+    plan: _Plan, results: Iterator[check.Result], variant: str | None, toolchain: str
+) -> bool:
+    """Collect a piece's results, print, and write when it passed, stamped with
+    `toolchain`."""
     t = plan.target
     for _ in plan.tasks:
         t.report.add(next(results))
@@ -172,12 +153,10 @@ def _finish(plan: _Plan, results: Iterator[check.Result], variant: str | None) -
     for v in plan.current:
         print(f"{_name(t.slug, v)}: up to date")
     for v, r in t.report.results.items():
+        written = _write(t.slug, v, slotfile.compose(plan.shas[v], v, toolchain, r.output()), r)
         if r.unchanged:
-            _restamp(t.slug, v, plan.shas[v], plan.toolchain)
             print(f"{_name(t.slug, v)}: up to date (the new toolchain draws the same output)")
         else:
-            slots = slotfile.compose(plan.shas[v], v, plan.toolchain, check.output(r))
-            written = _write(t.slug, v, slots, r)
             print(f"{_name(t.slug, v)}: wrote {', '.join(written)}")
     if variant is None:
         _prune(t.slug, t.piece.variant_names())

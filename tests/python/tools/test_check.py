@@ -75,6 +75,33 @@ def test_determinism_failure_stops_before_geometry(wallpapers):
     assert result.templates == {} and result.entries == {} and result.focus is None
 
 
+def test_each_draw_is_repeated_back_to_back(wallpapers):
+    # Its state repeats with every pass over the shapes, so only an adjacent redraw differs.
+    pieces.install(wallpapers, "cycling")
+    result = check.check_variant(check.Task(str(wallpapers), "cycling", "default"))
+    assert any("16:9 dark: two draws differ" in e for e in result.errors), result.errors
+
+
+def test_a_design_error_keeps_what_was_found_before_it(wallpapers):
+    pieces.install(wallpapers, "exhausted")
+    errors = check.check_variant(check.Task(str(wallpapers), "exhausted", "default")).errors
+    assert len(errors) == 2, errors
+    assert "16:9 dark: two draws differ" in errors[0]
+    assert "16:9 light: draw failed: RuntimeError: out of steps" in errors[1]
+
+
+def test_a_failed_fresh_import_keeps_the_serialization(wallpapers, monkeypatch):
+    pieces.install(wallpapers, "pixels")
+
+    def gone(slug: str) -> loader.Piece:
+        raise ImportError("gone")
+
+    monkeypatch.setattr(loader, "fresh", gone)
+    result = check.check_variant(check.Task(str(wallpapers), "pixels", "default", paranoid=True))
+    assert result.errors == ["fresh import failed: ImportError: gone"]
+    assert result.templates and any("pixel grid origin" in w for w in result.warnings)
+
+
 def test_legacy_backstops(wallpapers):
     legacy(wallpapers, "texty", source=TEXT_SOURCE, palette='"#1C1B1A": bg\n"#CF6A4C": accent\n')
     errors = report("texty").errors

@@ -10,15 +10,9 @@ from pathlib import Path
 from typing import Final
 
 from walldye._design import RenderSpec
-from walldye._document import Document
 from walldye.tools import hashing, loader, metadata, paths, themes
 
 HASH_SEED: Final = "4242"
-
-
-def sample_sha(doc: Document, theme: themes.Theme) -> str:
-    """The sha256 of `doc` serialized under `theme`."""
-    return hashing.sha256(doc.to_svg(themes.tokens_of(theme)).encode())
 
 
 def start_fresh(keys: Sequence[str]) -> subprocess.Popen[str]:
@@ -70,6 +64,7 @@ def hashes_main(args: Sequence[str]) -> int:
         spec = RenderSpec(
             variant, piece.params(variant), aspect, "light" if regime == "light" else "dark"
         )
-        out[k] = sample_sha(loader.draw(piece, spec, cache=False), themes.SAMPLE[spec.regime])
+        doc = loader.draw(piece, spec, cache=False)
+        out[k] = hashing.sha256(doc.to_svg(themes.tokens_of(themes.SAMPLE[spec.regime])).encode())
     print(json.dumps(out))
     return 0

@@ -1,12 +1,11 @@
 """slots.json: a built version's templates with their slot coefficients, and the stamps that
 say what they were built from."""
 
-import hashlib
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from walldye.tools import coefs, metadata, paths
+from walldye.tools import coefs, hashing, metadata, paths
 
 
 class Entry(coefs.Entry):
@@ -16,16 +15,41 @@ class Entry(coefs.Entry):
 
 
 def compose(
-    design_sha: str, variant: str, toolchain: str, output: Mapping[str, object]
+    design_sha: str, variant: str, toolchain: str, drawn: Mapping[str, object]
 ) -> dict[str, object]:
-    """A slots.json object: the stamps (`variant` only for a named variant), then `output`."""
+    """A slots.json object: the stamps (`variant` only for a named variant), then `drawn`, an
+    output()."""
     named: dict[str, object] = {} if variant == "default" else {"variant": variant}
-    return {"design_sha": design_sha, **named, "toolchain": toolchain, **output}
+    return {"design_sha": design_sha, **named, "toolchain": toolchain, **drawn}
 
 
-def output_sha(output: Mapping[str, object]) -> str:
-    """The sha256 of dump(output), so a fresh draw's output compares to Slots.output()."""
-    return hashlib.sha256(dump(output).encode()).hexdigest()
+def output(
+    templates: Mapping[str, str],
+    entries: Mapping[str, coefs.Entry],
+    cells: Sequence[float],
+    focus: tuple[float, float] | None,
+) -> dict[str, object]:
+    """The part of slots.json a version's draws decide, the keys Slots.output() reads back:
+    focus (the center without a 16:9 dark template), cells, then each of `entries` with the
+    sha256 of its template in `templates` (file name -> svg)."""
+    shas = {name: hashing.sha256(text.encode()) for name, text in templates.items()}
+    table: dict[str, Entry] = {
+        k: {
+            "file": e["file"],
+            "sha256": shas[e["file"]],
+            "n": e["n"],
+            "coefs": e["coefs"],
+            "occ": e["occ"],
+        }
+        for k, e in entries.items()
+    }
+    center = (0.5, 0.5) if focus is None else focus
+    return {"focus": list(center), "cells": list(cells), **table}
+
+
+def output_sha(part: Mapping[str, object]) -> str:
+    """The sha256 of dump(part), so a fresh output() compares to Slots.output()."""
+    return hashing.sha256(dump(part).encode())
 
 
 def dump(slots: Mapping[str, object]) -> str:
@@ -54,8 +78,8 @@ class Slots:
         )
 
     def output(self) -> dict[str, object]:
-        """What a build drew for these slots: focus, cells and the template entries, the part
-        of slots.json that does not say what it was built from."""
+        """The keys output() writes: focus, cells and the template entries, the part of
+        slots.json that does not say what it was built from."""
         return {
             "focus": self.fields.get("focus"),
             "cells": self.fields.get("cells"),
@@ -65,9 +89,6 @@ class Slots:
     def to_dict(self) -> dict[str, object]:
         """The slots.json object: the fields in order, then the entries."""
         return {**self.fields, **self.entries}
-
-    def dump(self) -> str:
-        return dump(self.to_dict())
 
 
 def parse(data: Mapping[str, object]) -> Slots:
