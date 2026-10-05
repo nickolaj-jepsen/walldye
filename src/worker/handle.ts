@@ -1,23 +1,13 @@
-/**
- * The site Worker's request handler. On `/e` it answers 405 to anything but POST; a POST has its
- * event checked, gets the visitor key and the country, and is written as one Analytics Engine row
- * and logged with the same fields. Typed structurally, so it also type-checks against the DOM lib.
- */
-import {
-  type ClientEvent,
-  EVENT_PATH,
-  encodeEvent,
-  MAX_BODY,
-  parseEvent,
-  type StoredEvent,
-} from '../lib/events';
+/** The site Worker's handler, typed structurally so the unit tests type-check it against the DOM lib. */
+import { EVENT_PATH } from '../lib/event-path';
+import { encodeEvent, MAX_BODY, parseEvent, type StoredEvent } from '../lib/events';
 
 export interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
   EVENTS: {
     writeDataPoint(point: { indexes: string[]; blobs: string[]; doubles: number[] }): void;
   };
-  /** HMAC key for the daily visitor key; a secret, from `.dev.vars` locally. */
+  /** The secret the daily visitor key is derived from. */
   EVENTS_KEY?: string;
 }
 
@@ -74,10 +64,7 @@ async function hmac(key: BufferSource, data: string): Promise<ArrayBuffer> {
   return crypto.subtle.sign('HMAC', k, encoder.encode(data));
 }
 
-/**
- * The visitor key: 16 hex digits of HMAC(HMAC(secret, UTC date), ip + "\n" + userAgent). It changes
- * every UTC day and cannot be turned back into the address without the secret.
- */
+/** 16 hex digits of HMAC(HMAC(secret, UTC date), ip + "\n" + userAgent): a new key each UTC day. */
 export async function visitorKey(
   secret: string,
   now: Date,
@@ -96,7 +83,7 @@ function countryOf(request: Request): string {
 }
 
 async function accept(request: Request, env: Env, url: URL, now: Date): Promise<Response> {
-  // First, so the deploy's GET of /e fails while the secret is missing.
+  // Before the method check, so the deploy's GET of /e fails while the secret is missing.
   if (!env.EVENTS_KEY) {
     console.error('EVENTS_KEY is not set; event dropped');
     return reply(503);
@@ -106,7 +93,7 @@ async function accept(request: Request, env: Env, url: URL, now: Date): Promise<
   if (!sameOrigin(request, url)) return reply(403);
   const text = await readCapped(request, MAX_BODY);
   if (text === null) return reply(413);
-  const event: ClientEvent | null = parseEvent(text);
+  const event = parseEvent(text);
   if (!event) return reply(400);
   const visitor = await visitorKey(
     key,
@@ -122,8 +109,8 @@ async function accept(request: Request, env: Env, url: URL, now: Date): Promise<
 }
 
 /**
- * `/e` gets the event response and any other path the assets; never throws (500 on an unexpected
- * error). `now` picks the visitor key's day.
+ * Hands any path but `/e` to the assets. `/e` answers 204 once the event is written and logged, and
+ * an error status otherwise; never throws. `now` picks the visitor key's day.
  */
 export async function handle(request: Request, env: Env, now = new Date()): Promise<Response> {
   const url = new URL(request.url);

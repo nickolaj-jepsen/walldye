@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   BLOBS,
@@ -7,6 +9,7 @@ import {
   decodeEvent,
   EVENT_FIELDS,
   encodeEvent,
+  FIELDS,
   MAX_TEXT,
   parseEvent,
   type StoredEvent,
@@ -117,14 +120,13 @@ describe('parseEvent', () => {
 
 describe('row layout', () => {
   it('has one column per field, within the Analytics Engine limits', () => {
-    const fields = new Set([
-      ...Object.keys(CONTEXT_FIELDS),
-      ...Object.keys(WORKER_FIELDS),
-      ...Object.values(EVENT_FIELDS).flatMap((f) => Object.keys(f)),
-    ]);
+    const groups = [CONTEXT_FIELDS, WORKER_FIELDS, ...Object.values(EVENT_FIELDS)];
+    for (const group of groups)
+      for (const [name, schema] of Object.entries(group))
+        expect(FIELDS[name as keyof typeof FIELDS]).toBe(schema);
     const columns = [...BLOBS, ...DOUBLES];
     expect(new Set(columns).size).toBe(columns.length);
-    expect(new Set(columns)).toEqual(fields);
+    expect(new Set(columns)).toEqual(new Set(groups.flatMap((g) => Object.keys(g))));
     expect(BLOBS.length).toBeLessThanOrEqual(20);
     expect(DOUBLES.length).toBeLessThanOrEqual(20);
     for (const name of Object.keys(EVENT_FIELDS))
@@ -170,5 +172,18 @@ describe('row layout', () => {
     expect(row.doubles[DOUBLES.indexOf('first')]).toBe(0);
     expect(row.doubles[DOUBLES.indexOf('phone')]).toBe(1);
     expect(decodeEvent('view', row.blobs, row.doubles)).toBeNull();
+  });
+});
+
+describe('client imports', () => {
+  it('take only types from events.ts, which would bundle zod', () => {
+    const dir = 'src/client';
+    const runtime =
+      /^import\s+(?!type\s)[^;]*?from\s+'[./]+\/lib\/events'|import\(\s*'[./]+\/lib\/events'/m;
+    const files = readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter((f) =>
+      f.endsWith('.ts'),
+    );
+    expect(files.length).toBeGreaterThan(0);
+    for (const f of files) expect(readFileSync(join(dir, f), 'utf8'), f).not.toMatch(runtime);
   });
 });

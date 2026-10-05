@@ -2,7 +2,8 @@
 {
   "name": "walldye",
   "compatibility_date": "2026-10-03",
-  // Runs first for /e, and otherwise only for non-navigation requests that match no file, which it hands to the assets.
+  // Runs first for /e, and otherwise, billed, only for non-navigation requests that match no file.
+  // CI deploys the `pnpm build:worker` bundle instead.
   "main": "src/worker/index.ts",
   "assets": {
     "directory": "./dist",

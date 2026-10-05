@@ -1,4 +1,4 @@
-/** The site Worker: `POST /e` events, and the static assets for any other path that reaches it. */
+/** The site Worker's entry, typed against the Workers runtime; handle.ts has the behavior. */
 import { handle } from './handle';
 
 interface Bindings {

@@ -1,13 +1,10 @@
 /**
- * The site's product events: what the client sends to `POST /e`, what the Worker checks and adds,
- * and the Analytics Engine row it writes. Pure, so the client and the Worker share it.
- *
- * The Worker rejects only malformed input: an unknown event name, or a field missing, of the wrong
- * type or out of bounds. It stores values as sent, so readers of the rows check them against the
- * lists below.
+ * The product events the client posts to the Worker and the Analytics Engine row it writes.
+ * Validation rejects only malformed input; values such as `format` or `kind` are stored as sent.
+ * The client imports only types from here, so its bundle carries no zod.
  */
+import * as z from 'zod/mini';
 
-export const EVENT_PATH = '/e';
 /** Largest request body the Worker reads, in bytes. */
 export const MAX_BODY = 2048;
 /** Longest string field, in UTF-16 code units. */
@@ -17,53 +14,6 @@ export const MAX_PIXELS = 65536;
 /** Largest device pixel ratio. */
 export const MAX_DPR = 16;
 
-/** `text`: a string of at most MAX_TEXT; `flag`: a boolean; `pixels`: an integer 0..MAX_PIXELS; `ratio`: a number over 0 up to MAX_DPR. */
-type FieldType = 'text' | 'flag' | 'pixels' | 'ratio';
-type Value<T extends FieldType> = T extends 'text' ? string : T extends 'flag' ? boolean : number;
-type Shape<S extends Record<string, FieldType>> = { -readonly [K in keyof S]: Value<S[K]> };
-
-/**
- * Every event's own fields.
- * - export, after the file was handed to the browser: `version` is the variant name, `default` for
- *   the default version; `size` is `<w>x<h>`, `screen` for the screen-size choice, or `svg`; `first`
- *   is true for the first finished export of that slug since the page loaded.
- * - theme, after the visitor changed the theme: see THEME_KINDS and THEME_VIAS; `name` is the
- *   preset or family name, `custom` for a custom theme.
- * - share, after "Copy link" copied.
- */
-export const EVENT_FIELDS = {
-  export: {
-    slug: 'text',
-    version: 'text',
-    format: 'text',
-    aspect: 'text',
-    size: 'text',
-    first: 'flag',
-  },
-  theme: { kind: 'text', name: 'text', via: 'text' },
-  share: {},
-} as const satisfies Record<string, Record<string, FieldType>>;
-
-/**
- * Sent with every event: `page` is `index`, `about`, `404` or the slug; `w` and `h` the screen in
- * device pixels; `scheme` the system's `light` or `dark`; `theme`, `token` and `source` the theme
- * in effect after the event (preset name or `custom`, canonical token, `shared`, `saved` or `system`).
- */
-export const CONTEXT_FIELDS = {
-  page: 'text',
-  w: 'pixels',
-  h: 'pixels',
-  dpr: 'ratio',
-  phone: 'flag',
-  scheme: 'text',
-  theme: 'text',
-  token: 'text',
-  source: 'text',
-} as const satisfies Record<string, FieldType>;
-
-/** Added by the Worker: the daily visitor key (16 hex digits) and the two-letter country, or "". */
-export const WORKER_FIELDS = { visitor: 'text', country: 'text' } as const;
-
 export const EXPORT_FORMATS = ['svg', 'png', 'webp', 'jpeg'] as const;
 export const THEME_KINDS = ['preset', 'family', 'custom', 'keep', 'drop'] as const;
 /** Where a theme change came from; `keep` and `drop` come from the `shared` line. */
@@ -71,18 +21,61 @@ export const THEME_VIAS = ['picker', 'index', 'hex', 'wheel', 'import', 'shared'
 export type ThemeKind = (typeof THEME_KINDS)[number];
 export type ThemeVia = (typeof THEME_VIAS)[number];
 
-export type EventName = keyof typeof EVENT_FIELDS;
-export type Context = Shape<typeof CONTEXT_FIELDS>;
-/** An event as the page code fires it, before the context is added. */
-export type EventBody = {
-  [K in EventName]: { event: K } & Shape<(typeof EVENT_FIELDS)[K]>;
-}[EventName];
-/** An event as the client sends it. */
-export type ClientEvent = EventBody & Context;
-/** An event as the Worker stores it. */
-export type StoredEvent = ClientEvent & Shape<typeof WORKER_FIELDS>;
+const text = z.string().check(z.maxLength(MAX_TEXT));
+const flag = z.boolean();
+const pixels = z.int().check(z.minimum(0), z.maximum(MAX_PIXELS));
+const ratio = z.number().check(z.positive(), z.maximum(MAX_DPR));
 
-/** Analytics Engine row layout: index1 is the event name, then these blobs and doubles in order. */
+/**
+ * Each event's own fields. An export counts once the file is handed to the browser: `version` is
+ * the variant or `default`, `size` is `<w>x<h>`, `screen` or `svg`, and `first` marks the slug's
+ * first export since the page loaded. A theme change's `name` is the preset, the family or `custom`.
+ */
+export const EVENT_FIELDS = {
+  export: { slug: text, version: text, format: text, aspect: text, size: text, first: flag },
+  theme: { kind: text, name: text, via: text },
+  share: {},
+};
+
+/** Sent with every event; `theme`, `token` and `source` describe the theme after the event. */
+export const CONTEXT_FIELDS = {
+  page: text,
+  w: pixels,
+  h: pixels,
+  dpr: ratio,
+  phone: flag,
+  scheme: text,
+  theme: text,
+  token: text,
+  source: text,
+};
+
+/** Added by the Worker: the daily visitor key and the two-letter country, or "". */
+export const WORKER_FIELDS = { visitor: text, country: text };
+
+/** Every field's schema by name, for checking stored values one field at a time. */
+export const FIELDS = {
+  ...CONTEXT_FIELDS,
+  ...WORKER_FIELDS,
+  ...EVENT_FIELDS.export,
+  ...EVENT_FIELDS.theme,
+};
+
+const EventBody = z.discriminatedUnion('event', [
+  z.object({ event: z.literal('export'), ...EVENT_FIELDS.export }),
+  z.object({ event: z.literal('theme'), ...EVENT_FIELDS.theme }),
+  z.object({ event: z.literal('share') }),
+]);
+const Context = z.object(CONTEXT_FIELDS);
+
+export type EventName = keyof typeof EVENT_FIELDS;
+/** An event as the page code fires it, before the context is added. */
+export type EventBody = z.infer<typeof EventBody>;
+export type Context = z.infer<typeof Context>;
+export type ClientEvent = EventBody & Context;
+export type StoredEvent = ClientEvent & z.infer<z.ZodMiniObject<typeof WORKER_FIELDS>>;
+
+/** Analytics Engine columns after index1 (the event name), read by position: new fields go last. */
 export const BLOBS = [
   'page',
   'scheme',
@@ -109,46 +102,11 @@ export interface DataPoint {
   doubles: number[];
 }
 
-/** Every field's type: context, Worker and event fields alike. */
-const SCHEMA: Record<string, FieldType> = {
-  ...CONTEXT_FIELDS,
-  ...WORKER_FIELDS,
-  ...Object.assign({}, ...Object.values(EVENT_FIELDS)),
-};
-
-function isEventName(v: unknown): v is EventName {
-  return typeof v === 'string' && Object.hasOwn(EVENT_FIELDS, v);
-}
-
-function valid(type: FieldType, v: unknown): boolean {
-  switch (type) {
-    case 'text':
-      return typeof v === 'string' && v.length <= MAX_TEXT;
-    case 'flag':
-      return typeof v === 'boolean';
-    case 'pixels':
-      return Number.isInteger(v) && (v as number) >= 0 && (v as number) <= MAX_PIXELS;
-    case 'ratio':
-      return Number.isFinite(v) && (v as number) > 0 && (v as number) <= MAX_DPR;
-  }
-}
-
-/**
- * The event in `body`, keeping only its own and the context fields, or null when the event name is
- * unknown or any of those fields is missing, of the wrong type or out of bounds.
- */
+/** The event in `body` with only its own and the context fields, or null when it is malformed. */
 export function validateEvent(body: unknown): ClientEvent | null {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) return null;
-  const input = body as Record<string, unknown>;
-  const name = input.event;
-  if (!isEventName(name)) return null;
-  const out: Record<string, unknown> = { event: name };
-  const fields: Record<string, FieldType> = { ...EVENT_FIELDS[name], ...CONTEXT_FIELDS };
-  for (const [key, type] of Object.entries(fields)) {
-    if (!Object.hasOwn(input, key) || !valid(type, input[key])) return null;
-    out[key] = input[key];
-  }
-  return out as ClientEvent;
+  const event = EventBody.safeParse(body);
+  const context = Context.safeParse(body);
+  return event.success && context.success ? { ...event.data, ...context.data } : null;
 }
 
 /** validateEvent() over JSON text; null when it does not parse. */
@@ -162,7 +120,7 @@ export function parseEvent(text: string): ClientEvent | null {
 
 /** The Analytics Engine row for `e`; fields the event lacks are "" or 0. */
 export function encodeEvent(e: StoredEvent): DataPoint {
-  const fields = e as unknown as Record<string, string | number | boolean | undefined>;
+  const fields = e as Partial<Record<keyof typeof FIELDS, string | number | boolean>>;
   return {
     indexes: [e.event],
     blobs: BLOBS.map((k) => String(fields[k] ?? '')),
@@ -170,24 +128,21 @@ export function encodeEvent(e: StoredEvent): DataPoint {
   };
 }
 
-/** The event a row holds, or null when its index is no event name; the inverse of encodeEvent(). */
+/** The inverse of encodeEvent(), or null when `index` is no event name. */
 export function decodeEvent(
   index: string,
   blobs: readonly string[],
   doubles: readonly number[],
 ): StoredEvent | null {
-  if (!isEventName(index)) return null;
-  const keep = new Set([
-    ...Object.keys(EVENT_FIELDS[index]),
-    ...Object.keys(CONTEXT_FIELDS),
-    ...Object.keys(WORKER_FIELDS),
-  ]);
+  if (!Object.hasOwn(EVENT_FIELDS, index)) return null;
+  const own = { ...EVENT_FIELDS[index as EventName], ...CONTEXT_FIELDS, ...WORKER_FIELDS };
   const out: Record<string, unknown> = { event: index };
   BLOBS.forEach((k, i) => {
-    if (keep.has(k)) out[k] = blobs[i] ?? '';
+    if (Object.hasOwn(own, k)) out[k] = blobs[i] ?? '';
   });
   DOUBLES.forEach((k, i) => {
-    if (keep.has(k)) out[k] = SCHEMA[k] === 'flag' ? doubles[i] === 1 : (doubles[i] ?? 0);
+    if (Object.hasOwn(own, k))
+      out[k] = FIELDS[k].type === 'boolean' ? doubles[i] === 1 : (doubles[i] ?? 0);
   });
   return out as StoredEvent;
 }

@@ -63,11 +63,10 @@ const importMsg = must('#import-msg');
 
 /** The debounced commit waiting to run, or 0. */
 let pending = 0;
-/** How a custom theme was entered: typed or pasted, the native color picker, or imported. */
+/** How the fields were last edited: typed or pasted, the native color picker, or imported. */
 type Via = Extract<ThemeVia, 'hex' | 'wheel' | 'import'>;
-/** How the fields were last edited. */
 let via: Via = 'hex';
-/** How the custom theme committed since the picker opened was entered, or null when there is none; counted on close. */
+/** How the custom theme committed since the picker opened was entered; counted once on close. */
 let customVia: Via | null = null;
 
 /** Counts a theme change; `name` is the preset or family, `custom` for anything else. */
@@ -228,7 +227,7 @@ picker.addEventListener('toggle', (e) => {
     fillFields(true);
   }
 });
-// Leaving with the picker open fires no toggle; an edit still on its debounce stays unsaved, as before.
+// Leaving with the picker open fires no toggle; an edit still on its debounce is neither saved nor counted.
 addEventListener('pagehide', countCustom);
 // Capture runs before the popover's own Escape handling closes it.
 document.addEventListener(

@@ -1,11 +1,12 @@
-/** Sends product events to the site Worker (`src/lib/events.ts` has the model). */
-import { type Context, EVENT_PATH, type EventBody } from '../lib/events';
+/** Sends product events to the site Worker. */
+import { EVENT_PATH } from '../lib/event-path';
+import type { Context, EventBody } from '../lib/events';
 import { presetOf, tokenOf } from '../lib/theme';
 import { isPhone, screenPx } from './screen';
 import { currentSeeds } from './theme/current';
 import { resolveTheme } from './theme/store';
 
-/** `index`, `about` or the slug from the canonical URL; the 404 page is the one without one. */
+/** `index`, `about` or the slug from the canonical URL; `404` on the page without one. */
 function pageName(): string {
   const href = document.querySelector<HTMLLinkElement>('link[rel=canonical]')?.href;
   if (!href) return '404';
@@ -29,7 +30,7 @@ function context(): Context {
   };
 }
 
-/** Sends `body` with the page's context, unless the browser sends Global Privacy Control; never throws. */
+/** Sends `body` with the page's context unless the browser sends Global Privacy Control; never throws. */
 export function track(body: EventBody): void {
   try {
     if ((navigator as { globalPrivacyControl?: boolean }).globalPrivacyControl === true) return;

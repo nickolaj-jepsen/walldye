@@ -20,7 +20,7 @@ The theme boot (`applyTheme()` in `theme/store.ts`) sets the color properties, `
 
 ### Page name
 
-`events.ts` names the page from `link[rel=canonical]`, which `Base.astro` leaves out on the 404 page (`noindex`).
+`events.ts` names the page from `link[rel=canonical]`; `Base.astro` leaves it out only on the 404 page.
 
 ### Header (`src/components/Masthead.astro`)
 

@@ -17,6 +17,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:worker": "esbuild src/worker/index.ts --bundle --format=esm --target=es2024 --conditions=workerd,worker,browser --outfile=worker-bundle/index.js",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check && tsc -p src/worker",
@@ -35,7 +36,8 @@
     "fast-png": "^8.0.0",
     "sharp": "^0.35.4",
     "shiki": "^4.4.3",
-    "yaml": "^2.9.1"
+    "yaml": "^2.9.1",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
