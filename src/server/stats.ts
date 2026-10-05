@@ -95,9 +95,7 @@ export function eventColumns(event: EventName): string[] {
 }
 
 /** Any cell, and all a field the model no longer has is checked against. */
-const Cell = z.union([z.string().check(z.maxLength(MAX_TEXT)), z.number(), z.boolean()], {
-  error: 'must be a short text, a number or a boolean',
-});
+const Cell = z.union([z.string().check(z.maxLength(MAX_TEXT)), z.number(), z.boolean()]);
 const N = z.int().check(z.minimum(1));
 
 const Table = z
@@ -114,7 +112,10 @@ const Table = z
           ),
           z.refine((c) => !c.includes('visitor'), 'must not hold the visitor key'),
         ),
-      rows: z.array(z.array(Cell), { error: 'must be a list of lists' }),
+      // Cells are checked below, where a problem is reported by column name.
+      rows: z.array(z.array(z.unknown(), { error: 'must be a list of values' }), {
+        error: 'must be a list of lists',
+      }),
     },
     { error: 'must be an object of columns and rows' },
   )
