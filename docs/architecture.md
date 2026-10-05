@@ -68,7 +68,7 @@ CI renders the catalog from main's last build in the Actions cache, so it only r
 
 ## The site
 
-walldye.com is a static Astro site, served as the static assets of a Cloudflare Worker with no script.
+walldye.com is a static Astro site, served as the static assets of a Cloudflare Worker whose script answers only `/e`.
 
 - The loader (`src/server/catalog/loader.ts`) reads meta.yaml the way PyYAML does and checks only what pages need to render; `walldye check` owns the rest. It attaches templates, slots.json and design.py, hides drafts outside `astro dev` and `WALLDYE_DRAFTS=1`, and curls quotes.
 - One page per design, `/<slug>`. Filters, sort, shape, version and crop are in the query string. Templates and slots are served by hash at `/t/` and cached as immutable. The index lists only 16:9 templates; other shapes look up their hash in slots.json, which keeps the page small. Each piece gets a 1200x630 social card cropped around its focus.
@@ -76,4 +76,5 @@ walldye.com is a static Astro site, served as the static assets of a Cloudflare 
 - A plate moving between a grid and its page is a cross-document view transition (`src/client/transition/`). Only that one plate is named, or the whole index would fly into "See also". The listeners are inline in `<head>` because `pagereveal` fires before page modules load. The arriving plate is still empty then, so the leaving one stays opaque under it.
 - Site CSS uses the derived tokens with a contrast guard: 4.5:1 for text, 3:1 for controls and the focus ring. A failing role is nudged towards black or white just enough. Wallpapers always use the raw seeds.
 - The index can sort by page views. Cloudflare samples days once they're a few days old, so each finished day is saved while exact, as a file on the `stats` branch ([deploy.md](deploy.md), Page views). The loader totals them, follows renames through `public/_redirects`, and weighs recent days more (`HALF_LIFE_DAYS` in `src/server/views.ts`). The order is fixed at build time, so each recorded day redeploys.
+- The site counts three events itself: a saved export, a theme change and a copied link (`src/lib/events.ts`). The client posts each to `/e` on the site's Worker (`src/worker/`), which writes it to Workers Analytics Engine and Workers Logs, so no third party sees it. Visits are told apart by a key derived each UTC day from a secret, the IP address and the user agent; neither is stored, and without the secret a key links to no address and no other day. Counting uses no cookie or browser storage, and the client sends nothing under Global Privacy Control. Previews write to their own dataset, so pull request traffic stays out of the production numbers.
 - The client needs OffscreenCanvas in workers (Safari 16.4+). Export runs in the browser: the recolored SVG is cropped via its viewBox, and resvg-wasm rasterizes PNG, WebP and JPEG in a worker. Only pixel pieces' `px` paths get `crispEdges`; on the root it would make curves jagged.

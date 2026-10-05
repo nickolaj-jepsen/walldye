@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", ".venv", ".claude", ".cache"],
+  "exclude": ["dist", "worker-bundle", ".venv", ".claude", ".cache", "src/worker"],
   "compilerOptions": {
     "types": ["node"]
   }

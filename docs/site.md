@@ -202,6 +202,7 @@ After the label, notes and sources, "See also" (a small-caps head over a `.hair-
 
 - About's heading is a side head in the index column, and the prose starts level with it.
 - Three short paragraphs: what the site is and how the three colors work, how the wallpapers are made and checked, and the licenses with a link to the code. No piece counts, colophon or font credits; the site has no footer.
+- Then the side head "What the site counts" and one paragraph: who counts page views, what the site counts itself, no cookies or stored addresses, and Global Privacy Control. It changes with `src/lib/events.ts`.
 - The 404 page uses the same layout: "Not found", one sentence and a link to the index.
 
 ### 6.13 Forced colors

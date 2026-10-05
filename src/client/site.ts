@@ -1,11 +1,12 @@
 /**
  * Every page: the header's theme button, the shared-theme line, the theme picker, the index's theme
  * row and "Copy link".
- * The theme boot has already applied the theme; this module keeps the controls in step with it and
- * saves the visitor's edits.
+ * The theme boot has already applied the theme; this module keeps the controls in step with it,
+ * saves the visitor's edits and counts their theme changes and copied links.
  */
+import type { ThemeKind, ThemeVia } from '../lib/events';
 import { seedsFromText } from '../lib/import-theme';
-import { NEAR_ACCENT, pairedFamily, presetLabel } from '../lib/presets';
+import { FAMILIES, NEAR_ACCENT, pairedFamily, presetLabel } from '../lib/presets';
 import {
   contrast,
   distance,
@@ -19,6 +20,7 @@ import {
 } from '../lib/theme';
 import { copyText, flash } from './clipboard';
 import { must } from './dom';
+import { track } from './events';
 import { currentSeeds, onThemeChange } from './theme/current';
 import {
   applyTheme,
@@ -61,6 +63,35 @@ const importMsg = must('#import-msg');
 
 /** The debounced commit waiting to run, or 0. */
 let pending = 0;
+/** How the fields were last edited: typed or pasted, the native color picker, or imported. */
+type Via = Extract<ThemeVia, 'hex' | 'wheel' | 'import'>;
+let via: Via = 'hex';
+/** How the custom theme committed since the picker opened was entered; counted once on close. */
+let customVia: Via | null = null;
+
+/** Counts a theme change; `name` is the preset or family, `custom` for anything else. */
+function counted(kind: ThemeKind, name: string, place: ThemeVia): void {
+  track({ event: 'theme', kind, name, via: place });
+}
+
+/** Where a theme button sits: the picker, or the index's color row. */
+function placeOf(b: HTMLElement): ThemeVia {
+  return b.closest('#picker') ? 'picker' : 'index';
+}
+
+/** The visitor's own choice by name: its family, its preset, or `custom`. */
+function ownName(): string {
+  const choice = ownChoice();
+  if ('token' in choice) return Object.hasOwn(PRESETS, choice.token) ? choice.token : 'custom';
+  const [dark, light] = choice.pair;
+  return FAMILIES.find((f) => f.dark === dark && f.light === light)?.name ?? 'custom';
+}
+
+/** Counts a custom theme committed since the picker opened, once. */
+function countCustom(): void {
+  if (customVia) counted('custom', 'custom', customVia);
+  customVia = null;
+}
 
 function cancelPending(): void {
   clearTimeout(pending);
@@ -135,7 +166,10 @@ function commit(final: boolean): void {
   if (!bg || !fg || !accent) return;
   const seeds = { bg, fg, accent };
   const applied = currentSeeds();
-  if (SEEDS.some((k) => seeds[k] !== applied[k])) choose(seeds);
+  if (SEEDS.some((k) => seeds[k] !== applied[k])) {
+    choose(seeds);
+    customVia = presetOf(seeds) === null ? via : null;
+  }
   if (final) for (const k of SEEDS) fields[k].value = seeds[k];
 }
 
@@ -184,13 +218,17 @@ picker.addEventListener('toggle', (e) => {
   themeButton.setAttribute('aria-expanded', String(open));
   // `toggle` is queued, so typing can land before it; an edit waiting on its debounce is kept.
   if (open) {
+    customVia = null;
     if (!pending) fillFields(true);
   } else {
     if (pending) commit(false);
     cancelPending();
+    countCustom();
     fillFields(true);
   }
 });
+// Leaving with the picker open fires no toggle; an edit still on its debounce is neither saved nor counted.
+addEventListener('pagehide', countCustom);
 // Capture runs before the popover's own Escape handling closes it.
 document.addEventListener(
   'keydown',
@@ -210,6 +248,8 @@ for (const b of presetButtons) {
     cancelPending();
     choose({ ...PRESETS[name] });
     fillFields(true);
+    customVia = null;
+    counted('preset', name, placeOf(b));
   });
 }
 
@@ -221,12 +261,17 @@ for (const b of familyButtons) {
     savePair([f.dark, f.light]);
     applyTheme(ownTheme().seeds);
     fillFields(true);
+    customVia = null;
+    counted('family', f.name, placeOf(b));
   });
 }
 
 for (const k of SEEDS) {
   const input = fields[k];
-  input.addEventListener('input', edited);
+  input.addEventListener('input', () => {
+    via = 'hex';
+    edited();
+  });
   input.addEventListener('change', () => {
     commit(true);
     // WebKit sets :user-invalid a task after `change`.
@@ -239,15 +284,18 @@ for (const k of SEEDS) {
     const seeds = seedsFromText(e.clipboardData?.getData('text') ?? '');
     if (!seeds) return;
     e.preventDefault();
+    via = 'hex';
     fillFrom(seeds);
   });
   // Dragging in the native picker fires `input` continuously; the field's debounce paces it.
   picks[k].addEventListener('input', () => {
     input.value = picks[k].value.toUpperCase();
+    via = 'wheel';
     edited();
   });
   picks[k].addEventListener('change', () => {
     input.value = picks[k].value.toUpperCase();
+    via = 'wheel';
     commit(true);
   });
 }
@@ -264,6 +312,7 @@ function importTheme(text: string): void {
   const seeds = seedsFromText(text);
   if (seeds) {
     importField.value = '';
+    via = 'import';
     fillFrom(seeds);
   } else {
     importMsg.hidden = text.trim() === '';
@@ -282,7 +331,9 @@ importField.addEventListener('input', () => {
 
 for (const b of document.querySelectorAll<HTMLButtonElement>('[data-action=copy-link]')) {
   b.addEventListener('click', async () => {
-    if (await copyText(currentLink())) flash(b, 'Link copied');
+    if (!(await copyText(currentLink()))) return;
+    flash(b, 'Link copied');
+    track({ event: 'share' });
   });
 }
 
@@ -291,12 +342,14 @@ must('[data-action=keep-shared]', sharedLine).addEventListener('click', () => {
   if (shared) saveTheme(shared.seeds);
   sync(currentSeeds());
   themeButton.focus();
+  if (shared) counted('keep', presetOf(shared.seeds) ?? 'custom', 'shared');
 });
 
 must('[data-action=drop-shared]', sharedLine).addEventListener('click', () => {
   clearShared();
   applyTheme(ownTheme().seeds);
   themeButton.focus();
+  counted('drop', ownName(), 'shared');
 });
 
 onThemeChange(sync);

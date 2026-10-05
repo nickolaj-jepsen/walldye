@@ -6,6 +6,7 @@ import { type Aspect, DEFAULT_VARIANT, type FORMATS } from '../../lib/content';
 import { crispPixels, type ExportShape, rasterSvg, svgExport } from '../../lib/shape';
 import type { Seeds } from '../../lib/theme';
 import { must } from '../dom';
+import { track } from '../events';
 import {
   canEncodeWebp,
   prefetchRasterizer,
@@ -26,6 +27,8 @@ export interface ExportJob {
   token: string;
   format: (typeof FORMATS)[number];
   size: [number, number];
+  /** Whether the visitor chose the screen's own size. */
+  screen: boolean;
   name: string;
 }
 
@@ -52,6 +55,7 @@ export function setUpExport(page: ExportPage): void {
     document.querySelector<HTMLLinkElement>('link[rel=canonical]')?.href ?? location.href;
   const address = `${new URL(href).host}${new URL(href).pathname}`;
   let busy = false;
+  let first = true;
 
   const preparing = (on: boolean) => {
     for (const btn of buttons) {
@@ -72,6 +76,7 @@ export function setUpExport(page: ExportPage): void {
       const slots = await getSlots(j.data.slots);
       const r = await recolored(j.data, j.source, j.seeds);
       const svg = Array.isArray(slots.cells) && slots.cells.length ? crispPixels(r.svg) : r.svg;
+      let size = 'svg';
       if (j.format.value === 'svg') {
         const at = j.variant === DEFAULT_VARIANT ? address : `${address}?v=${j.variant}`;
         const about = [at, license, `theme ${j.token}`].filter(Boolean).join(' · ');
@@ -79,7 +84,18 @@ export function setUpExport(page: ExportPage): void {
       } else {
         const raster = rasterSvg(svg, j.shape, ...j.size);
         save(await rasterizeSvg(raster.svg, j.seeds.bg, j.format.value as RasterFormat), j.name);
+        size = j.screen ? 'screen' : `${j.size[0]}x${j.size[1]}`;
       }
+      track({
+        event: 'export',
+        slug: page.slug,
+        version: j.variant,
+        format: j.format.value,
+        aspect: j.shape.aspect,
+        size,
+        first,
+      });
+      first = false;
     } catch {
       error.textContent = 'The file could not be made.';
       if (!panel.contains(from)) error.scrollIntoView({ block: 'center' });

@@ -1,5 +1,6 @@
 # build output
 dist/
+/worker-bundle/
 # generated types
 .astro/
 
@@ -16,6 +17,8 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+# the Worker's local secrets (EVENTS_KEY) for wrangler dev
+.dev.vars
 
 # macOS-specific files
 .DS_Store

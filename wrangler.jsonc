@@ -2,11 +2,24 @@
 {
   "name": "walldye",
   "compatibility_date": "2026-10-03",
+  // Runs first for /e, and otherwise, billed, only for non-navigation requests that match no file.
+  // CI deploys the `pnpm build:worker` bundle instead.
+  "main": "src/worker/index.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/e"],
     // Astro writes /about as about.html (build.format 'file', trailingSlash 'never').
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
+  },
+  "analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "walldye_events" }],
+  // Invocation logs would record each request's headers and cf location; only the Worker's own line is kept.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": { "enabled": true, "invocation_logs": false },
+    "traces": { "enabled": false }
   },
   // Production answers only on walldye.com; Previews keep their workers.dev URLs.
   "workers_dev": false,
@@ -14,5 +27,7 @@
   // custom_domain makes Cloudflare create the DNS record and certificate.
   "routes": [{ "pattern": "walldye.com", "custom_domain": true }],
   // wrangler preview requires the block; a binding added above needs a preview-safe copy here.
-  "previews": {}
+  "previews": {
+    "analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "walldye_events_preview" }]
+  }
 }

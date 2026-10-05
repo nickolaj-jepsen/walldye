@@ -17,9 +17,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:worker": "esbuild src/worker/index.ts --bundle --format=esm --target=es2024 --conditions=workerd,worker,browser --outfile=worker-bundle/index.js",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check",
+    "check": "astro check && tsc -p src/worker",
     "lint": "biome check",
     "format": "biome check --write",
     "test": "vitest run",
@@ -35,12 +36,14 @@
     "fast-png": "^8.0.0",
     "sharp": "^0.35.4",
     "shiki": "^4.4.3",
-    "yaml": "^2.9.1"
+    "yaml": "^2.9.1",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.14",
+    "@cloudflare/workers-types": "^5.20261003.1",
     "@playwright/test": "1.63.0",
     "@types/node": "^24.19.0",
     "esbuild": "^0.28.2",
