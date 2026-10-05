@@ -1,14 +1,22 @@
-/** The repo files the catalog reads besides the pieces: featured.yaml and the page views. */
+/** The repo files the catalog reads besides the pieces: featured.yaml and the stats day files. */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
-import { DAY_FILE, type Day, parseDay, renames, type Views, viewTotals } from '../views';
+import {
+  DAY_FILE,
+  type Day,
+  parseDay,
+  parseEvents,
+  pieceTotals,
+  renames,
+  type Totals,
+} from '../stats';
 import { parseYaml } from '../yaml';
 
 // Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
 export const ROOT = resolve('.');
 export const WALLPAPERS = join(ROOT, 'wallpapers');
-/** The `stats` branch's day files, checked out by CI; absent locally unless fetched. */
-const VIEWS = join(ROOT, 'stats', 'views');
+/** The `stats` branch, checked out by CI; absent locally unless fetched. */
+const STATS = join(ROOT, 'stats');
 /** The index's featured pieces, in order. */
 export const FEATURED = join(WALLPAPERS, 'featured.yaml');
 
@@ -37,22 +45,35 @@ export function loadFeatured(
   return out;
 }
 
-/** Views by slug from VIEWS, renames in public/_redirects folded in; empty without VIEWS. Throws naming a malformed file. */
-export function loadViews(): Map<string, Views> {
-  if (!existsSync(VIEWS)) return new Map();
-  const days = new Map<string, Day>();
-  for (const file of readdirSync(VIEWS).sort()) {
+/** `<date>.json` in `dir` read by `parse`, by date; empty without `dir`. Throws naming a malformed file. */
+function readDays<T>(dir: string, parse: (text: string) => T): Map<string, T> {
+  const days = new Map<string, T>();
+  if (!existsSync(dir)) return days;
+  for (const file of readdirSync(dir).sort()) {
     const date = DAY_FILE.exec(file)?.[1];
     if (!date) continue;
     try {
-      days.set(date, parseDay(readFileSync(join(VIEWS, file), 'utf8')));
+      days.set(date, parse(readFileSync(join(dir, file), 'utf8')));
     } catch (e) {
-      throw new Error(`${rootPath(join(VIEWS, file))}: ${(e as Error).message}`);
+      throw new Error(`${rootPath(join(dir, file))}: ${(e as Error).message}`);
     }
   }
+  return days;
+}
+
+/**
+ * Totals by slug from STATS's views and events day files, renames in public/_redirects folded in;
+ * empty without STATS. Throws naming a malformed file.
+ */
+export function loadStats(): Map<string, Totals> {
+  const views = readDays(join(STATS, 'views'), parseDay);
+  const downloads = new Map<string, Day>();
+  for (const [date, day] of readDays(join(STATS, 'events'), parseEvents))
+    downloads.set(date, day.downloads);
   const redirects = join(ROOT, 'public', '_redirects');
-  return viewTotals(
-    days,
+  return pieceTotals(
+    views,
+    downloads,
     existsSync(redirects) ? renames(readFileSync(redirects, 'utf8')) : new Map(),
   );
 }

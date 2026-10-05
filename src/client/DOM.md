@@ -83,7 +83,7 @@ The query string is the form's GET serialization (`index/filter.ts`), minus the 
 | `data-title` | display title |
 | `data-added` | `YYYY-MM-DD` |
 | `data-views` | page views, all of them |
-| `data-recent` | page views weighted towards the last few days, to 0.01 |
+| `data-recent` | page views and downloads weighted towards the last few days (`recent` in `src/server/stats.ts`), to 0.01 |
 | `data-featured` | place on featured.yaml from 0, only on featured pieces |
 | `data-facets` | space-separated `facet:value` pairs, the computed `other:*` included (`facetPairs()`) |
 | `data-search` | normalized title, description and source authors and titles (`searchText()`) |

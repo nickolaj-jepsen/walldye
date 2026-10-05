@@ -2,13 +2,13 @@
  * Writes `<dir>/<YYYY-MM-DD>.json`, walldye.com's page views by slug, for every complete UTC day
  * that Cloudflare Web Analytics still holds and `dir` has no file for.
  *
- * node scripts/views/fetch.ts <dir>
+ * node scripts/stats/views.ts <dir>
  *
  * Reads CLOUDFLARE_ANALYTICS_TOKEN (Account Analytics Read) and CLOUDFLARE_ACCOUNT_ID.
  */
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DAY_FILE, type Day, dayNumber, isoDay, pathSlug } from '../../src/server/views.ts';
+import { DAY_FILE, type Day, dayNumber, isoDay, pathSlug } from '../../src/server/stats.ts';
 
 const API = 'https://api.cloudflare.com/client/v4/graphql';
 const HOST = 'walldye.com';
@@ -165,7 +165,7 @@ function env(name: string): string {
 }
 
 async function main(dir: string | undefined): Promise<void> {
-  if (!dir) throw new Error('usage: node scripts/views/fetch.ts <dir>');
+  if (!dir) throw new Error('usage: node scripts/stats/views.ts <dir>');
   const token = env('CLOUDFLARE_ANALYTICS_TOKEN');
   const account = env('CLOUDFLARE_ACCOUNT_ID');
   mkdirSync(dir, { recursive: true });

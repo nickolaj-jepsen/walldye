@@ -46,5 +46,5 @@ wallpapers/*/build/
 wallpapers/index.json
 tests/fixtures/
 
-# page views by day: the stats branch, which CI and views.yml check out here
+# page views and events by day: the stats branch, which CI and stats.yml check out here
 /stats/

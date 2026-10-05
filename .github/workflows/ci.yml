@@ -10,7 +10,7 @@ on:
       - 'docs/**'
       - '**.md'
       - '.claude/**'
-      - 'infra/**'
+      - 'infra/www-redirect/**'
       - 'LICENSES/**'
   pull_request:
     paths-ignore: *docs
@@ -45,8 +45,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Page views by day, for the index's view sorts; views.yml writes the branch, and until its
-      # first run the checkout fails and the sorts are left out.
+      # Page views and downloads by day, for the index's sorts; stats.yml writes the branch, and
+      # until its first run the checkout fails and the sorts are left out.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         continue-on-error: true
         with:
