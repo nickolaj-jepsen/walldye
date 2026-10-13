@@ -47,7 +47,7 @@ Cloudflare:
 - The Worker `walldye` serves `dist/` as static assets, with no Worker script. `wrangler.jsonc` sets its routing: paths that match no file get `404.html` with status 404, and `/about/` and `/about.html` redirect to `/about`. `public/_headers` sets the cache headers and `public/_redirects` the renames.
 - walldye.com is the Worker's custom domain, declared in `wrangler.jsonc`, so `wrangler deploy` keeps its DNS record and certificate. It serves whatever `main` last deployed. Production has no workers.dev URL. Previews and version URLs do, and they are sent with `X-Robots-Tag: noindex` (Cloudflare adds it to Previews, `public/_headers` to every workers.dev host), so only walldye.com gets indexed.
 - www.walldye.com redirects to the apex through the Worker in `infra/www-redirect/`, on a Workers custom domain.
-- Web Analytics is on for the walldye.com hostname with automatic setup: Cloudflare injects the beacon into the pages as it serves them, so the source has no snippet, and Previews are not measured. The beacon sets no cookies, so the site needs no consent banner.
+- Web Analytics is on for the walldye.com hostname, with the JS snippet rather than automatic setup, which doesn't inject into the Worker's pages. `src/layouts/Base.astro` loads the beacon with the site's token, only when the hostname is walldye.com, so Previews are not measured. The beacon sets no cookies, so the site needs no consent banner.
 - Email Routing is on for walldye.com: takedown@walldye.com, the contact in the fan-work disclaimer, forwards to the owner's own address. The zone's MX records point at `route1`, `route2` and `route3.mx.cloudflare.net`.
 
 ## Check that it works

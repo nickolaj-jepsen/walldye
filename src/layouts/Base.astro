@@ -80,5 +80,14 @@ const transitionBoot = await inlineScript('transition', !import.meta.env.DEV);
       </script>
       <slot name="after" />
     </div>
+    {/* Web Analytics, which scripts/views reads. Automatic setup doesn't inject into the Worker's pages; Previews serve this same HTML, so only walldye.com loads it. */}
+    <script is:inline>
+      if (location.hostname === 'walldye.com') {
+        const beacon = document.createElement('script');
+        beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+        beacon.dataset.cfBeacon = '{"token": "2cf013ccbd694cbeaa73ebd1d868b993"}';
+        document.body.append(beacon);
+      }
+    </script>
   </body>
 </html>
