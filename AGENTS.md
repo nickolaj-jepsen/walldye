@@ -9,7 +9,6 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 - `docs/api.md`: the design API, build files and CLI. The docstrings in `walldye/` hold the exact semantics; when the two disagree, fix one of them in the same change.
 - `docs/site.md`: the site's visual system, components and voice.
 - `docs/deploy.md`: CI, Cloudflare and the going-live checklist.
-- `src/client/DOM.md`: the hooks the server-rendered pages give the client modules.
 
 ## Writing docs and comments
 

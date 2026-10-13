@@ -1,33 +1,18 @@
 # Deploy
 
-How walldye.com is built, deployed and hosted, and how to check or change each part. architecture.md (CI) explains why CI renders the catalog itself.
+How walldye.com is built, deployed and hosted, and how to check or change each part.
 
 `,` in the commands below is comma, which runs a tool from nixpkgs without installing it; elsewhere, `pnpm dlx wrangler` does the same.
 
 ## CI
 
-Three workflows run on pushes to `main`, on pull requests and on manual runs (Actions > <workflow> > Run workflow), and one when a pull request closes:
-
 | Workflow | Runs | Does |
 |---|---|---|
-| `lint.yml` | on every change | `ruff format --check` (Markdown's ` ```python ` blocks included) and `ruff check`, and `biome ci` for the TypeScript |
-| `python.yml` | when a path in its `paths` list changes: the library, its tests, the designs and their meta.yaml, taxonomy.yaml or the Python environment | Pyrefly on the library at the strictest preset and on the designs at the design level, then pytest |
-| `ci.yml` | unless the change touches only `docs/`, Markdown, `.claude/`, `infra/` or `LICENSES/` | the jobs below |
-| `preview-cleanup.yml` | when a pull request that `ci.yml` deploys closes | cancels a `ci.yml` run still going for it, then deletes its Preview, since the free plan keeps 100 Previews per Worker |
+| `checks.yml` | every push to `main` and pull request | ruff (Markdown's ` ```python ` blocks included), Biome, Pyrefly and pytest |
+| `ci.yml` | the same, unless only `docs/`, Markdown, `.claude/`, `infra/` or `LICENSES/` changed, and from `views.yml` | renders the published pieces from main's last build in the Actions cache, so it redraws only what changed, then vitest, `astro check` and `astro build`; a push to `main`, or a manual run on `main` with `deploy` ticked, then deploys that `dist/` with `wrangler deploy` |
+| `views.yml` | 02:23 UTC on Mondays and Thursdays, and on manual runs | writes each finished UTC day's page views by slug to `stats/views/<YYYY-MM-DD>.json` on the `stats` branch, then starts `ci.yml` with `deploy` ticked, since a push made with the workflow's token starts no workflow |
 
-`ci.yml`'s jobs:
-
-| Job | Does |
-|---|---|
-| `build` | Checks out `stats/`, restores main's last build from the Actions cache, runs `walldye build --all --published`, then `walldye build --all` for the drafts, which never fails the job, saves the cache on `main`, lists the pieces whose templates changed, runs `regen.py`, `pnpm test`, `pnpm check` and `pnpm astro build`, and uploads `dist/` and the e2e inputs. A pull request with built drafts also gets a `preview/` built with `WALLDYE_DRAFTS=1` |
-| `e2e` | Playwright on Chromium against that `dist/` |
-| `deploy` | After `build` and `e2e` pass: a push to `main` goes to production with `wrangler deploy`, and a pull request from a branch in this repository goes to its Preview `pr-<number>` with `wrangler preview`, at `https://pr-<number>-walldye.<subdomain>.workers.dev`. The Preview deploys `preview/` when there is one, so it shows the drafts. A comment on the PR links it and lists the pieces that draw differently from main's last build and the drafts it shows; later pushes edit it. The job then requests the deployed site: a missing page must answer 404 with the 404 page, a template under `/t/` must be cached as immutable, `/about` must revalidate, and on walldye.com `/` must carry the Web Analytics beacon. Pull requests from forks or Dependabot never deploy, since neither gets the secrets, and a manual run deploys only on `main` with `deploy` ticked |
-
-GitHub drops a cache that goes unread for 7 days (the daily redeploy reads it on any day with views), and the next run then renders the whole catalog, which the 120-minute timeout allows for. A render cut short is saved as it stands, and the next run on `main` picks up from there. A toolchain change takes about a third of the time of a full render.
-
-## Page views
-
-`views.yml` runs daily at 02:23 UTC and on manual runs. `scripts/views/fetch.ts` writes each finished UTC day's page views by slug to `stats/views/<YYYY-MM-DD>.json`. The job pushes new files to the `stats` branch, then starts `ci.yml` on `main` with `deploy` ticked, since a push made with the workflow's token starts no workflow. The next run picks up a missed day, sampled if it is a few days old by then.
+GitHub drops a cache unread for 7 days, which the twice-weekly redeploy prevents; a cold cache renders the whole catalog, which the 120-minute timeout allows for. A render cut short is saved as it stands, and the next run on `main` picks up from there. Drafts are never drawn in CI.
 
 To build locally with the views: `git fetch origin stats && git worktree add --detach stats FETCH_HEAD`; after a later fetch, `git -C stats checkout --detach origin/stats`.
 
@@ -37,17 +22,17 @@ GitHub:
 - The public repository `nickolaj-jepsen/walldye`, the `origin` remote, with walldye.com as its website. The About page links to it, and every "Run it yourself" command clones it.
 - A ruleset keeps `main` from being deleted or force-pushed. Secret scanning with push protection and Dependabot alerts are on.
 - Runs from outside contributors wait for approval (Settings > Actions > General).
-- Repository secrets: `CLOUDFLARE_API_TOKEN`, a token scoped to Account / Workers Scripts / Edit, plus Zone / Workers Routes / Edit and Zone / Zone / Read for walldye.com, which `wrangler deploy` needs for the custom domain, and `CLOUDFLARE_ACCOUNT_ID`. Previews of branches in this repository need them too, so they are not limited to `main`.
-- Environments `production`, which only `main` may deploy to, and `preview`. They record the deploys and hold no secrets.
+- Repository secrets: `CLOUDFLARE_API_TOKEN`, a token scoped to Account / Workers Scripts / Edit, plus Zone / Workers Routes / Edit and Zone / Zone / Read for walldye.com, which `wrangler deploy` needs for the custom domain, and `CLOUDFLARE_ACCOUNT_ID`.
+- The environment `production`, which only `main` may deploy to. It records the deploys and holds no secrets.
 - Every action in the workflows is pinned to a commit SHA, and Dependabot (`.github/dependabot.yml`) bumps them. Its security updates are off.
 - For `views.yml`: the secret `CLOUDFLARE_ANALYTICS_TOKEN`, a token scoped to Account / Account Analytics / Read.
 
 Cloudflare:
 - walldye.com is registered with Cloudflare Registrar, and its zone is in the account.
 - The Worker `walldye` serves `dist/` as static assets, with no Worker script. `wrangler.jsonc` sets its routing: paths that match no file get `404.html` with status 404, and `/about/` and `/about.html` redirect to `/about`. `public/_headers` sets the cache headers and `public/_redirects` the renames.
-- walldye.com is the Worker's custom domain, declared in `wrangler.jsonc`, so `wrangler deploy` keeps its DNS record and certificate. It serves whatever `main` last deployed. Production has no workers.dev URL. Previews and version URLs do, and they are sent with `X-Robots-Tag: noindex` (Cloudflare adds it to Previews, `public/_headers` to every workers.dev host), so only walldye.com gets indexed.
+- walldye.com is the Worker's custom domain, declared in `wrangler.jsonc`, so `wrangler deploy` keeps its DNS record and certificate. It serves whatever `main` last deployed. Production has no workers.dev URL. Version URLs do, and `public/_headers` sends `X-Robots-Tag: noindex` on every workers.dev host, so only walldye.com gets indexed.
 - www.walldye.com redirects to the apex through the Worker in `infra/www-redirect/`, on a Workers custom domain.
-- Web Analytics is on for the walldye.com hostname, with the JS snippet rather than automatic setup, which doesn't inject into the Worker's pages. `src/layouts/Base.astro` loads the beacon with the site's token, only when the hostname is walldye.com, so Previews are not measured. The beacon sets no cookies, so the site needs no consent banner.
+- Web Analytics is on for the walldye.com hostname, with the JS snippet rather than automatic setup, which doesn't inject into the Worker's pages. `src/layouts/Base.astro` loads the beacon with the site's token, only when the hostname is walldye.com, so version URLs are not measured. The beacon sets no cookies, so the site needs no consent banner.
 - Email Routing is on for walldye.com: takedown@walldye.com, the contact in the fan-work disclaimer, forwards to the owner's own address. The zone's MX records point at `route1`, `route2` and `route3.mx.cloudflare.net`.
 
 ## Check that it works
@@ -58,14 +43,13 @@ Cloudflare:
 - A template under `/t/` is served with `cache-control: public, max-age=31536000, immutable`, and a page with `max-age=0, must-revalidate`.
 - `https://walldye.com/no-such-piece` answers `404` with the site's own Not found page.
 - A page's HTML on walldye.com includes the Web Analytics beacon (`static.cloudflareinsights.com/beacon.min.js`), and the dashboard counts the visit.
-- A pull request from a branch in this repository: once `build` and `e2e` pass, a comment links the Preview, later pushes edit the same comment, and closing the pull request deletes the Preview (Workers & Pages > walldye > Previews).
-- After a `views.yml` run that finds a new day, `stats` has a commit named after it, a `ci.yml` run on `main` has deployed, and the index sort offers "popular" and "most viewed".
+- After a `views.yml` run, `stats` has a commit named after the last new day, a `ci.yml` run on `main` has deployed, and the index sort offers "popular" and "most viewed".
 - A test mail to takedown@walldye.com arrives in the owner's inbox.
 
 ## Changing things
 
 - The www Worker: edit `infra/www-redirect/`, then run `, wrangler deploy` in that directory.
 - A renamed wallpaper: add `/<old-slug> /<new-slug> 301` to `public/_redirects`.
-- The site Worker's settings: edit `wrangler.jsonc`. A Preview takes them from its pull request, except the custom domain, which changes only when `main` deploys, and the workers.dev settings, which come from whichever Preview or deploy creates the Worker and from `main`'s deploys after that.
+- The site Worker's settings: edit `wrangler.jsonc`; they apply when `main` next deploys.
 - The API token: create a new one with the scopes above, store it with `gh secret set CLOUDFLARE_API_TOKEN`, then delete the old token in the dashboard. The analytics token the same way, scoped to Account / Account Analytics / Read, with `gh secret set CLOUDFLARE_ANALYTICS_TOKEN`.
 - A manual deploy of a local build, if CI is down: `pnpm build`, then `pnpm dlx wrangler@4.143.0 deploy` from the repository root, pinned to the version CI deploys with.

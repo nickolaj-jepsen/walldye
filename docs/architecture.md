@@ -62,10 +62,6 @@ A design's `@cached` functions (api.md §9.1) run once per process for each dist
 
 Build is incremental. slots.json records `design_sha` (the version's inputs) and `toolchain` (`walldye/tools/hashing.py`). A new `design_sha` rebuilds. A new `toolchain` alone draws once and compares the output; if it matches, only the stamp changes. Lints run on every piece at every build, so stricter rules apply at once; a stricter determinism check needs `walldye build --force`.
 
-## CI
-
-CI renders the catalog from main's last build in the Actions cache, so it only redraws what changed, and deploys the `dist/` it tested. Drafts are drawn afterwards for the cache and PR previews, never into that `dist/`, and a broken draft doesn't fail the run. [deploy.md](deploy.md) has the workflows.
-
 ## The site
 
 walldye.com is a static Astro site, served as the static assets of a Cloudflare Worker with no script.
@@ -75,5 +71,5 @@ walldye.com is a static Astro site, served as the static assets of a Cloudflare 
 - An inline `<head>` script (`src/client/theme/boot.ts`) sets the CSS variables before first paint. The theme comes from `?t=` (for the session, with an offer to keep it), then sessionStorage, then localStorage, then fireproof and flexoki-light. A family chosen by name is stored as `pair:<dark>,<light>` and follows `prefers-color-scheme`. Choosing the default family clears storage. Internal links carry no `?t=`; "Copy link" adds it.
 - A plate moving between a grid and its page is a cross-document view transition (`src/client/transition/`). Only that one plate is named, or the whole index would fly into "See also". The listeners are inline in `<head>` because `pagereveal` fires before page modules load. The arriving plate is still empty then, so the leaving one stays opaque under it.
 - Site CSS uses the derived tokens with a contrast guard: 4.5:1 for text, 3:1 for controls and the focus ring. A failing role is nudged towards black or white just enough. Wallpapers always use the raw seeds.
-- The index can sort by page views. Cloudflare samples days once they're a few days old, so each finished day is saved while exact, as a file on the `stats` branch ([deploy.md](deploy.md), Page views). The loader totals them, follows renames through `public/_redirects`, and weighs recent days more (`HALF_LIFE_DAYS` in `src/server/views.ts`). The order is fixed at build time, so each recorded day redeploys.
+- The index can sort by page views. Cloudflare samples days once they're a few days old, so each finished day is saved while exact, as a file on the `stats` branch ([deploy.md](deploy.md), Page views). The loader totals them, follows renames through `public/_redirects`, and weighs recent days more (`HALF_LIFE_DAYS` in `src/server/views.ts`). The order is fixed at build time, so each `views.yml` run redeploys.
 - The client needs OffscreenCanvas in workers (Safari 16.4+). Export runs in the browser: the recolored SVG is cropped via its viewBox, and resvg-wasm rasterizes PNG, WebP and JPEG in a worker. Only pixel pieces' `px` paths get `crispEdges`; on the root it would make curves jagged.
