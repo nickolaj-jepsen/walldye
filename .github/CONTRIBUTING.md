@@ -38,7 +38,6 @@ pnpm test                             # vitest
 pnpm check                            # astro check, after a build
 pnpm lint                             # Biome; pnpm format fixes what it can
 pnpm astro build
-pnpm e2e                              # Playwright; pnpm e2e:nix on NixOS outside nix develop
 pnpm promo                            # the README clip, into promo/
 ```
 
