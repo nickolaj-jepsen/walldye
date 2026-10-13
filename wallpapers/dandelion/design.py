@@ -48,6 +48,7 @@ CURVE = ((0, 0), (200, -75), (540, -150), (1005, -200))
 # last seed, at the far end, clearly breaks free
 ALONG = (70, 165, 295, 475, 725, 1027)
 STEM = ((0, 0), (12, 230), (70, 390), (44, 562))  # the stem at 16:9, from the head down
+LANDSCAPE, PORTRAIT = (7 / 24, 13 / 27), (0.3, 0.64)  # where the head sits, fractions of the screen
 
 
 def rot(ax: float, ay: float) -> Arr:
@@ -94,73 +95,88 @@ def achene(p: Vec, q: Vec) -> Path:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     # landscape: head on the left third, seeds blown right; portrait: head low, seeds blown up
-    c = s.pick(landscape=(7 / 24, 13 / 27), portrait=(0.3, 0.64))
+    home = LANDSCAPE if s.landscape else PORTRAIT
+    c = s.pick(landscape=LANDSCAPE, portrait=PORTRAIT)
+    # The stem and the drift are fit to the screen once, from the head's own place, and keep that
+    # shape wherever a visitor moves it.
+    c0 = Vec(home[0] * s.w, home[1] * s.h)
+    reach = (s.h + 2 - c0.y) / STEM[-1][1]
     gap = -30 if s.landscape else -35  # screen angle of the bald patch, degrees
-    rng = s.np_rng(4)
-
-    def at(p: Arr) -> Vec:
-        return Vec(c.x + R * p[0], c.y + R * p[1])
-
-    # stem: a sliver that thickens towards the ground, stretched to reach the bottom edge
-    reach = (s.h + 2 - c.y) / STEM[-1][1]
-    spine = bezier_points(c + reach * np.array(STEM), 39)
-    s.fill(P().poly(ribbon(spine, np.linspace(2.4, 5.6, 40)), closed=True), UI)
-
-    i = np.arange(N) + 0.5
-    y = 1 - 2 * i / N
-    r = np.sqrt(1 - y * y)
-    th = math.pi * (3 - math.sqrt(5)) * i
-    dirs = np.c_[r * np.cos(th), y, r * np.sin(th)] @ rot(*TILT).T
-    stubs = P()
-    with (
-        s.buckets(BEAK_TONES, "stroke", stroke_width=1.1, stroke_linecap="round") as beaks,
-        s.buckets(HAIR_TONES, "stroke", stroke_width=1, stroke_linecap="round") as hairs,
-    ):
-        for d in dirs[np.argsort(dirs[:, 2], kind="stable")]:  # back to front
-            flat = math.hypot(d[0], d[1])
-            off = abs(math.remainder(math.atan2(d[1], d[0]) - math.radians(gap), math.tau))
-            # only the near hemisphere is bald, so the dim back rays still show through the gap
-            bald = flat > 0.3 and off < GAP_HALF + rng.uniform(-0.06, 0.06)
-            if bald and d[2] > -0.35:
-                # the seeds that left bared their stalks
-                stubs.M(at(d * 0.08)).L(at(d * rng.uniform(0.28, 0.4)))
-                continue
-            if d[2] < -0.35 and rng.random() < (0.6 if bald else 0.4):
-                continue
-            band = 3 if flat > 0.975 else min(2, int((d[2] + 1) / 2 * 3))
-            a, tip, ends = seed(d, rng, int(rng.integers(8, 13)), SPREAD, FIL)
-            beaks[band].M(at(a)).L(at(tip))
-            for e in ends:
-                hairs[band].M(at(tip)).L(at(e))
-    s.stroke(stubs, UI_ALT, 1.4, cap="round")
-    s.fill(P().circle(c, 9), UI)
-
     # The drift leaves the head's rim beside the bald patch and ends in the upper corner. On a
     # portrait screen its bow flips, so the seeds head out sideways before rising instead of
     # stacking up above the head.
-    start = c + Vec(180, -90).rotate(deg=gap + 30)
-    end = Vec(min(s.w - 175, start.x + 1500), 230) if s.landscape else s.frac(0.84, 0.12)
-    chord, base = end - start, Vec(*CURVE[-1])
-    drift = (
-        Affine.frame(start, rad=math.atan2(chord.y, chord.x), scale=abs(chord) / abs(base))
-        @ Affine.scale(1, 1 if s.landscape else -1)
-        @ Affine.rotate(rad=-math.atan2(base.y, base.x))
-    )
-    line = Polyline(bezier_points(drift.apply(CURVE), 799))
-    anchors = line.at(np.array(ALONG) / ALONG[-1] * line.length)
-    for (x, y0), (tilt, spin, size, fil, tone, sw) in zip(anchors.tolist(), DRIFT, strict=True):
-        d = np.array(
-            [math.sin(tilt) * math.cos(spin), -math.cos(tilt), math.sin(tilt) * math.sin(spin)]
+    start = Vec(180, -90).rotate(deg=gap + 30)
+    end = (
+        Vec(min(s.w - 175, c0.x + start.x + 1500), 230)
+        if s.landscape
+        else Vec(0.84 * s.w, 0.12 * s.h)
+    ) - c0
+    rng = s.np_rng(4)
+
+    def at(p: Arr) -> Vec:
+        return Vec(R * p[0], R * p[1])
+
+    with s.motif(c, "cover", handle=R) as m:
+        # stem: a sliver that thickens towards the ground, stretched to reach the bottom edge,
+        # then carried on along its last step to wherever the bottom edge can be
+        spine = bezier_points(reach * np.array(STEM), 39)
+        step = spine[-1] - spine[-2]
+        below = spine[-1] + step * max(1.0, (m.cover.y1 - spine[-1][1]) / step[1])
+        width = np.r_[np.linspace(2.4, 5.6, 40), 5.6]
+        s.fill(P().poly(ribbon(np.vstack([spine, below]), width), closed=True), UI)
+
+        i = np.arange(N) + 0.5
+        y = 1 - 2 * i / N
+        r = np.sqrt(1 - y * y)
+        th = math.pi * (3 - math.sqrt(5)) * i
+        dirs = np.c_[r * np.cos(th), y, r * np.sin(th)] @ rot(*TILT).T
+        stubs = P()
+        with (
+            s.buckets(BEAK_TONES, "stroke", stroke_width=1.1, stroke_linecap="round") as beaks,
+            s.buckets(HAIR_TONES, "stroke", stroke_width=1, stroke_linecap="round") as hairs,
+        ):
+            for d in dirs[np.argsort(dirs[:, 2], kind="stable")]:  # back to front
+                flat = math.hypot(d[0], d[1])
+                off = abs(math.remainder(math.atan2(d[1], d[0]) - math.radians(gap), math.tau))
+                # only the near hemisphere is bald, so the dim back rays still show through the gap
+                bald = flat > 0.3 and off < GAP_HALF + rng.uniform(-0.06, 0.06)
+                if bald and d[2] > -0.35:
+                    # the seeds that left bared their stalks
+                    stubs.M(at(d * 0.08)).L(at(d * rng.uniform(0.28, 0.4)))
+                    continue
+                if d[2] < -0.35 and rng.random() < (0.6 if bald else 0.4):
+                    continue
+                band = 3 if flat > 0.975 else min(2, int((d[2] + 1) / 2 * 3))
+                a, tip, ends = seed(d, rng, int(rng.integers(8, 13)), SPREAD, FIL)
+                beaks[band].M(at(a)).L(at(tip))
+                for e in ends:
+                    hairs[band].M(at(tip)).L(at(e))
+        s.stroke(stubs, UI_ALT, 1.4, cap="round")
+        s.fill(P().circle(Vec(0, 0), 9), UI)
+
+        chord, base = end - start, Vec(*CURVE[-1])
+        drift = (
+            Affine.frame(start, rad=math.atan2(chord.y, chord.x), scale=abs(chord) / abs(base))
+            @ Affine.scale(1, 1 if s.landscape else -1)
+            @ Affine.rotate(rad=-math.atan2(base.y, base.x))
         )
-        a, tip, ends = seed(d, rng, 14, DRIFT_SPREAD, FIL * fil)
-        anchor, scale = Vec(x, y0), R * size
-        foot, t0, body = (Vec(*q) for q in hang(np.array([a, tip, a - d * 0.13]), anchor, d, scale))
-        # pappus hairs curl slightly upward towards their tips
-        bends = t0 + (hang(ends, anchor, d, scale) - t0) * 0.55
-        curled = hang(ends + d * 0.05, anchor, d, scale)
-        pappus = P()
-        for q, e in zip(bends.tolist(), curled.tolist(), strict=True):
-            pappus.M(t0).Q(Vec(*q), Vec(*e))
-        s.stroke(P().M(foot).L(t0), mix(tone, UI, 0.35), sw, cap="round")
-        s.stroke(pappus, tone, sw, cap="round")
-        s.fill(achene(foot, body), tone)
+        line = Polyline(bezier_points(drift.apply(CURVE), 799))
+        anchors = line.at(np.array(ALONG) / ALONG[-1] * line.length)
+        for (x, y0), (tilt, spin, size, fil, tone, sw) in zip(anchors.tolist(), DRIFT, strict=True):
+            d = np.array(
+                [math.sin(tilt) * math.cos(spin), -math.cos(tilt), math.sin(tilt) * math.sin(spin)]
+            )
+            a, tip, ends = seed(d, rng, 14, DRIFT_SPREAD, FIL * fil)
+            anchor, scale = Vec(x, y0), R * size
+            foot, t0, body = (
+                Vec(*q) for q in hang(np.array([a, tip, a - d * 0.13]), anchor, d, scale)
+            )
+            # pappus hairs curl slightly upward towards their tips
+            bends = t0 + (hang(ends, anchor, d, scale) - t0) * 0.55
+            curled = hang(ends + d * 0.05, anchor, d, scale)
+            pappus = P()
+            for q, e in zip(bends.tolist(), curled.tolist(), strict=True):
+                pappus.M(t0).Q(Vec(*q), Vec(*e))
+            s.stroke(P().M(foot).L(t0), mix(tone, UI, 0.35), sw, cap="round")
+            s.stroke(pappus, tone, sw, cap="round")
+            s.fill(achene(foot, body), tone)

@@ -56,7 +56,9 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    under `models:` in taxonomy.yaml, the one line of that file you write.
 3. Write design.py, starting from the nearest piece in Examples and references/api.md. Use
    `@design(aspects="any")` whenever the composition can follow `s.pick`, `s.frac` and
-   `s.inset`; leave it out for 16:9 only, and the site crops other screen shapes from that.
+   `s.inset`; leave it out for 16:9 only, and the site crops other screen shapes from that. A
+   piece built around one object draws it as a motif (references/api.md, Motifs), which
+   visitors can move and resize.
 4. Preview for at least three rounds. Each run prints lint lines, `regime:`,
    `light geometry:` and, last, the PNG path. Read the PNG, critique it against the checklist
    in references/principles.md, revise.
@@ -68,6 +70,7 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    uv run walldye preview <slug> --width 400             # thumbnail size, how it is mostly seen
    uv run walldye sheet <slug> --seeds 0..7              # choosing a seed
    uv run walldye sheet <slug> --wedge sweep=0..360..45  # choosing a knob's value
+   uv run walldye sheet <slug> --placements              # a motif at its extremes
    ```
    `--set k=v` tries one params value in preview, render or sheet without publishing it.
 5. Light ladder (docs/architecture.md, Designs draw in formulas): stop at the first step that
@@ -122,6 +125,18 @@ When the owner sends a published piece back with a note:
    will change.
 4. Run steps 3 to 13. The critic also gets the before image and the note. In review, name the
    slug so its published versions are in the queue.
+
+Making a published piece's object a motif changes how it is drawn, not what it shows. Before
+editing, render every shape and regime at the canvas size (`walldye render <slug> --aspect A
+--theme fireproof -o before-A.png`, and `--theme flexoki-light`), render them again after, and
+compare:
+
+```bash
+uv run python -c "import sys, numpy as n; from PIL import Image as I; a, b = (n.asarray(I.open(p), dtype=int) for p in sys.argv[1:]); print(abs(a - b).max())" before.png after.png
+```
+
+Anything over a few units outside anti-aliased edges is a change to the picture: fix it, or tell
+the owner what moved and why (a dither pattern now anchored on the object, say).
 
 ## Independent critique
 

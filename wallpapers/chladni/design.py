@@ -85,11 +85,11 @@ def grains(x: Field, y: Field) -> Path:
     return d
 
 
-@design(aspects=("16:9", "32:9", "9:19.5", "10:16"), variants=VARIANTS)
+@design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Mode]) -> None:
     p = s.params
     # right of center on a landscape screen, leaving the left for windows; high on a portrait one
-    corner = s.pick(landscape=(0.7, 0.5), portrait=(0.5, 0.42)) - (S / 2, S / 2)
+    c = s.pick(landscape=(0.7, 0.5), portrait=(0.5, 0.42))
     band = central_loop(p).exterior.buffer(6 / S)
     shapely.prepare(band)
 
@@ -121,8 +121,9 @@ def draw(s: Canvas[Mode]) -> None:
     x, y = place(u, v, 0.6)
     ax, ay = place(a[0], a[1], 0.3)
     big = g.random(u.size) < 0.4
-    # in plate-local coordinates every grain is written a digit shorter
-    with s.group(transform=Affine.translate(corner.x, corner.y)):
+    # the plate's corner at its own origin writes every grain a digit shorter; jittered grains
+    # and their round caps stray a few units past the plate
+    with s.motif(c, S / 2 + 8), s.group(transform=Affine.translate(-S / 2, -S / 2)):
         for tone, col in ((quiet, UI), (~quiet, UI_ALT)):
             for sel, w in ((~big, 1.3), (big, 1.6)):
                 s.stroke(grains(x[tone & sel], y[tone & sel]), col, w, cap="round")
