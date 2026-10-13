@@ -112,6 +112,27 @@ def rasterize(svg: str, width: int, crop: Crop | None = None) -> Image.Image:
     return Image.open(io.BytesIO(data)).convert("RGB")
 
 
+def ink_box(svg: str, units: float) -> tuple[float, float, float, float] | None:
+    """The box (x0, y0, x1, y1), in the units of `svg`'s viewBox, of every pixel anything
+    covers when it is drawn at `units` per pixel on a transparent ground; None when nothing
+    is drawn."""
+    vb = viewbox(svg)
+    x, y, w, h = (float(v) for v in ("0 0 16 9" if vb is None else vb).split())
+    width, height = max(1, round(w / units)), max(1, round(h / units))
+    data = resvg_py.svg_to_bytes(svg_string=_sized(svg, width, height), width=width, height=height)
+    alpha = np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))[:, :, 3]
+    rows, cols = np.flatnonzero(alpha.any(axis=1)), np.flatnonzero(alpha.any(axis=0))
+    if len(rows) == 0:
+        return None
+    sx, sy = w / width, h / height
+    return (
+        x + float(cols[0]) * sx,
+        y + float(rows[0]) * sy,
+        x + (int(cols[-1]) + 1) * sx,
+        y + (int(rows[-1]) + 1) * sy,
+    )
+
+
 def background(svg: str) -> str:
     """The fill of a template's background rect, the first element after its <defs> line: what
     its ink map and focus are measured from. FIREPROOF_BG for a template laid out otherwise (a

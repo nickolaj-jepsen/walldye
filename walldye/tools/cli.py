@@ -18,6 +18,7 @@ from walldye.tools import (
     drop,
     hashing,
     listing,
+    motif,
     new,
     paths,
     preview,
@@ -75,6 +76,13 @@ def _crop(value: str) -> raster.Crop:
         raise argparse.ArgumentTypeError(str(e)) from e
 
 
+def _place(value: str) -> motif.Place:
+    try:
+        return motif.parse(value)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(str(e)) from e
+
+
 def _str(a: argparse.Namespace, name: str) -> str:
     return cast("str", getattr(a, name))
 
@@ -122,6 +130,7 @@ def _cmd_render(a: argparse.Namespace) -> int:
         aspect=_str(a, "aspect"),
         variant=_str(a, "variant"),
         crop=cast("raster.Crop | None", a.crop),
+        place=cast("motif.Place | None", a.place),
         fit=cast("bool", a.fit),
         overrides=_items(a, "set"),
         output=_opt(a, "output", str),
@@ -169,6 +178,11 @@ def _cmd_sheet(a: argparse.Namespace) -> int:
     cols, thumb, out = _opt(a, "cols", int), cast("int", a.thumb), _opt(a, "output", str)
     variant, aspect = _str(a, "variant"), _str(a, "aspect")
     wedges, overrides, seeds_range = _items(a, "wedge"), _items(a, "set"), _opt(a, "seeds", str)
+    if a.placements:
+        if len(slugs) != 1 or len(wedges) > 0 or len(overrides) > 0 or seeds_range is not None:
+            raise UsageError("--placements draws one slug as it is; name one, without --wedge")
+        _disk_cache()
+        return sheet.run_placements(slugs[0], seeds, cols, thumb, out, variant, aspect)
     if len(wedges) == 0 and len(overrides) == 0 and seeds_range is None:
         return sheet.run(slugs, seeds, cols, thumb, out, variant, aspect)
     if len(slugs) != 1:
@@ -275,6 +289,12 @@ def _parser() -> argparse.ArgumentParser:
         help="a PNG's width; its height follows the aspect (default: the canvas's)",
     )
     s.add_argument(
+        "--place",
+        type=_place,
+        metavar="X,Y,K",
+        help="move the motif's anchor to X,Y (canvas units) at size K, as the site places it",
+    )
+    s.add_argument(
         "--fit",
         action="store_true",
         help="cut an aspect the piece doesn't declare from 16:9 around its focus, as the site does",
@@ -326,6 +346,11 @@ def _parser() -> argparse.ArgumentParser:
         "--wedge", action="append", metavar="K=SPEC", help="a..b..step or v1,v2,... (repeatable)"
     )
     s.add_argument("--seeds", metavar="A..B", help="set seed to each of A..B")
+    s.add_argument(
+        "--placements",
+        action="store_true",
+        help="one slug's motif anchored on each corner at its smallest and largest size",
+    )
     s.add_argument("--cols", type=_positive, help="thumbnails per row")
     s.add_argument("--thumb", type=_positive, default=480, help="thumbnail width in px")
     s.add_argument(

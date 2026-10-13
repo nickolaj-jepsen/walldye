@@ -513,3 +513,114 @@ def test_named_streams_are_stable_across_processes():
             [sys.executable, "-c", script], capture_output=True, text=True, check=True, env=env
         ).stdout
         assert json.loads(out) == here
+
+
+def test_motif_wraps_its_drawing_in_a_placed_group():
+    s, doc = canvas()
+    with s.motif((960, 540), 100, cell=3, scale=(0.75, 1.5)) as m:
+        s.fill(SQUARE, ACCENT)
+    assert lines(doc) == [
+        '<g data-motif="" transform="translate(960 540)">',
+        '<path d="M0 0H10V10H0Z" fill="#CF6A4C"/>',
+        "</g>",
+    ]
+    assert m.cover == Rect(-2560, -1440, 5120, 2880)
+    info = doc.motif
+    assert info is not None
+    assert info.at == (960, 540) and info.extent == (-100, -100, 200, 200)
+    assert info.handle == info.extent and not info.overscan
+    assert info.cell == 3 and info.scale == (0.75, 1.5) and info.cover == tuple(m.cover)
+
+
+def test_an_overscan_motif_takes_its_cover_as_extent():
+    s, doc = canvas(w=1080, h=2340)
+    with s.motif((540, 900), "cover", handle=Rect(-50, -40, 100, 80)):
+        pass
+    info = doc.motif
+    assert info is not None and info.overscan
+    assert info.extent == info.cover == (-2160, -4680, 4320, 9360)
+    assert info.handle == (-50, -40, 100, 80)
+
+
+@pytest.mark.parametrize("name", ["w", "h", "center"])
+def test_motif_hides_the_canvas_size_and_place(name):
+    s, _ = canvas()
+    with s.motif((960, 540), 100), pytest.raises(RuntimeError, match=f"s.{name} is not available"):
+        getattr(s, name)
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda s: s.frac(0.5, 0.5),
+        lambda s: s.pick(landscape=(0.5, 0.5), portrait=(0.5, 0.5)),
+        lambda s: s.inset(10),
+    ],
+)
+def test_motif_hides_the_layout_calls(call):
+    s, _ = canvas()
+    with s.motif((960, 540), 100), pytest.raises(RuntimeError, match="m.cover"):
+        call(s)
+
+
+def test_motif_keeps_the_shape_and_regime():
+    s, _ = canvas(light=True)
+    with s.motif((960, 540), 100):
+        assert s.landscape and s.light
+
+
+def test_motif_is_the_last_thing_drawn():
+    s, _ = canvas()
+    with s.motif((960, 540), 100):
+        pass
+    with pytest.raises(RuntimeError, match="the motif is the last thing drawn"):
+        s.fill(SQUARE, ACCENT)
+    with pytest.raises(RuntimeError, match="the motif is the last thing drawn"):
+        s.motif((960, 540), 100).__enter__()
+
+
+def test_motif_opens_on_the_canvas_only():
+    s, _ = canvas()
+    with s.group(opacity=0.5), pytest.raises(RuntimeError, match="outside any group"):
+        s.motif((960, 540), 100).__enter__()
+    with s.motif((960, 540), 100), pytest.raises(RuntimeError, match="one motif at most"):
+        s.motif((0, 0), 10).__enter__()
+
+
+def test_motif_takes_no_mask():
+    s, _ = canvas()
+    with s.motif((960, 540), 100), pytest.raises(RuntimeError, match="outside the motif"):
+        s.mask().__enter__()
+
+
+@pytest.mark.parametrize(
+    ("args", "kw", "error", "match"),
+    [
+        (((1921, 540), 100), {}, ValueError, "off the canvas"),
+        (((960, 540), 100), {"scale": (0.4, 2)}, ValueError, "motif scale"),
+        (((960, 540), 100), {"scale": (1.1, 2)}, ValueError, "motif scale"),
+        (((960, 540), 100), {"scale": (0.5, 2.5)}, ValueError, "motif scale"),
+        (((960, 540), "cover"), {}, ValueError, "needs handle="),
+        (((960, 540), "all"), {}, ValueError, "motif extent"),
+        (((960, 540), 0), {}, ValueError, "motif extent"),
+        (((960, 540), Rect(0, 0, 10, -1)), {}, ValueError, "motif extent"),
+        (((960, 540), 100), {"cell": 0}, ValueError, "motif cell"),
+        (((960, 540), "1"), {}, ValueError, "motif extent"),
+        (((960, 540), [1, 2]), {}, TypeError, "motif extent"),
+    ],
+)
+def test_motif_checks_its_arguments(args, kw, error, match):
+    s, _ = canvas()
+    with pytest.raises(error, match=match):
+        s.motif(*args, **kw).__enter__()
+
+
+def test_a_shifted_canvas_moves_every_position():
+    doc = Builder(1920, 1080, "dark")
+    s = Canvas(Params(), w=1920, h=1080, light=False, doc=doc, source=PIXELS, shift=(40, 24))
+    assert s.center == (1000, 564)
+    assert s.frac(0, 0) == (40, 24)
+    assert s.pick(landscape=(0.5, 0.5), portrait=(0, 0), snap=100) == (1000, 600)
+    assert s.inset(0) == Rect(0, 0, 1920, 1080)
+    with s.motif((-10, 2000), 10):  # off the canvas, which only a shifted draw allows
+        pass

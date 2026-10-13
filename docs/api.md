@@ -14,7 +14,7 @@ Designs import only these four. Each defines `__all__` with exactly these names,
 
 | Module | Names |
 |---|---|
-| `walldye` | `design`, `Canvas`, `Params`, `knob`, `cached`; `Color`, `MaskColor`, the 20 tokens (§4.1), `MASK_WHITE`, `MASK_BLACK`, `mix`, `ramp`, `ladder`, `Ladder`, `by_regime`; `Paint`, `MaskPaint`, `Ref`, `Style`, `Stop`, `MaskStop`, `LineCap`, `LineJoin`, `FillRule`; `Buckets`, `ClipSurface`, `MaskSurface`, `PatternSurface`, `Rng` and `NpRng` for annotating helpers, since designs may not name `random` or `numpy.random`; `P`, `Path`, `Vec`, `Rect`, `Point`, `Num`, `polar`, `lerp`, `clamp`, `smoothstep` |
+| `walldye` | `design`, `Canvas`, `Motif`, `Params`, `knob`, `cached`; `Color`, `MaskColor`, the 20 tokens (§4.1), `MASK_WHITE`, `MASK_BLACK`, `mix`, `ramp`, `ladder`, `Ladder`, `by_regime`; `Paint`, `MaskPaint`, `Ref`, `Style`, `Stop`, `MaskStop`, `LineCap`, `LineJoin`, `FillRule`; `Buckets`, `ClipSurface`, `MaskSurface`, `PatternSurface`, `Rng` and `NpRng` for annotating helpers, since designs may not name `random` or `numpy.random`; `P`, `Path`, `Vec`, `Rect`, `Point`, `Num`, `polar`, `lerp`, `clamp`, `smoothstep` |
 | `walldye.geom` | `Affine`, `Polyline`, `spline_points`, `bezier_points`, `ribbon`, `hatch`, `ngon`, `scatter`, `poisson_disk`, `parts` |
 | `walldye.field` | `Noise`, `noise_grid`, `cells`, `falloff`, `gauss`, `iso_lines`, `runs`, `sample_field` |
 | `walldye.pixel` | `Pixels`, `grid_runs`, `dither`, `bayer`, `blue_noise`, `threshold_matrix`, `sprite`, `glyph`, `glyphs`, `text_width`, `Font`, `DitherMethod` |
@@ -225,6 +225,26 @@ Each surface collects its content inside the block and goes to `<defs>` when the
 
 `s.pixel_path(d, fill, *, cell, origins, **style)`, which the `walldye.pixel` helpers call, emits a `<path class="px">`, which the exporter draws with crisp edges, and records its grid for slots.json's `cells` and check's whole-origin warning.
 
+### 7.10 Motif
+
+```python
+def motif(self, at: Point, extent: float | Rect | Literal["cover"], *,
+          handle: float | Rect | None = None, cell: float | None = None,
+          scale: tuple[float, float] = (0.5, 2.0)) -> AbstractContextManager[Motif]
+```
+
+A piece with one thing a visitor may move and resize draws it inside `with s.motif(c, extent) as m:`, in motif-local units around the anchor `c` (architecture.md, Motifs). A radius or `Rect` extent bounds every mark it draws; `"cover"` makes an overscan motif, which fills `m.cover` (the motif-local area any placement can show) with the surroundings that move with it, and then needs a `handle`. `handle` is what a visitor grabs, the extent by default. `cell` is a pixel motif's cell, so every size keeps it whole. `scale` narrows the sizes offered within (0.5, 2), and must hold 1.
+
+- The anchor `c` is on the canvas, and the block opens on the canvas itself, outside any group.
+- Inside it, `w`, `h`, `center`, `frac`, `pick`, `inset` and `mask()` raise; `landscape` and `light` stay. Values read before it opens may depend on the canvas size, never on `c`.
+- The motif is the last thing drawn, and a design has one at most.
+
+```python
+c = s.pick(landscape=(0.68, 0.46), portrait=(0.56, 0.34), snap=CELL)
+with s.motif(c, R, cell=CELL):
+    grid_runs(s, grid, [None, ACCENT], CELL, (-R, -R))
+```
+
 ## 8. Params and knob
 
 A design's parameters are a subclass of `Params`, which makes it a frozen, keyword-only dataclass with an inherited `seed: int | None = None`.
@@ -329,7 +349,7 @@ Build removes template files it did not write and directories that are not decla
 
 ### 11.2 SVG format
 
-One element per line, with a trailing newline and no XML declaration: the `<svg>` tag, `<defs>` on one line when anything was defined, the background `<rect>`, then the drawing. The only elements are `svg`, `defs`, `rect`, `path`, `g`, `clipPath`, `mask`, `pattern`, `linearGradient`, `radialGradient` and `stop`, and colors appear only in `fill`, `stroke` and `stop-color`, as uppercase `#RRGGBB`.
+One element per line, with a trailing newline and no XML declaration: the `<svg>` tag, `<defs>` on one line when anything was defined, the background `<rect>`, then the drawing, ending in the motif's `<g data-motif="" transform="translate(x y)">` when there is one. The only elements are `svg`, `defs`, `rect`, `path`, `g`, `clipPath`, `mask`, `pattern`, `linearGradient`, `radialGradient` and `stop`, and colors appear only in `fill`, `stroke` and `stop-color`, as uppercase `#RRGGBB`.
 
 ### 11.3 slots.json
 
@@ -338,7 +358,7 @@ One per variant directory, with one top-level key per line and each value compac
 - `toolchain`: the hash of the code and packages that built it;
 - `focus`: the ink-weighted centroid of the 16:9 dark template, which centers crops and social cards;
 - `cells`: the cell sizes of pixel pieces;
-- one `"<aspect>/<regime>"` entry per template, `{file, sha256, n, coefs, occ}`: `coefs` holds the deduplicated `[a, b, c, dr, dg, db]` rows at 5 decimals, and `occ` the row for each of the `n` color occurrences.
+- one `"<aspect>/<regime>"` entry per template, `{file, sha256, n, coefs, occ}`: `coefs` holds the deduplicated `[a, b, c, dr, dg, db]` rows at 5 decimals, and `occ` the row for each of the `n` color occurrences. A piece with a motif adds `motif: {at, extent, handle, overscan, cell, scale}`, the anchor in canvas units and the boxes `[x, y, w, h]` in motif-local units.
 
 architecture.md (Build and check) says how the hashes decide what to redraw.
 
@@ -356,7 +376,7 @@ Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that ta
 |---|---|
 | `new <slug> --model M \| --author NAME` | writes a starter design.py and a draft meta.yaml with that credit, today's date and no `license:` |
 | `preview <slug>` | a PNG in `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), printing the design lint, the regime and whether light geometry differs |
-| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. A PATH ending in `.png` gets an opaque PNG `--width PX` wide (default the canvas's). `--fit` cuts an aspect the piece doesn't declare from its 16:9 render around the focus, as the site does, instead of refusing it. |
+| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. A PATH ending in `.png` gets an opaque PNG `--width PX` wide (default the canvas's). `--fit` cuts an aspect the piece doesn't declare from its 16:9 render around the focus, as the site does, instead of refusing it. `--place X,Y,K` puts the motif's anchor at X,Y in canvas units at size K, as the site's "Copy command" writes it. |
 | `check [<slug>... \| --all]` | the gate (architecture.md, Build and check) |
 | `build [<slug>... \| --all]` | check, then write `build/` and index.json. It has no `--set`: published values belong in a named variant |
 | `review [<slug>... \| --all]` | the review page (§12.3) |
@@ -377,6 +397,7 @@ The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an in
 - `--set seed=none` clears the seed.
 - `sheet <slug> --wedge k=SPEC --seeds A..B` draws one piece for every combination into a labeled grid of at most 64 cells. `SPEC` is `a..b..step` or `v1,v2,...`.
 - Without `--wedge`, `--seeds` or `--set`, `sheet` tiles built templates recolored under `--theme`.
+- `sheet <slug> --placements` draws the motif where the design put it, then anchored on each canvas corner at its smallest and largest size: the extremes where an overscan motif's surroundings must still cover the screen.
 
 ### 12.3 `walldye review`
 

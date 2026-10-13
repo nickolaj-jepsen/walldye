@@ -32,7 +32,9 @@ def report(slug: str, **kw) -> check.Report:
     return t.report
 
 
-@pytest.mark.parametrize("design", ["collision", "mask", "keyed", "light-branch", "versions"])
+@pytest.mark.parametrize(
+    "design", ["collision", "mask", "keyed", "light-branch", "versions", "motif"]
+)
 def test_clean_designs_pass(wallpapers, design):
     if design == "versions":
         versions(wallpapers)
@@ -60,6 +62,9 @@ def test_data_design_reads_its_files(wallpapers):
         ("unseeded", "line 3: imports random"),
         ("hash-order", "a fresh process with PYTHONHASHSEED=4242 draws it differently"),
         ("rounding", "held-out themes miss by more than 2 units"),
+        ("motif-tied", "16:9 dark: moving the motif changes more than its anchor"),
+        ("motif-spill", "16:9 dark: the motif draws from (-100, -100) to (100, 100)"),
+        ("motif-shapes", 'a piece with a motif is built for every shape: @design(aspects="any")'),
     ],
 )
 def test_check_catches(wallpapers, design, expected):
@@ -307,3 +312,18 @@ def test_meta_yaml_problems(wallpapers):
     assert report("collision").errors == [
         f"{meta}: not valid YAML (line 2): expected ',' or ']', but got '<stream end>'"
     ]
+
+
+def test_slots_entries_carry_the_motif(wallpapers):
+    pieces.install(wallpapers, "motif")
+    result = check.check_variant(check.Task(str(wallpapers), "motif", "default"))
+    assert result.errors == []
+    assert result.entries["16:9/dark"]["motif"] == {
+        "at": [1152.0, 540.0],
+        "extent": [-130.0, -130.0, 260.0, 260.0],
+        "handle": [-130.0, -130.0, 260.0, 260.0],
+        "overscan": False,
+        "cell": None,
+        "scale": [0.5, 2.0],
+    }
+    assert result.entries["9:19.5/light"]["motif"]["at"] == [540.0, 936.0]

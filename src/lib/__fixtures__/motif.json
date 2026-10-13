@@ -1,0 +1,505 @@
+{
+ "spec": "Placing a template's motif (walldye/tools/motif.py, src/lib/motif.ts). The motif is the root's last child, opening with exactly <g data-motif=\"\" transform=\"...\">. transform: translate(x y) with x and y to 2 decimals, then scale(k) to 4 decimals unless k is 1, trailing zeros dropped. place: the motif's transform replaced. ground: the template without its motif. alone: the root showing box (motif-local units), the template's defs line, and the motif group untransformed. placements: ok says whether a visitor could make the placement on that canvas (anchor on the canvas, size within scale, cell * size whole to 0.001); clamped is the nearest one the site offers (anchor rounded to whole units and clamped; size clamped, then to whole cells (cell * size rounded half up, kept within scale) at 4 decimals, or to 2 decimals without a cell).",
+ "transform": [
+  {
+   "x": 1305,
+   "y": 498,
+   "k": 1,
+   "out": "translate(1305 498)"
+  },
+  {
+   "x": 0,
+   "y": 1080,
+   "k": 2,
+   "out": "translate(0 1080) scale(2)"
+  },
+  {
+   "x": 12.345,
+   "y": -0.004,
+   "k": 0.5,
+   "out": "translate(12.35 0) scale(0.5)"
+  },
+  {
+   "x": 960,
+   "y": 540,
+   "k": 1.3333,
+   "out": "translate(960 540) scale(1.3333)"
+  },
+  {
+   "x": 1,
+   "y": 2,
+   "k": 0.6667,
+   "out": "translate(1 2) scale(0.6667)"
+  },
+  {
+   "x": 1.005,
+   "y": 2.5,
+   "k": 1.25,
+   "out": "translate(1 2.5) scale(1.25)"
+  }
+ ],
+ "place": [
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#CF6A4C\"/></linearGradient></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n",
+   "x": 200,
+   "y": 300,
+   "k": 1.5,
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#CF6A4C\"/></linearGradient></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(200 300) scale(1.5)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n"
+  },
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n",
+   "x": 1305,
+   "y": 498,
+   "k": 1,
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n"
+  }
+ ],
+ "ground": [
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#CF6A4C\"/></linearGradient></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n",
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#CF6A4C\"/></linearGradient></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n</svg>\n"
+  },
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n",
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n</svg>\n"
+  },
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n</svg>\n",
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n</svg>\n"
+  }
+ ],
+ "alone": [
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#CF6A4C\"/></linearGradient></defs>\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n",
+   "box": [
+    -279,
+    -279,
+    558,
+    558
+   ],
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-279 -279 558 558\" width=\"558\" height=\"558\">\n<defs><linearGradient id=\"lg1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#CF6A4C\"/></linearGradient></defs>\n<g data-motif=\"\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n"
+  },
+  {
+   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1920 1080\" width=\"1920\" height=\"1080\">\n<rect x=\"0\" y=\"0\" width=\"1920\" height=\"1080\" fill=\"#1C1B1A\"/>\n<path d=\"M0 0H10V10H0Z\" fill=\"#DAD8CE\"/>\n<g data-motif=\"\" transform=\"translate(1305 498)\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n",
+   "box": [
+    -12.5,
+    -3,
+    25,
+    6.25
+   ],
+   "out": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-12.5 -3 25 6.25\" width=\"25\" height=\"6.25\">\n<g data-motif=\"\">\n<path d=\"M-3 -3H3V3H-3Z\" fill=\"url(#lg1)\"/>\n<g opacity=\"0.5\">\n<path d=\"M0 0H9V3H0Z\" fill=\"#CF6A4C\"/>\n</g>\n</g>\n</svg>\n"
+  }
+ ],
+ "placements": [
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": 3,
+    "scale": [
+     0.5,
+     2
+    ]
+   },
+   "canvas": [
+    1920,
+    1080
+   ],
+   "place": [
+    200,
+    300,
+    2
+   ],
+   "ok": true,
+   "clamped": [
+    200,
+    300,
+    2.0
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": 3,
+    "scale": [
+     0.5,
+     2
+    ]
+   },
+   "canvas": [
+    1920,
+    1080
+   ],
+   "place": [
+    200,
+    300,
+    1.3333
+   ],
+   "ok": true,
+   "clamped": [
+    200,
+    300,
+    1.3333
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": 3,
+    "scale": [
+     0.5,
+     2
+    ]
+   },
+   "canvas": [
+    1920,
+    1080
+   ],
+   "place": [
+    200,
+    300,
+    1.1
+   ],
+   "ok": false,
+   "clamped": [
+    200,
+    300,
+    1.0
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": 3,
+    "scale": [
+     0.5,
+     2
+    ]
+   },
+   "canvas": [
+    1920,
+    1080
+   ],
+   "place": [
+    2000,
+    -5,
+    1
+   ],
+   "ok": false,
+   "clamped": [
+    1920,
+    0,
+    1.0
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": 3,
+    "scale": [
+     0.5,
+     2
+    ]
+   },
+   "canvas": [
+    1920,
+    1080
+   ],
+   "place": [
+    10.4,
+    20.6,
+    0.4
+   ],
+   "ok": false,
+   "clamped": [
+    10,
+    21,
+    0.6667
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": 3,
+    "scale": [
+     0.5,
+     2
+    ]
+   },
+   "canvas": [
+    1920,
+    1080
+   ],
+   "place": [
+    10,
+    20,
+    2.2
+   ],
+   "ok": false,
+   "clamped": [
+    10,
+    20,
+    2.0
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": null,
+    "scale": [
+     0.75,
+     1.5
+    ]
+   },
+   "canvas": [
+    1080,
+    2340
+   ],
+   "place": [
+    540,
+    900,
+    1.234
+   ],
+   "ok": true,
+   "clamped": [
+    540,
+    900,
+    1.23
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": null,
+    "scale": [
+     0.75,
+     1.5
+    ]
+   },
+   "canvas": [
+    1080,
+    2340
+   ],
+   "place": [
+    540,
+    900,
+    1.6
+   ],
+   "ok": false,
+   "clamped": [
+    540,
+    900,
+    1.5
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": null,
+    "scale": [
+     0.75,
+     1.5
+    ]
+   },
+   "canvas": [
+    1080,
+    2340
+   ],
+   "place": [
+    540,
+    900,
+    0.7
+   ],
+   "ok": false,
+   "clamped": [
+    540,
+    900,
+    0.75
+   ]
+  },
+  {
+   "motif": {
+    "at": [
+     1305,
+     498
+    ],
+    "extent": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "handle": [
+     -279,
+     -279,
+     558,
+     558
+    ],
+    "overscan": false,
+    "cell": null,
+    "scale": [
+     0.75,
+     1.5
+    ]
+   },
+   "canvas": [
+    1080,
+    2340
+   ],
+   "place": [
+    1080,
+    2340,
+    1.5
+   ],
+   "ok": true,
+   "clamped": [
+    1080,
+    2340,
+    1.5
+   ]
+  }
+ ]
+}

@@ -174,6 +174,11 @@ def _import(path: Path, name: str, keep: bool) -> Design[Params]:
     return cast("Design[Params]", draw)
 
 
+def quiet() -> contextlib.AbstractContextManager[object]:
+    """A block whose prints go to stderr, as a design's always do."""
+    return contextlib.redirect_stdout(sys.stderr)
+
+
 def draw(piece: Piece, spec: RenderSpec, cache: bool = True) -> Document:
     """piece.draw(spec) with the design's prints sent to stderr. With `cache`, the last
     DOC_CACHE documents are reused by (piece, spec); checks that compare draws pass False."""
@@ -182,7 +187,7 @@ def draw(piece: Piece, spec: RenderSpec, cache: bool = True) -> Document:
     if doc is not None:
         _DOCS.move_to_end(key)
         return doc
-    with contextlib.redirect_stdout(sys.stderr):
+    with quiet():
         doc = piece.draw(spec)
     if cache:
         _DOCS[key] = doc

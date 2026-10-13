@@ -1,4 +1,5 @@
 import pytest
+from fixtures import pieces
 from PIL import Image
 from tools_support import FLAT, TINY, piece, versions
 
@@ -128,3 +129,30 @@ def test_fit_crop_centers_on_the_focus_within_the_canvas():
     assert y == pytest.approx(1080 - h)
     x, y, w, h = raster.fit_crop("9:19.5", (0.5, 0.5))
     assert (y, h) == (0.0, 1080.0) and x == pytest.approx((1920 - w) / 2)
+
+
+def test_render_places_the_motif(wallpapers, capsys):
+    pieces.install(wallpapers, "motif")
+    assert cli.main(["render", "motif", "--place", "200,300,1.5", "-o", "-"]) == 0
+    placed = capsys.readouterr().out
+    assert '<g data-motif="" transform="translate(200 300) scale(1.5)">' in placed
+    assert placed.replace("translate(200 300) scale(1.5)", "translate(1152 540)") == (
+        loader.render("motif", "fireproof")
+    )
+
+
+@pytest.mark.parametrize(
+    ("slug", "place", "message"),
+    [
+        ("tiny", "0,0,1", "tiny has no motif to place; drop --place"),
+        ("motif", "-1,0,1", "--place: the anchor (-1, 0) is off the 1920x1080 canvas"),
+        ("motif", "0,0,4", "--place: the size 4 is outside 0.5..2"),
+        ("motif", "0,0", "a placement is X,Y,K"),
+    ],
+)
+def test_render_refuses_a_placement(wallpapers, capsys, slug, place, message):
+    piece(wallpapers, "tiny")
+    pieces.install(wallpapers, "motif")
+    with pytest.raises(SystemExit) as e:
+        cli.main(["render", slug, f"--place={place}", "-o", "-"])
+    assert e.value.code == 2 and message in capsys.readouterr().err

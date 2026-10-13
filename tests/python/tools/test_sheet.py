@@ -1,6 +1,7 @@
 import shutil
 
 import pytest
+from fixtures import pieces
 from PIL import Image
 from tools_support import FLAT, built, piece, versions
 
@@ -78,3 +79,18 @@ def test_sheet_default_path(wallpapers, tmp_path, monkeypatch, capsys):
     assert capsys.readouterr().out.strip() == str(tmp_path / "sheet-fireproof.png")
     with pytest.raises(SystemExit, match="nothing to put on a sheet"):
         sheet.run([], parse_seeds(None), 4, 64, None)
+
+
+def test_sheet_shows_the_motif_at_its_extremes(wallpapers, tmp_path, capsys):
+    pieces.install(wallpapers, "motif")
+    out = tmp_path / "p.png"
+    args = ["sheet", "motif", "--placements", "--thumb", "160", "-o", str(out)]
+    assert cli.main(args) == 0
+    with Image.open(out) as im:
+        assert im.size == (4 * 168 + 8, 3 * (90 + 30) + 8)
+    piece(wallpapers, "tiny")
+    with pytest.raises(SystemExit) as e:
+        cli.main(["sheet", "tiny", "--placements"])
+    assert e.value.code == 2 and "tiny has no motif" in capsys.readouterr().err
+    with pytest.raises(SystemExit):
+        cli.main(["sheet", "motif", "tiny", "--placements"])

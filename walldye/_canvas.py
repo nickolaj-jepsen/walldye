@@ -1,4 +1,5 @@
-"""The drawing surface a design's draw() receives, and its clip, mask and pattern sub-surfaces."""
+"""The drawing surface a design's draw() receives, its clip, mask and pattern sub-surfaces,
+and its motif block."""
 
 import hashlib
 import json
@@ -7,12 +8,12 @@ import re
 from collections.abc import Generator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from pathlib import Path as FsPath
-from typing import Any, Final, Literal, Unpack, override
+from typing import Any, Final, Literal, Unpack, final, override
 
 import numpy as np
 
 from ._affine import Affine
-from ._document import Builder, Line, Pending
+from ._document import Box, Builder, Line, MotifInfo, Pending
 from ._noise import Noise
 from ._params import Params
 from ._path import Path, fmt
@@ -37,6 +38,32 @@ from ._svg import (
 from ._vec import Num, Point, Rect, Vec, num, point
 
 _DATA_NAME: Final = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.(json|txt|npy)")
+SCALE: Final = (0.5, 2.0)  # the widest range of sizes a motif may offer a visitor
+
+
+@final
+class Motif:
+    """The inside of a `with s.motif(...) as m:` block, drawn in motif-local units around the
+    anchor."""
+
+    def __init__(self, cover: Rect) -> None:
+        """Internal: Canvas.motif makes these."""
+        self.cover: Final = cover
+        """The motif-local area that any allowed placement can show: what surroundings drawn
+        inside the motif fill so that the screen stays covered wherever it goes."""
+
+
+def _box(value: object, what: str) -> Box:
+    """A radius (a box centered on the origin) or a Rect, as (x, y, w, h). Raises TypeError
+    for anything else and ValueError for a size that is not above 0."""
+    if isinstance(value, Rect):
+        x, y, w, h = (num(v, what) for v in value)
+    else:
+        r = num(value, what)
+        x, y, w, h = -r, -r, 2 * r, 2 * r
+    if w <= 0 or h <= 0:
+        raise ValueError(f"{what} takes a radius or a Rect with a size above 0, got {value!r}")
+    return x, y, w, h
 
 
 class Canvas[Pm: Params = Params](Drawing):
@@ -45,43 +72,67 @@ class Canvas[Pm: Params = Params](Drawing):
 
     It lives for one draw; any use after draw() returns raises RuntimeError("the canvas is
     closed"). While a clip, mask or pattern block is open, drawing on the canvas or opening a
-    group, buckets or another such block raises RuntimeError.
+    group, buckets or another such block raises RuntimeError. Inside a motif block, the canvas
+    size and positions (w, h, center, frac, pick, inset) and mask() raise RuntimeError, and
+    once it closes nothing more may be drawn.
     """
 
     def __init__(
-        self, params: Pm, *, w: int, h: int, light: bool, doc: Builder, source: FsPath
+        self,
+        params: Pm,
+        *,
+        w: int,
+        h: int,
+        light: bool,
+        doc: Builder,
+        source: FsPath,
+        shift: tuple[float, float] = (0.0, 0.0),
     ) -> None:
-        """Internal: Design.draw creates the canvas."""
+        """Internal: Design.draw creates the canvas. `shift` moves every position center,
+        frac and pick return, for check's test that a motif carries everything placed."""
         self._params: Final = params
         self._w: Final = w
         self._h: Final = h
         self._light: Final = light
         self._doc: Final = doc
         self._data: Final = source.parent / "data"
+        self._shift: Final = shift
         self._open: Sub | None = None
         self._closed = False
+        self._depth = 0  # groups open around what is drawn now
+        self._motif: Literal["before", "open", "after"] = "before"
 
     def _live(self) -> None:
         if self._closed:
             raise RuntimeError("the canvas is closed")
+
+    def _layout(self, what: str) -> None:
+        self._live()
+        if self._motif == "open":
+            raise RuntimeError(
+                f"s.{what} is not available inside the motif, which may not depend on the"
+                " canvas or its place on it; size its surroundings from m.cover"
+            )
 
     @override
     def _target(self) -> list[Line | Pending]:
         self._live()
         if self._open is not None:
             raise RuntimeError(f"close the {self._open._name} block first")
+        if self._motif == "after":
+            raise RuntimeError("the motif is the last thing drawn; draw the rest before it")
         return self._doc.body
 
     @property
     def w(self) -> int:
         """The canvas width in pixels."""
-        self._live()
+        self._layout("w")
         return self._w
 
     @property
     def h(self) -> int:
         """The canvas height in pixels; the short side is always 1080."""
-        self._live()
+        self._layout("h")
         return self._h
 
     @property
@@ -105,13 +156,14 @@ class Canvas[Pm: Params = Params](Drawing):
     @property
     def center(self) -> Vec:
         """(w / 2, h / 2)."""
-        self._live()
-        return Vec(self._w / 2, self._h / 2)
+        self._layout("center")
+        return Vec(self._w / 2 + self._shift[0], self._h / 2 + self._shift[1])
 
     def frac(self, fx: Num, fy: Num) -> Vec:
         """The point (fx * w, fy * h)."""
-        self._live()
-        return Vec(num(fx, "frac") * self._w, num(fy, "frac") * self._h)
+        self._layout("frac")
+        x, y = num(fx, "frac") * self._w, num(fy, "frac") * self._h
+        return Vec(x + self._shift[0], y + self._shift[1])
 
     def pick(self, *, landscape: Point, portrait: Point, snap: Num | None = None) -> Vec:
         """The `landscape` fractions on a landscape canvas, else the `portrait` ones, scaled like
@@ -119,9 +171,9 @@ class Canvas[Pm: Params = Params](Drawing):
 
         Raises ValueError for a snap that is not above 0.
         """
-        self._live()
+        self._layout("pick")
         fx, fy = point(landscape if self._w >= self._h else portrait, "pick")
-        x, y = fx * self._w, fy * self._h
+        x, y = fx * self._w + self._shift[0], fy * self._h + self._shift[1]
         if snap is None:
             return Vec(x, y)
         k = num(snap, "pick snap")
@@ -134,7 +186,7 @@ class Canvas[Pm: Params = Params](Drawing):
 
         Raises ValueError when the result has no area.
         """
-        self._live()
+        self._layout("inset")
         m = num(margin, "inset")
         r = Rect(m, m, self._w - 2 * m, self._h - 2 * m)
         if r.w <= 0 or r.h <= 0:
@@ -273,7 +325,77 @@ class Canvas[Pm: Params = Params](Drawing):
         the group as a whole.
         """
         self._target()
-        return self._group(style_values(style, "group"))
+        return self._nested(style_values(style, "group"))
+
+    @contextmanager
+    def _nested(self, values: dict[str, object]) -> Generator[None]:
+        self._depth += 1
+        try:
+            with self._group(values):
+                yield
+        finally:
+            self._depth -= 1
+
+    @contextmanager
+    def motif(
+        self,
+        at: Point,
+        extent: Num | Rect | Literal["cover"],
+        *,
+        handle: Num | Rect | None = None,
+        cell: Num | None = None,
+        scale: tuple[Num, Num] = SCALE,
+    ) -> Generator[Motif]:
+        """The one thing on the canvas a visitor may move and resize: what is drawn inside the
+        block goes into <g data-motif="" transform="translate(at)">, in motif-local units around
+        `at`, and the site rewrites that transform to place it.
+
+        `extent` bounds every mark drawn inside: a radius, a Rect, or "cover" for a motif that
+        fills m.cover with its surroundings (an overscan motif), which then needs `handle`.
+        `handle`, a radius or Rect defaulting to the extent, is what a visitor grabs to move
+        it. `cell` is the motif's pixel cell, so sizes keep it a whole number of units.
+        `scale` is the range of sizes offered, (lo, hi) with SCALE[0] <= lo <= 1 <= hi <=
+        SCALE[1]. The anchor may go anywhere on the canvas.
+
+        Raises RuntimeError for a second motif, a motif inside a group or another block, or
+        any drawing after it closes; ValueError for an `at` off the canvas, a size that is not
+        above 0, a cell that is not above 0, a scale outside those bounds, or "cover" without
+        a handle; TypeError for an extent or handle of another type.
+        """
+        target = self._target()
+        if self._motif != "before":
+            raise RuntimeError("a design has one motif at most")
+        if self._depth > 0:
+            raise RuntimeError("open the motif on the canvas itself, outside any group")
+        x, y = point(at, "motif at")
+        # A shifted draw only compares what the motif holds, so its anchor may leave the canvas.
+        if self._shift == (0.0, 0.0) and not (0 <= x <= self._w and 0 <= y <= self._h):
+            raise ValueError(f"the motif's anchor ({x:g}, {y:g}) is off the canvas")
+        lo, hi = (num(v, "motif scale") for v in scale)
+        if not SCALE[0] <= lo <= 1 <= hi <= SCALE[1]:
+            raise ValueError(
+                f"motif scale is (lo, hi) with {SCALE[0]:g} <= lo <= 1 <= hi <= {SCALE[1]:g},"
+                f" got {scale!r}"
+            )
+        cover = Rect(-self._w / lo, -self._h / lo, 2 * self._w / lo, 2 * self._h / lo)
+        overscan = isinstance(extent, str)
+        if overscan and extent != "cover":
+            raise ValueError(f'motif extent is a radius, a Rect or "cover", got {extent!r}')
+        if overscan and handle is None:
+            raise ValueError('a motif with extent="cover" needs handle=')
+        box = tuple(cover) if overscan else _box(extent, "motif extent")
+        grab = box if handle is None else _box(handle, "motif handle")
+        k = None if cell is None else num(cell, "motif cell")
+        if k is not None and k <= 0:
+            raise ValueError(f"motif cell takes a number above 0, got {cell!r}")
+        target.append([f'<g data-motif="" transform="translate({fmt(x, 2)} {fmt(y, 2)})">'])
+        self._motif = "open"
+        try:
+            yield Motif(cover)
+        finally:
+            self._motif = "after"
+        self._doc.body.append(["</g>"])
+        self._doc.motif = MotifInfo((x, y), tuple(cover), box, grab, overscan, k, (lo, hi))
 
     @contextmanager
     def buckets(
@@ -322,8 +444,10 @@ class Canvas[Pm: Params = Params](Drawing):
     @contextmanager
     def mask(self) -> Generator[MaskSurface]:
         """A mask over the whole canvas: draw mask colors inside the block, then pass .ref as
-        mask=."""
+        mask=. Not inside a motif, whose units are not the canvas's."""
         self._target()
+        if self._motif == "open":
+            raise RuntimeError("a mask covers the canvas, so draw it outside the motif")
         surf = MaskSurface(Ref(self._doc.new_id("m"), "mask"), self._doc)
         with self._sub(surf):
             yield surf

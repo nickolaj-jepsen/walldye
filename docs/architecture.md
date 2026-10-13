@@ -35,6 +35,15 @@ The site offers the shapes in `SITE_ASPECTS`. The short side is always 1080 unit
 
 Any other shape is cropped from the 16:9 template, at full height or width, starting at `focus` (the ink-weighted centroid in slots.json). Visitors can slide it (`?crop=`).
 
+## Motifs
+
+A piece with one central object, a moon or a plate of sand, may let visitors move and resize it. The design draws it inside `s.motif(...)` around its anchor (api.md §7.10), and build writes it as the template's last element, `<g data-motif="" transform="translate(x y)">`. The site and `walldye render --place` place it by rewriting only that transform, to `translate(x y) scale(k)`, so a placement costs no drawing and needs no Python. The design's `pick` stays the default for each shape.
+
+- The anchor stays on the canvas, so a motif can hang off an edge but not leave. Sizes run from 0.5 to 2, and a design may narrow that range. Strokes scale with the rest.
+- A motif piece is built for every shape. A crop of 16:9 and a moved motif would be two controls for one thing.
+- Whatever moves with the motif goes inside it: a halo, the stem that reaches the ground, the lattice it sits on. Surroundings that must reach the screen's edges fill `m.cover` (an overscan motif); a repeating one is a pattern, so it costs one rect. Coverage is a review call, from `walldye sheet --placements`.
+- At most one motif per piece, so the plate needs one handle and the address one placement.
+
 ## Versions
 
 A version is a named variant a visitor can switch to, like another moon phase. Its values are a `Params` instance in design.py; its label, alt text, description and draft flag are in meta.yaml.
@@ -56,7 +65,8 @@ Pieces whose scripts were lost are a `source.svg` plus a `palette.yaml` mapping 
 - draws every shape and regime twice in-process and once under another `PYTHONHASHSEED`, and requires identical output;
 - shares the dark template with the light regime when the drawings match apart from color;
 - runs the held-out check, plus two probe themes: near-equal seeds, and hex values that sort opposite to fireproof's;
-- enforces the constant-slot rule, no text, filters or images, and at most 1 MB and 20,000 elements.
+- enforces the constant-slot rule, no text, filters or images, and at most 1 MB and 20,000 elements;
+- for a motif, requires every shape, draws again with every position `s.pick`, `s.frac` and `s.center` return moved, and requires the result to differ only in the motif's anchor; then rasterizes the motif alone and fails on ink outside its extent.
 
 A design's `@cached` functions (api.md §9.1) run once per process for each distinct call, so the in-process draws share them while the PYTHONHASHSEED process computes them afresh, which still tests that they are deterministic. Check and build never read the disk copies that preview, render and sheet keep: a stale file can mislead a preview, never a template.
 
@@ -72,4 +82,5 @@ walldye.com is a static Astro site, served as the static assets of a Cloudflare 
 - A plate moving between a grid and its page is a cross-document view transition (`src/client/transition/`). Only that one plate is named, or the whole index would fly into "See also". The listeners are inline in `<head>` because `pagereveal` fires before page modules load. The arriving plate is still empty then, so the leaving one stays opaque under it.
 - Site CSS uses the derived tokens with a contrast guard: 4.5:1 for text, 3:1 for controls and the focus ring. A failing role is nudged towards black or white just enough. Wallpapers always use the raw seeds.
 - The index can sort by page views. Cloudflare samples days once they're a few days old, so each finished day is saved while exact, as a file on the `stats` branch ([deploy.md](deploy.md), Page views). The loader totals them, follows renames through `public/_redirects`, and weighs recent days more (`HALF_LIFE_DAYS` in `src/server/views.ts`). The order is fixed at build time, so each `views.yml` run redeploys.
+- A placed motif is in the address (`?at=x,y&size=k`). While a visitor drags it or moves its ranges, the plate shows two live layers cut from the recolored template, the picture without the motif and the motif alone, and moves the second with CSS. On release the plate redraws with the new transform and the layers go. An overscan motif's layer covers the canvas plus a quarter on every side, and is cut again around the motif when a drag leaves an edge bare. Changing shape returns the motif to that shape's own place and keeps its size.
 - The client needs OffscreenCanvas in workers (Safari 16.4+). Export runs in the browser: the recolored SVG is cropped via its viewBox, and resvg-wasm rasterizes PNG, WebP and JPEG in a worker. Only pixel pieces' `px` paths get `crispEdges`; on the root it would make curves jagged.

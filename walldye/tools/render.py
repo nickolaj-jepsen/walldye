@@ -6,7 +6,7 @@ from pathlib import Path
 
 from walldye._aspect import canvas_size, supports
 from walldye._design import RenderSpec
-from walldye.tools import loader, paths, raster, themes
+from walldye.tools import loader, motif, paths, raster, themes
 from walldye.tools.errors import UsageError
 from walldye.tools.paths import aspect_label
 from walldye.tools.themes import theme_token
@@ -19,6 +19,7 @@ def run(
     aspect: str = "16:9",
     variant: str = "default",
     crop: raster.Crop | None = None,
+    place: motif.Place | None = None,
     fit: bool = False,
     overrides: Sequence[str] = (),
     output: str | None = None,
@@ -26,10 +27,11 @@ def run(
 ) -> int:
     """`walldye render`: draw `variant` of `slug` under `seeds` at `aspect` and write it to
     `output` (an SVG, a PNG `width` px wide, or "-" for stdout; default
-    <slug>[--variant]-<theme>-<aspect>[-crop].svg), cut to `crop` when given. An aspect the
-    design does not declare needs `fit`, which cuts it from 16:9 around the focus. UsageError
-    for an undeclared aspect without `fit`, `fit` with a crop, a bad override or a width
-    without a PNG; exits without writing into a build/ folder."""
+    <slug>[--variant]-<theme>-<aspect>[-crop].svg), with its motif at `place` and cut to
+    `crop` when given. An aspect the design does not declare needs `fit`, which cuts it from
+    16:9 around the focus. UsageError for an undeclared aspect without `fit`, `fit` with a
+    crop, a bad override, a placement for a piece without a motif or one a visitor could not
+    make, or a width without a PNG; exits without writing into a build/ folder."""
     piece = loader.load(slug)
     loader.variant_of(piece, slug, variant)
     native = supports(piece.declared_aspects, aspect)
@@ -50,6 +52,13 @@ def run(
     drawn = "16:9" if fit else aspect
     doc = loader.draw(piece, RenderSpec(variant, params, drawn, themes.regime_of(seeds)))
     svg = doc.to_svg(themes.tokens_of(seeds))
+    if place is not None:
+        if doc.motif is None:
+            raise UsageError(f"{slug} has no motif to place; drop --place")
+        wrong = motif.problems(doc.motif, doc.w, doc.h, place)
+        if len(wrong) > 0:
+            raise UsageError(f"--place: {'; '.join(wrong)}")
+        svg = motif.place(svg, *place)
     if fit:
         focus = raster.template_focus(slug, variant, overrides)
         crop = raster.fit_crop(aspect, focus)

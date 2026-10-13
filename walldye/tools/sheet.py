@@ -1,5 +1,6 @@
-"""`walldye sheet`: a contact-sheet PNG of built templates, or of one design drawn afresh
-for every combination of `--wedge` values and `--seeds`."""
+"""`walldye sheet`: a contact-sheet PNG of built templates, of one design drawn afresh for
+every combination of `--wedge` values and `--seeds`, or of one design's motif at the far
+corners of where a visitor can put it."""
 
 import itertools
 import math
@@ -10,7 +11,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from walldye._design import RenderSpec
-from walldye.tools import knobs, loader, metadata, raster, recolor, themes
+from walldye.tools import knobs, loader, metadata, motif, raster, recolor, themes
 from walldye.tools.errors import UsageError
 from walldye.tools.paths import aspect_label
 from walldye.tools.preview import preview_dir
@@ -148,3 +149,41 @@ def run_fresh(
     name = slug if variant == "default" else f"{slug}--{variant}"
     default = preview_dir() / f"sheet-{name}-{theme_token(seeds)}-{aspect_label(aspect)}.png"
     return _save(_grid(cells, per_row, thumb), Path(out) if out is not None else default)
+
+
+def run_placements(
+    slug: str,
+    seeds: dict[str, str],
+    cols: int | None,
+    thumb: int,
+    out: str | None,
+    variant: str = "default",
+    aspect: str = "16:9",
+) -> int:
+    """Draw `variant` of `slug` under `seeds` at `aspect` with its motif where it was drawn and
+    then anchored on each canvas corner at the smallest and largest size, and write the
+    labeled sheet (`cols` per row, default 4) to `out`, default
+    preview_dir()/sheet-<slug>[--<variant>]-<token>-<aspect>-placements.png: the extremes a
+    review checks for surroundings that leave the screen uncovered. UsageError for an
+    undeclared variant or a design without a motif."""
+    piece = loader.load(slug)
+    loader.variant_of(piece, slug, variant)
+    spec = RenderSpec(variant, piece.params(variant), aspect, themes.regime_of(seeds))
+    doc = loader.draw(piece, spec)
+    if doc.motif is None:
+        raise UsageError(f"{slug} has no motif to place")
+    svg = doc.to_svg(themes.tokens_of(seeds))
+    x, y = doc.motif.at
+    cells = [(f"drawn ({x:g}, {y:g})", raster.rasterize(svg, thumb))]
+    for k in doc.motif.scale:
+        for cx, cy in ((0, 0), (doc.w, 0), (0, doc.h), (doc.w, doc.h)):
+            placed = motif.place(svg, cx, cy, k)
+            cells.append((f"({cx}, {cy}) at {k:g}", raster.rasterize(placed, thumb)))
+    name = slug if variant == "default" else f"{slug}--{variant}"
+    default = (
+        preview_dir() / f"sheet-{name}-{theme_token(seeds)}-{aspect_label(aspect)}-placements.png"
+    )
+    return _save(
+        _grid(cells, 4 if cols is None else cols, thumb),
+        Path(out) if out is not None else default,
+    )

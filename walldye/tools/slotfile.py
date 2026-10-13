@@ -31,18 +31,19 @@ def output(
 ) -> dict[str, object]:
     """The part of slots.json a version's draws decide, the keys Slots.output() reads back:
     focus (the center without a 16:9 dark template), cells, then each of `entries` with the
-    sha256 of its template in `templates` (file name -> svg)."""
+    sha256 of its template in `templates` (file name -> svg) and its motif, if any."""
     shas = {name: hashing.sha256(text.encode()) for name, text in templates.items()}
-    table: dict[str, Entry] = {
-        k: {
+    table: dict[str, Entry] = {}
+    for k, e in entries.items():
+        table[k] = {
             "file": e["file"],
             "sha256": shas[e["file"]],
             "n": e["n"],
             "coefs": e["coefs"],
             "occ": e["occ"],
         }
-        for k, e in entries.items()
-    }
+        if "motif" in e:
+            table[k]["motif"] = e["motif"]
     center = (0.5, 0.5) if focus is None else focus
     return {"focus": list(center), "cells": list(cells), **table}
 
@@ -119,6 +120,11 @@ def parse(data: Mapping[str, object]) -> Slots:
         if len(indices) != len(occ):
             raise ValueError(f"slots.json: {k} occ indexes coefs")
         entries[k] = {"file": file, "sha256": sha, "n": n, "coefs": table, "occ": indices}
+        if "motif" in e:
+            place = metadata.as_dict(e["motif"])
+            if place is None:
+                raise ValueError(f"slots.json: {k} motif is not an object")
+            entries[k]["motif"] = place
     return Slots(fields, entries)
 
 

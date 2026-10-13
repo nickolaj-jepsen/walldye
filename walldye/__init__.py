@@ -1,7 +1,7 @@
 """The core design API; the helpers live in walldye.geom, walldye.field and walldye.pixel."""
 
 from ._cache import cached
-from ._canvas import Canvas
+from ._canvas import Canvas, Motif
 from ._color import (
     ACCENT,
     ACCENT_1,
@@ -87,6 +87,7 @@ __all__ = [
     "MaskPaint",
     "MaskStop",
     "MaskSurface",
+    "Motif",
     "NpRng",
     "Num",
     "P",
