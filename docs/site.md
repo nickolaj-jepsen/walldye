@@ -129,6 +129,7 @@ The rules each component keeps; what it does is in its `.astro` file and its cli
 - Before JavaScript runs, a plate is an empty box of the grid's shape on `--seed-bg`, and an inline script sets the shape before first paint, so nothing reflows.
 - Detail source order is label, controls, notes, so on a phone the export panel comes straight after the label.
 - A composed shape sits in a 1px `--text` frame. A cropped one shows the crop window: a 1px `--text` frame with everything outside dimmed by 55% `--bg`; the range input stays the keyboard control.
+- A piece with a motif has an invisible handle over it on the plate, framed 1px `--text` on hover; only the handle takes `touch-action: none`, so a swipe elsewhere scrolls. The Position (across, down) and Scale ranges are the keyboard control, and Reset, underlined text, shows once the motif has moved.
 - Only the carried plate gets a view transition (0.3s); every other link changes the page at once.
 
 ### 6.4 Label, footnotes and controls

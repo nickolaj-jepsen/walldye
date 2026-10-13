@@ -149,14 +149,21 @@ function discard(src: Source): void {
   if (src.blob) URL.revokeObjectURL(src.url);
 }
 
-async function sourceFor(data: PlateData, aspect: Aspect, seeds: Seeds): Promise<Source> {
-  if (isFireproof(seeds)) {
+/** The image for `data`'s `aspect` template recolored for `seeds`, with `edit` applied to its text when given. */
+async function sourceFor(
+  data: PlateData,
+  aspect: Aspect,
+  seeds: Seeds,
+  edit?: (svg: string) => string,
+): Promise<Source> {
+  if (isFireproof(seeds) && !edit) {
     const url = data.templates[`${aspect}/dark`];
     if (url) return { url, blob: false };
   }
   const r = await recolored(data, aspect, seeds);
-  if (r.untouched) return { url: r.url, blob: false };
-  return { url: URL.createObjectURL(new Blob([r.svg], { type: 'image/svg+xml' })), blob: true };
+  if (r.untouched && !edit) return { url: r.url, blob: false };
+  const svg = edit ? edit(r.svg) : r.svg;
+  return { url: URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })), blob: true };
 }
 
 const generation = new WeakMap<HTMLElement, number>();
@@ -234,19 +241,24 @@ function showTemplate(plate: HTMLElement, data: PlateData, aspect: Aspect, regim
 /**
  * Shows `data`'s `aspect` template recolored for `seeds` on `plate`, retrying failed loads
  * (retrying()); meanwhile an empty plate gets the untouched template, so its alt text stands in.
- * `shown` runs once the image is in; `wanted` false drops it from the queue while it waits. Returns a
- * function that stops it, after which it swaps nothing in.
+ * `edit` rewrites the recolored text before it is shown; `shown` runs once the image is in; `wanted`
+ * false drops it from the queue while it waits. Returns a function that stops it, after which it
+ * swaps nothing in.
  */
 export function keepShowing(
   plate: HTMLElement,
   data: PlateData,
   aspect: Aspect,
   seeds: Seeds,
-  { shown, wanted }: { shown?: () => void; wanted?: () => boolean } = {},
+  {
+    edit,
+    shown,
+    wanted,
+  }: { edit?: (svg: string) => string; shown?: () => void; wanted?: () => boolean } = {},
 ): () => void {
   const ctrl = new AbortController();
   const turn = { near: plate, wanted: () => !ctrl.signal.aborted && (wanted?.() ?? true) };
-  const draw = () => sourceFor(data, aspect, seeds);
+  const draw = () => sourceFor(data, aspect, seeds, edit);
   const stop = retrying(
     () => plates.run(() => show(plate, aspect, data.alt, draw, ctrl.signal), turn),
     {

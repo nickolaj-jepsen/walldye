@@ -10,6 +10,7 @@ import {
   fileStem,
   SITE_ASPECTS,
 } from './content';
+import { type Placement, placeMotif } from './motif';
 
 export interface Box {
   x: number;
@@ -166,6 +167,8 @@ export interface ExportShape {
   native: boolean;
   /** Crop position, used only when not native. */
   t: number;
+  /** Where the visitor put the motif; absent or null leaves it where the design drew it. */
+  place?: Placement | null;
 }
 
 /** The template aspect an export reads and the box of that canvas it shows. */
@@ -177,10 +180,15 @@ export function sourceBox(shape: ExportShape): { aspect: Aspect; box: Box } {
   return { aspect: '16:9', box: cropBox(shape.aspect, shape.t) };
 }
 
-/** The recolored SVG as an SVG download: cut to the shape's box at its canvas size, titled. */
+/** `svg` with its motif where `shape` puts it. */
+function placed(svg: string, shape: ExportShape): string {
+  return shape.place ? placeMotif(svg, shape.place) : svg;
+}
+
+/** The recolored SVG as an SVG download: its motif placed, cut to the shape's box at its canvas size, titled. */
 export function svgExport(svg: string, shape: ExportShape, title: string, desc: string): string {
   const { box } = sourceBox(shape);
-  return withTitle(setRoot(svg, box, box.w, box.h), title, desc);
+  return withTitle(setRoot(placed(svg, shape), box, box.w, box.h), title, desc);
 }
 
 /** Pixels per canvas unit when `shape` is exported at `width`×`height`. */
@@ -189,8 +197,9 @@ export function exportScale(shape: ExportShape, width: number, height: number): 
 }
 
 /**
- * The recolored SVG prepared for rasterizing at exactly `width`×`height` (the viewBox is the largest
- * box of that ratio inside the shape's box, sliced to fill), and `scale`, pixels per canvas unit.
+ * The recolored SVG prepared for rasterizing at exactly `width`×`height` (its motif placed, the viewBox
+ * the largest box of that ratio inside the shape's box, sliced to fill), and `scale`, pixels per
+ * canvas unit.
  */
 export function rasterSvg(
   svg: string,
@@ -199,11 +208,14 @@ export function rasterSvg(
   height: number,
 ): { svg: string; scale: number } {
   const rect = fitRect(sourceBox(shape).box, width / height);
-  return { svg: setRoot(svg, rect, width, height, 'xMidYMid slice'), scale: width / rect.w };
+  return {
+    svg: setRoot(placed(svg, shape), rect, width, height, 'xMidYMid slice'),
+    scale: width / rect.w,
+  };
 }
 
 /**
- * The `uv run walldye render` command for this version, shape and crop;
+ * The `uv run walldye render` command for this version, shape, crop and placement;
  * `--variant` only for a named variant. It draws the same picture as the SVG download; the file
  * differs in the crop's rounding (3 decimals here, 4 in the download) and has no `<title>`/`<desc>`.
  */
@@ -220,6 +232,10 @@ export function renderCommand(
   if (!shape.native) {
     const b = cropBox(shape.aspect, shape.t);
     parts.push('--crop', [b.x, b.y, b.w, b.h].map((v) => num(v, 3)).join(','));
+  }
+  if (shape.place) {
+    const { x, y, k } = shape.place;
+    parts.push('--place', [num(x, 2), num(y, 2), num(k, 4)].join(','));
   }
   parts.push(
     '-o',

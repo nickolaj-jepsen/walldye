@@ -482,6 +482,37 @@ abbr {
   transform: translateY(50%);
 }
 
+/* A piece's motif over the plate's picture: the template's own box inside it, as object-fit: contain
+   places it, holding the handle a visitor drags and, while the motif moves, the picture without it
+   (.ground) and the motif alone. */
+.motif-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: var(--ratio);
+  container-type: size;
+  pointer-events: none;
+}
+.motif-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, 100cqh * var(--canvas-ratio, 16 / 9));
+  height: min(100cqh, 100cqw / var(--canvas-ratio, 16 / 9));
+  translate: -50% -50%;
+}
+.plate .motif-canvas > img { max-width: none; aspect-ratio: auto; height: auto; object-fit: fill; transition: none; }
+.plate .motif-canvas > img.ground { inset: 0; width: 100%; height: 100%; }
+.motif-handle {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+.motif-handle:hover, .motif-handle:active { box-shadow: inset 0 0 0 1px var(--text); }
+.motif-handle:active { cursor: grabbing; }
+
 .below {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 30rem;

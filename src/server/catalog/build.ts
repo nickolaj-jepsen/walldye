@@ -9,11 +9,11 @@ import { licenseOf, namedVariants, variantsMeta } from '../meta';
 import { rootPath, WALLPAPERS } from './files';
 import type { template, version } from './schema';
 
-type SlotsEntry = { file: string; sha256: string; n: number };
+type SlotsEntry = { file: string; sha256: string; n: number; motif?: unknown };
 
 const sha256 = (data: Buffer | string) => createHash('sha256').update(data).digest('hex');
 
-/** The templates, slots.json and focus of one build directory; throws naming the file when it is stale. */
+/** The templates, slots.json, focus and motif flag of one build directory; throws naming the file when it is stale. */
 export function readBuild(slug: string, dir: string) {
   const run = `run walldye build ${slug}`;
   const slotsPath = join(dir, 'slots.json');
@@ -49,6 +49,7 @@ export function readBuild(slug: string, dir: string) {
     slotsUrl: servedUrl(slotsHash, 'slots.json'),
     slotsPath: rootPath(slotsPath),
     focus: (Array.isArray(slots.focus) ? slots.focus : [0.5, 0.5]) as [number, number],
+    motif: Boolean((slots['16:9/dark'] as SlotsEntry).motif),
   };
 }
 

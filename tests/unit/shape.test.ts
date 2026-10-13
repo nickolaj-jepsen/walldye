@@ -108,6 +108,15 @@ describe('SVG rewriting', () => {
     );
   });
 
+  it('places the motif in both downloads', () => {
+    const svg = `${ROOT}<g data-motif="" transform="translate(960 540)">\n</g>\n</svg>`;
+    const shape = { aspect: '16:9', native: true, t: 0, place: { x: 10, y: 20, k: 1.5 } } as const;
+    const placed = 'transform="translate(10 20) scale(1.5)"';
+    expect(svgExport(svg, shape, 'T', 'D')).toContain(placed);
+    expect(rasterSvg(svg, shape, 1920, 1080).svg).toContain(placed);
+    expect(svgExport(svg, { ...shape, place: null }, 'T', 'D')).toContain('translate(960 540)"');
+  });
+
   it('sizes raster input to the exact pixels', () => {
     const { svg, scale } = rasterSvg(
       `${ROOT}</svg>`,
@@ -176,6 +185,19 @@ describe('renderCommand', () => {
       }),
     ).toBe(
       'uv run walldye render loose-squares --theme 0a0a0a-f0f0f0-ff0000 --crop 0,128.571,1920,822.857 -o loose-squares-0a0a0a-f0f0f0-ff0000-21x9-crop.svg',
+    );
+  });
+
+  it('passes a placement', () => {
+    expect(
+      renderCommand('dither-moon', 'default', 'nord', {
+        aspect: '16:9',
+        native: true,
+        t: 0,
+        place: { x: 200, y: 300, k: 1.3333 },
+      }),
+    ).toBe(
+      'uv run walldye render dither-moon --theme nord --place 200,300,1.3333 -o dither-moon-nord-16x9.svg',
     );
   });
 
