@@ -1,4 +1,4 @@
-/** Reading the hooks the server-rendered pages give the client (DOM.md). */
+/** Reading the hooks the server-rendered pages give the client. */
 
 /** The first element under `root` matching `selector`; throws when there is none, so a missing hook fails loudly. */
 export function must<T extends Element = HTMLElement>(
