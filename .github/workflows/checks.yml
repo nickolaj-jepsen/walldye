@@ -1,8 +1,8 @@
-name: Lint
+name: Checks
 
-# Every change, docs included: ruff formats the ```python blocks in Markdown too. The prek hook
-# (.pre-commit-config.yaml) runs the same checks before a commit. `astro check` needs a build, so
-# ci.yml runs it.
+# Formatting, lint, types and pytest on every change, docs included: ruff formats the ```python
+# blocks in Markdown too. The prek hook (.pre-commit-config.yaml) runs most of them before a commit.
+# `astro check` and vitest need a build, so ci.yml runs them.
 on:
   push:
     branches: [main]
@@ -12,7 +12,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: lint-${{ github.event.pull_request.number || github.ref }}
+  group: checks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -49,3 +49,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec biome ci
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Pyrefly, the library at the strictest preset
+        run: uv run pyrefly check
+      - name: Pyrefly, the designs at the design level
+        run: uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py
+      - run: uv run pytest
