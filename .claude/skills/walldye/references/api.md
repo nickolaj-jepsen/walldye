@@ -17,6 +17,25 @@ SKILL.md's Examples table are complete designs.
 | 16:10 | 1728x1080 | 9:19.5 | 1080x2340 |
 | 21:9 | 2520x1080 | 10:16 | 1080x1728 |
 
+## Motifs
+
+A piece built around one object a visitor may want elsewhere (a moon, a plate, a tribar) draws it
+inside `s.motif` (docs/api.md §7.10), in local units around the anchor, last of all:
+
+```python
+c = s.pick(landscape=(0.68, 0.46), portrait=(0.56, 0.34), snap=CELL)
+with s.motif(c, R, cell=CELL):  # R bounds every mark; cell keeps sizes on whole cells
+    grid_runs(s, grid, [None, ACCENT], CELL, (-n * CELL, -n * CELL))
+```
+
+- Everything placed from `c` goes inside: a halo, a shadow, the stem. Check redraws with every
+  position moved and fails when anything outside the motif moved too.
+- Size things from the screen before the block opens (`s.w`, `s.h`), never from `c`: dandelion
+  fits its drift once to the head's default place, then draws it relative to the head.
+- Surroundings that reach the screen's edges take `extent="cover"` and fill `m.cover`, with a
+  `handle=` around the object itself; a repeating one is an `s.pattern` on one rect
+  (impossible-triangle). Look at `uv run walldye sheet <slug> --placements` for gaps.
+
 ## Colors
 
 - Quantize continuous tone into a module-level ladder and bucket by rung, one element per rung:

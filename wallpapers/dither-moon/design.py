@@ -93,4 +93,5 @@ def draw(s: Canvas[Moon]) -> None:
     # A sparse one-cell limb ring keeps the silhouette round where the dark side fades out.
     ring = (np.abs(rr - 1 + 0.5 * CELL / R) < 0.5 * CELL / R) & ((xs + ys) % 2 == 0)
     grid[ring] = 1
-    grid_runs(s, grid, [None, ACCENT], CELL, c - (n * CELL, n * CELL))
+    with s.motif(c, n * CELL, cell=CELL):
+        grid_runs(s, grid, [None, ACCENT], CELL, (-n * CELL, -n * CELL))

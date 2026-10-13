@@ -9,7 +9,7 @@ from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, ACCENT_2, ACCENT_4, BG_ALT, UI, Canvas, P, Vec, by_regime, design
+from walldye import ACCENT, ACCENT_2, ACCENT_4, BG_ALT, UI, Canvas, P, Rect, Vec, by_regime, design
 from walldye.geom import Affine
 
 N = 9  # cubes per bar, corners shared
@@ -19,6 +19,7 @@ OVER = 4  # construction lines run this many cube edges past each outer corner (
 # and +z the deepest
 FACES = (ACCENT_2, by_regime(ACCENT, ACCENT_4), by_regime(ACCENT_4, ACCENT))
 DOT = 1.5  # lattice dot radius
+TILE = (12, 10)  # lattice cells across and down one pattern tile
 
 type Cube = tuple[int, int, int]
 
@@ -77,40 +78,46 @@ def draw(s: Canvas) -> None:
     # the silhouette's bounding box is centered on c (right of center, or high on a phone)
     iso = Affine(1, 0, -0.5, -math.sqrt(3) / 2, 0, 0)
     flat = iso.apply(ring)
-    mid = (flat.min(axis=0) + flat.max(axis=0)) / 2
+    lo, hi = flat.min(axis=0), flat.max(axis=0)
+    mid = (lo + hi) / 2
     c = s.pick(landscape=(1220 / 1920, 560 / 1080), portrait=(0.5, 0.42))
-    to_screen = (
-        Affine.translate(c.x, c.y)
-        @ Affine.scale(E)
-        @ Affine.translate(-float(mid[0]), -float(mid[1]))
-        @ iso
-    )
-
-    # the lattice at half a cube edge, over the whole canvas
-    inv = to_screen.inverse().apply([(0, 0), (s.w, 0), (0, s.h), (s.w, s.h)])
-    lo, hi = np.floor(inv.min(axis=0) * 2) - 1, np.ceil(inv.max(axis=0) * 2) + 1
-    js, is_ = np.mgrid[int(lo[1]) : int(hi[1]) + 1, int(lo[0]) : int(hi[0]) + 1]
-    pts = to_screen.apply(np.column_stack([is_.ravel(), js.ravel()]) / 2)
-    keep = (pts[:, 0] > -5) & (pts[:, 0] < s.w + 5) & (pts[:, 1] > -5) & (pts[:, 1] < s.h + 5)
-    dots = P()
-    for x, y in pts[keep].tolist():
-        dots.M(x, y).H(x)  # a round-capped zero-length segment: a disc in a third of the bytes
-    s.stroke(dots, BG_ALT, 2 * DOT, cap="round")
-
-    # construction: the three long outer edges run on past the truncated corners and cross at
-    # the ideal triangle's apexes, each end marked with a small ring; one edge shorter on a
-    # portrait screen, whose width would otherwise leave the rings about 60 units from its sides
+    to_local = Affine.scale(E) @ Affine.translate(-float(mid[0]), -float(mid[1])) @ iso
+    half = (hi - lo) * E / 2
     over = OVER if s.landscape else OVER - 1
-    lines = P()
-    for p0, p1 in pairwise(ring):
-        steps = float(np.abs(p1 - p0).max())
-        if steps < N / 2:
-            continue
-        unit = (p1 - p0) / steps
-        for p, k in ((p0, -over), (p1, over)):
-            a, b = to_screen.apply([p, p + unit * k])
-            lines.M(a[0], a[1]).L(b[0], b[1]).circle(Vec(b[0], b[1]), 3)
-    s.stroke(lines, UI, 1.2)
 
-    for g, paint in zip(regions, FACES, strict=True):
-        s.fill(P().shape(shapely.transform(g, to_screen.apply)), paint)
+    with s.motif(c, "cover", handle=Rect(-half[0], -half[1], 2 * half[0], 2 * half[1])) as m:
+        # the lattice at half a cube edge, wherever the tribar goes, as a pattern of TILE
+        # centered rectangular cells; renderers round a tile to whole pixels, so a large one
+        # keeps the dots from drifting off the tribar's vertices, and its edge dots repeat so
+        # that each is whole
+        w, h = E / 2, E * math.sqrt(3) / 2
+        cols, rows = TILE
+        o = to_local.apply([(0, 0)])[0]
+        shift = Affine.translate(float(o[0]), float(o[1]))
+        with s.pattern(cols * w, rows * h, transform=shift) as tile:
+            dots = P()
+            for i in range(cols + 1):
+                for j in range(rows + 1):
+                    dots.M(i * w, j * h).H(i * w)  # a round-capped zero-length segment: a disc
+                    if i < cols and j < rows:
+                        dots.M((i + 0.5) * w, (j + 0.5) * h).H((i + 0.5) * w)
+            tile.stroke(dots, BG_ALT, 2 * DOT, cap="round")
+        s.fill(P().rect(*m.cover), tile.ref)
+
+        # construction: the three long outer edges run on past the truncated corners and cross
+        # at the ideal triangle's apexes, each end marked with a small ring; one edge shorter on
+        # a portrait screen, whose width would otherwise leave the rings about 60 units from its
+        # sides
+        lines = P()
+        for p0, p1 in pairwise(ring):
+            steps = float(np.abs(p1 - p0).max())
+            if steps < N / 2:
+                continue
+            unit = (p1 - p0) / steps
+            for p, k in ((p0, -over), (p1, over)):
+                a, b = to_local.apply([p, p + unit * k])
+                lines.M(a[0], a[1]).L(b[0], b[1]).circle(Vec(b[0], b[1]), 3)
+        s.stroke(lines, UI, 1.2)
+
+        for g, paint in zip(regions, FACES, strict=True):
+            s.fill(P().shape(shapely.transform(g, to_local.apply)), paint)
