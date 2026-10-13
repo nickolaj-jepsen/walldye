@@ -20,7 +20,6 @@ export function wallpapers(): Loader {
     name: 'walldye-wallpapers',
     async load(context: LoaderContext) {
       const { store, parseData, generateDigest, renderMarkdown, watcher, logger } = context;
-      // Only the PR preview sets WALLDYE_DRAFTS; the dist e2e tests and production serves never does.
       const dev = import.meta.env.DEV || process.env.WALLDYE_DRAFTS === '1';
 
       const sync = async () => {

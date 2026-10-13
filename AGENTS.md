@@ -26,7 +26,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 - `wallpapers/taxonomy.yaml`: the allowed facet values for meta.yaml, each with the words the site shows for it, and the credit name of each model id.
 - `wallpapers/featured.yaml`: the pieces the index opens on, in order, chosen by the owner.
 - `src/`: the site. `src/lib/` is pure code any side may import (no DOM, Node or Astro runtime): the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for the facets and licenses (taxonomy.yaml has those for facet values and models). `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time (the collection in `src/server/catalog/`, meta.yaml's schema helpers and taxonomy.yaml).
-- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs), `unit/` (vitest, self-contained), `parity/` (vitest against the Python output), `e2e/` (Playwright), and `fixtures/`, the gitignored Python renders and fixtures the parity tests read.
+- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs), `unit/` (vitest, self-contained), `parity/` (vitest against the Python output), and `fixtures/`, the gitignored Python renders and fixtures the parity tests read.
 - `scripts/fixtures/`: `regen.py` writes `tests/fixtures/` from a build.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/promo/`: records the promo clip into `promo/`, gitignored.
@@ -42,7 +42,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 
 ## Rules
 
-- Build output is never committed; CI renders it. Locally, run `uv run walldye build --all` (drafts included, which `astro dev` shows) and `scripts/fixtures/regen.py` before `pnpm dev`, `pnpm test` or the e2e tests.
+- Build output is never committed; CI renders it. Locally, run `uv run walldye build --all` (drafts included, which `astro dev` shows) and `scripts/fixtures/regen.py` before `pnpm dev` or `pnpm test`.
 - Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no color names, no theme roles as nouns, no internal terms, no evaluative adjectives.
 - Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.
 - All Python, including ` ```python ` blocks in Markdown, passes `ruff format` and `ruff check` (fix findings, no blanket `noqa`), and Pyrefly at its level: 0 errors in the library. The prek hook and CI run them; `walldye check` does not.

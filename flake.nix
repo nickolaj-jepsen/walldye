@@ -222,7 +222,7 @@
               UV_PROJECT_ENVIRONMENT = "${venv}";
               UV_PYTHON_DOWNLOADS = "never";
               UV_PYTHON_PREFERENCE = "only-system";
-              # Its version must equal @playwright/test's in package.json.
+              # For pnpm promo; its version must equal @playwright/test's in package.json.
               PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
               PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
             };
