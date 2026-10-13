@@ -64,6 +64,8 @@ export const build = {
   slotsPath: z.string(),
   /** Ink-weighted centroid of the 16:9 template, each 0..1. */
   focus: z.tuple([z.number(), z.number()]),
+  /** Whether the templates hold a motif a visitor may move and resize. */
+  motif: z.boolean(),
 };
 
 /** One version of a piece: the default or a named variant, with its meta.yaml copy and its build. */

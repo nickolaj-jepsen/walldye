@@ -61,7 +61,7 @@ const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
   <figure class="spread">
     {/* SHAPE BOOT (src/client/detail/shape-boot.ts): sets this figure's data-aspect before first paint. */}
     <script is:inline set:html={shapeBoot} />
-    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div></PlateBox>
+    <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div>{p.motif && <div class="motif-frame" aria-hidden="true" hidden><div class="motif-canvas"><span class="motif-handle"></span></div></div>}</PlateBox>
   </figure>
 
   <div class="below">
@@ -176,6 +176,7 @@ const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
     object-position: center;
   }
   .spread :global(.plate:fullscreen .crop),
+  .spread :global(.plate:fullscreen .motif-frame),
   .spread :global(.plate:fullscreen::before),
   .spread :global(.plate:fullscreen::after) {
     display: none;

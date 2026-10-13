@@ -34,7 +34,14 @@ export function startState(versions: readonly string[]): DetailState {
     asked.variant && versions.includes(asked.variant) ? asked.variant : DEFAULT_VARIANT;
   const aspect = startAspect();
   const keep = aspect === nearestAspect(...screenPx()) ? 'screen' : '';
-  return { variant, aspect, crop: asked.crop ?? null, size: sizeFor(aspect, keep, allowed) };
+  return {
+    variant,
+    aspect,
+    crop: asked.crop ?? null,
+    size: sizeFor(aspect, keep, allowed),
+    at: asked.at ?? null,
+    scale: asked.scale ?? null,
+  };
 }
 
 /** The panel's hooks; throws when one is missing. */

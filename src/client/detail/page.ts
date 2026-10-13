@@ -1,12 +1,22 @@
 /**
- * The detail page: versions and their pictures, plate, crop window, export panel and the Download
- * under the attribution, run command, the `f` key, "Copy" and the "See also" plates, shown in the page's
- * shape. On narrow screens a tall cropped shape shows the crop in the plate itself, with the crop
- * window on a small 16:9 map in the export panel.
+ * The detail page: versions and their pictures, plate, crop window, motif placement, export panel and
+ * the Download under the attribution, run command, the `f` key, "Copy" and the "See also" plates, shown
+ * in the page's shape. On narrow screens a tall cropped shape shows the crop in the plate itself, with
+ * the crop window on a small 16:9 map in the export panel.
  * A visitor's change goes through update(), which renders the whole page from the state and writes
- * the address; render() is cheap enough to run on every crop drag.
+ * the address; render() is cheap enough to run on every crop drag. A motif being moved shows on live
+ * layers until the drag or range ends, when update() takes the placement and redraws the plate.
  */
 import { type Aspect, CANVAS, DEFAULT_VARIANT, downloadName, isAspect } from '../../lib/content';
+import {
+  clampPlacement,
+  drawnPlacement,
+  type MotifInfo,
+  motifTransform,
+  type Placement,
+  placeMotif,
+} from '../../lib/motif';
+import { pickTemplate, type Slots } from '../../lib/recolor';
 import {
   cellWidths,
   cropAxis,
@@ -17,18 +27,19 @@ import {
   objectPosition,
   renderCommand,
 } from '../../lib/shape';
-import { tokenOf } from '../../lib/theme';
+import { regimeOf, tokenOf } from '../../lib/theme';
 import { copyText, flash } from '../clipboard';
 import { must, readJson, replaceAddress } from '../dom';
 import { plateGrid } from '../grid';
-import { getSlots, keepShowing, keyedShow, type PlateData, plateData } from '../plates';
+import { getSlots, keepShowing, keyedShow, type PlateData, plateData, recolored } from '../plates';
 import { retrying } from '../retry';
 import { markShape, NARROW_QUERY, screenPx } from '../screen';
 import { currentSeeds, onThemeChange } from '../theme/current';
 import { dragCrop, placeCrop } from './crop';
 import { setUpExport } from './export';
+import { dragMotif, MotifView } from './motif';
 import { allowed, formatOf, panelParts, renderPanel, sizePx, startState } from './panel';
-import { type DetailState, keptCrop, shapeOf, sizeFor, writeAddress } from './state';
+import { type DetailState, keptCrop, placementOf, shapeOf, sizeFor, writeAddress } from './state';
 
 const spread = must('.spread');
 const plate = must('.plate', spread);
@@ -48,6 +59,13 @@ const versionRadios = [...(versionsEl?.querySelectorAll<HTMLInputElement>('input
 const thumbs = [...(versionsEl?.querySelectorAll<HTMLElement>('.thumb[data-version]') ?? [])];
 // Pieces that share a facet with another only.
 const related = document.querySelector<HTMLElement>('section.related');
+// Pieces with a motif only.
+const motifFrame = plate.querySelector<HTMLElement>(':scope > .motif-frame');
+const motif = motifFrame ? new MotifView(motifFrame) : undefined;
+const placeX = document.querySelector<HTMLInputElement>('#place-x');
+const placeY = document.querySelector<HTMLInputElement>('#place-y');
+const placeK = document.querySelector<HTMLInputElement>('#place-k');
+const placeReset = document.getElementById('place-reset');
 // Pieces with a script only.
 const runRender = document.getElementById('run-render');
 const copySource = document.querySelector<HTMLElement>('[data-action=copy-source]');
@@ -75,13 +93,36 @@ const dataOf = (variant: string): PlateData => versions[variant] ?? defaultData;
 
 // As the boots chose, so the plate and the panel keep what they show.
 const state: DetailState = startState(Object.keys(versions));
-/** The shown version's crop focus and grid cell sizes, from its slots.json once loaded. */
+/** The shown version's crop focus, grid cell sizes and slots.json, once loaded. */
 let focus: [number, number] = [0.5, 0.5];
 let cells: number[] = [];
+let slots: Slots | undefined;
+/** The placement a drag or range shows on the live layers before update() takes it. */
+let preview: Placement | null = null;
 
-/** The state after switching to shape `next`, selecting size `keep` when it can. */
+/** The state after switching to shape `next`, selecting size `keep` when it can; the motif goes back to that shape's own place. */
 function withAspect(next: Aspect, keep: string): Partial<DetailState> {
-  return { aspect: next, crop: keptCrop(state, next, native), size: sizeFor(next, keep, allowed) };
+  return {
+    aspect: next,
+    crop: keptCrop(state, next, native),
+    size: sizeFor(next, keep, allowed),
+    at: null,
+  };
+}
+
+/** The motif of the template the plate shows, once slots.json is loaded. */
+function motifInfo(): MotifInfo | undefined {
+  if (!slots) return undefined;
+  try {
+    return pickTemplate(slots, sourceAspect(), regimeOf(currentSeeds())).entry.motif;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Where the motif `info` shows now: the live preview, the visitor's placement or the design's. */
+function shownPlacement(info: MotifInfo): Placement {
+  return preview ?? placementOf(state, info) ?? drawnPlacement(info);
 }
 
 /** Applies a visitor's change: the state, the page and the address. */
@@ -97,7 +138,7 @@ function update(patch: Partial<DetailState>): void {
 
 function render(): void {
   const data = dataOf(state.variant);
-  const shape = shapeOf(state, native, focus);
+  const shape = shapeOf(state, native, focus, motifInfo());
   for (const r of versionRadios) r.checked = r.value === state.variant;
   const text = versions[state.variant]?.description;
   if (text !== undefined && desc.textContent !== text) desc.textContent = text;
@@ -109,6 +150,7 @@ function render(): void {
   renderPanel(parts, state);
   renderNames(shape);
   renderPlate();
+  renderMotif();
   if (cropsInPlace(shape)) renderMap();
   seeAlso?.setShape(state.aspect);
 }
@@ -128,8 +170,11 @@ function renderNames(shape: ExportShape): void {
   );
   for (const btn of downloadBtns) btn.title = name;
   if (runRender) runRender.textContent = renderCommand(slug, state.variant, token, shape);
+  // The motif's cells grow with it.
+  const cell = motifInfo()?.cell;
+  const sized = cells.map((c) => (c === cell && shape.place ? c * shape.place.k : c));
   const widths =
-    f.value === 'svg' || !cells.length ? null : cellWidths(cells, exportScale(shape, w, h));
+    f.value === 'svg' || !sized.length ? null : cellWidths(sized, exportScale(shape, w, h));
   cellNote.hidden = !widths;
   if (widths) {
     const join = widths[1] - widths[0] > 1 ? 'to' : 'or';
@@ -143,11 +188,64 @@ function sourceAspect(): Aspect {
 }
 
 const showPlate = keyedShow();
+let plateKey = '';
+/** The plate's picture, its motif placed; the live layers go once it is in, or at once when it already shows. */
 function renderPlate(): void {
   const seeds = currentSeeds();
-  showPlate(`${state.variant} ${sourceAspect()} ${tokenOf(seeds)}`, () =>
-    keepShowing(plate, dataOf(state.variant), sourceAspect(), seeds),
+  const place = placementOf(state, motifInfo());
+  const key = `${state.variant} ${sourceAspect()} ${tokenOf(seeds)} ${place ? motifTransform(place) : ''}`;
+  if (key === plateKey) {
+    if (!preview) motif?.stop();
+    return;
+  }
+  plateKey = key;
+  showPlate(key, () =>
+    keepShowing(plate, dataOf(state.variant), sourceAspect(), seeds, {
+      edit: place ? (svg) => placeMotif(svg, place) : undefined,
+      shown: () => {
+        if (!preview) motif?.stop();
+      },
+    }),
   );
+}
+
+/** The motif's handle on the plate and its rows in the panel. */
+function renderMotif(): void {
+  const info = motifInfo();
+  if (!motif || !placeX || !placeY || !placeK || !placeReset) return;
+  const p = info ? shownPlacement(info) : { x: 0, y: 0, k: 1 };
+  motif.place(info, sourceAspect(), p);
+  if (!info) return;
+  const [w, h] = CANVAS[state.aspect];
+  const den = info.cell ?? 100;
+  Object.assign(placeX, { max: String(w), value: String(Math.round(p.x)) });
+  Object.assign(placeY, { max: String(h), value: String(Math.round(p.y)) });
+  placeK.min = String(Math.ceil(info.scale[0] * den - 1e-9));
+  placeK.max = String(Math.floor(info.scale[1] * den + 1e-9));
+  placeK.value = String(Math.round(p.k * den));
+  placeK.setAttribute('aria-valuetext', `${Math.round(p.k * 100)}%`);
+  placeReset.hidden = state.at === null && state.scale === null;
+}
+
+/** Shows the motif at `p` on the live layers, starting them on the first move. */
+function previewMotif(p: Placement): void {
+  const info = motifInfo();
+  if (!info || !motif) return;
+  const [w, h] = CANVAS[state.aspect];
+  preview = clampPlacement(info, w, h, p);
+  if (!motif.live) {
+    const svg = recolored(dataOf(state.variant), sourceAspect(), currentSeeds()).then((r) => r.svg);
+    void motif.start(svg, info, preview);
+  }
+  renderMotif();
+}
+
+/** Takes the previewed placement into the state, which redraws the plate with it. */
+function commitMotif(): void {
+  if (!preview) return;
+  const { x, y, k } = preview;
+  preview = null;
+  update({ at: [x, y], scale: k === 1 ? null : k });
 }
 
 const showThumbs = keyedShow();
@@ -174,17 +272,18 @@ function renderMap(): void {
 }
 
 let stopSlots = () => {};
-/** Reads the shown version's focus and cells from its slots.json, retrying a failed fetch. */
+/** Reads the shown version's slots.json, its focus and cells, retrying a failed fetch. */
 function loadSlots(): void {
   stopSlots();
   const url = dataOf(state.variant).slots;
   stopSlots = retrying(() =>
-    getSlots(url).then((slots) => {
+    getSlots(url).then((loaded) => {
       if (url !== dataOf(state.variant).slots) return;
-      focus = Array.isArray(slots.focus)
-        ? [Number(slots.focus[0]), Number(slots.focus[1])]
+      focus = Array.isArray(loaded.focus)
+        ? [Number(loaded.focus[0]), Number(loaded.focus[1])]
         : [0.5, 0.5];
-      cells = Array.isArray(slots.cells) ? slots.cells.map(Number).filter((c) => c > 0) : [];
+      cells = Array.isArray(loaded.cells) ? loaded.cells.map(Number).filter((c) => c > 0) : [];
+      slots = loaded;
       render();
     }),
   );
@@ -223,6 +322,32 @@ panel.addEventListener('change', (e) => {
 
 range.addEventListener('input', () => update({ crop: Number(range.value) }));
 
+// ---- motif ----
+
+/** The placement with one of the motif's ranges at its value. */
+function fromRanges(info: MotifInfo): Placement {
+  const p = shownPlacement(info);
+  const k = Number(placeK?.value) / (info.cell ?? 100);
+  return { x: Number(placeX?.value ?? p.x), y: Number(placeY?.value ?? p.y), k };
+}
+
+for (const input of [placeX, placeY, placeK]) {
+  input?.addEventListener('input', () => {
+    const info = motifInfo();
+    if (info) previewMotif(fromRanges(info));
+  });
+  input?.addEventListener('change', commitMotif);
+}
+placeReset?.addEventListener('click', () => update({ at: null, scale: null }));
+
+motif?.handle.addEventListener('pointerdown', (e) => {
+  const info = motifInfo();
+  if (e.button !== 0 || !info || !motif.canvas.clientWidth) return;
+  e.preventDefault();
+  const units = CANVAS[sourceAspect()][0] / motif.canvas.clientWidth;
+  dragMotif(motif.handle, e, shownPlacement(info), units, previewMotif, commitMotif);
+});
+
 const moveCrop = (t: number) => update({ crop: t });
 const cropFrom = () => shapeOf(state, native, focus).t;
 
@@ -260,7 +385,7 @@ setUpExport({
   slug,
   job: () => {
     const f = formatOf(parts);
-    const shape = shapeOf(state, native, focus);
+    const shape = shapeOf(state, native, focus, motifInfo());
     const seeds = currentSeeds();
     const token = tokenOf(seeds);
     const size = sizePx(state.size);

@@ -37,6 +37,14 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
   <section id="export" aria-labelledby="export-h" data-license={p.resolvedLicense}>
     <h2 id="export-h" class="sc">Export</h2>
     <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint">cropped from <span class="mono">16:9</span></span></div>
+    {
+      p.motif && (
+        <Fragment>
+          <div class="row center"><span class="k">Position</span><div class="pair"><input class="range" id="place-x" type="range" min="0" max="1920" step="1" value="960" aria-label="Across" /><input class="range" id="place-y" type="range" min="0" max="1080" step="1" value="540" aria-label="Down" /></div></div>
+          <div class="row center"><span class="k">Scale</span><div class="pair"><input class="range" id="place-k" type="range" min="50" max="200" step="1" value="100" aria-label="Scale" /><button type="button" class="textbtn" id="place-reset" hidden>Reset</button></div></div>
+        </Fragment>
+      )
+    }
     <div class="row center" id="crop-row"><span class="k">Crop</span><div><span class="plate crop-map" aria-hidden="true"><span class="crop"><span class="handle"></span></span></span><input class="range" id="crop" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="Crop position" /></div></div>
     <div class="row"><span class="k">Size</span><div class="seg" id="sizes" role="radiogroup" aria-label="Size">{sizes.map((s) => <label data-aspect={s.aspect} hidden={s.aspect !== '16:9'}><input type="radio" name="size" value={s.value} checked={s.value === size} disabled={s.aspect !== '16:9'} /><span><span class="mono">{s.value.replace('x', '×')}</span></span></label>)}<label><input type="radio" name="size" value="screen" /><span>your screen</span></label></div><span class="sub hint" id="size-limit" hidden>This browser can’t draw a file that large.</span><span class="sub hint lnum" id="cell-note" hidden></span></div>
     <div class="row"><span class="k">Format</span><div class="seg" role="radiogroup" aria-label="Format">{FORMATS.map((f) => <label><input type="radio" name="fmt" value={f.value} checked={f === format} /><span>{f.label}</span></label>)}</div><span class="sub hint" id="format-hint" hidden>This browser can’t make WebP files.</span></div>
@@ -84,6 +92,16 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     :global(.spread[data-tall] ~ .below) #crop-row {
       align-items: end;
     }
+  }
+  /* Two ranges side by side, or a range and Reset. */
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    column-gap: calc(3 * var(--u));
+    align-items: center;
+  }
+  .pair:has(> .textbtn) {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
   /* A format or size the browser cannot make (the client disables it) fades to the guarded --text-dim. */
   .seg :global(input:disabled + span) {

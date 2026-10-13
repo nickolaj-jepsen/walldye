@@ -3,6 +3,7 @@
  * slots are set from the seeds through the per-occurrence coefficients in slots.json.
  */
 
+import type { MotifInfo } from './motif';
 import { hexToRgb, isFireproof, type Regime, regimeOf, rgbToHex, type Seeds } from './theme';
 import { findColors, joinSlots, splitSlots } from './tokenize';
 
@@ -13,6 +14,8 @@ export interface SlotsEntry {
   n: number;
   coefs: number[][];
   occ: number[];
+  /** The template's motif, for a piece that has one. */
+  motif?: MotifInfo;
 }
 
 /** A parsed build/slots.json: the piece fields plus one SlotsEntry per "<aspect>/<regime>" key. */
