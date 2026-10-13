@@ -8,11 +8,9 @@
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
   },
-  // Production answers only on walldye.com; Previews keep their workers.dev URLs.
+  // Production answers only on walldye.com; version URLs keep their workers.dev ones.
   "workers_dev": false,
   "preview_urls": true,
   // custom_domain makes Cloudflare create the DNS record and certificate.
-  "routes": [{ "pattern": "walldye.com", "custom_domain": true }],
-  // wrangler preview requires the block; a binding added above needs a preview-safe copy here.
-  "previews": {}
+  "routes": [{ "pattern": "walldye.com", "custom_domain": true }]
 }

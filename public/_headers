@@ -14,6 +14,6 @@
 /:page
   Cache-Control: public, max-age=0, must-revalidate
 
-# Preview and version URLs on workers.dev; only walldye.com gets indexed.
+# Version URLs on workers.dev; only walldye.com gets indexed.
 https://:host.:subdomain.workers.dev/*
   X-Robots-Tag: noindex
