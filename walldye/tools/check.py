@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-from walldye._design import RenderSpec
+from walldye._design import Design, RenderSpec
 from walldye._document import Document
 from walldye._params import describe
 from walldye._theme import REGIMES, Regime
@@ -29,6 +29,7 @@ from walldye.tools import (
     lint,
     loader,
     metadata,
+    motif,
     paths,
     raster,
     slotfile,
@@ -38,6 +39,8 @@ from walldye.tools.coefs import TEMPLATE_THEMES, Entry, first_diff, label, seria
 from walldye.tools.similar import near_clones
 
 SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
+SHIFT: Final = (40.0, 24.0)  # canvas units the motif test moves every position by
+EXTENT_UNITS: Final = 4.0  # canvas units per pixel of the motif's extent test
 
 
 class DesignError(Exception):
@@ -209,9 +212,9 @@ def draw(piece: loader.Piece, spec: RenderSpec) -> Document:
 
 def check_variant(task: Task) -> Result:
     """Check one (slug, variant): determinism (two in-process draws per native aspect and
-    regime, back to back, then a PYTHONHASHSEED subprocess), viewBox, the templates and their
-    slot tables, the constant-slot rule, the template limits, pixel origins and focus, and with
-    task.paranoid a fresh import per serialization. A determinism failure stops it before any
+    regime, back to back, then a PYTHONHASHSEED subprocess), the motif rules, viewBox, the
+    templates and their slot tables, the constant-slot rule, the template limits, pixel origins
+    and focus, and with task.paranoid a fresh import per serialization. A determinism failure stops it before any
     geometry step; so does an exception from the design, added to what was found before it.
     With task.expect, it first draws once and serializes, and returns that result as unchanged,
     unchecked for determinism, when it has no errors and its output() hashes to task.expect;
@@ -237,7 +240,7 @@ def _check(task: Task, r: Result) -> Result:
     slug, variant = task.slug, task.variant
     piece = load(slug)
     params = piece.params(variant)
-    specs = {
+    specs: dict[tuple[str, Regime], RenderSpec] = {
         (aspect, regime): RenderSpec(variant, params, aspect, regime)
         for aspect in piece.aspects
         for regime in REGIMES
@@ -279,21 +282,82 @@ def _check(task: Task, r: Result) -> Result:
     if len(r.errors) > 0:
         return r
 
+    r.errors += _motif_errors(piece, specs, docs)
     _serialize(r, piece, docs)
     if task.paranoid and not isinstance(piece, loader.LegacyPiece):
         r.errors += _paranoid(slug, variant, docs)
     return r
 
 
+def _motif_errors(
+    piece: loader.Piece,
+    specs: Mapping[tuple[str, Regime], RenderSpec],
+    docs: Mapping[tuple[str, Regime], Document],
+) -> list[str]:
+    """Errors in a design's motif: drawn in some shapes or regimes only, a piece with a motif
+    not built for every shape, a draw with every position moved by SHIFT that changes more
+    than the motif's anchor, and marks outside a declared extent."""
+    has = {k for k, doc in docs.items() if doc.motif is not None}
+    if len(has) == 0 or not isinstance(piece, Design):
+        return []
+    if len(has) < len(docs):
+        missing = ", ".join(f"{a} {g}" for a, g in docs if (a, g) not in has)
+        return [f"the motif is missing from {missing}; draw it in every shape and regime"]
+    errors: list[str] = []
+    if piece.declared_aspects != "any":
+        errors.append('a piece with a motif is built for every shape: @design(aspects="any")')
+    for key, doc in docs.items():
+        aspect, regime = key
+        tokens = themes.tokens_of(themes.SAMPLE[regime])
+        want = motif.unplaced(doc.to_svg(tokens))
+        try:
+            with loader.quiet():
+                moved = piece.draw(specs[key], SHIFT)
+        except Exception as e:  # whatever a design raises fails the check
+            raise design_error(e, f"{aspect} {regime}: draw with every position moved") from e
+        got = motif.unplaced(moved.to_svg(tokens))
+        if got != want:
+            errors.append(
+                f"{aspect} {regime}: moving the motif changes more than its anchor,"
+                f" {first_diff(want, got)}: draw everything placed from s.pick, s.frac or"
+                " s.center inside the motif, in motif-local units"
+            )
+            continue
+        info = doc.motif
+        if info is None or info.overscan:
+            continue
+        x, y, w, h = info.extent
+        ink = raster.ink_box(motif.alone(doc.to_svg(tokens), info.cover), EXTENT_UNITS)
+        if ink is not None and not _within(ink, info.extent, EXTENT_UNITS):
+            x0, y0, x1, y1 = ink
+            errors.append(
+                f"{aspect} {regime}: the motif draws from ({x0:g}, {y0:g}) to ({x1:g}, {y1:g}),"
+                f" outside its extent ({x:g}, {y:g}, {w:g} x {h:g}); grow extent= to hold it"
+            )
+    return errors
+
+
+def _within(ink: tuple[float, float, float, float], box: tuple[float, ...], slack: float) -> bool:
+    """Whether the ink box (x0, y0, x1, y1) lies inside `box` (x, y, w, h), give or take
+    `slack` on every side."""
+    x, y, w, h = box
+    x0, y0, x1, y1 = ink
+    return x0 >= x - slack and y0 >= y - slack and x1 <= x + w + slack and y1 <= y + h + slack
+
+
 def _serialize(r: Result, piece: loader.Piece, docs: Mapping[tuple[str, Regime], Document]) -> None:
     """The steps on one draw per native aspect and regime: viewBox, the templates and their
-    slot tables, the template limits, pixel origins, cells and focus."""
+    slot tables with each one's motif, the template limits, pixel origins, cells and focus."""
     for (aspect, regime), doc in docs.items():
         r.errors += [
             f"{aspect} {regime}: {e}" for e in lint.templates.viewbox(doc.skeleton(), aspect)
         ]
     for aspect in piece.aspects:
         templates, entries, errors = serialize_aspect({g: docs[aspect, g] for g in REGIMES}, aspect)
+        for key, entry in entries.items():
+            info = docs[aspect, "light" if key.endswith("/light") else "dark"].motif
+            if info is not None:
+                entry["motif"] = motif.as_json(info)
         r.templates.update(templates)
         r.entries.update(entries)
         r.errors += errors

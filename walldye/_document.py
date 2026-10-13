@@ -1,6 +1,7 @@
 """Documents: a drawn SVG cut at every color, serialized under any theme of its regime."""
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Final, final
 
 from ._color import Color, MaskColor, coefs, resolve
@@ -8,6 +9,27 @@ from ._theme import Coefs, Regime, is_light
 
 type Fragment = str | Color | MaskColor
 type Line = list[Fragment]
+type Box = tuple[float, float, float, float]  # x, y, w, h
+
+
+@final
+@dataclass(frozen=True, slots=True)
+class MotifInfo:
+    """Where a document's motif group sits and how far a visitor may move it.
+
+    `at` is the group's translation in canvas units; `extent` (every mark it draws), `handle`
+    (what a visitor grabs) and `cover` (what any allowed placement can show) are boxes in
+    motif-local units, and `overscan` says the extent is the cover. Sizes keep `cell * k`
+    whole when `cell` is set, with k within `scale`.
+    """
+
+    at: tuple[float, float]
+    cover: Box
+    extent: Box
+    handle: Box
+    overscan: bool
+    cell: float | None
+    scale: tuple[float, float]
 
 
 @final
@@ -28,6 +50,7 @@ class Document:
         h: int,
         regime: Regime,
         pixel_grids: Sequence[tuple[float, float, float]] = (),
+        motif: MotifInfo | None = None,
     ) -> None:
         """Raises ValueError unless len(parts) == len(colors) + 1 and `regime` is "dark" or
         "light"."""
@@ -41,6 +64,7 @@ class Document:
         self.h: Final = h
         self.regime: Final = regime
         self.pixel_grids: Final = tuple(pixel_grids)
+        self.motif: Final = motif
 
     def colors(self) -> tuple[Color | MaskColor, ...]:
         """One color per slot, in text order."""
@@ -103,7 +127,7 @@ class Pending:
 
 @final
 class Builder:
-    """The mutable state of one draw: defs, body lines, ids and pixel grids."""
+    """The mutable state of one draw: defs, body lines, ids, pixel grids and the motif."""
 
     def __init__(self, w: int, h: int, regime: Regime) -> None:
         self.w: Final = w
@@ -112,6 +136,7 @@ class Builder:
         self.defs: list[Fragment] = []
         self.body: list[Line | Pending] = []
         self.grids: list[tuple[float, float, float]] = []
+        self.motif: MotifInfo | None = None
         self._ids = 0
 
     def new_id(self, prefix: str) -> str:
@@ -145,5 +170,11 @@ class Builder:
                 text = []
         parts.append("".join(text))
         return Document(
-            parts, colors, w=self.w, h=self.h, regime=self.regime, pixel_grids=self.grids
+            parts,
+            colors,
+            w=self.w,
+            h=self.h,
+            regime=self.regime,
+            pixel_grids=self.grids,
+            motif=self.motif,
         )

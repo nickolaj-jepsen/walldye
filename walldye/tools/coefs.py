@@ -11,7 +11,7 @@ import bisect
 import os
 import re
 from collections.abc import Mapping, Sequence
-from typing import Final, TypedDict
+from typing import Final, NotRequired, TypedDict
 
 import numpy as np
 from numpy.typing import NDArray
@@ -41,6 +41,7 @@ class Entry(TypedDict):
     n: int
     coefs: list[list[float]]
     occ: list[int]
+    motif: NotRequired[dict[str, object]]
 
 
 def label(theme: str | Seeds) -> str:

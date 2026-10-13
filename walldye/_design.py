@@ -65,8 +65,9 @@ class Design[Pm: Params]:
             raise KeyError(f"no variant {variant!r} (have: {', '.join(self.variant_names())})")
         return self.variants[variant]
 
-    def draw(self, spec: RenderSpec) -> Document:
+    def draw(self, spec: RenderSpec, shift: tuple[float, float] = (0.0, 0.0)) -> Document:
         """Draw one render: a canvas of canvas_size(spec.aspect), the bg rectangle, then fn.
+        `shift` moves every position the canvas hands out (check's motif test).
 
         Raises TypeError unless type(spec.params) is params_type, ValueError for an unknown
         regime or aspect; whatever the design raises propagates.
@@ -82,7 +83,15 @@ class Design[Pm: Params]:
         w, h = canvas_size(spec.aspect)
         doc = Builder(w, h, spec.regime)
         doc.body.append([f'<rect x="0" y="0" width="{w}" height="{h}" fill="', self.bg, '"/>'])
-        canvas = Canvas(params, w=w, h=h, light=spec.regime == "light", doc=doc, source=self.source)
+        canvas = Canvas(
+            params,
+            w=w,
+            h=h,
+            light=spec.regime == "light",
+            doc=doc,
+            source=self.source,
+            shift=shift,
+        )
         try:
             self.fn(canvas)
         finally:
