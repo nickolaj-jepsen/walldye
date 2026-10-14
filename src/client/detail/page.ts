@@ -9,6 +9,7 @@
  */
 import { type Aspect, CANVAS, DEFAULT_VARIANT, downloadName, isAspect } from '../../lib/content';
 import {
+  centerMotif,
   clampPlacement,
   drawnPlacement,
   type MotifInfo,
@@ -66,6 +67,10 @@ const placeX = document.querySelector<HTMLInputElement>('#place-x');
 const placeY = document.querySelector<HTMLInputElement>('#place-y');
 const placeK = document.querySelector<HTMLInputElement>('#place-k');
 const placeReset = document.getElementById('place-reset');
+const placeCenter = {
+  x: document.getElementById('place-cx'),
+  y: document.getElementById('place-cy'),
+};
 // Pieces with a script only.
 const runRender = document.getElementById('run-render');
 const copySource = document.querySelector<HTMLElement>('[data-action=copy-source]');
@@ -225,6 +230,10 @@ function renderMotif(): void {
   placeK.value = String(Math.round(p.k * den));
   placeK.setAttribute('aria-valuetext', `${Math.round(p.k * 100)}%`);
   placeReset.hidden = state.at === null && state.scale === null;
+  for (const axis of ['x', 'y'] as const) {
+    const btn = placeCenter[axis];
+    if (btn) btn.hidden = centerMotif(info, w, h, p, axis)[axis] === p[axis];
+  }
 }
 
 /** Shows the motif at `p` on the live layers, starting them on the first move. */
@@ -338,7 +347,27 @@ for (const input of [placeX, placeY, placeK]) {
   });
   input?.addEventListener('change', commitMotif);
 }
-placeReset?.addEventListener('click', () => update({ at: null, scale: null }));
+/** Runs `act` on a click of `btn`, and moves focus to `range` when that hides the focused button. */
+function keepFocus(btn: HTMLElement | null, range: HTMLInputElement | null, act: () => void): void {
+  btn?.addEventListener('click', () => {
+    const focused = document.activeElement === btn;
+    act();
+    if (focused && btn.hidden) range?.focus();
+  });
+}
+keepFocus(placeReset, placeK, () => update({ at: null, scale: null }));
+for (const [axis, range] of [
+  ['x', placeX],
+  ['y', placeY],
+] as const) {
+  keepFocus(placeCenter[axis], range, () => {
+    const info = motifInfo();
+    if (!info) return;
+    const [w, h] = CANVAS[state.aspect];
+    const { x, y } = centerMotif(info, w, h, shownPlacement(info), axis);
+    update({ at: [x, y] });
+  });
+}
 
 motif?.handle.addEventListener('pointerdown', (e) => {
   const info = motifInfo();

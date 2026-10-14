@@ -40,7 +40,8 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     {
       p.motif && (
         <Fragment>
-          <div class="row center"><span class="k">Position</span><div class="pair"><input class="range" id="place-x" type="range" min="0" max="1920" step="1" value="960" aria-label="Across" /><input class="range" id="place-y" type="range" min="0" max="1080" step="1" value="540" aria-label="Down" /></div></div>
+          <div class="row center"><span class="k">Across</span><div class="pair"><input class="range" id="place-x" type="range" min="0" max="1920" step="1" value="960" aria-label="Across" /><button type="button" class="textbtn" id="place-cx" aria-label="Center across" hidden>Center</button></div></div>
+          <div class="row center"><span class="k">Down</span><div class="pair"><input class="range" id="place-y" type="range" min="0" max="1080" step="1" value="540" aria-label="Down" /><button type="button" class="textbtn" id="place-cy" aria-label="Center down" hidden>Center</button></div></div>
           <div class="row center"><span class="k">Scale</span><div class="pair"><input class="range" id="place-k" type="range" min="50" max="200" step="1" value="100" aria-label="Scale" /><button type="button" class="textbtn" id="place-reset" hidden>Reset</button></div></div>
         </Fragment>
       )
@@ -93,15 +94,12 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
       align-items: end;
     }
   }
-  /* Two ranges side by side, or a range and Reset. */
+  /* A range and its button; the button's track is fixed, so the range keeps its width when the button hides. */
   .pair {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-    column-gap: calc(3 * var(--u));
+    grid-template-columns: minmax(0, 1fr) calc(7 * var(--u));
+    column-gap: calc(2 * var(--u));
     align-items: center;
-  }
-  .pair:has(> .textbtn) {
-    grid-template-columns: minmax(0, 1fr) auto;
   }
   /* A format or size the browser cannot make (the client disables it) fades to the guarded --text-dim. */
   .seg :global(input:disabled + span) {

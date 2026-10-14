@@ -128,3 +128,16 @@ export function motifWindow(
   const y1 = Math.min(ey + eh, ((1 + margin) * h - p.y) / p.k);
   return [x0, y0, Math.max(0, x1 - x0), Math.max(0, y1 - y0)];
 }
+
+/** `p` with the handle's middle on the middle of a `w`×`h` canvas along `axis`, as clampPlacement() offers it. */
+export function centerMotif(
+  info: MotifInfo,
+  w: number,
+  h: number,
+  p: Placement,
+  axis: 'x' | 'y',
+): Placement {
+  const [hx, hy, hw, hh] = info.handle;
+  const to = axis === 'x' ? w / 2 - (hx + hw / 2) * p.k : h / 2 - (hy + hh / 2) * p.k;
+  return clampPlacement(info, w, h, { ...p, [axis]: to });
+}

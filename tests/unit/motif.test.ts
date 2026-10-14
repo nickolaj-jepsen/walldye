@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   allowedPlacement,
+  centerMotif,
   clampPlacement,
   type MotifInfo,
   motifAlone,
@@ -85,5 +86,26 @@ describe('windows', () => {
   });
   it('maps a local box onto the canvas', () => {
     expect(placedBox([-10, -20, 30, 40], { x: 100, y: 200, k: 2 })).toEqual([80, 160, 60, 80]);
+  });
+});
+
+describe('centering', () => {
+  const off: MotifInfo = { ...MOON, handle: [-40, -100, 200, 100], cell: null };
+  it('puts the handle in the middle of one axis and keeps the other', () => {
+    expect(centerMotif(off, 1920, 1080, { x: 10, y: 20, k: 1 }, 'x')).toEqual({
+      x: 900,
+      y: 20,
+      k: 1,
+    });
+    expect(centerMotif(off, 1920, 1080, { x: 10, y: 20, k: 2 }, 'y')).toEqual({
+      x: 10,
+      y: 640,
+      k: 2,
+    });
+  });
+  it('keeps the anchor on the canvas', () => {
+    expect(
+      centerMotif({ ...off, handle: [-3000, 0, 10, 10] }, 1920, 1080, { x: 0, y: 0, k: 1 }, 'x').x,
+    ).toBe(1920);
   });
 });
