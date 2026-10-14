@@ -67,7 +67,8 @@ class Design[Pm: Params]:
 
     def draw(self, spec: RenderSpec, shift: tuple[float, float] = (0.0, 0.0)) -> Document:
         """Draw one render: a canvas of canvas_size(spec.aspect), the bg rectangle, then fn.
-        `shift` moves every position the canvas hands out (check's motif test).
+        `shift` (dx, dy) is added to every position center, frac and pick return, and lets
+        the motif's anchor leave the canvas.
 
         Raises TypeError unless type(spec.params) is params_type, ValueError for an unknown
         regime or aspect; whatever the design raises propagates.

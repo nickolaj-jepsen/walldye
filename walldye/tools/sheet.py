@@ -161,8 +161,8 @@ def run_placements(
     aspect: str = "16:9",
 ) -> int:
     """Draw `variant` of `slug` under `seeds` at `aspect` with its motif where it was drawn and
-    then anchored on each canvas corner at the smallest and largest size, and write the
-    labeled sheet (`cols` per row, default 4) to `out`, default
+    then anchored on each canvas corner at the smallest and largest size the site offers, and
+    write the labeled sheet (`cols` per row, default 4) to `out`, default
     preview_dir()/sheet-<slug>[--<variant>]-<token>-<aspect>-placements.png: the extremes a
     review checks for surroundings that leave the screen uncovered. UsageError for an
     undeclared variant or a design without a motif."""
@@ -175,7 +175,7 @@ def run_placements(
     svg = doc.to_svg(themes.tokens_of(seeds))
     x, y = doc.motif.at
     cells = [(f"drawn ({x:g}, {y:g})", raster.rasterize(svg, thumb))]
-    for k in doc.motif.scale:
+    for k in motif.size_range(doc.motif):
         for cx, cy in ((0, 0), (doc.w, 0), (0, doc.h), (doc.w, doc.h)):
             placed = motif.place(svg, cx, cy, k)
             cells.append((f"({cx}, {cy}) at {k:g}", raster.rasterize(placed, thumb)))

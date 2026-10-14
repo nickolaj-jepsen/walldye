@@ -30,7 +30,7 @@ import {
   objectPosition,
   renderCommand,
 } from '../../lib/shape';
-import { regimeOf, tokenOf } from '../../lib/theme';
+import { regimeOf, type Seeds, tokenOf } from '../../lib/theme';
 import { copyText, flash } from '../clipboard';
 import { must, readJson, replaceAddress } from '../dom';
 import { plateGrid } from '../grid';
@@ -104,6 +104,7 @@ const state: DetailState = startState(Object.keys(versions));
 let focus: [number, number] = [0.5, 0.5];
 let cells: number[] = [];
 let slots: Slots | undefined;
+let slotsUrl = '';
 /** The placement a drag or range shows on the live layers before update() takes it. */
 let preview: Placement | null = null;
 
@@ -117,14 +118,19 @@ function withAspect(next: Aspect, keep: string): Partial<DetailState> {
   };
 }
 
-/** The motif of the template the plate shows, once slots.json is loaded. */
-function motifInfo(): MotifInfo | undefined {
-  if (!slots) return undefined;
+/** The motif of the `source` template `loaded` lists for `seeds`, if any. */
+function motifIn(loaded: Slots | undefined, source: Aspect, seeds: Seeds): MotifInfo | undefined {
+  if (!loaded) return undefined;
   try {
-    return pickTemplate(slots, sourceAspect(), regimeOf(currentSeeds())).entry.motif;
+    return pickTemplate(loaded, source, regimeOf(seeds)).entry.motif;
   } catch {
     return undefined;
   }
+}
+
+/** The motif of the template the plate shows, once the shown version's slots.json is loaded. */
+function motifInfo(): MotifInfo | undefined {
+  return motifIn(slots, sourceAspect(), currentSeeds());
 }
 
 /** Where the motif `info` shows now: the live preview, the visitor's placement or the design's. */
@@ -195,18 +201,12 @@ function sourceAspect(): Aspect {
 }
 
 const showPlate = keyedShow();
-let plateKey = '';
 /** The plate's picture, its motif placed; the live layers go once it is in, or at once when it already shows. */
 function renderPlate(): void {
   const seeds = currentSeeds();
   const place = placementOf(state, motifInfo());
   const key = `${state.variant} ${sourceAspect()} ${tokenOf(seeds)} ${place ? motifTransform(place) : ''}`;
-  if (key === plateKey) {
-    if (!preview) motif?.stop();
-    return;
-  }
-  plateKey = key;
-  showPlate(key, () =>
+  const started = showPlate(key, () =>
     keepShowing(plate, dataOf(state.variant), sourceAspect(), seeds, {
       edit: place ? (svg) => placeMotif(svg, place) : undefined,
       shown: () => {
@@ -214,6 +214,7 @@ function renderPlate(): void {
       },
     }),
   );
+  if (!started && !preview) motif?.stop();
 }
 
 /** The motif's handle on the plate and its rows in the panel. */
@@ -287,6 +288,8 @@ let stopSlots = () => {};
 function loadSlots(): void {
   stopSlots();
   const url = dataOf(state.variant).slots;
+  // Another version's slots would place its motif by the wrong template.
+  if (url !== slotsUrl) slots = undefined;
   stopSlots = retrying(() =>
     getSlots(url).then((loaded) => {
       if (url !== dataOf(state.variant).slots) return;
@@ -295,6 +298,7 @@ function loadSlots(): void {
         : [0.5, 0.5];
       cells = Array.isArray(loaded.cells) ? loaded.cells.map(Number).filter((c) => c > 0) : [];
       slots = loaded;
+      slotsUrl = url;
       render();
     }),
   );
@@ -504,6 +508,8 @@ setUpExport({
     const shape = shapeOf(state, native, focus, motifInfo());
     const seeds = currentSeeds();
     const token = tokenOf(seeds);
+    const asked = { ...state };
+    const source = sourceAspect();
     const size = sizePx(state.size);
     const name = downloadName(
       slug,
@@ -518,8 +524,9 @@ setUpExport({
     return {
       variant: state.variant,
       data,
-      source: sourceAspect(),
+      source,
       shape,
+      place: (loaded) => placementOf(asked, motifIn(loaded, source, seeds)),
       seeds,
       token,
       format: f,

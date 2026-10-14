@@ -13,8 +13,8 @@ import {
   DEFAULT_VARIANT,
   EXPORT_SIZES,
 } from '../../lib/content';
-import { clampPlacement, type MotifInfo, type Placement } from '../../lib/motif';
-import { cropAxis, type ExportShape, focusPosition, num } from '../../lib/shape';
+import { clampPlacement, type MotifInfo, num, type Placement } from '../../lib/motif';
+import { cropAxis, type ExportShape, focusPosition } from '../../lib/shape';
 
 export interface DetailState {
   variant: string;

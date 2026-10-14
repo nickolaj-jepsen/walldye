@@ -3,6 +3,8 @@
  * state, and falling back from WebP where the browser cannot encode it.
  */
 import { type Aspect, DEFAULT_VARIANT, type FORMATS } from '../../lib/content';
+import type { Placement } from '../../lib/motif';
+import type { Slots } from '../../lib/recolor';
 import { crispPixels, type ExportShape, rasterSvg, svgExport } from '../../lib/shape';
 import type { Seeds } from '../../lib/theme';
 import { must } from '../dom';
@@ -22,6 +24,8 @@ export interface ExportJob {
   /** The template aspect to read: the shape's own, else 16:9 to crop. */
   source: Aspect;
   shape: ExportShape;
+  /** The motif's placement in the template `slots` describes, which the export reads itself. */
+  place: (slots: Slots) => Placement | null;
   seeds: Seeds;
   token: string;
   format: (typeof FORMATS)[number];
@@ -71,13 +75,14 @@ export function setUpExport(page: ExportPage): void {
       const j = page.job();
       const slots = await getSlots(j.data.slots);
       const r = await recolored(j.data, j.source, j.seeds);
+      const shape = { ...j.shape, place: j.place(slots) };
       const svg = Array.isArray(slots.cells) && slots.cells.length ? crispPixels(r.svg) : r.svg;
       if (j.format.value === 'svg') {
         const at = j.variant === DEFAULT_VARIANT ? address : `${address}?v=${j.variant}`;
         const about = [at, license, `theme ${j.token}`].filter(Boolean).join(' · ');
-        save(new Blob([svgExport(svg, j.shape, title, about)], { type: 'image/svg+xml' }), j.name);
+        save(new Blob([svgExport(svg, shape, title, about)], { type: 'image/svg+xml' }), j.name);
       } else {
-        const raster = rasterSvg(svg, j.shape, ...j.size);
+        const raster = rasterSvg(svg, shape, ...j.size);
         save(await rasterizeSvg(raster.svg, j.seeds.bg, j.format.value as RasterFormat), j.name);
       }
     } catch {

@@ -13,7 +13,7 @@ export interface MotifInfo {
   /** What a visitor grabs to move it. */
   handle: [number, number, number, number];
   overscan: boolean;
-  /** The pixel cell sizes keep whole, or null. */
+  /** The pixel cell sizes keep whole, a whole number of units, or null. */
   cell: number | null;
   /** The sizes offered, [lo, hi]. */
   scale: [number, number];
@@ -30,18 +30,16 @@ const TAG = /<g data-motif="" transform="([^"]*)">/;
 const ROOT = /^<svg\b[^>]*>\n/;
 
 /** `n` with at most `places` decimals, no trailing zeros, and -0 as 0, as walldye's fmt() writes it. */
-function fmt(n: number, places: number): string {
-  const s = n
-    .toFixed(places)
-    .replace(/(\.\d*?)0+$/, '$1')
-    .replace(/\.$/, '');
-  return s === '-0' ? '0' : s;
+export function num(n: number, places = 4): string {
+  const s = n.toFixed(places);
+  const t = s.includes('.') ? s.replace(/\.?0+$/, '') : s;
+  return t === '-0' ? '0' : t;
 }
 
 /** The motif group's transform: translate(x y), then scale(k) unless k is 1. */
 export function motifTransform(p: Placement): string {
-  const head = `translate(${fmt(p.x, 2)} ${fmt(p.y, 2)})`;
-  return p.k === 1 ? head : `${head} scale(${fmt(p.k, 4)})`;
+  const head = `translate(${num(p.x, 2)} ${num(p.y, 2)})`;
+  return p.k === 1 ? head : `${head} scale(${num(p.k, 4)})`;
 }
 
 /** `svg` with its motif placed at `p`; `svg` itself when it has no motif. */
@@ -65,7 +63,7 @@ export function motifAlone(svg: string, box: readonly number[]): string {
   if (!root || !m) throw new Error('the SVG has no motif to cut out');
   const rest = svg.slice(root[0].length);
   const defs = /^<defs>[\s\S]*?<\/defs>\n/.exec(rest)?.[0] ?? '';
-  const [x, y, w, h] = box.map((v) => fmt(v, 2));
+  const [x, y, w, h] = box.map((v) => num(v, 2));
   const head = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" width="${w}" height="${h}">\n`;
   const body = svg.slice(m.index + m[0].length, svg.lastIndexOf('</svg>'));
   return `${head}${defs}<g data-motif="">${body}</svg>\n`;
@@ -93,8 +91,10 @@ export function clampPlacement(info: MotifInfo, w: number, h: number, p: Placeme
 export function allowedPlacement(info: MotifInfo, w: number, h: number, p: Placement): boolean {
   const [lo, hi] = info.scale;
   const onCanvas = p.x >= 0 && p.x <= w && p.y >= 0 && p.y <= h;
+  // A size written to 4 decimals is up to 5e-5 off the one meant, so cells are up to cell * 5e-5 off whole.
   const cells =
-    info.cell === null || Math.abs(info.cell * p.k - Math.round(info.cell * p.k)) <= 1e-3;
+    info.cell === null ||
+    Math.abs(info.cell * p.k - Math.round(info.cell * p.k)) <= info.cell * 5e-5 + 1e-9;
   return onCanvas && p.k >= lo && p.k <= hi && cells;
 }
 

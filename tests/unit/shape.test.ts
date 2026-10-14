@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { num } from '../../src/lib/motif';
 import {
   cellWidths,
   crispPixels,
@@ -8,7 +9,6 @@ import {
   fitRect,
   focusPosition,
   nearestAspect,
-  num,
   rasterSvg,
   renderCommand,
   setRoot,
@@ -160,6 +160,7 @@ describe('sizes', () => {
     expect(num(25.536)).toBe('25.536');
     expect(num(498.46153846)).toBe('498.4615');
     expect(num(0.1 + 0.2, 3)).toBe('0.3');
+    expect(num(-0.00001, 2)).toBe('0');
   });
 });
 

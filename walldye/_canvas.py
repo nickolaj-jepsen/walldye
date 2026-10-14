@@ -88,8 +88,8 @@ class Canvas[Pm: Params = Params](Drawing):
         source: FsPath,
         shift: tuple[float, float] = (0.0, 0.0),
     ) -> None:
-        """Internal: Design.draw creates the canvas. `shift` moves every position center,
-        frac and pick return, for check's test that a motif carries everything placed."""
+        """Internal: Design.draw creates the canvas. `shift` (dx, dy) is added to every
+        position center, frac and pick return, and lets the motif's anchor leave the canvas."""
         self._params: Final = params
         self._w: Final = w
         self._h: Final = h
@@ -100,7 +100,9 @@ class Canvas[Pm: Params = Params](Drawing):
         self._open: Sub | None = None
         self._closed = False
         self._depth = 0  # groups open around what is drawn now
+        self._buckets = 0  # buckets blocks open, whose paths land where each opened
         self._motif: Literal["before", "open", "after"] = "before"
+        self._anchor = (0.0, 0.0)  # the open motif's, where its local units start
 
     def _live(self) -> None:
         if self._closed:
@@ -303,7 +305,8 @@ class Canvas[Pm: Params = Params](Drawing):
         **style: Unpack[Style],
     ) -> None:
         """Draw pixel cells: <path d class="px" fill .../>, and when `d` is not empty record
-        (cell, x, y) for each of `origins`, in order, as the document's pixel grids.
+        (cell, x, y) for each of `origins`, in order, as the document's pixel grids, in canvas
+        units (inside the motif, moved by its anchor).
 
         Raises ValueError for an empty `origins` or a cell that is not above 0.
         """
@@ -311,7 +314,8 @@ class Canvas[Pm: Params = Params](Drawing):
         c = num(cell, "pixel_path cell")
         if c <= 0:
             raise ValueError(f"pixel_path cell takes a number above 0, got {cell!r}")
-        grids = [(c, *point(o, "pixel_path origins")) for o in origins]
+        ax, ay = self._anchor
+        grids = [(c, x + ax, y + ay) for x, y in (point(o, "pixel_path origins") for o in origins)]
         if len(grids) == 0:
             raise ValueError("pixel_path needs at least one origin")
         self._emit(d, {"fill": fill, **style_values(style, "pixel_path")}, ' class="px"')
@@ -357,9 +361,9 @@ class Canvas[Pm: Params = Params](Drawing):
         `scale` is the range of sizes offered, (lo, hi) with SCALE[0] <= lo <= 1 <= hi <=
         SCALE[1]. The anchor may go anywhere on the canvas.
 
-        Raises RuntimeError for a second motif, a motif inside a group or another block, or
+        Raises RuntimeError for a second motif, a motif inside a group, buckets or another block, or
         any drawing after it closes; ValueError for an `at` off the canvas, a size that is not
-        above 0, a cell that is not above 0, a scale outside those bounds, or "cover" without
+        above 0, a cell that is not a whole number of units, a scale outside those bounds, or "cover" without
         a handle; TypeError for an extent or handle of another type.
         """
         target = self._target()
@@ -367,6 +371,8 @@ class Canvas[Pm: Params = Params](Drawing):
             raise RuntimeError("a design has one motif at most")
         if self._depth > 0:
             raise RuntimeError("open the motif on the canvas itself, outside any group")
+        if self._buckets > 0:
+            raise RuntimeError("close the buckets block before opening the motif")
         x, y = point(at, "motif at")
         # A shifted draw only compares what the motif holds, so its anchor may leave the canvas.
         if self._shift == (0.0, 0.0) and not (0 <= x <= self._w and 0 <= y <= self._h):
@@ -386,14 +392,17 @@ class Canvas[Pm: Params = Params](Drawing):
         box = tuple(cover) if overscan else _box(extent, "motif extent")
         grab = box if handle is None else _box(handle, "motif handle")
         k = None if cell is None else num(cell, "motif cell")
-        if k is not None and k <= 0:
-            raise ValueError(f"motif cell takes a number above 0, got {cell!r}")
+        # A whole cell keeps size 1 whole and gives every scale at least that one size.
+        if k is not None and (k < 1 or k != int(k)):
+            raise ValueError(f"motif cell takes a whole number of units, got {cell!r}")
         target.append([f'<g data-motif="" transform="translate({fmt(x, 2)} {fmt(y, 2)})">'])
         self._motif = "open"
+        self._anchor = (x, y)
         try:
             yield Motif(cover)
         finally:
             self._motif = "after"
+            self._anchor = (0.0, 0.0)
         self._doc.body.append(["</g>"])
         self._doc.motif = MotifInfo((x, y), tuple(cover), box, grab, overscan, k, (lo, hi))
 
@@ -424,10 +433,12 @@ class Canvas[Pm: Params = Params](Drawing):
         pending = Pending()
         target.append(pending)
         b = Buckets(len(attrs))
+        self._buckets += 1
         try:
             yield b
         finally:
             b._closed = True
+            self._buckets -= 1
         for d, a in zip(b._paths, attrs, strict=True):
             if not d.empty:
                 pending.lines.append(path_line(d, a))

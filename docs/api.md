@@ -233,7 +233,7 @@ def motif(self, at: Point, extent: float | Rect | Literal["cover"], *,
           scale: tuple[float, float] = (0.5, 2.0)) -> AbstractContextManager[Motif]
 ```
 
-A piece with one thing a visitor may move and resize draws it inside `with s.motif(c, extent) as m:`, in motif-local units around the anchor `c` (architecture.md, Motifs). A radius or `Rect` extent bounds every mark it draws; `"cover"` makes an overscan motif, which fills `m.cover` (the motif-local area any placement can show) with the surroundings that move with it, and then needs a `handle`. `handle` is what a visitor grabs, the extent by default. `cell` is a pixel motif's cell, so every size keeps it whole. `scale` narrows the sizes offered within (0.5, 2), and must hold 1.
+A piece with one thing a visitor may move and resize draws it inside `with s.motif(c, extent) as m:`, in motif-local units around the anchor `c` (architecture.md, Motifs). A radius or `Rect` extent bounds every mark it draws; `"cover"` makes an overscan motif, which fills `m.cover` (the motif-local area any placement can show) with the surroundings that move with it, and then needs a `handle`. `handle` is what a visitor grabs, the extent by default. `cell` is a pixel motif's cell, a whole number of units, so every size keeps it whole. `scale` narrows the sizes offered within (0.5, 2), and must hold 1. A motif can't open inside a group or a `buckets` block.
 
 - The anchor `c` is on the canvas, and the block opens on the canvas itself, outside any group.
 - Inside it, `w`, `h`, `center`, `frac`, `pick`, `inset` and `mask()` raise; `landscape` and `light` stay. Values read before it opens may depend on the canvas size, never on `c`.

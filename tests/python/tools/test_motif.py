@@ -1,3 +1,4 @@
+import dataclasses
 import json
 
 import pytest
@@ -79,3 +80,17 @@ def test_problems_say_why():
     assert motif.problems(m, 1920, 1080, (0, 0, 1.1)) == [
         "the size 1.1 makes the 3-unit cell fractional"
     ]
+
+
+def test_size_range_keeps_whole_cells():
+    m = info(SPEC["placements"][0]["motif"])
+    assert motif.size_range(m) == (0.6667, 2.0)
+    assert motif.size_range(dataclasses.replace(m, cell=None)) == (0.5, 2.0)
+    assert all(motif.problems(m, 1920, 1080, (0, 0, k)) == [] for k in motif.size_range(m))
+
+
+def test_problems_take_any_size_the_site_offers_a_large_cell():
+    m = dataclasses.replace(info(SPEC["placements"][0]["motif"]), cell=32.0)
+    # The site writes 17/32 as 0.5313, which puts 32 * k 0.0016 off whole.
+    assert all(motif.problems(m, 1920, 1080, (0, 0, round(n / 32, 4))) == [] for n in range(16, 65))
+    assert motif.problems(m, 1920, 1080, (0, 0, 0.532)) != []

@@ -390,6 +390,13 @@ def test_pixel_path_records_one_grid_per_origin():
         s.pixel_path(SQUARE, UI, cell=0, origins=[(0, 0)])
 
 
+def test_pixel_path_in_a_motif_records_its_grid_on_the_canvas():
+    s, doc = canvas()
+    with s.motif((960.5, 540), 100, cell=3):
+        s.pixel_path(P().rect(0, 0, 3, 3), UI, cell=3, origins=[(-6, -6)])
+    assert doc.finish().pixel_grids == ((3.0, 954.5, 534.0),)
+
+
 def test_closed_canvas():
     s, _ = canvas()
     close(s)
@@ -583,6 +590,8 @@ def test_motif_opens_on_the_canvas_only():
     s, _ = canvas()
     with s.group(opacity=0.5), pytest.raises(RuntimeError, match="outside any group"):
         s.motif((960, 540), 100).__enter__()
+    with s.buckets((UI,), "fill"), pytest.raises(RuntimeError, match="close the buckets"):
+        s.motif((960, 540), 100).__enter__()
     with s.motif((960, 540), 100), pytest.raises(RuntimeError, match="one motif at most"):
         s.motif((0, 0), 10).__enter__()
 
@@ -605,6 +614,7 @@ def test_motif_takes_no_mask():
         (((960, 540), 0), {}, ValueError, "motif extent"),
         (((960, 540), Rect(0, 0, 10, -1)), {}, ValueError, "motif extent"),
         (((960, 540), 100), {"cell": 0}, ValueError, "motif cell"),
+        (((960, 540), 100), {"cell": 1.5}, ValueError, "motif cell"),
         (((960, 540), "1"), {}, ValueError, "motif extent"),
         (((960, 540), [1, 2]), {}, TypeError, "motif extent"),
     ],
