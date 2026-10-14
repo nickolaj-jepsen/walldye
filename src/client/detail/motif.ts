@@ -136,8 +136,9 @@ export class MotifView {
 }
 
 /**
- * Follows the drag `e` starts on `el`, calling `move` with how far the pointer has gone, in canvas
- * units at `units` per pixel, then `done` when it ends.
+ * Follows the drag `e` starts on `el`, calling `move` with how far that pointer has gone, in canvas
+ * units at `units` per pixel, then `done` when it ends. Returns a function that drops the drag
+ * without calling `done`.
  */
 export function dragMotif(
   el: HTMLElement,
@@ -145,17 +146,24 @@ export function dragMotif(
   units: number,
   move: (dx: number, dy: number) => void,
   done: () => void,
-): void {
+): () => void {
   el.setPointerCapture(e.pointerId);
   const [x0, y0] = [e.clientX, e.clientY];
-  const onMove = (ev: PointerEvent) => move((ev.clientX - x0) * units, (ev.clientY - y0) * units);
-  const end = () => {
+  const onMove = (ev: PointerEvent) => {
+    if (ev.pointerId === e.pointerId) move((ev.clientX - x0) * units, (ev.clientY - y0) * units);
+  };
+  const stop = () => {
     el.removeEventListener('pointermove', onMove);
     el.removeEventListener('pointerup', end);
     el.removeEventListener('pointercancel', end);
+  };
+  const end = (ev: PointerEvent) => {
+    if (ev.pointerId !== e.pointerId) return;
+    stop();
     done();
   };
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerup', end);
   el.addEventListener('pointercancel', end);
+  return stop;
 }
