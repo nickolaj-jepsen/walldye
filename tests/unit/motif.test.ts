@@ -13,6 +13,7 @@ import {
   motifWindow,
   placedBox,
   placeMotif,
+  resizeMotif,
 } from '../../src/lib/motif';
 
 const SPEC = JSON.parse(
@@ -107,5 +108,29 @@ describe('centering', () => {
     expect(
       centerMotif({ ...off, handle: [-3000, 0, 10, 10] }, 1920, 1080, { x: 0, y: 0, k: 1 }, 'x').x,
     ).toBe(1920);
+  });
+});
+
+describe('resizing by a corner', () => {
+  const box: MotifInfo = { ...MOON, handle: [-100, -50, 200, 100], cell: null };
+  const from = { x: 500, y: 300, k: 1 };
+  it('keeps the opposite corner where it was', () => {
+    // Bottom-right dragged out to double size: the top-left corner stays at (400, 250).
+    expect(resizeMotif(box, 1920, 1080, from, [1, 1], [800, 450])).toEqual({
+      x: 600,
+      y: 350,
+      k: 2,
+    });
+    // Top-left dragged in to half size: the bottom-right corner stays at (600, 350).
+    expect(resizeMotif(box, 1920, 1080, from, [0, 0], [500, 300])).toEqual({
+      x: 550,
+      y: 325,
+      k: 0.5,
+    });
+  });
+  it('follows the pointer along the diagonal and keeps to the scale', () => {
+    expect(resizeMotif(box, 1920, 1080, from, [1, 0], [700, 200]).k).toBe(1.5);
+    expect(resizeMotif(box, 1920, 1080, from, [1, 1], [5000, 5000]).k).toBe(2);
+    expect(resizeMotif(box, 1920, 1080, from, [1, 1], [0, 0]).k).toBe(0.5);
   });
 });

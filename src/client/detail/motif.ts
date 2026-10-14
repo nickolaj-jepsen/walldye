@@ -136,21 +136,19 @@ export class MotifView {
 }
 
 /**
- * Follows the drag `e` starts on `el`, calling `move` with the anchor moved by the pointer, in canvas
- * units of a canvas `units` wide per pixel, then `done` when it ends.
+ * Follows the drag `e` starts on `el`, calling `move` with how far the pointer has gone, in canvas
+ * units at `units` per pixel, then `done` when it ends.
  */
 export function dragMotif(
   el: HTMLElement,
   e: PointerEvent,
-  from: Placement,
   units: number,
-  move: (p: Placement) => void,
+  move: (dx: number, dy: number) => void,
   done: () => void,
 ): void {
   el.setPointerCapture(e.pointerId);
   const [x0, y0] = [e.clientX, e.clientY];
-  const onMove = (ev: PointerEvent) =>
-    move({ ...from, x: from.x + (ev.clientX - x0) * units, y: from.y + (ev.clientY - y0) * units });
+  const onMove = (ev: PointerEvent) => move((ev.clientX - x0) * units, (ev.clientY - y0) * units);
   const end = () => {
     el.removeEventListener('pointermove', onMove);
     el.removeEventListener('pointerup', end);

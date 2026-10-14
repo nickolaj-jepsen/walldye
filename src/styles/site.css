@@ -510,8 +510,30 @@ abbr {
   cursor: grab;
   touch-action: none;
 }
-.motif-handle:hover, .motif-handle:active { box-shadow: inset 0 0 0 1px var(--text); }
+.motif-handle:hover, .motif-handle:active, [data-touched] .motif-handle { box-shadow: inset 0 0 0 1px var(--text); }
 .motif-handle:active { cursor: grabbing; }
+/* A corner's hit area is 3u, around a 1u square drawn on the frame's corner. */
+.motif-corner {
+  position: absolute;
+  width: calc(3 * var(--u));
+  height: calc(3 * var(--u));
+  translate: -50% -50%;
+  cursor: nwse-resize;
+}
+.motif-corner[data-corner="1,0"], .motif-corner[data-corner="0,1"] { cursor: nesw-resize; }
+.motif-corner[data-corner^="0"] { left: 0; }
+.motif-corner[data-corner^="1"] { left: 100%; }
+.motif-corner[data-corner$="0"] { top: 0; }
+.motif-corner[data-corner$="1"] { top: 100%; }
+.motif-corner::after {
+  content: "";
+  position: absolute;
+  inset: var(--u);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--text);
+  visibility: hidden;
+}
+.motif-handle:hover .motif-corner::after, .motif-handle:active .motif-corner::after, [data-touched] .motif-corner::after { visibility: visible; }
 
 .below {
   display: grid;

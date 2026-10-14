@@ -16,6 +16,7 @@ import {
   motifTransform,
   type Placement,
   placeMotif,
+  resizeMotif,
 } from '../../lib/motif';
 import { pickTemplate, type Slots } from '../../lib/recolor';
 import {
@@ -369,12 +370,31 @@ for (const [axis, range] of [
   });
 }
 
+// The handle moves the motif; a corner of it resizes the motif about the opposite corner.
 motif?.handle.addEventListener('pointerdown', (e) => {
   const info = motifInfo();
   if (e.button !== 0 || !info || !motif.canvas.clientWidth) return;
   e.preventDefault();
-  const units = CANVAS[sourceAspect()][0] / motif.canvas.clientWidth;
-  dragMotif(motif.handle, e, shownPlacement(info), units, previewMotif, commitMotif);
+  if (e.pointerType !== 'mouse') motif.frame.dataset.touched = '';
+  const [w, h] = CANVAS[sourceAspect()];
+  const units = w / motif.canvas.clientWidth;
+  const from = shownPlacement(info);
+  const corner = (e.target as HTMLElement).closest<HTMLElement>('.motif-corner')?.dataset.corner;
+  if (!corner) {
+    const move = (dx: number, dy: number) =>
+      previewMotif({ ...from, x: from.x + dx, y: from.y + dy });
+    return dragMotif(motif.handle, e, units, move, commitMotif);
+  }
+  const c = [Number(corner[0]), Number(corner[2])] as const;
+  const [hx, hy, hw, hh] = info.handle;
+  const [px, py] = [from.x + (hx + c[0] * hw) * from.k, from.y + (hy + c[1] * hh) * from.k];
+  const resize = (dx: number, dy: number) =>
+    previewMotif(resizeMotif(info, w, h, from, c, [px + dx, py + dy]));
+  dragMotif(motif.handle, e, units, resize, commitMotif);
+});
+// On a touch screen the handle stays framed, with its corners, until a touch lands elsewhere.
+document.addEventListener('pointerdown', (e) => {
+  if (motif && !motif.handle.contains(e.target as Node)) delete motif.frame.dataset.touched;
 });
 
 const moveCrop = (t: number) => update({ crop: t });
