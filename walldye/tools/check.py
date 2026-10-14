@@ -41,6 +41,7 @@ from walldye.tools.similar import near_clones
 SLOW: Final = 120.0  # seconds; a variant whose check takes longer gets a warning
 SHIFT: Final = (40.0, 24.0)  # canvas units the motif test moves every position by
 EXTENT_UNITS: Final = 4.0  # canvas units per pixel of the motif's extent test
+COARSE_UNITS: Final = 16.0  # canvas units per pixel of its first, whole-cover look
 
 
 class DesignError(Exception):
@@ -309,7 +310,8 @@ def _motif_errors(
     for key, doc in docs.items():
         aspect, regime = key
         tokens = themes.tokens_of(themes.SAMPLE[regime])
-        want = motif.unplaced(doc.to_svg(tokens))
+        svg = doc.to_svg(tokens)
+        want = motif.unplaced(svg)
         try:
             with loader.quiet():
                 moved = piece.draw(specs[key], SHIFT)
@@ -327,7 +329,13 @@ def _motif_errors(
         if info is None or info.overscan:
             continue
         x, y, w, h = info.extent
-        ink = raster.ink_box(motif.alone(doc.to_svg(tokens), info.cover), EXTENT_UNITS)
+        # A coarse look over all the cover finds the ink; a fine one around it measures it.
+        ink = raster.ink_box(motif.alone(svg, info.cover), COARSE_UNITS)
+        if ink is not None:
+            x0, y0, x1, y1 = ink
+            m = COARSE_UNITS
+            box = (x0 - m, y0 - m, x1 - x0 + 2 * m, y1 - y0 + 2 * m)
+            ink = raster.ink_box(motif.alone(svg, box), EXTENT_UNITS)
         if ink is not None and not _within(ink, info.extent, EXTENT_UNITS):
             x0, y0, x1, y1 = ink
             errors.append(

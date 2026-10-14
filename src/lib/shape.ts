@@ -10,7 +10,7 @@ import {
   fileStem,
   SITE_ASPECTS,
 } from './content';
-import { type Placement, placeMotif } from './motif';
+import { num, type Placement, placeMotif } from './motif';
 
 export interface Box {
   x: number;
@@ -77,12 +77,6 @@ export function fitRect(box: Box, ratio: number): Box {
   }
   const h = box.w / ratio;
   return { x: box.x, y: box.y + (box.h - h) / 2, w: box.w, h };
-}
-
-/** `n` with at most `places` decimals and no trailing zeros. */
-export function num(n: number, places = 4): string {
-  const s = n.toFixed(places);
-  return s.includes('.') ? s.replace(/\.?0+$/, '') : s;
 }
 
 function setAttr(tag: string, name: string, value: string): string {

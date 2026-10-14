@@ -13,7 +13,7 @@ from walldye._path import fmt
 
 TAG: Final = re.compile(r'<g data-motif="" transform="([^"]*)">')
 ROOT: Final = re.compile(r"<svg\b[^>]*>\n")
-CELL_SLACK: Final = 1e-3  # a size written to 4 decimals keeps cell * k this close to whole
+SIZE_ROUNDING: Final = 5e-5  # a size written to 4 decimals is this close to the one meant
 
 type Place = tuple[float, float, float]  # anchor x, y in canvas units, and size k
 
@@ -88,9 +88,19 @@ def problems(info: MotifInfo, w: int, h: int, where: Place) -> list[str]:
     if not lo <= k <= hi:
         out.append(f"the size {k:g} is outside {lo:g}..{hi:g}")
     cell = info.cell
-    if cell is not None and abs(cell * k - round(cell * k)) > CELL_SLACK:
+    if cell is not None and abs(cell * k - round(cell * k)) > cell * SIZE_ROUNDING + 1e-9:
         out.append(f"the size {k:g} makes the {cell:g}-unit cell fractional")
     return out
+
+
+def size_range(info: MotifInfo) -> tuple[float, float]:
+    """The smallest and largest sizes the site offers: the motif's scale, narrowed to sizes that
+    keep its cell whole and written to 4 decimals."""
+    lo, hi = info.scale
+    if info.cell is None:
+        return lo, hi
+    c = info.cell
+    return round(math.ceil(lo * c - 1e-9) / c, 4), round(math.floor(hi * c + 1e-9) / c, 4)
 
 
 def as_json(info: MotifInfo) -> dict[str, object]:

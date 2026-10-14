@@ -278,14 +278,16 @@ export function keepShowing(
 /**
  * A slot for one showing that restarts only when its key changes: `show(key, start)` stops the
  * running showing and calls `start` for a new one, and does nothing when `key` is the last one's.
+ * Returns whether it started one.
  */
-export function keyedShow(): (key: string, start: () => () => void) => void {
+export function keyedShow(): (key: string, start: () => () => void) => boolean {
   let shown: string | undefined;
   let stop = () => {};
   return (key, start) => {
-    if (key === shown) return;
+    if (key === shown) return false;
     shown = key;
     stop();
     stop = start();
+    return true;
   };
 }

@@ -161,3 +161,14 @@ describe('pinching', () => {
     });
   });
 });
+
+describe('a large cell', () => {
+  const big: MotifInfo = { ...MOON, cell: 32 };
+  it('allows every size it offers', () => {
+    for (let n = 16; n <= 64; n++) {
+      expect(allowedPlacement(big, 1920, 1080, { x: 0, y: 0, k: motifSize(big, n / 32) })).toBe(
+        true,
+      );
+    }
+  });
+});
