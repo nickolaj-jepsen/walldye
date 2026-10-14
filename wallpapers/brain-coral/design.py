@@ -20,6 +20,7 @@ from walldye import (
     P,
     Params,
     Path,
+    Rect,
     Vec,
     cached,
     design,
@@ -97,8 +98,14 @@ def gray_scott(rng: NpRng, gw: int, gh: int, f: float, k: float) -> Grid:
 def draw(s: Canvas[Coral]) -> None:
     p = s.params
     # the dome's foot on the seabed: left third on a landscape screen, low on a portrait one
-    cx, bed = s.pick(landscape=(1 / 3, 940 / 1080), portrait=(0.42, 0.7))
-    cy = bed - LIFT
+    home = (1 / 3, 940 / 1080) if s.landscape else (0.42, 0.7)
+    foot = s.pick(landscape=home, portrait=home)
+    # Everything below is drawn around the dome's center. The seabed is fit to the screen once,
+    # from the dome's own place, and keeps that length wherever a visitor moves the dome.
+    cx, cy = 0.0, 0.0
+    bed = cy + LIFT
+    span = (60 / 1920, 1500 / 1920) if s.landscape else (0.04, 0.96)
+    a, b = ((t - home[0]) * s.w for t in span)
     x0, y0 = cx - RX - 30, cy - RY - 30
     X, Y = np.meshgrid(np.arange(x0, cx + RX + 30, STEP), np.arange(y0, bed + 8, STEP))
     ang = np.arctan2(Y - cy, X - cx)
@@ -137,17 +144,19 @@ def draw(s: Canvas[Coral]) -> None:
                 d.poly(line, closed=True)
         return d
 
-    s.fill(P().ellipse((cx + 30, bed + 3), RX * 1.05, 12), BG_DEEP)  # contact shadow on the sand
-    s.fill(outline(dome), ACCENT_8)
-    # darkest band first, so each brighter one lies on top and the bands share no seams
-    for lo, tone in reversed(BANDS):
-        s.fill(outline(np.minimum(ridge, 60 * (light - lo))), tone)
+    # the contact shadow reaches 15 units below the seabed
+    extent = Rect(min(a, x0), y0, max(b, cx + RX + 30) - min(a, x0), bed + 15 - y0)
+    with s.motif(foot - (0, LIFT), extent, handle=Rect(x0, y0, 2 * (RX + 30), bed + 15 - y0)):
+        s.fill(P().ellipse((cx + 30, bed + 3), RX * 1.05, 12), BG_DEEP)  # contact shadow
+        s.fill(outline(dome), ACCENT_8)
+        # darkest band first, so each brighter one lies on top and the bands share no seams
+        for lo, tone in reversed(BANDS):
+            s.fill(outline(np.minimum(ridge, 60 * (light - lo))), tone)
 
-    # the seabed: a hairline fading in at the left and out towards the right
-    a, b = (s.w * t for t in ((60 / 1920, 1500 / 1920) if s.landscape else (0.04, 0.96)))
-    sea = s.linear_gradient([(0, UI, 0), (0.12, UI), (0.6, UI), (1, UI, 0)], (a, 0), (b, 0))
-    s.fill(P().rect(a, bed - 0.75, b - a, 1.5), sea)
-    pebbles = P()
-    for dx, r in PEBBLES:
-        pebbles.ellipse(Vec(cx + dx, bed - r * 0.6), r * 1.4, r * 0.8)
-    s.fill(pebbles, UI_ALT)
+        # the seabed: a hairline fading in at the left and out towards the right
+        sea = s.linear_gradient([(0, UI, 0), (0.12, UI), (0.6, UI), (1, UI, 0)], (a, 0), (b, 0))
+        s.fill(P().rect(a, bed - 0.75, b - a, 1.5), sea)
+        pebbles = P()
+        for dx, r in PEBBLES:
+            pebbles.ellipse(Vec(cx + dx, bed - r * 0.6), r * 1.4, r * 0.8)
+        s.fill(pebbles, UI_ALT)

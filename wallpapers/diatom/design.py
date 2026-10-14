@@ -16,6 +16,7 @@ from walldye import (
     Canvas,
     P,
     Params,
+    Rect,
     Vec,
     design,
     knob,
@@ -33,14 +34,15 @@ HALF = math.degrees(5 / R)  # half the angle a spine's base spans at the shell
 BRISTLES = 6 * SPINES
 CAPSULE = 0.55 * R  # radius of the glow seen through the pores
 DIM = 385  # drop of the dimension line below the center
+O = Vec(0, 0)  # the shell center, in the motif's units
 GLOW = ladder((BG, ACCENT_4, ACCENT), 18)  # rung 0 is the unlit shell and is never drawn
 
 type Pore = tuple[NDArray[np.float64], float]
 
 
-def pores(c: Vec) -> list[Pore]:
-    """The pores on the visible hemisphere of the shell centered on `c`, as (outline, distance of
-    the cell's center from `c`) pairs, projected straight onto the screen."""
+def pores() -> list[Pore]:
+    """The pores on the visible hemisphere of the shell centered on the origin, as (outline,
+    distance of the cell's center from the origin) pairs, projected straight onto the screen."""
     n = round(4 * math.pi * R * R / (PORE * PORE * 0.866))
     i = np.arange(n) + 0.5
     z = 1 - 2 * i / n  # toward the viewer
@@ -54,7 +56,7 @@ def pores(c: Vec) -> list[Pore]:
         if site[2] < 0.14:  # cells on the limb would poke through the silhouette
             continue
         v = site + (sv.vertices[region] - site) * STRUT
-        out.append((c + R * v[:, :2], R * math.hypot(site[0], site[1])))
+        out.append((R * v[:, :2], R * math.hypot(site[0], site[1])))
     return out
 
 
@@ -66,50 +68,51 @@ class Drawing(Params):
 def draw(s: Canvas[Drawing]) -> None:
     # right of center on a landscape screen; centered across a portrait one, above the middle
     c = s.pick(landscape=(0.625, 0.486), portrait=(0.5, 0.4))
+    # bounded by the center lines across, the top spine and the dimension below
+    with s.motif(c, Rect(-441, -391, 882, 793), handle=R):
+        # specimen-plate construction: center lines, and one dimension across the shell
+        guide = P().M(-R - 230, 0).H(R + 230).M(0, -R - 150).V(R + 150)
+        s.stroke(guide, UI, 1.2, dash=(36, 6, 4, 6))
+        if s.params.dimensions:
+            y = DIM
+            dim = P().M(-R, y).H(R)
+            for x in (-R, R):
+                dim.M(x, 12).V(y + 14).M(x - 7, y + 7).L(x + 7, y - 7)
+            s.stroke(dim, UI, 1.2)
 
-    # specimen-plate construction: center lines, and one dimension across the shell
-    guide = P().M(c + (-R - 230, 0)).H(c.x + R + 230).M(c + (0, -R - 150)).V(c.y + R + 150)
-    s.stroke(guide, UI, 1.2, dash=(36, 6, 4, 6))
-    if s.params.dimensions:
-        y = c.y + DIM
-        dim = P().M(c.x - R, y).H(c.x + R)
-        for x in (c.x - R, c.x + R):
-            dim.M(x, c.y + 12).V(y + 14).M(x - 7, y + 7).L(x + 7, y - 7)
-        s.stroke(dim, UI, 1.2)
+        # spines and bristles sit behind the shell
+        spines, ribs, bristles = P(), P(), P()
+        for i in range(SPINES):
+            b = i * 360 / SPINES
+            tip = R + (LONG if i % 2 == 0 else SHORT)
+            spines.poly(
+                [
+                    polar(O, R - 10, bearing=b - HALF),
+                    polar(O, tip, bearing=b),
+                    polar(O, R - 10, bearing=b + HALF),
+                ],
+                closed=True,
+            )
+            ribs.M(polar(O, R, bearing=b)).L(polar(O, tip - 26, bearing=b))
+        for i in range(BRISTLES):
+            b = (i + 0.5) * 360 / BRISTLES
+            bristles.M(polar(O, R, bearing=b)).L(polar(O, R + (15 if i % 3 == 1 else 9), bearing=b))
+        s.stroke(bristles, UI, 1.3)
+        s.fill(spines, UI)
+        s.stroke(ribs, UI_ALT, 1.2)
 
-    # spines and bristles sit behind the shell
-    spines, ribs, bristles = P(), P(), P()
-    for i in range(SPINES):
-        b = i * 360 / SPINES
-        tip = R + (LONG if i % 2 == 0 else SHORT)
-        spines.poly(
-            [
-                polar(c, R - 10, bearing=b - HALF),
-                polar(c, tip, bearing=b),
-                polar(c, R - 10, bearing=b + HALF),
-            ],
-            closed=True,
-        )
-        ribs.M(polar(c, R, bearing=b)).L(polar(c, tip - 26, bearing=b))
-    for i in range(BRISTLES):
-        b = (i + 0.5) * 360 / BRISTLES
-        bristles.M(polar(c, R, bearing=b)).L(polar(c, R + (15 if i % 3 == 1 else 9), bearing=b))
-    s.stroke(bristles, UI, 1.3)
-    s.fill(spines, UI)
-    s.stroke(ribs, UI_ALT, 1.2)
+        # the shell: a shaded disc with every pore cut through it
+        holes = pores()
+        frame = P().circle(O, R)
+        for pts, _ in holes:
+            frame.poly(pts, closed=True)
+        shade = s.radial_gradient([(0, BG_ALT), (0.7, BG_ALT), (1, mix(BG_ALT, BG, 0.7))], O, R)
+        s.fill(P().circle(O, R), BG)  # hides the guides behind the pores
+        s.fill(frame, shade, rule="evenodd")
 
-    # the shell: a shaded disc with every pore cut through it
-    holes = pores(c)
-    frame = P().circle(c, R)
-    for pts, _ in holes:
-        frame.poly(pts, closed=True)
-    shade = s.radial_gradient([(0, BG_ALT), (0.7, BG_ALT), (1, mix(BG_ALT, BG, 0.7))], c, R)
-    s.fill(P().circle(c, R), BG)  # hides the guides behind the pores
-    s.fill(frame, shade, rule="evenodd")
-
-    # the capsule glows through the pores: each pore takes one flat rung by its distance
-    with s.buckets(GLOW, "fill") as lit:
-        for pts, d in holes:
-            if (k := GLOW.rung(1 - d / CAPSULE)) > 0:
-                lit[k].poly(pts, closed=True)
-    s.stroke(P().circle(c, R), UI_ALT, 2)
+        # the capsule glows through the pores: each pore takes one flat rung by its distance
+        with s.buckets(GLOW, "fill") as lit:
+            for pts, d in holes:
+                if (k := GLOW.rung(1 - d / CAPSULE)) > 0:
+                    lit[k].poly(pts, closed=True)
+        s.stroke(P().circle(O, R), UI_ALT, 2)

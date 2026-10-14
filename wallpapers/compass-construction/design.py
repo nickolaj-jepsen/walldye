@@ -25,7 +25,7 @@ R = 300  # radius of the circle the polygon is inscribed in
 
 @dataclass(frozen=True)
 class Sheet:
-    """One construction, sorted by pen: `ruled` lines run to the canvas edges (BG_ALT),
+    """One construction, sorted by pen: `ruled` lines run to the frame's edges (BG_ALT),
     `drawn` holds the arcs and segments (UI_ALT), `centers` get a cross and `found` a dot
     (UI_HI), and the polygon through `verts` is inked with a dot on the vertex `first` found."""
 
@@ -87,15 +87,17 @@ def pentagon(o: Vec, frame: Rect) -> Sheet:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     o = s.pick(landscape=(1340 / 1920, 520 / 1080), portrait=(0.5, 0.44))
-    sheet = pentagon(o, s.inset(0))
+    # the ruled lines reach every screen edge wherever the circle goes
+    with s.motif(o, "cover", handle=R + 40) as m:
+        sheet = pentagon(Vec(0, 0), m.cover)
 
-    s.stroke(sheet.ruled, BG_ALT, 1)
-    s.stroke(sheet.drawn, UI_ALT, 1.5)
-    marks = P()
-    for c in sheet.centers:
-        marks.M(c.x - 9, c.y).H(c.x + 9).M(c.x, c.y - 9).V(c.y + 9)
-    s.stroke(marks, UI_HI, 1.4)
-    s.fill(P().dots(sheet.found, 2.5), UI_HI)
+        s.stroke(sheet.ruled, BG_ALT, 1)
+        s.stroke(sheet.drawn, UI_ALT, 1.5)
+        marks = P()
+        for c in sheet.centers:
+            marks.M(c.x - 9, c.y).H(c.x + 9).M(c.x, c.y - 9).V(c.y + 9)
+        s.stroke(marks, UI_HI, 1.4)
+        s.fill(P().dots(sheet.found, 2.5), UI_HI)
 
-    s.stroke(P().poly(sheet.verts, closed=True), ACCENT, 2.5, join="round")
-    s.fill(P().circle(sheet.first, 7), ACCENT)
+        s.stroke(P().poly(sheet.verts, closed=True), ACCENT, 2.5, join="round")
+        s.fill(P().circle(sheet.first, 7), ACCENT)

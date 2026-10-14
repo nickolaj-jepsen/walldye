@@ -20,6 +20,7 @@ from walldye import (
     P,
     Params,
     Rect,
+    Vec,
     design,
     knob,
     ladder,
@@ -65,10 +66,6 @@ def draw(s: Canvas[Pendulums]) -> None:
     end = cuts[-1]
     pts = np.column_stack([x, y])
     pts -= (pts.min(axis=0) + pts.max(axis=0)) / 2  # the figure's bounding box centered on c
-    with s.buckets(TONES, "stroke", stroke_width=1.2) as b:
-        for a, z in pairwise([0, *cuts]):
-            line = LineString(pts[a : z + 1] + c).simplify(0.35)
-            b[TONES.rung(float(np.interp((a + z) / 2 / end, *ALONG)))].poly(line.coords)
     # the last turns rim the eye, so the pen-stop sits at the point inside them farthest from
     # any line
     hull = LineString(pts[cuts[-TURNS - 1] : end + 1]).convex_hull
@@ -77,4 +74,10 @@ def draw(s: Canvas[Pendulums]) -> None:
     inside = shapely.contains_xy(hull, gx, gy)
     eye = np.column_stack([gx[inside], gy[inside]])
     gap, _ = cKDTree(pts[: end + 1]).query(eye)
-    s.fill(P().circle(c + eye[gap.argmax()], 4), ACCENT)
+    hw, hh = pts.max(axis=0) + 2  # with the stroke
+    with s.motif(c, Rect(-hw, -hh, 2 * hw, 2 * hh)):
+        with s.buckets(TONES, "stroke", stroke_width=1.2) as b:
+            for a, z in pairwise([0, *cuts]):
+                line = LineString(pts[a : z + 1]).simplify(0.35)
+                b[TONES.rung(float(np.interp((a + z) / 2 / end, *ALONG)))].poly(line.coords)
+        s.fill(P().circle(Vec(*eye[gap.argmax()]), 4), ACCENT)

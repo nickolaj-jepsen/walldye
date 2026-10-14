@@ -18,7 +18,9 @@ from walldye import (
     UI_ALT,
     Canvas,
     P,
+    Rect,
     Rng,
+    Vec,
     by_regime,
     clamp,
     design,
@@ -41,6 +43,7 @@ FLUID = by_regime(BLACK, UI_ALT)
 MIRROR = by_regime(BG_DEEP, BG_ALT)
 DIM = by_regime(BG_ALT, UI)  # the far flank of every spike, and right flanks turned away
 HALF = by_regime(UI, BG_ALT)  # right flanks half turned to the light
+LANDSCAPE, PORTRAIT = (1180 / 1920, 730 / 1080), (0.5, 0.62)  # the pool's place on the screen
 
 
 def dome(r: Pts) -> Pts:
@@ -108,52 +111,64 @@ def shifted(pts: Pts, dx: Pts | float) -> Pts:
 def draw(s: Canvas) -> None:
     # right of center on a landscape screen, leaving the left for windows; centered and a little
     # low on a portrait one, under the clock
-    c = s.pick(landscape=(1180 / 1920, 730 / 1080), portrait=(0.5, 0.62))
+    home = LANDSCAPE if s.landscape else PORTRAIT
+    c = s.pick(landscape=LANDSCAPE, portrait=PORTRAIT)
+    # the surface line fades out at both ends, stopping short of the screen's edges from the
+    # pool's own place, and keeps that length wherever it goes
+    x0, x1 = max(-760, 40 - home[0] * s.w), min(700, s.w - 40 - home[0] * s.w)
     spikes = lattice(s.rng(4))
-
     # reflection: only the mound and the tallest central spikes, fading out quickly
-    s.fill(P().poly(c + mound(-1), closed=True), MIRROR)
     tall = sorted(spikes, key=lambda p: -p[3])[:7]
-    for u, v, foot, h in sorted(tall, key=lambda p: p[1]):
-        _, right, body = spike(u, v, foot, h * 0.45, -1)
-        s.fill(P().poly(c + body, closed=True), MIRROR)
-        rim = np.vstack((right, shifted(right, -2.5)[::-1]))
-        s.fill(P().poly(c + rim, closed=True), ACCENT_7 if u > 0 else ACCENT_8)
-    lip_y = c.y + R * SQ
-    fade = s.linear_gradient([(0, BG, 0.4), (1, BG, 1)], (0, lip_y), (0, lip_y + 130))
-    s.fill(P().rect(0, c.y, s.w, s.h - c.y), fade)
-    # the surface line fades out at both ends, stopping short of the canvas edges
-    x0, x1 = max(c.x - 760, 40), min(c.x + 700, s.w - 40)
-    line = s.linear_gradient([(0, BG), (0.3, UI), (0.7, UI), (1, BG)], (x0, 0), (x1, 0))
-    s.stroke(P().M(x0, c.y).H(x1), line, 1.4)
+    hung = [
+        (u, spike(u, v, foot, h * 0.45, -1)) for u, v, foot, h in sorted(tall, key=lambda p: p[1])
+    ]
+    stood = [(u, h, spike(u, v, foot, h, 1)) for u, v, foot, h in spikes]
+    mirror, crown = mound(-1), mound(1)
+    under = np.vstack([mirror, *(body for _, (_, _, body) in hung)])
+    over = np.vstack([crown, *(outline for _, _, (_, _, outline) in stood)])
+    (ux0, _), (ux1, deep) = under.min(0) - 3, under.max(0) + 3  # with the lit rims
+    (ox0, top), (ox1, _) = over.min(0) - 2, over.max(0) + 2
 
-    # dome body with a soft specular band on its upper right, glimpsed between the spikes
-    body = P().poly(c + mound(1), closed=True)
-    s.fill(body, FLUID)
-    with s.clip() as dome_clip:
-        dome_clip.add(body)
-    spec = s.radial_gradient(
-        [(0, BG_ALT, 0.9), (0.6, BG, 0.4), (1, BG, 0)], (0.5, 0.5), 0.5, units="bbox"
-    )
-    band = P().ellipse(c + (0.42 * R, -0.3 * DOME), 0.34 * R, 0.1 * R)
-    s.path(band, fill=spec, clip_path=dome_clip.ref)
+    with s.motif(
+        c, Rect(min(ux0, ox0, x0), top, max(ux1, ox1, x1) - min(ux0, ox0, x0), deep - top)
+    ):
+        s.fill(P().poly(mirror, closed=True), MIRROR)
+        for u, (_, right, body) in hung:
+            s.fill(P().poly(body, closed=True), MIRROR)
+            rim = np.vstack((right, shifted(right, -2.5)[::-1]))
+            s.fill(P().poly(rim, closed=True), ACCENT_7 if u > 0 else ACCENT_8)
+        lip_y = R * SQ
+        fade = s.linear_gradient([(0, BG, 0.4), (1, BG, 1)], (0, lip_y), (0, lip_y + 130))
+        s.fill(P().rect(ux0, 0, ux1 - ux0, deep), fade)
+        line = s.linear_gradient([(0, BG), (0.3, UI), (0.7, UI), (1, BG)], (x0, 0), (x1, 0))
+        s.stroke(P().M(x0, 0).H(x1), line, 1.4)
 
-    for u, v, foot, h in spikes:
-        left, right, outline = spike(u, v, foot, h, 1)
-        s.fill(P().poly(c + outline, closed=True), FLUID)
-        lit = clamp(0.5 + 0.8 * u / R + 0.4 * h / SPIKE - 0.35)
-        w = (1.5 + 2.7 * lit) * np.sin(np.pi * np.minimum(1, TS * 1.15)) ** 0.7
-        rim = np.vstack((right, shifted(right, -w * (0.4 + 0.6 * (1 - TS)))[::-1]))
-        # the accent ladder is reserved for the lit right third; the rest of the crown catches
-        # only HALF or DIM
-        if lit > 0.45:
-            tone = RIM[round((lit - 0.45) / 0.55 * (len(RIM) - 1))]
-        else:
-            tone = HALF if lit > 0.25 else DIM
-        s.fill(P().poly(c + rim, closed=True), tone)
-        s.fill(P().poly(c + np.vstack((left, shifted(left, 0.6 * w)[::-1])), closed=True), DIM)
+        # dome body with a soft specular band on its upper right, glimpsed between the spikes
+        body = P().poly(crown, closed=True)
+        s.fill(body, FLUID)
+        with s.clip() as dome_clip:
+            dome_clip.add(body)
+        spec = s.radial_gradient(
+            [(0, BG_ALT, 0.9), (0.6, BG, 0.4), (1, BG, 0)], (0.5, 0.5), 0.5, units="bbox"
+        )
+        band = P().ellipse(Vec(0.42 * R, -0.3 * DOME), 0.34 * R, 0.1 * R)
+        s.path(band, fill=spec, clip_path=dome_clip.ref)
 
-    # glossy lip along the lit right third of the puddle edge
-    a = np.radians(-12 + 72 * np.arange(41) / 40)
-    lip = c + np.column_stack((R * np.cos(a), R * SQ * np.sin(a)))
-    s.stroke(P().poly(lip), UI, 1.5, cap="round")
+        for u, h, (left, right, outline) in stood:
+            s.fill(P().poly(outline, closed=True), FLUID)
+            lit = clamp(0.5 + 0.8 * u / R + 0.4 * h / SPIKE - 0.35)
+            w = (1.5 + 2.7 * lit) * np.sin(np.pi * np.minimum(1, TS * 1.15)) ** 0.7
+            rim = np.vstack((right, shifted(right, -w * (0.4 + 0.6 * (1 - TS)))[::-1]))
+            # the accent ladder is reserved for the lit right third; the rest of the crown
+            # catches only HALF or DIM
+            if lit > 0.45:
+                tone = RIM[round((lit - 0.45) / 0.55 * (len(RIM) - 1))]
+            else:
+                tone = HALF if lit > 0.25 else DIM
+            s.fill(P().poly(rim, closed=True), tone)
+            s.fill(P().poly(np.vstack((left, shifted(left, 0.6 * w)[::-1])), closed=True), DIM)
+
+        # glossy lip along the lit right third of the puddle edge
+        a = np.radians(-12 + 72 * np.arange(41) / 40)
+        lip = np.column_stack((R * np.cos(a), R * SQ * np.sin(a)))
+        s.stroke(P().poly(lip), UI, 1.5, cap="round")

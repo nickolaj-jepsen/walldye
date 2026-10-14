@@ -16,6 +16,7 @@ from walldye import (
     Color,
     P,
     Params,
+    Vec,
     design,
     knob,
     mix,
@@ -55,46 +56,48 @@ def draw(s: Canvas[Table]) -> None:
     k = s.params.multiplier
     # landscape: right of center, the cusp facing the empty side; portrait: under the clock
     c = s.pick(landscape=(0.651, 0.5), portrait=(0.5, 0.42))
+    o = Vec(0, 0)  # the ring's center, at c
     # The envelope is an epicycloid with k - 1 cusps on a circle of radius R (k - 1) / (k + 1).
     # An even k puts one opposite nail 0; an odd k turns the ring half a cusp gap so one faces left.
     turn = 0.0 if k % 2 == 0 else -math.pi / (k - 1)
-    cusp = polar(c, R * (k - 1) / (k + 1), rad=math.pi)
+    cusp = polar(o, R * (k - 1) / (k + 1), rad=math.pi)
 
-    s.stroke(P().circle(c, R), BG_ALT, 1.4)
-    nails = P()
-    for i in range(N):
-        a = 2 * math.pi * i / N + turn
-        nails.M(polar(c, R + 8, rad=a)).L(polar(c, R + (18 if i % 10 == 0 else 13), rad=a))
-    s.stroke(nails, UI, 1.3)
+    with s.motif(c, R + 20):  # the long nails and their stroke
+        s.stroke(P().circle(o, R), BG_ALT, 1.4)
+        nails = P()
+        for i in range(N):
+            a = 2 * math.pi * i / N + turn
+            nails.M(polar(o, R + 8, rad=a)).L(polar(o, R + (18 if i % 10 == 0 else 13), rad=a))
+        s.stroke(nails, UI, 1.3)
 
-    # Strings through the lit cusp stack into a solid wedge until they fan apart, so there
-    # they are drawn thinner, under the rest.
-    with (
-        s.buckets(TONES, "stroke", stroke_width=0.8) as thin,
-        s.buckets(TONES, "stroke", stroke_width=1.1) as thick,
-    ):
-        for i in range(1, N):
-            th = 2 * math.pi * i / N
-            a, b = polar(c, R, rad=th + turn), polar(c, R, rad=k * th + turn)
-            if abs(b - a) < 1:
-                continue
-            # where this string touches the envelope
-            t = (a * k + b) / (k + 1)
-            dc = abs(t - cusp)
-            warm = gauss(dc, 150)
-            ceil = KNEE + (1 - KNEE) * gauss(dc, 190)
-            near = gauss(dc, 14)
-            glow = GLOW * (0.55 + 0.45 * smoothstep(0, 70, dc))
-            n = max(1, int(abs(b - a) / SEG))
-            pts = np.asarray(a) + np.outer(np.arange(n + 1) / n, np.asarray(b - a))
-            mid = (pts[:-1] + pts[1:]) / 2
-            v = gauss(np.hypot(*(mid - t).T), glow)
-            v *= 1 - 0.75 * near * (1 - smoothstep(6, 50, np.hypot(*(mid - cusp).T)))
-            lv = np.minimum(LV - 1, (np.minimum(v, ceil) * LV).astype(int))
-            # only the lit part of a string warms up, so long strings stay cold across the disc
-            hv = np.minimum(HV - 1, (warm * np.minimum(1, v * 2.5) * HV).astype(int))
-            key = lv * HV + hv
-            fine = (dc < 20) & (hv > 0)
-            cut = np.flatnonzero((np.diff(key) != 0) | (np.diff(fine) != 0)) + 1
-            for j0, j1 in pairwise((0, *cut, n)):
-                (thin if fine[j0] else thick)[key[j0]].poly(pts[[j0, j1]])
+        # Strings through the lit cusp stack into a solid wedge until they fan apart, so there
+        # they are drawn thinner, under the rest.
+        with (
+            s.buckets(TONES, "stroke", stroke_width=0.8) as thin,
+            s.buckets(TONES, "stroke", stroke_width=1.1) as thick,
+        ):
+            for i in range(1, N):
+                th = 2 * math.pi * i / N
+                a, b = polar(o, R, rad=th + turn), polar(o, R, rad=k * th + turn)
+                if abs(b - a) < 1:
+                    continue
+                # where this string touches the envelope
+                t = (a * k + b) / (k + 1)
+                dc = abs(t - cusp)
+                warm = gauss(dc, 150)
+                ceil = KNEE + (1 - KNEE) * gauss(dc, 190)
+                near = gauss(dc, 14)
+                glow = GLOW * (0.55 + 0.45 * smoothstep(0, 70, dc))
+                n = max(1, int(abs(b - a) / SEG))
+                pts = np.asarray(a) + np.outer(np.arange(n + 1) / n, np.asarray(b - a))
+                mid = (pts[:-1] + pts[1:]) / 2
+                v = gauss(np.hypot(*(mid - t).T), glow)
+                v *= 1 - 0.75 * near * (1 - smoothstep(6, 50, np.hypot(*(mid - cusp).T)))
+                lv = np.minimum(LV - 1, (np.minimum(v, ceil) * LV).astype(int))
+                # only the lit part of a string warms up, so long strings stay cold across the disc
+                hv = np.minimum(HV - 1, (warm * np.minimum(1, v * 2.5) * HV).astype(int))
+                key = lv * HV + hv
+                fine = (dc < 20) & (hv > 0)
+                cut = np.flatnonzero((np.diff(key) != 0) | (np.diff(fine) != 0)) + 1
+                for j0, j1 in pairwise((0, *cut, n)):
+                    (thin if fine[j0] else thick)[key[j0]].poly(pts[[j0, j1]])

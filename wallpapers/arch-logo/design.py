@@ -22,6 +22,8 @@ BASE_C = (14, -61)  # center of the left base arc, across the axis; mirrored for
 CUT_C, CUT_R = (0, 11), (5.5, 9)  # the inner cut, an ellipse: center and semi-axes
 NOTCH_L = ((0, 29), (22, 59), (10, 54))  # tip, then the centers of its upper and lower edges
 NOTCH_R = ((12, 13), (-7, -23), (7, -10))  # tip, then the centers of its lower and upper edges
+R = (APEX[1] - MID) * G  # the circumscribed circle, through the apex and both feet
+BIG = 1e4  # the reach of a half-plane, past anything drawn
 
 
 def disc(c: Vec, r: float) -> Polygon:
@@ -65,106 +67,107 @@ class Drawing(Params):
 
 @design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
 def draw(s: Canvas[Drawing]) -> None:
-    c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.42))
+    at = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.42))
+    with s.motif(at, FADE, handle=R + 60):  # grabbed by the circle and its center lines
+        c = Vec(0, 0)
 
-    def at(x: float, y: float) -> Vec:
-        return Vec(c.x + x * G, c.y - (y - MID) * G)
+        def at(x: float, y: float) -> Vec:
+            return Vec(c.x + x * G, c.y - (y - MID) * G)
 
-    apex, fl, fr = at(*APEX), at(-FOOT[0], FOOT[1]), at(*FOOT)
-    R = abs(apex - c)  # the circumscribed circle, through the apex and both feet
+        apex, fl, fr = at(*APEX), at(-FOOT[0], FOOT[1]), at(*FOOT)
 
-    # the triangle in its square, both flanks hollowed by a long arc
-    flanks = [
-        (arc_center(apex, fl, FLANK_R[0] * G, 1), FLANK_R[0] * G),
-        (arc_center(apex, fr, FLANK_R[1] * G, -1), FLANK_R[1] * G),
-    ]
-    hull = Polygon([apex, fl, fr]).difference(unary_union([disc(*o) for o in flanks]))
+        # the triangle in its square, both flanks hollowed by a long arc
+        flanks = [
+            (arc_center(apex, fl, FLANK_R[0] * G, 1), FLANK_R[0] * G),
+            (arc_center(apex, fr, FLANK_R[1] * G, -1), FLANK_R[1] * G),
+        ]
+        hull = Polygon([apex, fl, fr]).difference(unary_union([disc(*o) for o in flanks]))
 
-    # the base: two arcs, each struck from across the axis, meeting in a pointed arch
-    bl, br = at(*BASE_C), at(-BASE_C[0], BASE_C[1])
-    rb = abs(fl - bl)
-    long_arcs = [*flanks, (bl, rb), (br, rb)]
-    under = disc(bl, rb).intersection(disc(br, rb))
+        # the base: two arcs, each struck from across the axis, meeting in a pointed arch
+        bl, br = at(*BASE_C), at(-BASE_C[0], BASE_C[1])
+        rb = abs(fl - bl)
+        long_arcs = [*flanks, (bl, rb), (br, rb)]
+        under = disc(bl, rb).intersection(disc(br, rb))
 
-    # the inner cut: an ellipse standing on the axis
-    e, (ex, ey) = at(*CUT_C), (CUT_R[0] * G, CUT_R[1] * G)
-    cut = scale(disc(e, 1), ex, ey, origin=(e.x, e.y))
+        # the inner cut: an ellipse standing on the axis
+        e, (ex, ey) = at(*CUT_C), (CUT_R[0] * G, CUT_R[1] * G)
+        cut = scale(disc(e, 1), ex, ey, origin=(e.x, e.y))
 
-    # two notches, each a sliver between two arcs through its tip
-    notches, notch_arcs = [], []
-    for tip, *centers in (NOTCH_L, NOTCH_R):
-        t = at(*tip)
-        (a, ra), (b, rb_) = [(at(*o), abs(t - at(*o))) for o in centers]
-        notch_arcs += [(a, ra), (b, rb_)]
-        side = box(0, 0, t.x, s.h) if tip[0] <= 0 else box(t.x, 0, s.w, s.h)
-        sliver = disc(a, ra).symmetric_difference(disc(b, rb_)).intersection(side)
-        notches.append(sliver.intersection(Point(t.x, t.y).buffer(12 * G)))
-    mark = hull.difference(unary_union([under, cut, *notches]))
+        # two notches, each a sliver between two arcs through its tip
+        notches, notch_arcs = [], []
+        for tip, *centers in (NOTCH_L, NOTCH_R):
+            t = at(*tip)
+            (a, ra), (b, rb_) = [(at(*o), abs(t - at(*o))) for o in centers]
+            notch_arcs += [(a, ra), (b, rb_)]
+            side = box(t.x - BIG, -BIG, t.x, BIG) if tip[0] <= 0 else box(t.x, -BIG, t.x + BIG, BIG)
+            sliver = disc(a, ra).symmetric_difference(disc(b, rb_)).intersection(side)
+            notches.append(sliver.intersection(Point(t.x, t.y).buffer(12 * G)))
+        mark = hull.difference(unary_union([under, cut, *notches]))
 
-    # the peak: the left notch's upper arc, run on across the mark
-    a0 = at(*NOTCH_L[1])
-    peak = mark.intersection(disc(a0, abs(at(*NOTCH_L[0]) - a0)))
-    body = mark.difference(peak)
+        # the peak: the left notch's upper arc, run on across the mark
+        a0 = at(*NOTCH_L[1])
+        peak = mark.intersection(disc(a0, abs(at(*NOTCH_L[0]) - a0)))
+        body = mark.difference(peak)
 
-    # construction: each edge's line or circle, run on from the mark's corners into the fading
-    # field, the notches' arcs only as far as the circumscribed circle; the inner cut, the
-    # notches and the pointed arch under the mark stay clear
-    field = Point(c.x, c.y).buffer(FADE, quad_segs=128)
-    inner = Point(c.x, c.y).buffer(R, quad_segs=128)
-    solid = mark.buffer(2.5, join_style="mitre")
-    arch = under.intersection(box(0, 0, s.w, fl.y))
-    clear = unary_union([cut, *notches, arch]).intersection(hull).buffer(2)
-    ends = corners(mark)
-    runs: list[tuple[BaseGeometry, Polygon]] = [
-        *[(disc(o, r).exterior, field) for o, r in long_arcs],
-        *[(disc(o, r).exterior, inner) for o, r in notch_arcs],
-        (LineString([(c.x - 2 * FADE, fl.y), (c.x + 2 * FADE, fl.y)]), field),
-    ]
-    lines = P()
-    for run, bound in runs:
-        own = [v.buffer(5) for v in ends if v.distance(run) < 1]  # the corners on this edge
-        pieces = run.intersection(bound).difference(solid).difference(clear)
-        for q in strands(linemerge(strands(pieces))):  # rejoin the ring at its start point
-            if any(q.intersects(v) for v in own):
-                lines.poly(q.coords)
-    fade = s.radial_gradient([(0, BG_ALT), (R * 1.2 / FADE, BG_ALT), (1, BG)], c, FADE)
-    s.stroke(lines, fade, 1.2)
+        # construction: each edge's line or circle, run on from the mark's corners into the fading
+        # field, the notches' arcs only as far as the circumscribed circle; the inner cut, the
+        # notches and the pointed arch under the mark stay clear
+        field = Point(c.x, c.y).buffer(FADE, quad_segs=128)
+        inner = Point(c.x, c.y).buffer(R, quad_segs=128)
+        solid = mark.buffer(2.5, join_style="mitre")
+        arch = under.intersection(box(-BIG, -BIG, BIG, fl.y))
+        clear = unary_union([cut, *notches, arch]).intersection(hull).buffer(2)
+        ends = corners(mark)
+        runs: list[tuple[BaseGeometry, Polygon]] = [
+            *[(disc(o, r).exterior, field) for o, r in long_arcs],
+            *[(disc(o, r).exterior, inner) for o, r in notch_arcs],
+            (LineString([(c.x - 2 * FADE, fl.y), (c.x + 2 * FADE, fl.y)]), field),
+        ]
+        lines = P()
+        for run, bound in runs:
+            own = [v.buffer(5) for v in ends if v.distance(run) < 1]  # the corners on this edge
+            pieces = run.intersection(bound).difference(solid).difference(clear)
+            for q in strands(linemerge(strands(pieces))):  # rejoin the ring at its start point
+                if any(q.intersects(v) for v in own):
+                    lines.poly(q.coords)
+        fade = s.radial_gradient([(0, BG_ALT), (R * 1.2 / FADE, BG_ALT), (1, BG)], c, FADE)
+        s.stroke(lines, fade, 1.2)
 
-    # the axis, the inner cut's cross axis and the circumscribed circle
-    cl = P().M(c.x, apex.y - 60).V(c.y + R + 60).M(e.x - ex - 30, e.y).H(e.x + ex + 30)
-    s.stroke(cl.circle(c, R), UI, 1.2, dash=DASHDOT)
+        # the axis, the inner cut's cross axis and the circumscribed circle
+        cl = P().M(c.x, apex.y - 60).V(c.y + R + 60).M(e.x - ex - 30, e.y).H(e.x + ex + 30)
+        s.stroke(cl.circle(c, R), UI, 1.2, dash=DASHDOT)
 
-    if s.params.dimensions:
-        # the peak's arc: its center, and its radius to where it meets the right flank
-        ext, dl, heads = P(), P(), P()
-        ext.M(a0.x - 7, a0.y).H(a0.x + 7).M(a0.x, a0.y - 7).V(a0.y + 7)
-        end = max(outline(peak), key=lambda v: v.x)
-        u = (end - a0).unit()
-        dl.M(a0).L(end - u * ARROW)
-        heads.arrowhead(end, ARROW, rad=math.atan2(u.y, u.x), width=ARROW_W)
+        if s.params.dimensions:
+            # the peak's arc: its center, and its radius to where it meets the right flank
+            ext, dl, heads = P(), P(), P()
+            ext.M(a0.x - 7, a0.y).H(a0.x + 7).M(a0.x, a0.y - 7).V(a0.y + 7)
+            end = max(outline(peak), key=lambda v: v.x)
+            u = (end - a0).unit()
+            dl.M(a0).L(end - u * ARROW)
+            heads.arrowhead(end, ARROW, rad=math.atan2(u.y, u.x), width=ARROW_W)
 
-        # dimensions: the overall width below, the inner cut's width above it, the height at left
-        yd = c.y + R + 80
-        for x in (fl.x, fr.x):
-            ext.M(x, fl.y + 14).V(yd + 12)
-        dl.M(fl.x, yd).H(fr.x)
-        heads.arrowhead((fr.x, yd), ARROW, deg=0, width=ARROW_W)
-        heads.arrowhead((fl.x, yd), ARROW, deg=180, width=ARROW_W)
-        x0, x1, yw = e.x - ex, e.x + ex, e.y
-        yc = yd - 36
-        for x in (x0, x1):
-            ext.M(x, yw + 12).V(yc + 12)
-        dl.M(x0 - 34, yc).H(x0).M(x1, yc).H(x1 + 34)
-        heads.arrowhead((x0, yc), ARROW, deg=0, width=ARROW_W)
-        heads.arrowhead((x1, yc), ARROW, deg=180, width=ARROW_W)
-        xh = fl.x - 80
-        ext.M(apex.x - 14, apex.y).H(xh - 12).M(fl.x - 14, fl.y).H(xh - 12)
-        dl.M(xh, apex.y).V(fl.y)
-        heads.arrowhead((xh, apex.y), ARROW, deg=-90, width=ARROW_W)
-        heads.arrowhead((xh, fl.y), ARROW, deg=90, width=ARROW_W)
-        s.stroke(ext, UI, 1.2)
-        s.stroke(dl, UI_ALT, 1.2)
-        s.fill(heads, UI_ALT)
+            # dimensions: the overall width below, the inner cut's width above it, the height at left
+            yd = c.y + R + 80
+            for x in (fl.x, fr.x):
+                ext.M(x, fl.y + 14).V(yd + 12)
+            dl.M(fl.x, yd).H(fr.x)
+            heads.arrowhead((fr.x, yd), ARROW, deg=0, width=ARROW_W)
+            heads.arrowhead((fl.x, yd), ARROW, deg=180, width=ARROW_W)
+            x0, x1, yw = e.x - ex, e.x + ex, e.y
+            yc = yd - 36
+            for x in (x0, x1):
+                ext.M(x, yw + 12).V(yc + 12)
+            dl.M(x0 - 34, yc).H(x0).M(x1, yc).H(x1 + 34)
+            heads.arrowhead((x0, yc), ARROW, deg=0, width=ARROW_W)
+            heads.arrowhead((x1, yc), ARROW, deg=180, width=ARROW_W)
+            xh = fl.x - 80
+            ext.M(apex.x - 14, apex.y).H(xh - 12).M(fl.x - 14, fl.y).H(xh - 12)
+            dl.M(xh, apex.y).V(fl.y)
+            heads.arrowhead((xh, apex.y), ARROW, deg=-90, width=ARROW_W)
+            heads.arrowhead((xh, fl.y), ARROW, deg=90, width=ARROW_W)
+            s.stroke(ext, UI, 1.2)
+            s.stroke(dl, UI_ALT, 1.2)
+            s.fill(heads, UI_ALT)
 
-    s.fill(P().shape(body), UI_ALT)
-    s.fill(P().shape(peak), ACCENT)
+        s.fill(P().shape(body), UI_ALT)
+        s.fill(P().shape(peak), ACCENT)

@@ -4,7 +4,19 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter
 
-from walldye import ACCENT, ACCENT_3, BG_ALT, UI, UI_ALT, Canvas, Paint, by_regime, design
+from walldye import (
+    ACCENT,
+    ACCENT_3,
+    BG_ALT,
+    UI,
+    UI_ALT,
+    Canvas,
+    Paint,
+    Rect,
+    Vec,
+    by_regime,
+    design,
+)
 from walldye.geom import bezier_points
 from walldye.pixel import glyphs, grid_runs
 
@@ -143,7 +155,8 @@ def despeckle(cell: Index) -> Index:
 def draw(s: Canvas) -> None:
     # Right of center on a landscape screen, the upper middle on a portrait one; the axis snaps
     # to whole half-cells so the window's origin is a whole unit.
-    origin = s.pick(landscape=(2 / 3, 14 / 27), portrait=(0.515, 0.44), snap=CW) - POT
+    axis = s.pick(landscape=(2 / 3, 14 / 27), portrait=(0.515, 0.44), snap=CW)
+    origin = Vec(-POT[0], -POT[1])  # the window's top-left, from the teapot's axis
     shade, spec, cov, knob, part = render(COLS * SS, ROWS * 2 * SS)
     # Blur the tone inside the silhouette only, into broad clean bands.
     shade = gaussian_filter(shade * cov, BLUR) / np.maximum(gaussian_filter(cov * 1.0, BLUR), 1e-6)
@@ -203,6 +216,7 @@ def draw(s: Canvas) -> None:
     half[r0, top.max()] = 0  # round off the top-right corner
     half[[r0, r0, r0, r0 + 1, r0 + 1, r0 + 2], [c0, c0 + 1, c0 + 2, c0, c0 + 1, c0]] = 3
 
-    grid_runs(s, half, [None, *SOLID, GLOSS], CW, origin)
-    glyphs(s, ["".join(row) for row in chars], ink, at=origin, px=PX)
-    glyphs(s, STEAM, UI, at=origin + (c0 * CW, (r0 // 2 - 6) * CH), px=PX)
+    with s.motif(axis, Rect(origin.x, origin.y, COLS * CW, ROWS * CH), cell=PX):
+        grid_runs(s, half, [None, *SOLID, GLOSS], CW, origin)
+        glyphs(s, ["".join(row) for row in chars], ink, at=origin, px=PX)
+        glyphs(s, STEAM, UI, at=origin + (c0 * CW, (r0 // 2 - 6) * CH), px=PX)

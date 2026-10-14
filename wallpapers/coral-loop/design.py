@@ -8,7 +8,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.spatial import cKDTree
 from shapely import Polygon
 
-from walldye import ACCENT, ACCENT_8, UI, UI_ALT, Canvas, NpRng, P, design
+from walldye import ACCENT, ACCENT_8, UI, UI_ALT, Canvas, NpRng, P, Rect, design
 from walldye.geom import Affine
 
 type Pts = NDArray[np.float64]
@@ -85,18 +85,22 @@ def draw(s: Canvas) -> None:
     p = gaussian_filter1d(grow(s.np_rng(SEED)), 2, axis=0, mode="wrap") * SCALE
     if not s.landscape:
         p = Affine.rotate(deg=TURN).apply(p)
-    p = p - (p.min(0) + p.max(0)) / 2 + c  # center the bounding box on c
+    p = p - (p.min(0) + p.max(0)) / 2  # center the bounding box on c
     coral = Polygon(p)
+    rings = []
     for dist, tone in ECHOES:
         # overshoot then shrink back so the ring rounds off channel mouths instead of forming cusps
         ring = coral.buffer(dist + 28, quad_segs=32).buffer(-28, quad_segs=32).simplify(0.8)
         assert isinstance(ring, Polygon)  # a net outward offset of one polygon stays one polygon
-        pts = chaikin(np.asarray(ring.exterior.coords)[:-1])
-        s.stroke(P().poly(pts, closed=True), tone, 1.3)
-    s.path(
-        P().spline(p, closed=True),
-        fill=ACCENT_8,
-        stroke=ACCENT,
-        stroke_width=1.7,
-        stroke_linejoin="round",
-    )
+        rings.append((chaikin(np.asarray(ring.exterior.coords)[:-1]), tone))
+    (x0, y0), (x1, y1) = rings[0][0].min(0) - 2, rings[0][0].max(0) + 2  # outer echo and stroke
+    with s.motif(c, Rect(x0, y0, x1 - x0, y1 - y0)):
+        for pts, tone in rings:
+            s.stroke(P().poly(pts, closed=True), tone, 1.3)
+        s.path(
+            P().spline(p, closed=True),
+            fill=ACCENT_8,
+            stroke=ACCENT,
+            stroke_width=1.7,
+            stroke_linejoin="round",
+        )

@@ -16,6 +16,7 @@ from walldye import (
     UI_ALT,
     UI_HI,
     Canvas,
+    Rect,
     design,
 )
 from walldye.field import gauss
@@ -56,6 +57,7 @@ PADS = ((-29, -25, 17, 5.5), (29, -37, 15, 5), (-14, -44, 10, 4), (-1, -55, 12, 
 TREE = (-66, 0, -54, 54)  # the rows and columns the trunk, branches and pads stay within
 POT_W, POT_H = 46, 7
 TABLE, MARGIN = 70, 11  # the table runs 70 cells past the pot but stops 11 short of the edge
+SPAN = POT_W // 2 + TABLE  # the table's reach either side of the rim's center
 LEAF = (".aa", "abc")
 LEAF_KEY = {"a": LIT + TURN, "b": SIDE + TURN, "c": BODY + TURN}
 
@@ -91,9 +93,15 @@ def limb(
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    pix = Pixels(s.w // CELL, s.h // CELL, PALETTE)
+    home = (0.62, 0.622) if s.landscape else (0.5, 0.64)
     rim = s.pick(landscape=(0.62, 0.622), portrait=(0.5, 0.64), snap=CELL)
-    ox, oy = round(rim.x / CELL), round(rim.y / CELL)
+    # The table is fit to the screen once, from the pot's own place, and keeps that length
+    # wherever the tree goes.
+    cols, at = s.w // CELL, round(home[0] * s.w / CELL)
+    ends = (max(at - SPAN, MARGIN) - at, min(at + SPAN, cols - MARGIN) - at)
+    # the grid holds the tree, the pot and the longest table, with the rim's center at (ox, oy)
+    ox, oy = SPAN, -TREE[0]
+    pix = Pixels(2 * SPAN, oy + POT_H + 2, PALETTE)
 
     # The tree is worked in a window of the grid that ends at the rim, where the trunk enters
     # the pot.
@@ -144,10 +152,13 @@ def draw(s: Canvas) -> None:
     g[foot, x0 + 3 : x1 - 3] = DEEP
     for fx in (x0 + 5, x1 - 9):
         g[foot, fx : fx + 4] = BODY
-    g[foot + 1, max(x0 - TABLE, MARGIN) : min(x1 + TABLE, pix.cols - MARGIN)] = SHADE
+    g[foot + 1, ox + ends[0] : ox + ends[1]] = SHADE
 
     # One leaf resting on the table, one drifting down below the turned tip.
     g[foot, x1 + 12 : x1 + 14] = SIDE + TURN
     pix.stamp(LEAF, cx + 16, cy + 10, LEAF_KEY)
 
-    pix.draw(s, CELL)
+    plant = Rect(left * CELL, top * CELL, (right - left) * CELL, (bottom - top + POT_H + 2) * CELL)
+    window = Rect(-ox * CELL, -oy * CELL, pix.cols * CELL, pix.rows * CELL)
+    with s.motif(rim, window, handle=plant, cell=CELL):
+        pix.draw(s, CELL, (-ox * CELL, -oy * CELL))

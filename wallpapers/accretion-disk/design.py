@@ -18,6 +18,7 @@ from walldye import (
     Canvas,
     P,
     Params,
+    Rect,
     Style,
     Vec,
     by_regime,
@@ -125,34 +126,38 @@ def draw(s: Canvas[Horizon]) -> None:
     )
 
     def place(pts: Pts) -> Pts:
-        return np.asarray(c) + k * pts
+        return k * pts
 
-    s.fill(P().circle(c, k * RS), SHADOW)
-    # the near half of the disk passes in front: hide what lies behind its band, grown over
-    # stroke edges but never above the hole's center line, where the far half shows
-    half = np.linspace(0, math.pi, 181)
-    band = Polygon(np.vstack([place(near(R1, half, tilt)), place(near(R0, half[::-1], tilt))]))
-    band = band.buffer(1.5, join_style="mitre").intersection(box(0, c.y, s.w, s.h))
-    with s.clip() as behind:
-        behind.add(P().shape(box(0, 0, s.w, s.h).difference(band)))
-    with s.group(clip_path=behind.ref):
+    # the disk's width and the lensed far half above the hole down to the near half or the
+    # shadow, with room for stroke edges
+    x0, y0, x1, y1 = -k * R1 - 8, k * top - 8, k * R1 + 8, k * bottom + 8
+    with s.motif(c, Rect(x0, y0, x1 - x0, y1 - y0)):
+        s.fill(P().circle(Vec(0, 0), k * RS), SHADOW)
+        # the near half of the disk passes in front: hide what lies behind its band, grown over
+        # stroke edges but never above the hole's center line, where the far half shows
+        half = np.linspace(0, math.pi, 181)
+        band = Polygon(np.vstack([place(near(R1, half, tilt)), place(near(R0, half[::-1], tilt))]))
+        band = band.buffer(1.5, join_style="mitre").intersection(box(x0, 0, x1, y1))
+        with s.clip() as behind:
+            behind.add(P().shape(box(x0, y0, x1, y1).difference(band)))
+        with s.group(clip_path=behind.ref):
+            with s.buckets(PAINTS, "stroke", **LINE) as b:
+                for r in radii:
+                    phi = sweep(0, math.pi, r)
+                    trace(b, place(far(r, phi, tilt, lens)), phi, r)
+            s.stroke(P().circle(Vec(0, 0), k * (RS + 1)), ACCENT_HI, 2)
+            # the disk's underside, lensed into a thin rim hugging the bottom of the photon ring;
+            # its ends tuck behind the near band, which thins towards edge-on and, seen from high
+            # above, covers the whole rim
+            tuck = 0.35 * tilt / math.sin(REF)
+            if tuck < 1.2:
+                with s.buckets(PAINTS, "stroke", **LINE) as b:
+                    for j in range(6):
+                        rho = RS + 6 + j * 3.2
+                        phi = sweep(tuck, math.pi - tuck, rho)
+                        rim = np.column_stack([-rho * np.cos(phi), rho * np.sin(phi)])
+                        trace(b, place(rim), phi, R0 + j * 50)
         with s.buckets(PAINTS, "stroke", **LINE) as b:
             for r in radii:
                 phi = sweep(0, math.pi, r)
-                trace(b, place(far(r, phi, tilt, lens)), phi, r)
-        s.stroke(P().circle(c, k * (RS + 1)), ACCENT_HI, 2)
-        # the disk's underside, lensed into a thin rim hugging the bottom of the photon ring; its
-        # ends tuck behind the near band, which thins towards edge-on and, seen from high
-        # above, covers the whole rim
-        tuck = 0.35 * tilt / math.sin(REF)
-        if tuck < 1.2:
-            with s.buckets(PAINTS, "stroke", **LINE) as b:
-                for j in range(6):
-                    rho = RS + 6 + j * 3.2
-                    phi = sweep(tuck, math.pi - tuck, rho)
-                    rim = np.column_stack([-rho * np.cos(phi), rho * np.sin(phi)])
-                    trace(b, place(rim), phi, R0 + j * 50)
-    with s.buckets(PAINTS, "stroke", **LINE) as b:
-        for r in radii:
-            phi = sweep(0, math.pi, r)
-            trace(b, place(near(r, phi, tilt)), phi, r)
+                trace(b, place(near(r, phi, tilt)), phi, r)

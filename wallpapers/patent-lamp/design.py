@@ -126,7 +126,6 @@ def draw(s: Canvas[Drawing]) -> None:
     # 0.615 of a landscape canvas's width; centered and larger in portrait, which is width-bound
     at = s.pick(landscape=(0.615, 0.5), portrait=(0.5, 0.54))
     k = 1.0 if s.landscape else 1.35
-    place = Affine.translate(at.x, at.y - 540 * k) @ Affine.scale(k)
 
     # one spline across the whole profile keeps the crown tangent horizontal
     outline = [(-x, y) for x, y in reversed(PROFILE)] + list(PROFILE[1:])
@@ -203,7 +202,10 @@ def draw(s: Canvas[Drawing]) -> None:
             markers.circle((ex, ey), MARK_R)
 
     loop = Polygon(spline_points(FILAMENT, 16))
-    with s.group(transform=place):
+    # from the exhaust tip to the foot line, and out to the markers or the glass's shade line
+    half = 289 if s.params.leaders else 193
+    ink = Rect(-half * k, (175 - 540) * k, 2 * half * k, (916 - 175) * k)
+    with s.motif(at, ink), s.group(transform=Affine.translate(0, -540 * k) @ Affine.scale(k)):
         s.fill(P().shape(ins), BG_ALT)
         s.stroke(dense, UI, 1.2)
         s.stroke(ruled, UI_ALT, 1.2)

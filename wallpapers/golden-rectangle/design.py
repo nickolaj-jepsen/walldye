@@ -2,7 +2,22 @@
 
 from typing import NamedTuple
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob, mix, ramp
+from walldye import (
+    ACCENT,
+    BG,
+    BG_ALT,
+    UI,
+    UI_ALT,
+    Canvas,
+    P,
+    Params,
+    Rect,
+    Vec,
+    design,
+    knob,
+    mix,
+    ramp,
+)
 from walldye.geom import Affine
 
 PHI = (1 + 5**0.5) / 2
@@ -128,5 +143,10 @@ def draw(s: Canvas[Drawing]) -> None:
     # with a quarter turn anticlockwise: the first square at the bottom, dimensions left and below.
     c = s.pick(landscape=(37 / 64, 14 / 27), portrait=(0.53, 0.465))
     turn = 0 if s.landscape else -90
-    with s.group(transform=Affine.frame(c, deg=turn) @ Affine.translate(-RW / 2, -RH / 2)):
+    upright = Affine.rotate(deg=turn) @ Affine.translate(-RW / 2, -RH / 2)
+    # the dimensions reach out top and left; otherwise the spiral's widest stroke sets the margin
+    pad = DIM + 13 if s.params.dimensions else 8
+    ends = upright.apply([(-pad, -pad), (RW + 8, RH + 8)])
+    (x0, y0), (x1, y1) = ends.min(axis=0).tolist(), ends.max(axis=0).tolist()
+    with s.motif(c, Rect(x0, y0, x1 - x0, y1 - y0)), s.group(transform=upright):
         construction(s, s.params.dimensions)

@@ -68,7 +68,10 @@ class Drawing(Params):
 @design(aspects="any", variants={"unlabeled": Drawing(furniture=False)})
 def draw(s: Canvas[Drawing]) -> None:
     # right of center on a landscape screen, the upper middle on a portrait one
-    c = s.pick(landscape=(1240 / 1920, 520 / 1080), portrait=(0.5, 0.44))
+    home = (1240 / 1920, 520 / 1080) if s.landscape else (0.5, 0.44)
+    c = s.pick(landscape=(1240 / 1920, 520 / 1080), portrait=(0.5, 0.44), snap=1)
+    # the anchor sits on a whole unit so the lettering stays crisp; the shell keeps its exact place
+    frac = Vec(home[0] * s.w, home[1] * s.h) - Vec(round(home[0] * s.w), round(home[1] * s.h))
     xs, ys = cells(Rect(-HALF, -HALF, 2 * HALF, 2 * HALF), CELL)
     tone, ts = shell(xs, ys)
     tone = gaussian_filter(tone, 0.8)
@@ -77,7 +80,7 @@ def draw(s: Canvas[Drawing]) -> None:
     rows, cols = np.nonzero(tone > 0.02)
     left, right = xs[0, cols.min()], xs[0, cols.max()]
     top, bottom = ys[rows.min(), 0], ys[rows.max(), 0]
-    off = c - Vec((left + right) / 2, (top + bottom) / 2)
+    off = frac - Vec((left + right) / 2, (top + bottom) / 2)
 
     # Weighted Voronoi stippling: seed dots by tone, then move each to its cell's centroid.
     rng = s.np_rng(3)
@@ -101,17 +104,25 @@ def draw(s: Canvas[Drawing]) -> None:
     paint = np.select([heart, ring], [3, 2], (v > 0.35).astype(int))
     size = np.digitize(v, (0.3, 0.6))
     at = pts + off
-    # Dots are zero-length round-capped strokes: a few bytes each instead of two arcs.
-    for k, r in enumerate(RADII):
-        with s.buckets(PAINTS, "stroke", stroke_width=2 * r, stroke_linecap="round") as dots:
-            for (x, y), i in zip(at[size == k], paint[size == k], strict=True):
-                dots[i].M(x, y).H(x)
-
+    x0, y0, y1 = round(left + off.x), round(top + off.y), round(bottom + off.y)
+    lo, hi = at.min(axis=0) - RADII[-1], at.max(axis=0) + RADII[-1]
     if s.params.furniture:
-        # Plate furniture: a figure number above the shell and a 5 cm scale bar below it.
-        x0, y0, y1 = round(left + off.x), round(top + off.y), round(bottom + off.y)
-        bar = P().M(x0, y1 + 40).H(x0 + 120)
-        bar.M(x0, y1 + 36).V(y1 + 44).M(x0 + 120, y1 + 36).V(y1 + 44)
-        s.stroke(bar, UI_ALT, 1.5)
-        glyphs(s, "5 cm", UI_ALT, at=(x0 + 40, y1 + 52), font="5x8", px=2)
-        glyphs(s, "Fig. 3", UI_ALT, at=(x0, y0 - 16), font="5x8", px=2)
+        # the figure number's top, and the bar's right end and its caption's foot
+        lo = np.minimum(lo, (x0 - 1, y0 - 16))
+        hi = np.maximum(hi, (x0 + 121, y1 + 68))
+    extent = Rect(float(lo[0]), float(lo[1]), float(hi[0] - lo[0]), float(hi[1] - lo[1]))
+
+    with s.motif(c, extent, cell=2 if s.params.furniture else None):
+        # Dots are zero-length round-capped strokes: a few bytes each instead of two arcs.
+        for k, r in enumerate(RADII):
+            with s.buckets(PAINTS, "stroke", stroke_width=2 * r, stroke_linecap="round") as dots:
+                for (x, y), i in zip(at[size == k], paint[size == k], strict=True):
+                    dots[i].M(x, y).H(x)
+
+        if s.params.furniture:
+            # Plate furniture: a figure number above the shell and a 5 cm scale bar below it.
+            bar = P().M(x0, y1 + 40).H(x0 + 120)
+            bar.M(x0, y1 + 36).V(y1 + 44).M(x0 + 120, y1 + 36).V(y1 + 44)
+            s.stroke(bar, UI_ALT, 1.5)
+            glyphs(s, "5 cm", UI_ALT, at=(x0 + 40, y1 + 52), font="5x8", px=2)
+            glyphs(s, "Fig. 3", UI_ALT, at=(x0, y0 - 16), font="5x8", px=2)

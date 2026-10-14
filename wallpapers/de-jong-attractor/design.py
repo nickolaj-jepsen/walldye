@@ -25,6 +25,7 @@ from walldye import (
     P,
     Params,
     Path,
+    Rect,
     Vec,
     cached,
     design,
@@ -100,10 +101,8 @@ def draw(s: Canvas[Attractor]) -> None:
     p = s.params
     # right of center on a landscape screen, the left kept for windows; high on a portrait one
     c = s.pick(landscape=(0.6875, 0.5), portrait=(0.5, 0.42))
-    corner = c - (SIZE / 2 - CELL / 2, SIZE / 2 - CELL / 2)
+    corner = Vec(CELL / 2 - SIZE / 2, CELL / 2 - SIZE / 2)
     lg = np.log1p(gaussian_filter(density(p, s.np_rng(1)), 0.7))
-    for (lvl, sigma), tone in zip(LEVELS, TONES, strict=True):
-        s.fill(region(gaussian_filter(lg, sigma), lvl, corner), tone, rule="evenodd")
 
     # The picked-out fold is the largest dense blob, with a rim hugging it; opening with a
     # line along the fold strips the ridges that cross it.
@@ -117,5 +116,9 @@ def draw(s: Canvas[Attractor]) -> None:
     core = binary_fill_holes(binary_closing(blobs == sizes.argmax(), disk(4)))
     near = binary_dilation(core, disk(10))
     halo = binary_opening((la >= HALO) & near, streak) | binary_dilation(core, disk(2))
-    for mask, tone in ((halo, ACCENT_2), (core, ACCENT)):
-        s.fill(region(gaussian_filter(mask * 1.0, 2.5), 0.5, corner, 8), tone, rule="evenodd")
+
+    with s.motif(c, Rect(-SIZE / 2, -SIZE / 2, SIZE, SIZE)):
+        for (lvl, sigma), tone in zip(LEVELS, TONES, strict=True):
+            s.fill(region(gaussian_filter(lg, sigma), lvl, corner), tone, rule="evenodd")
+        for mask, tone in ((halo, ACCENT_2), (core, ACCENT)):
+            s.fill(region(gaussian_filter(mask * 1.0, 2.5), 0.5, corner, 8), tone, rule="evenodd")

@@ -6,7 +6,21 @@ from shapely import LineString, Point, Polygon, make_valid
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, BG, BG_ALT, UI, UI_ALT, Canvas, P, Params, Vec, design, knob, polar
+from walldye import (
+    ACCENT,
+    BG,
+    BG_ALT,
+    UI,
+    UI_ALT,
+    Canvas,
+    P,
+    Params,
+    Rect,
+    Vec,
+    design,
+    knob,
+    polar,
+)
 from walldye.geom import Affine, bezier_points, parts
 
 S = 5.4  # canvas units per point of the official artwork
@@ -78,86 +92,89 @@ class Drawing(Params):
 def draw(s: Canvas[Drawing]) -> None:
     c = s.pick(landscape=(0.64, 0.47), portrait=(0.44, 0.42))
     mid = Vec((BOX[0] + BOX[2]) / 2, (BOX[1] + BOX[3]) / 2)
-    m = Affine.translate(c.x, c.y) @ Affine.scale(S) @ Affine.translate(-mid.x, -mid.y)
-    paths: list[list[float]] = s.data("swirl.json")
-    mark = unary_union([outline(p, m) for p in paths])
+    m = Affine.scale(S) @ Affine.translate(-mid.x, -mid.y)  # centers the artwork on c
     arcs = [(m(ac), r * S, deg) for ac, r, deg in ARCS]
     pole = Vec(sum(a[0].x for a in arcs) / len(arcs), sum(a[0].y for a in arcs) / len(arcs))
-    # every join as (center, radius, direction): the inner end, the nine joins, the tail
-    joins = [arcs[0]] + [(a[0], a[1], b[2]) for a, b in pairwise(arcs)]
-    joins.append((arcs[-1][0], arcs[-1][1], arcs[-1][2] - SWEEPS[-1]))
-
-    # the swirl cut into its arcs along the radii where they meet; each arc's sector reaches
-    # past the band to take in the flecks beside it, and the end sectors run on past the tips
-    seams = unary_union(
-        [
-            LineString([polar(ac, r - 40, deg=deg), polar(ac, r + 70, deg=deg)])
-            for ac, r, deg in joins[1:-1]
-        ]
-    ).buffer(GAP / 2, cap_style="flat")
-    sectors: list[BaseGeometry] = []
-    for k, ((ac, r, deg), sweep) in enumerate(zip(arcs, SWEEPS, strict=True)):
-        lo = deg - sweep - (40 if k == len(arcs) - 1 else 0)
-        hi = deg + (40 if k == 0 else 0)
-        sectors.append(sector(ac, r - 40, r + 70, lo, hi))
-    segs = [solid(mark.intersection(q).difference(seams)) for q in sectors]
-    rest = solid(mark.difference(unary_union(sectors)))
-
-    # construction: every arc run on into its full circle, and the outer seams run on
-    # outwards, all fading with distance and kept off the swirl
-    ban = mark.buffer(4)
-    field = Point(pole.x, pole.y).buffer(FADE, quad_segs=128)
     lc, lr, ldeg = arcs[LIT]
-    lines = P()
-    drawn: list[tuple[Vec, float]] = [(lc, lr)]  # arcs sharing a center share a circle
-    for ac, r, _ in arcs:
-        if any(abs(r - r2) < 1 and abs(ac - c2) < 1 for c2, r2 in drawn):
-            continue
-        drawn.append((ac, r))
-        ring = LineString(Point(ac.x, ac.y).buffer(r, quad_segs=96).exterior.coords)
-        for q in strands(ring.intersection(field).difference(ban)):
-            lines.poly(q.coords)
-    for k, (ac, r, deg) in enumerate(joins):
-        if k < OUTER or k in (LIT, LIT + 1):
-            continue
-        ray = LineString([polar(ac, r, deg=deg), polar(ac, 2 * FADE, deg=deg)])
-        for q in strands(ray.intersection(field).difference(ban)):
-            lines.poly(q.coords)
-    fade = s.radial_gradient([(0, BG_ALT), (0.55, BG_ALT), (1, BG)], pole, FADE)
-    s.stroke(lines, fade, 1.2)
+    reach = Rect(pole.x - FADE, pole.y - FADE, 2 * FADE, 2 * FADE)
+    loop = Rect(lc.x - lr, lc.y - lr, 2 * lr, 2 * lr)
+    with s.motif(c, reach, handle=loop):  # grabbed by the picked-out arc's full circle
+        paths: list[list[float]] = s.data("swirl.json")
+        mark = unary_union([outline(p, m) for p in paths])
+        # every join as (center, radius, direction): the inner end, the nine joins, the tail
+        joins = [arcs[0]] + [(a[0], a[1], b[2]) for a, b in pairwise(arcs)]
+        joins.append((arcs[-1][0], arcs[-1][1], arcs[-1][2] - SWEEPS[-1]))
 
-    # the polygon of centers, each center ticked
-    centers = P().poly([a[0] for a in arcs])
-    for ac, _, _ in arcs:
-        centers.M(ac.x - TICK, ac.y).H(ac.x + TICK).M(ac.x, ac.y - TICK).V(ac.y + TICK)
-    s.stroke(centers, UI, 1.2)
+        # the swirl cut into its arcs along the radii where they meet; each arc's sector reaches
+        # past the band to take in the flecks beside it, and the end sectors run on past the tips
+        seams = unary_union(
+            [
+                LineString([polar(ac, r - 40, deg=deg), polar(ac, r + 70, deg=deg)])
+                for ac, r, deg in joins[1:-1]
+            ]
+        ).buffer(GAP / 2, cap_style="flat")
+        sectors: list[BaseGeometry] = []
+        for k, ((ac, r, deg), sweep) in enumerate(zip(arcs, SWEEPS, strict=True)):
+            lo = deg - sweep - (40 if k == len(arcs) - 1 else 0)
+            hi = deg + (40 if k == 0 else 0)
+            sectors.append(sector(ac, r - 40, r + 70, lo, hi))
+        segs = [solid(mark.intersection(q).difference(seams)) for q in sectors]
+        rest = solid(mark.difference(unary_union(sectors)))
 
-    # the picked-out arc: the radii to its ends, and its full circle
-    a0, a1 = ldeg - SWEEPS[LIT], ldeg
-    cl = P()
-    for deg in (a0, a1):
-        cl.M(lc).L(polar(lc, lr + 70, deg=deg))
-    s.stroke(cl.circle(lc, lr), UI, 1.2, dash=DASHDOT)
+        # construction: every arc run on into its full circle, and the outer seams run on
+        # outwards, all fading with distance and kept off the swirl
+        ban = mark.buffer(4)
+        field = Point(pole.x, pole.y).buffer(FADE, quad_segs=128)
+        lines = P()
+        drawn: list[tuple[Vec, float]] = [(lc, lr)]  # arcs sharing a center share a circle
+        for ac, r, _ in arcs:
+            if any(abs(r - r2) < 1 and abs(ac - c2) < 1 for c2, r2 in drawn):
+                continue
+            drawn.append((ac, r))
+            ring = LineString(Point(ac.x, ac.y).buffer(r, quad_segs=96).exterior.coords)
+            for q in strands(ring.intersection(field).difference(ban)):
+                lines.poly(q.coords)
+        for k, (ac, r, deg) in enumerate(joins):
+            if k < OUTER or k in (LIT, LIT + 1):
+                continue
+            ray = LineString([polar(ac, r, deg=deg), polar(ac, 2 * FADE, deg=deg)])
+            for q in strands(ray.intersection(field).difference(ban)):
+                lines.poly(q.coords)
+        fade = s.radial_gradient([(0, BG_ALT), (0.55, BG_ALT), (1, BG)], pole, FADE)
+        s.stroke(lines, fade, 1.2)
 
-    if s.params.dimensions:
-        # dimensions: the picked-out arc's radius, to the band's inner edge, and the angle it
-        # turns through, outside it
-        dl, heads = P(), P()
-        amid = (a0 + a1) / 2
-        leader = LineString([lc, polar(lc, lr, deg=amid)]).intersection(segs[LIT])
-        hits = [Vec(*q) for g in parts(leader) for q in g.coords]
-        tip = min(hits, key=lambda q: abs(q - lc))
-        dl.M(lc).L(tip)
-        heads.arrowhead(tip, ARROW, deg=amid, width=ARROW_W)
-        rd = lr + 45
-        dl.arc(lc, rd, deg=(a0, a1))
-        heads.arrowhead(polar(lc, rd, deg=a1), ARROW, deg=a1 + 90, width=ARROW_W)
-        heads.arrowhead(polar(lc, rd, deg=a0), ARROW, deg=a0 - 90, width=ARROW_W)
-        s.stroke(dl, UI_ALT, 1.2)
-        s.fill(heads, UI_ALT)
+        # the polygon of centers, each center ticked
+        centers = P().poly([a[0] for a in arcs])
+        for ac, _, _ in arcs:
+            centers.M(ac.x - TICK, ac.y).H(ac.x + TICK).M(ac.x, ac.y - TICK).V(ac.y + TICK)
+        s.stroke(centers, UI, 1.2)
 
-    # the picked-out arc carries the accent; the rest alternate UI and UI_ALT
-    with s.buckets((ACCENT, UI, UI_ALT), "fill") as b:
-        for k, g in enumerate(segs):
-            b[0 if k == LIT else 1 + k % 2].shape(g)
-        b[1].shape(rest)
+        # the picked-out arc: the radii to its ends, and its full circle
+        a0, a1 = ldeg - SWEEPS[LIT], ldeg
+        cl = P()
+        for deg in (a0, a1):
+            cl.M(lc).L(polar(lc, lr + 70, deg=deg))
+        s.stroke(cl.circle(lc, lr), UI, 1.2, dash=DASHDOT)
+
+        if s.params.dimensions:
+            # dimensions: the picked-out arc's radius, to the band's inner edge, and the angle it
+            # turns through, outside it
+            dl, heads = P(), P()
+            amid = (a0 + a1) / 2
+            leader = LineString([lc, polar(lc, lr, deg=amid)]).intersection(segs[LIT])
+            hits = [Vec(*q) for g in parts(leader) for q in g.coords]
+            tip = min(hits, key=lambda q: abs(q - lc))
+            dl.M(lc).L(tip)
+            heads.arrowhead(tip, ARROW, deg=amid, width=ARROW_W)
+            rd = lr + 45
+            dl.arc(lc, rd, deg=(a0, a1))
+            heads.arrowhead(polar(lc, rd, deg=a1), ARROW, deg=a1 + 90, width=ARROW_W)
+            heads.arrowhead(polar(lc, rd, deg=a0), ARROW, deg=a0 - 90, width=ARROW_W)
+            s.stroke(dl, UI_ALT, 1.2)
+            s.fill(heads, UI_ALT)
+
+        # the picked-out arc carries the accent; the rest alternate UI and UI_ALT
+        with s.buckets((ACCENT, UI, UI_ALT), "fill") as b:
+            for k, g in enumerate(segs):
+                b[0 if k == LIT else 1 + k % 2].shape(g)
+            b[1].shape(rest)
