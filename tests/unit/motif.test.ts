@@ -11,6 +11,7 @@ import {
   motifSize,
   motifTransform,
   motifWindow,
+  pinchMotif,
   placedBox,
   placeMotif,
   resizeMotif,
@@ -132,5 +133,31 @@ describe('resizing by a corner', () => {
     expect(resizeMotif(box, 1920, 1080, from, [1, 0], [700, 200]).k).toBe(1.5);
     expect(resizeMotif(box, 1920, 1080, from, [1, 1], [5000, 5000]).k).toBe(2);
     expect(resizeMotif(box, 1920, 1080, from, [1, 1], [0, 0]).k).toBe(0.5);
+  });
+});
+
+describe('pinching', () => {
+  const free: MotifInfo = { ...MOON, cell: null };
+  const from = { x: 500, y: 300, k: 1 };
+  it('scales by the fingers and keeps the point between them under them', () => {
+    // Fingers 100 apart around (600, 300) spread to 200: the anchor 100 left of them goes to 200 left.
+    expect(pinchMotif(free, 1920, 1080, from, [600, 300], 100, [600, 300], 200)).toEqual({
+      x: 400,
+      y: 300,
+      k: 2,
+    });
+    // The same pinch carried 50 down.
+    expect(pinchMotif(free, 1920, 1080, from, [600, 300], 100, [600, 350], 150)).toEqual({
+      x: 450,
+      y: 350,
+      k: 1.5,
+    });
+  });
+  it('keeps to the scale and moves with the fingers at its limit', () => {
+    expect(pinchMotif(free, 1920, 1080, from, [600, 300], 100, [700, 300], 1000)).toEqual({
+      x: 500,
+      y: 300,
+      k: 2,
+    });
   });
 });

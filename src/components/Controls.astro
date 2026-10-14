@@ -39,11 +39,11 @@ const file = downloadName(p.slug, DEFAULT_VARIANT, DEFAULT_PRESET.name, format, 
     <div class="row"><span class="k">Shape</span><div class="seg" role="radiogroup" aria-label="Shape">{SITE_ASPECTS.map((a) => <label><input type="radio" name="asp" value={a} data-native={p.aspects.includes(a) ? '' : undefined} checked={a === '16:9'} /><span><span class="mono">{a}</span></span></label>)}</div><span class="sub hint" id="shape-hint">cropped from <span class="mono">16:9</span></span></div>
     {
       p.motif && (
-        <Fragment>
+        <div id="motif-rows">
           <div class="row center"><span class="k">Across</span><div class="pair"><input class="range" id="place-x" type="range" min="0" max="1920" step="1" value="960" aria-label="Across" /><button type="button" class="textbtn" id="place-cx" aria-label="Center across" hidden>Center</button></div></div>
           <div class="row center"><span class="k">Down</span><div class="pair"><input class="range" id="place-y" type="range" min="0" max="1080" step="1" value="540" aria-label="Down" /><button type="button" class="textbtn" id="place-cy" aria-label="Center down" hidden>Center</button></div></div>
           <div class="row center"><span class="k">Scale</span><div class="pair"><input class="range" id="place-k" type="range" min="50" max="200" step="1" value="100" aria-label="Scale" /><button type="button" class="textbtn" id="place-reset" hidden>Reset</button></div></div>
-        </Fragment>
+        </div>
       )
     }
     <div class="row center" id="crop-row"><span class="k">Crop</span><div><span class="plate crop-map" aria-hidden="true"><span class="crop"><span class="handle"></span></span></span><input class="range" id="crop" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="Crop position" /></div></div>

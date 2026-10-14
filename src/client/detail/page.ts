@@ -15,6 +15,7 @@ import {
   type MotifInfo,
   motifTransform,
   type Placement,
+  pinchMotif,
   placeMotif,
   resizeMotif,
 } from '../../lib/motif';
@@ -370,9 +371,43 @@ for (const [axis, range] of [
   });
 }
 
+// Narrow screens show the motif's rows under the plate, wide ones in Export.
+const motifRows = document.getElementById('motif-rows');
+const motifHome = motifRows?.nextElementSibling;
+const motifNear = document.querySelector('.motif-near');
+function placeRows(): void {
+  if (!motifRows || !motifHome || !motifNear) return;
+  if (narrow.matches) motifNear.append(motifRows);
+  else motifHome.before(motifRows);
+}
+placeRows();
+narrow.addEventListener('change', placeRows);
+
+/** The touches on the plate, by pointer id, in client pixels. */
+const touches = new Map<number, [number, number]>();
+/** The pinch in progress: the placement it began from, its fingers' midpoint and spread in canvas units. */
+let pinch: { from: Placement; m0: [number, number]; d0: number } | undefined;
+/** Stops the one-pointer drag in progress, which a pinch takes over. */
+let stopDrag: (() => void) | undefined;
+
+/** The first two touches' midpoint and distance, in canvas units. */
+function fingers(): { m: [number, number]; d: number } | undefined {
+  const [a, b] = touches.values();
+  if (!motif || !a || !b) return undefined;
+  const r = motif.canvas.getBoundingClientRect();
+  const units = CANVAS[sourceAspect()][0] / r.width;
+  const m: [number, number] = [
+    ((a[0] + b[0]) / 2 - r.left) * units,
+    ((a[1] + b[1]) / 2 - r.top) * units,
+  ];
+  return { m, d: Math.hypot(a[0] - b[0], a[1] - b[1]) * units };
+}
+
 // The handle moves the motif; a corner of it resizes the motif about the opposite corner.
 motif?.handle.addEventListener('pointerdown', (e) => {
   const info = motifInfo();
+  // A second finger joins the pinch the plate's listener starts.
+  if (e.pointerType === 'touch' && touches.size > 0) return;
   if (e.button !== 0 || !info || !motif.canvas.clientWidth) return;
   e.preventDefault();
   if (e.pointerType !== 'mouse') motif.frame.dataset.touched = '';
@@ -383,15 +418,47 @@ motif?.handle.addEventListener('pointerdown', (e) => {
   if (!corner) {
     const move = (dx: number, dy: number) =>
       previewMotif({ ...from, x: from.x + dx, y: from.y + dy });
-    return dragMotif(motif.handle, e, units, move, commitMotif);
+    stopDrag = dragMotif(motif.handle, e, units, move, commitMotif);
+    return;
   }
   const c = [Number(corner[0]), Number(corner[2])] as const;
   const [hx, hy, hw, hh] = info.handle;
   const [px, py] = [from.x + (hx + c[0] * hw) * from.k, from.y + (hy + c[1] * hh) * from.k];
   const resize = (dx: number, dy: number) =>
     previewMotif(resizeMotif(info, w, h, from, c, [px + dx, py + dy]));
-  dragMotif(motif.handle, e, units, resize, commitMotif);
+  stopDrag = dragMotif(motif.handle, e, units, resize, commitMotif);
 });
+
+// Two fingers anywhere on the plate pinch the motif: its size follows their spread, and it moves with them.
+if (motif) {
+  plate.addEventListener('pointerdown', (e) => {
+    const info = motifInfo();
+    if (e.pointerType !== 'touch' || !info) return;
+    touches.set(e.pointerId, [e.clientX, e.clientY]);
+    const f = touches.size === 2 ? fingers() : undefined;
+    if (!f) return;
+    e.preventDefault();
+    stopDrag?.();
+    motif.frame.dataset.touched = '';
+    pinch = { from: shownPlacement(info), m0: f.m, d0: f.d };
+  });
+  plate.addEventListener('pointermove', (e) => {
+    if (!touches.has(e.pointerId)) return;
+    touches.set(e.pointerId, [e.clientX, e.clientY]);
+    const info = motifInfo();
+    const f = fingers();
+    if (!pinch || !info || !f) return;
+    const [w, h] = CANVAS[sourceAspect()];
+    previewMotif(pinchMotif(info, w, h, pinch.from, pinch.m0, pinch.d0, f.m, f.d));
+  });
+  const lift = (e: PointerEvent) => {
+    if (!touches.delete(e.pointerId) || !pinch) return;
+    pinch = undefined;
+    commitMotif();
+  };
+  plate.addEventListener('pointerup', lift);
+  plate.addEventListener('pointercancel', lift);
+}
 // On a touch screen the handle stays framed, with its corners, until a touch lands elsewhere.
 document.addEventListener('pointerdown', (e) => {
   if (motif && !motif.handle.contains(e.target as Node)) delete motif.frame.dataset.touched;

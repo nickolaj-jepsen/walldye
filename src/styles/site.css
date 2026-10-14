@@ -485,6 +485,8 @@ abbr {
 /* A piece's motif over the plate's picture: the template's own box inside it, as object-fit: contain
    places it, holding the handle a visitor drags and, while the motif moves, the picture without it
    (.ground) and the motif alone. */
+/* One finger scrolls the page over the plate; two pinch the motif. */
+.plate:has(> .motif-frame) { touch-action: pan-y; }
 .motif-frame {
   position: absolute;
   top: 0;

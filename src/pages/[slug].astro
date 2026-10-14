@@ -63,6 +63,8 @@ const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
     <script is:inline set:html={shapeBoot} />
     <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div>{p.motif && <div class="motif-frame" aria-hidden="true" hidden><div class="motif-canvas"><span class="motif-handle">{["0,0", "1,0", "0,1", "1,1"].map((c) => <span class="motif-corner" data-corner={c} />)}</span></div></div>}</PlateBox>
   </figure>
+  {/* Phones take the motif's rows from Export to here, beside the picture they move (src/client/detail/page.ts). */}
+  {p.motif && <div class="motif-near" />}
 
   <div class="below">
     <div class="label">
@@ -152,6 +154,13 @@ const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
       width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 26 * var(--u)) * var(--ratio))));
       margin-inline: auto;
       touch-action: pan-y;
+    }
+    /* The motif's three rows and their gap join the first screen. */
+    .spread[data-tall]:has(~ .motif-near) :global(.plate) {
+      width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 40 * var(--u)) * var(--ratio))));
+    }
+    .motif-near {
+      margin-top: calc(2 * var(--u));
     }
     .spread[data-tall] :global(.plate > img[data-aspect='16:9']) {
       object-fit: cover;

@@ -164,3 +164,27 @@ export function resizeMotif(
   const k = motifSize(info, ((to[0] - cx) * dx + (to[1] - cy) * dy) / (dx * dx + dy * dy));
   return clampPlacement(info, w, h, { x: cx - fx * k, y: cy - fy * k, k });
 }
+
+/**
+ * The placement nearest `from` after a pinch that began at midpoint `m0` with the fingers `d0` apart
+ * and is now at `m`, `d` apart (canvas units), as clampPlacement() offers it: the size follows d/d0,
+ * and the motif's point under `m0` follows the midpoint.
+ */
+export function pinchMotif(
+  info: MotifInfo,
+  w: number,
+  h: number,
+  from: Placement,
+  m0: readonly [number, number],
+  d0: number,
+  m: readonly [number, number],
+  d: number,
+): Placement {
+  const k = motifSize(info, d0 > 0 ? (from.k * d) / d0 : from.k);
+  const r = k / from.k;
+  return clampPlacement(info, w, h, {
+    x: m[0] + (from.x - m0[0]) * r,
+    y: m[1] + (from.y - m0[1]) * r,
+    k,
+  });
+}
