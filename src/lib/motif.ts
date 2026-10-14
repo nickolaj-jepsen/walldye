@@ -141,3 +141,26 @@ export function centerMotif(
   const to = axis === 'x' ? w / 2 - (hx + hw / 2) * p.k : h / 2 - (hy + hh / 2) * p.k;
   return clampPlacement(info, w, h, { ...p, [axis]: to });
 }
+
+/**
+ * The placement nearest `from` resized by its handle's `corner` ([0|1, 0|1], left/top to right/bottom)
+ * dragged to the canvas point `to`, as clampPlacement() offers it: the opposite corner stays put and
+ * the size follows `to` projected onto the handle's diagonal.
+ */
+export function resizeMotif(
+  info: MotifInfo,
+  w: number,
+  h: number,
+  from: Placement,
+  corner: readonly [number, number],
+  to: readonly [number, number],
+): Placement {
+  const [hx, hy, hw, hh] = info.handle;
+  // The fixed corner, motif-local and on the canvas, and the local diagonal towards the dragged one.
+  const fx = hx + (1 - corner[0]) * hw;
+  const fy = hy + (1 - corner[1]) * hh;
+  const [cx, cy] = [from.x + fx * from.k, from.y + fy * from.k];
+  const [dx, dy] = [(corner[0] * 2 - 1) * hw, (corner[1] * 2 - 1) * hh];
+  const k = motifSize(info, ((to[0] - cx) * dx + (to[1] - cy) * dy) / (dx * dx + dy * dy));
+  return clampPlacement(info, w, h, { x: cx - fx * k, y: cy - fy * k, k });
+}
