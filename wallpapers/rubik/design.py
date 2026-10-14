@@ -7,7 +7,7 @@ import shapely
 from numpy.typing import NDArray
 from shapely import MultiPoint
 
-from walldye import ACCENT, BG, UI, UI_ALT, UI_HI, Canvas, P, Path, Vec, design
+from walldye import ACCENT, BG, UI, UI_ALT, UI_HI, Canvas, P, Path, Rect, Vec, design
 from walldye.field import runs
 from walldye.geom import Affine
 
@@ -79,14 +79,15 @@ def draw(s: Canvas) -> None:
     # the clock, nudged left because the arrow widens the right side
     at = s.pick(landscape=(1240 / 1920, 520 / 1080), portrait=(0.48, 0.54))
     k = 1.0 if s.landscape else 1.3
-    place = Affine.translate(at.x, at.y) @ Affine.scale(k)
 
     # The lower two layers, then the turned top layer; viewed from above, the top layer hides
     # the block beneath wherever they overlap. Each block is convex, so its front-facing
     # outer faces never overlap one another and need no depth sort.
     blocks = (((-1, 0), np.eye(3)), ((1,), rot_y(TURN)))
     sils = []
-    with s.group(transform=place):
+    # the cube's outline and the turn arrow's orbit, with room for the arrowhead
+    ink = Rect(-278 * k, -238 * k, 556 * k, 476 * k)
+    with s.motif(at, ink), s.group(transform=Affine.scale(k)):
         for layer, rot in blocks:
             bodies, stickers, lit, hatch = P(), P(), P(), P()
             corners: list[Vec] = []

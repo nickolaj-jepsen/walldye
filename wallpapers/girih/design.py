@@ -21,7 +21,7 @@ from walldye import (
     ladder,
     mix,
 )
-from walldye.geom import ngon
+from walldye.geom import Affine, ngon
 
 CELL = 196  # distance between neighboring dodecagon centers
 SIDE = CELL / (2 + math.sqrt(3))  # the tiling's shared edge length
@@ -32,6 +32,8 @@ SKIP = {12: 2, 3: 1}  # the ray from edge i meets the returning ray from edge i 
 # the pattern line fades from BG_ALT at the inlay to a whisper at the far edges
 LINES = ladder((BG_ALT, mix(BG, BG_ALT, 0.45)), 5)
 INLAY = (ACCENT, ACCENT_3, ACCENT_5)  # the star, then each ring of faces around it
+NEAR = 1100  # past the reach of every line brighter than the faintest rung
+TILE = (11, 8)  # cells across and row pairs down the faint tile, nearly whole units tall
 
 type Seg = tuple[Vec, Vec]
 
@@ -83,30 +85,51 @@ def hankin(poly: list[Vec]) -> Iterator[Seg]:
 def draw(s: Canvas) -> None:
     # right of center, below the middle on landscape; lower right of center on portrait
     c = s.pick(landscape=(0.71875, 11 / 18), portrait=(0.62, 0.6))
-    segs = [seg for poly in tiling(c, s.inset(-CELL)) for seg in hankin(poly)]
-    near = [LineString(seg) for seg in segs if min(abs(p - c) for p in seg) < CELL * 2]
+    o = Vec(0, 0)
+    segs = [
+        seg for poly in tiling(o, Rect(-NEAR, -NEAR, 2 * NEAR, 2 * NEAR)) for seg in hankin(poly)
+    ]
+    near = [LineString(seg) for seg in segs if min(abs(p) for p in seg) < CELL * 2]
     # snapping to a fine grid closes the float gaps where partner rays meet
     faces = list(polygonize(unary_union(near, grid_size=1e-3)))
     # rings of faces outward from the star: each ring shares an edge with the previous one
-    ring = [k for k, f in enumerate(faces) if f.contains(Point(c))]
+    ring = [k for k, f in enumerate(faces) if f.contains(Point(0, 0))]
     used = set(ring)
-    inlay: list[int] = []
-    for tone in INLAY:
-        d = P()
-        for k in ring:
-            d.shape(faces[k])
-        s.fill(d, tone)
-        inlay += ring
+    rings: list[list[int]] = []
+    for _ in INLAY:
+        rings.append(ring)
         ring = [
             k
             for k, f in enumerate(faces)
             if k not in used and any(f.intersection(faces[g]).length > 1 for g in ring)
         ]
         used.update(ring)
-    with s.buckets(LINES, "stroke", stroke_width=1.5, stroke_linecap="round") as lines:
-        for a, b in segs:
-            # one rung fainter every 150 units beyond 300 from the star
-            lines[LINES.rung((abs((a + b) / 2 - c) - 300) / 750)].M(a).L(b)
-    # a crisp edge round the outer ring seats the rosette like an inlaid tile
-    edge = P().shape(unary_union([faces[k] for k in inlay]))
-    s.stroke(edge, ACCENT_4, 1.5, join="miter")
+    inlay = unary_union([faces[k] for ring in rings for k in ring])
+    x0, y0, x1, y1 = inlay.bounds
+
+    with s.motif(c, "cover", handle=Rect(x0, y0, x1 - x0, y1 - y0)) as m:
+        # the faintest rung as one tile repeated wherever the rosette goes, centered on the star
+        # and large enough that every brighter line falls inside the first copy
+        w, h = TILE[0] * CELL, TILE[1] * 2 * ROW
+        with s.pattern(w, h, transform=Affine.translate(-w / 2, -h / 2)) as tile:
+            area = Rect(-CELL, -CELL, w + 2 * CELL, h + 2 * CELL)
+            far = P()
+            for poly in tiling(Vec(w / 2, h / 2), area):
+                for a, b in hankin(poly):
+                    far.M(a).L(b)
+            tile.stroke(far, LINES[-1], 1.5, cap="round")
+        s.fill(P().rect(*m.cover), tile.ref)
+
+        for ring, tone in zip(rings, INLAY, strict=True):
+            d = P()
+            for k in ring:
+                d.shape(faces[k])
+            s.fill(d, tone)
+        with s.buckets(LINES, "stroke", stroke_width=1.5, stroke_linecap="round") as lines:
+            for a, b in segs:
+                # one rung fainter every 150 units beyond 300 from the star
+                rung = LINES.rung((abs((a + b) / 2) - 300) / 750)
+                if rung < len(LINES) - 1:
+                    lines[rung].M(a).L(b)
+        # a crisp edge round the outer ring seats the rosette like an inlaid tile
+        s.stroke(P().shape(inlay), ACCENT_4, 1.5, join="miter")

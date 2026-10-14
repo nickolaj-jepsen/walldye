@@ -9,11 +9,13 @@ from walldye import (
     ACCENT_3,
     ACCENT_5,
     ACCENT_7,
+    BG,
     MUTED,
     UI,
     UI_HI,
     Canvas,
     NpRng,
+    P,
     Rect,
     Vec,
     design,
@@ -29,6 +31,7 @@ CELL = 3
 # field has faded to nothing well inside its edges, so the window never shows as a cut.
 COLS, ROWS = 426, 360
 CORE_AT = (660, 440)  # the core's offset inside the window
+LANDSCAPE, PORTRAIT = (0.677, 0.407), (0.62, 0.36)  # the core's default place
 TILT = -0.35  # the nebula's long axis, radians
 LANE_AT = (-400, 460)  # a point on the dust lane, from the core
 SIDE = 400  # the nebula's side of the sky starts this far left of the core
@@ -94,44 +97,61 @@ def overlap(a: Rect, b: Rect) -> Rect | None:
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    # the core on the right third of a landscape screen, the left kept as open sky; high on a
-    # portrait one, bleeding off the right edge. The window origin is snapped to whole cells.
-    o = s.pick(landscape=(0.677, 0.407), portrait=(0.62, 0.36)) - CORE_AT
-    ox, oy = round(o.x / CELL) * CELL, round(o.y / CELL) * CELL
-    core = Vec(ox, oy) + CORE_AT
-    win = Rect(ox, oy, COLS * CELL, ROWS * CELL)
+    def corner(x: float, y: float) -> tuple[int, int]:
+        """The window's top-left for a core at (x, y), snapped to whole cells."""
+        return round((x - CORE_AT[0]) / CELL) * CELL, round((y - CORE_AT[1]) / CELL) * CELL
+
+    # The core on the right third of a landscape screen, the left kept as open sky; high on a
+    # portrait one, bleeding off the right edge.
+    at = s.pick(landscape=LANDSCAPE, portrait=PORTRAIT)
+    core = Vec(*corner(at.x, at.y)) + CORE_AT
+    fx, fy = LANDSCAPE if s.landscape else PORTRAIT
+    hx, hy = corner(fx * s.w, fy * s.h)  # the window where the core sits by default
+    win = Rect(-CORE_AT[0], -CORE_AT[1], COLS * CELL, ROWS * CELL)
     xs, ys = cells(win, CELL)
-    v = field(s, xs - core.x, ys - core.y)
+    v = field(s, xs, ys)
     gas = dither(v, 5, method="riemersma")
 
-    # one grid for the whole canvas, so stars and gas share the cell lattice
-    px = Pixels(s.w // CELL, s.h // CELL, PALETTE)
-    i0, j0 = ox // CELL, oy // CELL
-    a0, b0 = max(i0, 0), max(j0, 0)
-    a1, b1 = min(i0 + COLS, px.cols), min(j0 + ROWS, px.rows)
-    px.grid[b0:b1, a0:a1] = gas[b0 - j0 : b1 - j0, a0 - i0 : a1 - i0]
-
-    def plot(p: NDArray[np.float64], index: int) -> None:
+    def plot(px: Pixels, p: NDArray[np.float64], index: int) -> None:
         px.grid[int(p[1] // CELL), int(p[0] // CELL)] = index
 
-    r = s.rng(9)
     # stars in the open sky: everywhere but the nebula's side of its window
-    sky = s.inset(40)
-    side = Rect(core.x - SIDE, oy, win.x1 - core.x + SIDE, win.h)
-    n = round(STAR_DENSITY * sky.w * sky.h)
-    for p in scatter(n, sky, r, accept=lambda q: not side.contains(q), tries=1):
-        plot(p, STAR_MUTED if r.random() < 0.2 else STAR_UI_HI)
+    sky = Pixels(s.w // CELL, s.h // CELL, PALETTE)
+    r = s.rng(9)
+    open_sky = s.inset(40)
+    side = Rect(hx + CORE_AT[0] - SIDE, hy, win.x1 + SIDE, win.h)
+    n = round(STAR_DENSITY * open_sky.w * open_sky.h)
+    for p in scatter(n, open_sky, r, accept=lambda q: not side.contains(q), tries=1):
+        plot(sky, p, STAR_MUTED if r.random() < 0.2 else STAR_UI_HI)
+    # where the nebula sits by default, its gas gives way to the stars it would cover
+    px = Pixels(COLS, ROWS, PALETTE)
+    px.grid[:, :] = gas
+    i0, j0 = hx // CELL, hy // CELL
+    a0, b0 = max(i0, 0), max(j0, 0)
+    a1, b1 = min(i0 + COLS, sky.cols), min(j0 + ROWS, sky.rows)
+    px.grid[b0 - j0 : b1 - j0, a0 - i0 : a1 - i0][sky.grid[b0:b1, a0:a1] > 0] = 0
+    # More stars behind the nebula's side, seen once it moves away. The side is trimmed to whole
+    # cells, so where the nebula sits by default it hides no part of the stars around it.
+    quiet = Rect(-(SIDE // CELL) * CELL, win.y, win.x1 + (SIDE // CELL) * CELL, win.h)
+    behind = overlap(Rect(hx + CORE_AT[0] + quiet.x, hy, quiet.w, quiet.h), open_sky)
+    if behind is not None:
+        r2 = s.rng(10)
+        for p in scatter(round(STAR_DENSITY * behind.w * behind.h), behind, r2, tries=1):
+            plot(sky, p, STAR_MUTED if r2.random() < 0.2 else STAR_UI_HI)
+    sky.draw(s, CELL)
 
     # fainter stars over the nebula's side, only where the gas is thin (the faintest step at most)
     def thin(q: Vec) -> bool:
-        i, j = int((q.x - ox) // CELL), int((q.y - oy) // CELL)
+        i, j = int((q.x - hx) // CELL), int((q.y - hy) // CELL)
         return bool(gas[j, i] <= 1 and v[j, i] < 0.3)
 
-    thin_rect = Rect(ox + 60, oy + 30, win.w - 88, win.h - 60)
+    thin_rect = Rect(hx + 60, hy + 30, win.w - 88, win.h - 60)
     near = overlap(thin_rect, s.inset(30))
     if near is not None:
         n = round(THIN_STARS * near.w * near.h / (thin_rect.w * thin_rect.h))
         for p in scatter(n, near, r, accept=thin):
-            plot(p, STAR_UI_HI if r.random() < 0.3 else STAR_UI)
+            plot(px, p - (hx, hy), STAR_UI_HI if r.random() < 0.3 else STAR_UI)
 
-    px.draw(s, CELL)
+    with s.motif(core, win, handle=Rect(-300, -230, 600, 460), cell=CELL):
+        s.fill(P().rect(*quiet), BG)  # the nebula's side keeps the open sky's stars out
+        px.draw(s, CELL, (win.x, win.y))

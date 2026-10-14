@@ -92,9 +92,8 @@ def key(c: Circle) -> tuple[float, float, float]:
 @design(aspects="any", variants=VARIANTS)
 def draw(s: Canvas[Gasket]) -> None:
     # left third on a landscape screen; on a portrait one the disc fills the width, high up
-    frame = Affine.frame(
-        s.pick(landscape=(660 / 1920, 560 / 1080), portrait=(0.5, 0.4)), deg=s.params.tilt, scale=R
-    )
+    at = s.pick(landscape=(660 / 1920, 560 / 1080), portrait=(0.5, 0.4))
+    frame = Affine.frame((0, 0), deg=s.params.tilt, scale=R)
 
     def place(c: Circle) -> tuple[Vec, float]:
         z = c[1] / c[0]
@@ -109,19 +108,20 @@ def draw(s: Canvas[Gasket]) -> None:
     hot = run[SKIP:]
     hot_keys = {key(h) for h in hot}
 
-    s.fill(P().circle(*place(a)), BG_DEEP)
+    with s.motif(at, R + 2):
+        s.fill(P().circle(*place(a)), BG_DEEP)
 
-    # stroke width and tone step up with log radius
-    rings = [P() for _ in range(LEVELS + 1)]
-    for circle in gasket(o, a, b, c):
-        if key(circle) not in hot_keys:
-            center, r = place(circle)
-            t = min(1.0, math.log(r / MIN_R) / math.log(R / MIN_R))
-            rings[round(t * LEVELS)].circle(center, r)
-    for i, d in enumerate(rings):
-        s.stroke(d, TONES[round(i / LEVELS * 4)], 0.6 + i / LEVELS)
+        # stroke width and tone step up with log radius
+        rings = [P() for _ in range(LEVELS + 1)]
+        for circle in gasket(o, a, b, c):
+            if key(circle) not in hot_keys:
+                center, r = place(circle)
+                t = min(1.0, math.log(r / MIN_R) / math.log(R / MIN_R))
+                rings[round(t * LEVELS)].circle(center, r)
+        for i, d in enumerate(rings):
+            s.stroke(d, TONES[round(i / LEVELS * 4)], 0.6 + i / LEVELS)
 
-    for h, paint in zip(hot, CHAIN, strict=True):
-        center, r = place(h)
-        # inset so the tangent hairlines around the chain stay unbroken
-        s.fill(P().circle(center, r - min(1.2, 0.1 * r)), paint)
+        for h, paint in zip(hot, CHAIN, strict=True):
+            center, r = place(h)
+            # inset so the tangent hairlines around the chain stay unbroken
+            s.fill(P().circle(center, r - min(1.2, 0.1 * r)), paint)

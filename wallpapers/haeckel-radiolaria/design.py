@@ -47,6 +47,7 @@ BEAM = by_regime(UI, UI_ALT)
 INK = by_regime(UI_ALT, UI_HI)  # pores, cut edges, rim and spines
 SECTION = by_regime(BG_ALT, UI)  # the shell walls where the cut crosses them
 WALL = 9  # shell thickness where the cut crosses it
+REACH = R + SPINE_LEN[0] + 4  # holds the longest spine and its stroke
 
 
 def rotation(yaw: float, pitch: float, roll: float) -> Arr:
@@ -132,9 +133,10 @@ def clipped(s: Canvas, region: BaseGeometry, d: Path, paint: Paint, width: float
 
 @design(aspects="any")
 def draw(s: Canvas) -> None:
-    c = s.pick(
+    at = s.pick(
         landscape=(0.36, 0.5), portrait=(0.33, 0.36)
     )  # the long left spine runs off the edge
+    c = Vec(0, 0)  # everything is drawn around the shell's center, wherever it is placed
     edges = octant_edges()
     t = np.linspace(0, math.pi / 2, 32)
     arcs = [
@@ -143,7 +145,7 @@ def draw(s: Canvas) -> None:
 
     def window(r: float) -> Polygon:
         """What the cut takes off the near side of the shell of radius r, on screen."""
-        return Polygon(np.asarray(c) + r * np.concatenate(arcs)[:, :2])
+        return Polygon(r * np.concatenate(arcs)[:, :2])
 
     def disc(r: float) -> BaseGeometry:
         return Point(c).buffer(r, quad_segs=64)
@@ -174,29 +176,30 @@ def draw(s: Canvas) -> None:
                 back.poly(blade)
                 beams.M(c + CORE * R * d[:2]).L(base)
 
-    everything = Polygon([(0, 0), (s.w, 0), (s.w, s.h), (0, s.h)])
-    clipped(s, everything.difference(disc(R)), back, INK, 1.2)
+    with s.motif(at, REACH, handle=R):
+        everything = Polygon([(-REACH, -REACH), (REACH, -REACH), (REACH, REACH), (-REACH, REACH)])
+        clipped(s, everything.difference(disc(R)), back, INK, 1.2)
 
-    # seen through the cut: the far inside of each shell, then the beams and the middle shell
-    far_out = w_out.difference(disc(MID * R))
-    far_mid = w_mid.difference(disc(CORE * R))
-    clipped(s, far_out, outer[1], FAR, 1.0)
-    clipped(s, far_mid, middle[1], FAR, 1.0)
-    clipped(s, far_mid.union(far_out), beams, BEAM, 1.2)
-    clipped(s, w_out.intersection(disc(MID * R).difference(w_mid)), middle[0], INK, 1.2)
-    s.stroke(core, ACCENT, 1.6)
-    s.stroke(P().circle(c, CORE * R), ACCENT_4, 1.2)
-    clipped(s, disc(R).difference(w_out), outer[0], INK, 1.3)
+        # seen through the cut: the far inside of each shell, then the beams and the middle shell
+        far_out = w_out.difference(disc(MID * R))
+        far_mid = w_mid.difference(disc(CORE * R))
+        clipped(s, far_out, outer[1], FAR, 1.0)
+        clipped(s, far_mid, middle[1], FAR, 1.0)
+        clipped(s, far_mid.union(far_out), beams, BEAM, 1.2)
+        clipped(s, w_out.intersection(disc(MID * R).difference(w_mid)), middle[0], INK, 1.2)
+        s.stroke(core, ACCENT, 1.6)
+        s.stroke(P().circle(c, CORE * R), ACCENT_4, 1.2)
+        clipped(s, disc(R).difference(w_out), outer[0], INK, 1.3)
 
-    # the cut faces: each shell's wall in section, a band on each of the three planes
-    faces, rims = P(), P().circle(c, R)
-    for r in (R, MID * R):
-        for arc in arcs:
-            band = np.concatenate([r * arc[:, :2], (r - WALL) * arc[::-1, :2]])
-            faces.poly(np.asarray(c) + band, closed=True)
-            rims.poly(np.asarray(c) + r * arc[:, :2]).poly(np.asarray(c) + (r - WALL) * arc[:, :2])
-    s.fill(faces, SECTION)
-    s.stroke(rims, INK, 1.4)
-    clipped(s, w_out, P().circle(c, MID * R), INK, 1.6)
-    s.fill(front_fill, BG)
-    s.stroke(front, INK, 1.2, join="round")
+        # the cut faces: each shell's wall in section, a band on each of the three planes
+        faces, rims = P(), P().circle(c, R)
+        for r in (R, MID * R):
+            for arc in arcs:
+                band = np.concatenate([r * arc[:, :2], (r - WALL) * arc[::-1, :2]])
+                faces.poly(band, closed=True)
+                rims.poly(r * arc[:, :2]).poly((r - WALL) * arc[:, :2])
+        s.fill(faces, SECTION)
+        s.stroke(rims, INK, 1.4)
+        clipped(s, w_out, P().circle(c, MID * R), INK, 1.6)
+        s.fill(front_fill, BG)
+        s.stroke(front, INK, 1.2, join="round")

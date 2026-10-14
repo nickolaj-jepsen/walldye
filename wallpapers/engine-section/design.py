@@ -70,7 +70,6 @@ def draw(s: Canvas[Drawing]) -> None:
     # right of center on landscape screens; centered and larger on width-bound portrait ones
     at = s.pick(landscape=(0.6458, 0.5), portrait=(0.49, 0.53))
     k = 0.88 if s.landscape else 1.35
-    place = Affine.translate(at.x, at.y) @ Affine.scale(k) @ Affine.translate(0, -MID)
 
     main = Vec(0, CKY)
     cp = polar(main, THROW, bearing=CRANK)
@@ -137,7 +136,13 @@ def draw(s: Canvas[Drawing]) -> None:
         [shank, Point(small).buffer(31, quad_segs=24), Point(cp).buffer(52, quad_segs=32)]
     )
 
-    with s.group(transform=place, stroke_linejoin="round"):
+    # the center lines' ends, and on the right the stroke dimension's extension lines
+    right = 315 if s.params.dimensions else 271
+    ink = Rect(-271 * k, (37 - MID) * k, (271 + right) * k, (1069 - 37) * k)
+    with (
+        s.motif(at, ink),
+        s.group(transform=Affine.scale(k) @ Affine.translate(0, -MID), stroke_linejoin="round"),
+    ):
         # center lines sit beneath everything so parts interrupt them
         cl = P()
         cl.M(0, HEAD_TOP - 170).V(CKY + 270)

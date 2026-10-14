@@ -10,9 +10,22 @@ from shapely.geometry import LineString, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from walldye import ACCENT, UI_ALT, UI_HI, Canvas, P, Point, Rng, Vec, design, polar, smoothstep
+from walldye import (
+    ACCENT,
+    UI_ALT,
+    UI_HI,
+    Canvas,
+    P,
+    Point,
+    Rect,
+    Rng,
+    Vec,
+    design,
+    polar,
+    smoothstep,
+)
 from walldye.field import Noise, gauss, runs
-from walldye.geom import Affine, ribbon
+from walldye.geom import ribbon
 
 type F = NDArray[np.float64]
 
@@ -178,7 +191,8 @@ def draw(s: Canvas) -> None:
     c = Vec(min(c.x, MAX_X), c.y)
     n = s.noise(21)
     r, r2 = s.rng(21), s.rng(22)
-    with s.group(transform=Affine.translate(c.x, c.y)):
+    # the ring's dry edges and the seal at its lower right
+    with s.motif(c, Rect(-334, -330, 753, 699)):
         thin: list[F] = []
         loaded = [press(n)]
         for outline, full in bristles(n, r, r2):

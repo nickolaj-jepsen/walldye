@@ -153,13 +153,14 @@ def draw(s: Canvas[Moon]) -> None:
     n *= np.sign(np.einsum("ij,ij->i", n, tri.sum(axis=1)))[:, None]  # point every normal out
     lam = (n @ sun) * s.params.exposure
     front = n[:, 2] > 0
-    outlines = c + tri[:, :, :2] * R
+    outlines = tri[:, :, :2] * R
 
-    night = P()
-    for pts in outlines[front & (lam <= 0)]:
-        night.poly(pts, closed=True)
-    s.path(night, fill=NIGHT, stroke=NIGHT_EDGE, stroke_width=1, stroke_linejoin="round")
-    day = front & (lam > 0)
-    with s.buckets(TONES, "fill", stroke=BG, stroke_width=1.2, stroke_linejoin="round") as lit:
-        for pts, k in zip(outlines[day], lam[day], strict=True):
-            lit[next(i for i, t in enumerate(STEPS) if k > t)].poly(pts, closed=True)
+    with s.motif(c, R + 2):
+        night = P()
+        for pts in outlines[front & (lam <= 0)]:
+            night.poly(pts, closed=True)
+        s.path(night, fill=NIGHT, stroke=NIGHT_EDGE, stroke_width=1, stroke_linejoin="round")
+        day = front & (lam > 0)
+        with s.buckets(TONES, "fill", stroke=BG, stroke_width=1.2, stroke_linejoin="round") as lit:
+            for pts, k in zip(outlines[day], lam[day], strict=True):
+                lit[next(i for i, t in enumerate(STEPS) if k > t)].poly(pts, closed=True)

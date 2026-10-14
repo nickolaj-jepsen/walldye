@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from shapely.geometry import LineString
 
-from walldye import ACCENT, UI_HI, Canvas, P, Path, Vec, design, smoothstep
+from walldye import ACCENT, UI_HI, Canvas, P, Path, Rect, Vec, design, smoothstep
 from walldye.geom import Affine
 
 type Pts = NDArray[np.float64]
@@ -53,28 +53,31 @@ def draw(s: Canvas) -> None:
     # larger below the clock on a portrait one
     c = s.pick(landscape=(0.34375, 0.5), portrait=(0.5, 0.55))
     t = trajectory()
-    xy = project(t, c, SCALE if s.landscape else SCALE * 1.2)
+    xy = project(t, Vec(0, 0), SCALE if s.landscape else SCALE * 1.2)
+    # a margin well past the widest stroke, 2 units
+    (x0, y0), (x1, y1) = xy.min(0) - 4, xy.max(0) + 4
 
     # a wing switch after the longest dwell on one lobe in the first half of the run
     flips = np.flatnonzero(np.diff(np.sign(t[:, 0])))
     dwell = np.diff(flips)
     k = int(flips[1 + int(np.argmax(dwell[: len(dwell) // 2]))])
 
-    # short translucent strokes, so overlapping passes build up density in the core
-    with s.group(
-        stroke=UI_HI,
-        stroke_width=0.9,
-        stroke_opacity=0.32,
-        stroke_linecap="round",
-        stroke_linejoin="round",
-    ):
-        for i in range(0, len(xy), CHUNK):
-            s.path(poly(xy[i : i + CHUNK + 1]), fill="none")
-    s.stroke(poly(xy[k + CORE[0] : k + CORE[1] + 1]), ACCENT, 2, cap="round", join="round")
-    # the ends dissolve by opacity into the thread; butt caps keep chunk joints from doubling up
-    for (a, b), rising in ((FADE_IN, True), (FADE_OUT, False)):
-        for lo in range(a, b, 3):
-            u = smoothstep(a, b, lo + 1.5)
-            op = u if rising else 1 - u
-            chunk = poly(xy[k + lo : k + min(lo + 3, b) + 1])
-            s.stroke(chunk, ACCENT, 1.2 + 0.8 * op, cap="butt", join="round", opacity=op)
+    with s.motif(c, Rect(x0, y0, x1 - x0, y1 - y0)):
+        # short translucent strokes, so overlapping passes build up density in the core
+        with s.group(
+            stroke=UI_HI,
+            stroke_width=0.9,
+            stroke_opacity=0.32,
+            stroke_linecap="round",
+            stroke_linejoin="round",
+        ):
+            for i in range(0, len(xy), CHUNK):
+                s.path(poly(xy[i : i + CHUNK + 1]), fill="none")
+        s.stroke(poly(xy[k + CORE[0] : k + CORE[1] + 1]), ACCENT, 2, cap="round", join="round")
+        # the ends dissolve by opacity into the thread; butt caps keep chunk joints from doubling up
+        for (a, b), rising in ((FADE_IN, True), (FADE_OUT, False)):
+            for lo in range(a, b, 3):
+                u = smoothstep(a, b, lo + 1.5)
+                op = u if rising else 1 - u
+                chunk = poly(xy[k + lo : k + min(lo + 3, b) + 1])
+                s.stroke(chunk, ACCENT, 1.2 + 0.8 * op, cap="butt", join="round", opacity=op)

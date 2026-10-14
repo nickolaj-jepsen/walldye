@@ -167,9 +167,10 @@ def draw(s: Canvas[Moon]) -> None:
     a = math.radians(s.params.phase)
     light = np.array([SUN.x * math.sin(a), SUN.y * math.sin(a), math.cos(a)])
     pts = stipple(s.np_rng(3), light)
-    xy = pts[tour(pts)] * R + c
+    xy = pts[tour(pts)] * R
     # horn tips otherwise end in long straight spikes: drop points with an over-long edge, once
     e = np.hypot(*(np.roll(xy, -1, 0) - xy).T)
     xy = xy[np.maximum(e, np.roll(e, 1)) <= 3 * np.median(e)]
-    s.stroke(P().circle(c, R), UI, 1)
-    s.stroke(P().poly(xy, closed=True), ACCENT, 1.2, join="round")
+    with s.motif(c, R + 2):
+        s.stroke(P().circle((0, 0), R), UI, 1)
+        s.stroke(P().poly(xy, closed=True), ACCENT, 1.2, join="round")

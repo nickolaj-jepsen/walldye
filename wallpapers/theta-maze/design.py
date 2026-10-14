@@ -4,7 +4,7 @@ import math
 from collections import deque
 from itertools import pairwise
 
-from walldye import ACCENT, BG_ALT, UI, UI_HI, Canvas, P, Rng, design, ladder, mix, polar
+from walldye import ACCENT, BG_ALT, UI, UI_HI, Canvas, P, Rng, Vec, design, ladder, mix, polar
 
 type Cell = tuple[int, int]  # (ring, index); ring 0 is innermost, -1 the open center
 type Link = frozenset[Cell]
@@ -151,32 +151,34 @@ def draw(s: Canvas) -> None:
     # to balance the thread trailing out to the left
     c = s.pick(landscape=(17 / 24, 0.5), portrait=(0.53, 0.42))
     links, route = maze(s.rng(SEED))
+    o = Vec(0, 0)  # the maze's center, at c
 
-    with s.buckets(TONES, "stroke", stroke_width=2, stroke_linecap="round") as walls:
-        for i, n in enumerate(COUNTS):
-            r_in, r_out = R0 + i * H, R0 + (i + 1) * H
-            wall = walls[max(0, i - FADE_FROM)]
-            for j in range(n):
-                a0, a1 = j * SPAN[i], (j + 1) * SPAN[i]
-                if i == 0:
-                    opening = (i, j) == route[-1]  # the way into the center
-                else:
-                    opening = link((i, j), (i - 1, j // (n // COUNTS[i - 1]))) in links
-                if not opening:
-                    wall.arc(c, r_in, deg=(a0, a1))
-                if link((i, j), (i, (j - 1) % n)) not in links:
-                    wall.M(polar(c, r_in, deg=a0)).L(polar(c, r_out, deg=a0))
+    with s.motif(c, R + LEAD + 8):  # the thread's end dot reaches R + LEAD + 6
+        with s.buckets(TONES, "stroke", stroke_width=2, stroke_linecap="round") as walls:
+            for i, n in enumerate(COUNTS):
+                r_in, r_out = R0 + i * H, R0 + (i + 1) * H
+                wall = walls[max(0, i - FADE_FROM)]
+                for j in range(n):
+                    a0, a1 = j * SPAN[i], (j + 1) * SPAN[i]
+                    if i == 0:
+                        opening = (i, j) == route[-1]  # the way into the center
+                    else:
+                        opening = link((i, j), (i - 1, j // (n // COUNTS[i - 1]))) in links
+                    if not opening:
+                        wall.arc(o, r_in, deg=(a0, a1))
+                    if link((i, j), (i, (j - 1) % n)) not in links:
+                        wall.M(polar(o, r_in, deg=a0)).L(polar(o, r_out, deg=a0))
 
-    gate = route[0][1] * SPAN[-1]
-    s.stroke(P().arc(c, R, deg=(gate + SPAN[-1], gate + 360)), UI_HI, 2, cap="round")
+        gate = route[0][1] * SPAN[-1]
+        s.stroke(P().arc(o, R, deg=(gate + SPAN[-1], gate + 360)), UI_HI, 2, cap="round")
 
-    pts = thread(route)
-    tail = polar(c, R + LEAD, deg=pts[0][1])
-    d = P().M(tail)
-    for (r0, a0), (r1, a1) in pairwise([(R + LEAD, pts[0][1]), *pts]):
-        if r1 == r0:
-            d.A(r1, r1, 0, abs(a1 - a0) > 180, a1 > a0, polar(c, r1, deg=a1))
-        else:
-            d.L(polar(c, r1, deg=a1))
-    s.stroke(d, ACCENT, 2.75, cap="round", join="round")
-    s.fill(P().circle(c, 9).circle(tail, 6), ACCENT)
+        pts = thread(route)
+        tail = polar(o, R + LEAD, deg=pts[0][1])
+        d = P().M(tail)
+        for (r0, a0), (r1, a1) in pairwise([(R + LEAD, pts[0][1]), *pts]):
+            if r1 == r0:
+                d.A(r1, r1, 0, abs(a1 - a0) > 180, a1 > a0, polar(o, r1, deg=a1))
+            else:
+                d.L(polar(o, r1, deg=a1))
+        s.stroke(d, ACCENT, 2.75, cap="round", join="round")
+        s.fill(P().circle(o, 9).circle(tail, 6), ACCENT)

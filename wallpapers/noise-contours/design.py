@@ -31,16 +31,17 @@ def draw(s: Canvas) -> None:
         return noise.fbm(AT[0] + dx / SPAN, AT[1] + dy / SPAN, 4) - 0.9 * np.maximum(0.0, d - 0.85)
 
     field = sample_field(height, 2 * half, 2 * half)
-    origin = c - (half * CELL, half * CELL)
-    with s.clip() as disc:
-        disc.add(P().circle(c, R))
-    with (
-        s.group(clip_path=disc.ref),
-        s.buckets(TONES, "stroke", stroke_width=1.6, stroke_linejoin="round") as lines,
-    ):
-        for k, level in enumerate(LEVELS):
-            for line in iso_lines(field, level, cell=CELL, origin=origin):
-                if len(line) > 3:
-                    lines[k].poly(line)
-    s.stroke(P().circle(c, R + 18), UI, 2)
-    s.stroke(P().circle(c, R), ACCENT, 3)
+    origin = (-half * CELL, -half * CELL)
+    with s.motif(c, R + 20):
+        with s.clip() as disc:
+            disc.add(P().circle((0, 0), R))
+        with (
+            s.group(clip_path=disc.ref),
+            s.buckets(TONES, "stroke", stroke_width=1.6, stroke_linejoin="round") as lines,
+        ):
+            for k, level in enumerate(LEVELS):
+                for line in iso_lines(field, level, cell=CELL, origin=origin):
+                    if len(line) > 3:
+                        lines[k].poly(line)
+        s.stroke(P().circle((0, 0), R + 18), UI, 2)
+        s.stroke(P().circle((0, 0), R), ACCENT, 3)

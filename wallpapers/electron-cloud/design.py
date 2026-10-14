@@ -18,6 +18,8 @@ from walldye import (
     NpRng,
     P,
     Params,
+    Rect,
+    Vec,
     design,
     knob,
     smoothstep,
@@ -111,6 +113,7 @@ def draw(s: Canvas[Cloud]) -> None:
     orbital = s.params.orbital
     scale, extent = ORBITALS[orbital][2:]
     # right of center on a landscape screen, a little below the middle on a portrait one
+    home = (0.6354, 0.5) if s.landscape else (0.5, 0.55)
     c = s.pick(landscape=(0.6354, 0.5), portrait=(0.5, 0.55))
 
     x, y, z = sample(orbital, s.np_rng(7), 40000, extent).T
@@ -118,22 +121,29 @@ def draw(s: Canvas[Cloud]) -> None:
     dens = column_density(orbital, u, v, extent)
     xy = np.stack([u * scale, -v * scale], 1)  # px from the nucleus, y down
     k = thin(xy, DMIN[0] + (DMIN[1] - DMIN[0]) * np.sqrt(dens))
-    xy, dens = xy[k] + np.asarray(c), dens[k]
+    xy, dens = xy[k], dens[k]
 
-    hx = min(ARMS[0], c.x - 40, s.w - c.x - 40)
-    hy = min(ARMS[1], c.y - 40, s.h - c.y - 40)
-    axis = P().M(c.x - hx, c.y).H(c.x + hx).M(c.x, c.y - hy).V(c.y + hy)
+    # the axes are fit to the screen once, from the nucleus's own place, and keep that length
+    # wherever it moves
+    cx, cy = home[0] * s.w, home[1] * s.h
+    hx = min(ARMS[0], cx - 40, s.w - cx - 40)
+    hy = min(ARMS[1], cy - 40, s.h - cy - 40)
+    axis = P().M(-hx, 0).H(hx).M(0, -hy).V(hy)
     ticks = int(REACH / (TICK * scale))
     for i in range(-ticks, ticks + 1):
         if i:
             t = i * TICK * scale
-            axis.M(c.x + t, c.y - 5).V(c.y + 5).M(c.x - 5, c.y + t).H(c.x + 5)
-    s.stroke(axis, BG_ALT, 1.2)
+            axis.M(t, -5).V(5).M(-5, t).H(5)
+    # half-widths that hold the axes, their ticks and every dot with its round cap
+    ex = max(hx, ticks * TICK * scale + 0.6, float(np.abs(xy[:, 0]).max()) + DOTS[-1] / 2) + 1
+    ey = max(hy, ticks * TICK * scale + 0.6, float(np.abs(xy[:, 1]).max()) + DOTS[-1] / 2) + 1
 
     tone = np.searchsorted(FLOORS, dens, side="right") - 1
-    for i, (paint, width) in enumerate(zip(TONES, DOTS, strict=True)):
-        dots = P()
-        for px, py in xy[tone == i].tolist():
-            dots.M(px, py).H(px)
-        s.stroke(dots, paint, width, cap="round")
-    s.fill(P().circle(c, 3.5), MUTED)
+    with s.motif(c, Rect(-ex, -ey, 2 * ex, 2 * ey)):
+        s.stroke(axis, BG_ALT, 1.2)
+        for i, (paint, width) in enumerate(zip(TONES, DOTS, strict=True)):
+            dots = P()
+            for px, py in xy[tone == i].tolist():
+                dots.M(px, py).H(px)
+            s.stroke(dots, paint, width, cap="round")
+        s.fill(P().circle(Vec(0, 0), 3.5), MUTED)

@@ -27,7 +27,7 @@ from walldye import (
     mix,
     polar,
 )
-from walldye.geom import Affine, ngon, parts
+from walldye.geom import ngon, parts
 
 PLATE, BAL_R = 350, 92  # plate and balance rim radii
 DASHDOT = (22, 6, 3, 6)
@@ -221,7 +221,8 @@ def draw(s: Canvas) -> None:
 
     # landscape: right of center, leaving the left for windows; portrait: a little below middle
     c = s.pick(landscape=(31 / 48, 0.5), portrait=(0.5, 0.58), snap=1)
-    with s.group(transform=Affine.translate(c.x, c.y)):
+    # the center lines' ends are the farthest ink, PLATE + 50 out
+    with s.motif(c, PLATE + 52):
         for layer in sorted(layers, key=lambda k: k.z):
             above = unary_union([g for z, g in covers if z > layer.z])
             d = trace(layer.geom.difference(above))
