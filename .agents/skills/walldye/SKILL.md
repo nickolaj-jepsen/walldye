@@ -146,12 +146,12 @@ subagent with the Agent tool as the critic, and give it no conversation history,
 - the renders: the 16:9 preview under fireproof, `--width 400`, a `--crop` of the busiest
   region, `--theme flexoki-light`, `--theme nord`, `--aspect 9:19.5` when the piece declares
   aspects, and each variant under `--variant <name>`;
-- this brief: "Read .claude/skills/walldye/references/principles.md and
-  .claude/skills/walldye/references/taste.md. Edit no files; you may run
+- this brief: "Read .agents/skills/walldye/references/principles.md and
+  .agents/skills/walldye/references/taste.md. Edit no files; you may run
   `uv run walldye preview` for more views and read design.py and meta.yaml. Score the piece 1
   to 10 by principles.md's scoring, and list concrete fixes (positions, sizes, tones, density),
   most important first. Judge each variant against Versions in docs/architecture.md and the
-  Variant policy in .claude/skills/walldye/SKILL.md: keep or drop, with the reason. Then score
+  Variant policy in .agents/skills/walldye/SKILL.md: keep or drop, with the reason. Then score
   the copy 1 to 10 on its own against Copy in docs/wallpapers.md, asking of each field: is its
   fact checkable, does anything but the alt text describe the picture, and would a person say
   it out loud? Quote any replacement text."

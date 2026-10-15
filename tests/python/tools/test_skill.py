@@ -5,7 +5,7 @@ import yaml
 
 from walldye.tools import paths
 
-SKILL = paths.ROOT / ".claude/skills/walldye/SKILL.md"
+SKILL = paths.ROOT / ".agents/skills/walldye/SKILL.md"
 
 
 def examples() -> list[str]:

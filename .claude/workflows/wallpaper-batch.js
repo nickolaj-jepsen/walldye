@@ -26,8 +26,8 @@ const LENSES = [
   { key: 'wildcard', territory: 'textiles, architecture, maps, music, games, sports markings, sundials, origami creases, stained glass, kintsugi, hanko' },
 ]
 
-const DEFAULT_BRIEF = 'No brief beyond the owner\'s taste in .claude/skills/walldye/references/taste.md.'
-const SKILL = '.claude/skills/walldye'
+const DEFAULT_BRIEF = 'No brief beyond the owner\'s taste in .agents/skills/walldye/references/taste.md.'
+const SKILL = '.agents/skills/walldye'
 
 // ---- helpers --------------------------------------------------------------
 
@@ -401,7 +401,7 @@ const setup = await agent(`Prepare shared context for a batch of new wallpapers.
 
 1. Scratch dir: \`uv run python -c "from walldye.tools.preview import preview_dir; print(preview_dir())"\` prints the preview dir. Create <that dir>/batch; it is WORK. Return its absolute path as work.
 2. Existing names. \`uv run walldye list\` prints one line per piece: slug, title, description, draft, aspects and named variants, tab-separated. Write WORK/existing.txt with one line per piece, "slug: description", and return every slug as existing.
-3. Reference sheets. Pick about 30 pieces that match .claude/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip the fan pieces, whose meta.yaml has \`franchise:\`) and sheet them as the family: \`uv run walldye sheet <slugs> --cols 6 -o WORK/reference.png\`. Then sheet the whole catalog small, for spotting look-alikes: \`uv run walldye sheet --all --cols 12 --thumb 160 -o WORK/catalog.png\`. Read both PNGs to confirm they rendered. Return the path of reference.png as references.
+3. Reference sheets. Pick about 30 pieces that match .agents/skills/walldye/references/taste.md (dither, pixel, glyph, instrument and technical-drawing pieces; skip the fan pieces, whose meta.yaml has \`franchise:\`) and sheet them as the family: \`uv run walldye sheet <slugs> --cols 6 -o WORK/reference.png\`. Then sheet the whole catalog small, for spotting look-alikes: \`uv run walldye sheet --all --cols 12 --thumb 160 -o WORK/catalog.png\`. Read both PNGs to confirm they rendered. Return the path of reference.png as references.
 4. Read wallpapers/taxonomy.yaml and return its technique, subject and lineage values as taxonomy.`, { label: 'setup', phase: 'Setup', schema: SETUP })
 
 if (!setup) throw new Error('wallpaper-batch: the setup agent returned nothing, and the existing-name list is needed to avoid slug collisions')
@@ -847,7 +847,7 @@ if (review?.edit?.length) next.push(`The owner sent these back for changes; rewo
 if (review?.undecided.length) next.push(`Undecided pieces stay draft: true; review them later with \`uv run walldye review ${review.undecided.join(' ')}\`.`)
 if (review?.error) next.push(`walldye review ended with an error, so nothing was published: ${review.error}`)
 if (review?.refused?.length) next.push(`Approval refused for ${review.refused.map(r => r.slug).join(', ')} (see review.refused).`)
-if (lessons) next.push('Show the owner `proposed_lessons`, and write the ones they approve into .claude/skills/walldye/references/.')
+if (lessons) next.push('Show the owner `proposed_lessons`, and write the ones they approve into .agents/skills/walldye/references/.')
 next.push(`Leave the new folders uncommitted. Offer the owner a commit that stages only wallpapers/{${survivors.join(',')}}/ and any lines review added to wallpapers/taxonomy.yaml; drafts land on main as draft: true.`)
 
 return {

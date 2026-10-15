@@ -40,7 +40,7 @@ The design lint (Lint and typing) enforces these rules:
 - Everything render-dependent arrives through `s`: size, regime, params, random streams and data files. A render depends only on the design file, its data, the params, the aspect and the regime. The theme is applied afterwards, when the document is serialized.
 - `print()` goes to stderr, and the design's folder is not on `sys.path`.
 
-For complete designs, see the Examples table in `.claude/skills/walldye/SKILL.md`; `wallpapers/radar-sweep/design.py` has params and a named variant.
+For complete designs, see the Examples table in `.agents/skills/walldye/SKILL.md`; `wallpapers/radar-sweep/design.py` has params and a named variant.
 
 ## 4. Colors
 
