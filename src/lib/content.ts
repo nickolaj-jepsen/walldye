@@ -76,6 +76,7 @@ export function otherValues(p: Piece): OtherValue[] {
   const out: OtherValue[] = [];
   if (p.sources.length) out.push('references');
   if (fitsAnyScreen(p)) out.push('any-screen');
+  if (p.motif) out.push('motif');
   if (p.hasScript) out.push('source-code');
   out.push(p.model ? 'claude' : 'human-made');
   return out;

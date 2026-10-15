@@ -21,6 +21,7 @@ export const FACET_LEGENDS: Record<Facet, string> = {
 export const OTHER_LABELS = {
   references: 'has references',
   'any-screen': 'fits any screen',
+  motif: 'can be moved and resized',
   'source-code': 'has source code',
   claude: 'made with Claude',
   'human-made': 'human-made',
