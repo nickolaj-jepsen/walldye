@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.open-next
+.wrangler
+next-env.d.ts
+*.tsbuildinfo
+src/generated
+public/t
+public/og
+public/favicon.svg
+public/sitemap.xml
+public/robots.txt

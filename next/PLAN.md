@@ -1,0 +1,31 @@
+# walldye on Next.js: PoC plan
+
+A research port of the walldye.com site (today `src/`, Astro) to Next.js 16.4 with React Server Components, `use cache` and Suspense. Python stays the data producer: `uv run walldye build --all` writes `wallpapers/*/build/`, and this app only consumes it. The question the PoC answers: does a CSS-variable recolor model plus React make the browser side much smaller and clearer, at the same speed, still free on Cloudflare?
+
+## Decisions
+
+1. **Scope.** Only the site and its browser recolor layer are replaced. `walldye/`, the designs and `walldye build` are untouched. Pure code in `src/lib/` (theme derivation, presets, tokenizer, motif math, shape/crop math) is imported or copied into `next/src/lib/`, not rewritten.
+2. **Recolor by CSS variables.** A prebuild codegen rewrites every template so each color slot reads seed variables:
+   - Each distinct coefficient row `[a, b, c, dr, dg, db]` of a template becomes a custom property on the template root: `--cN: rgb(calc(a*var(--bg-r) + b*var(--fg-r) + c*var(--ac-r) + dr) calc(...) calc(...))`. Each slot occurrence becomes `style="fill:var(--cN)"` (or `stroke`, `stop-color`, etc., whatever property the tokenizer found it in). Constant (mask) slots stay literal.
+   - Seeds are numeric channels `--bg-r --bg-g --bg-b --fg-* --ac-*` (0..255) on `:root`, set by the theme boot script and the picker.
+   - The template's root content gets `id="base"` (everything but the motif) and the motif group gets `id="motif"`, so a plate can reference either part.
+   - A plate is inline `<svg viewBox=…><use href="/t/<hash>.svg#…"/></svg>`. External `<use>` inherits custom properties from the host, so a theme change is pure CSS: no fetch, no recolor, no blob URL, no queue. Ids don't collide because each external document is its own scope.
+   - Crop is the outer `viewBox`. The 8-bit rounding of Python's recolor is not reproduced on screen (≤1 unit off). Export bakes exact hex values from the same rows with the existing `recolor()` math.
+3. **Theme state is client only.** A tiny inline `<head>` script reads `?t=`, then sessionStorage, then localStorage (same rules as `src/client/theme/boot.ts`) and sets the seed variables and `data-regime="dark|light"` on `<html>` before paint. The server never sees the theme, so every page is static. A piece with a separate light template renders both `<use>`s, and CSS shows the one matching `data-regime`. Integration checks the hidden one isn't fetched eagerly; if it is, the hidden `<use>` gets its `href` only once its regime is active.
+4. **URL state is client islands.** URLs stay as they are today (`?t ?v ?crop ?at ?size`, filters, sort, shape). Pages prerender the default state, and client components read and write the query string with `nuqs`, inside `<Suspense>`. The server passes every version's and shape's template hashes, facets and motif info as props, so switching never touches the server.
+5. **Two deploy targets, one codebase.** `NEXT_OUTPUT=export` gives a static export served as Workers static assets (like today). The default build runs under `@opennextjs/cloudflare` 1.20.x. Use only features both support: no cookies, headers, middleware, or dynamic route handlers; every route is prerendered (`generateStaticParams`, `dynamicParams = false`).
+6. **Layout.** All code lives in `next/` with its own `package.json` (pnpm). `pnpm prebuild` (`scripts/codegen.ts`) reads `../wallpapers/*/{meta.yaml,build/}`, `taxonomy.yaml`, `featured.yaml` and `../stats/` when present, and writes:
+   - `public/t/<hash>.svg`: the CSS-var templates, named by the template's sha256 prefix, as today.
+   - `src/generated/catalog.json` (+ types in `src/lib/catalog.ts`): pieces, versions, shapes → hashes, regimes, focus, motif info, coefficient rows for export, facets, featured order and view weights.
+   No `fs` reads happen at request time, because Workers has none. Data access in RSC goes through `'use cache'` functions over the generated module. Drafts are shown in dev and when `WALLDYE_DRAFTS=1`.
+7. **Features: everything the Astro site does.** Index grid with filters, sort (featured, views, name…), shape; detail page with versions, shapes, crop slider, motif move, resize and pinch, see-also; theme picker with presets, families, custom editor, import and copy link; export SVG/PNG/WebP/JPEG (bake, then resvg-wasm in a Web Worker); view transitions from grid to page (React `<ViewTransition>`, same-document navigation); social cards; sitemap, robots, themed favicon, design.py code view (shiki in an RSC); about; 404.
+8. **Motif drag.** A plate with a motif stacks two layers: the base `<use href="#base">` and the motif `<use href="#motif">` inside a `<g>` with the committed `translate(x y) scale(k)`. While dragging, a CSS transform on the motif layer's wrapper moves it on the compositor. On release, the new placement is committed to the `<g>` transform and to the URL. Overscan motifs need no recut, because the motif layer is vector.
+9. **Social cards** use the `opengraph-image.tsx` convention with `next/og`, prerendered per slug. Their cost to the Worker bundle is measured; if they break the 3 MiB free limit, the fallback is prebuilding with sharp.
+10. **Styling.** `src/styles/site.css` is ported as the global sheet (tokens, 8px rhythm, contrast-guarded roles), and each component gets a co-located `.module.css` lifted from the matching `.astro` `<style>`. `docs/site.md` and the copy rules still apply.
+11. **React and Next practice.** Server components by default, with `'use client'` only on interactive leaves. `cacheComponents: true` with `'use cache'` on data access, React Compiler on, typed routes on, TypeScript strict, Biome.
+
+## Success criteria (RESULTS.md)
+
+- Client code shrinks: lines and modules of `src/client` + `src/lib` today against the PoC's client components and hooks, and what disappeared and why.
+- Perf parity: Lighthouse on index and a detail page for both builds, JS shipped (gz), time to first colored plate, drag FPS on the largest motif template.
+- Cost on Cloudflare: OpenNext Worker bundle (gz) against the 3 MiB free limit and the share og takes, local CPU ms per page request, and asset count against 20k files, for both targets.

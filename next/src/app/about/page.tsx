@@ -1,0 +1,36 @@
+import type { Metadata } from 'next';
+
+const CC0 = 'https://creativecommons.org/publicdomain/zero/1.0/';
+const REPO = 'https://github.com/nickolaj-jepsen/walldye';
+
+export const metadata: Metadata = {
+  title: 'About',
+  description: 'How the Walldye wallpapers are made and recolored, and how they are licensed.',
+  alternates: { canonical: '/about' },
+  openGraph: { siteName: 'Walldye', type: 'website', url: '/about' },
+};
+
+export default function AboutPage() {
+  return (
+    <main id="main" className="about">
+      <h1>About</h1>
+      <div className="prose">
+        <p>
+          Walldye is a collection of stylized <abbr>SVG</abbr> wallpapers, each based on three
+          colors (background, foreground and accent), which makes it possible to customize them to
+          your existing desktop theme.
+        </p>
+        <p>
+          Most of the wallpapers are generated from code, often written by AI models like Claude,
+          but every one of them is manually curated and validated. Sources and attributions are
+          available on every page.
+        </p>
+        <p>
+          The code is open source and licensed under <abbr>GPLv3</abbr>, available on{' '}
+          <a href={REPO}>GitHub</a>. Wherever possible, the resulting wallpaper is licensed{' '}
+          <a href={CC0}>CC0</a>.
+        </p>
+      </div>
+    </main>
+  );
+}

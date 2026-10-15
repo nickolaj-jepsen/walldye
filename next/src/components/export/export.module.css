@@ -1,0 +1,8 @@
+/* A size or format the browser cannot make fades to the guarded --text-dim. */
+.seg input:disabled + span {
+  color: var(--text-dim);
+  cursor: default;
+}
+.seg label:has(input:disabled) {
+  cursor: default;
+}

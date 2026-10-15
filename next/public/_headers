@@ -1,0 +1,8 @@
+# Response headers for the static assets (both targets serve public/ as Workers static assets).
+# Rules that match one request add up, so no two Cache-Control rules below may match the same path.
+
+# Content-addressed: var templates (/t/<hash>.svg) and Next's hashed build output.
+/t/*
+  Cache-Control: public, max-age=31536000, immutable
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -1,0 +1,1009 @@
+/*
+ * Before first paint the theme boot (src/client/theme/boot.ts) writes every custom property in the next
+ * block inline on <html>, which outranks these rules, so they apply only without JS.
+ * The plates read the seed channels (--bg-r .. --ac-b) and the regime switches (--dk, --lt).
+ */
+
+/* Tokens. Raw seeds feed the wallpapers; the named roles are contrast-guarded outputs. Text is only ever fg or fg_alt. */
+:root {
+  color-scheme: dark;
+  --seed-bg: #1C1B1A;
+  --seed-fg: #DAD8CE;
+  --seed-accent: #CF6A4C;
+  --bg-r: 28; --bg-g: 27; --bg-b: 26;
+  --fg-r: 218; --fg-g: 216; --fg-b: 206;
+  --ac-r: 207; --ac-g: 106; --ac-b: 76;
+  --dk: 1; --lt: 0;
+
+  --bg: #1C1B1A;
+  --bg-alt: #282726;
+  --ui: #343331;
+  --ui-alt: #403E3C;
+  --ui-hi: #575653;
+  --muted: #878580;
+  --fg-alt: #B7B5AC;
+  --fg: #DAD8CE;
+  --accent: #CF6A4C;
+  --accent-hi: #E08A6E;
+
+  --text: var(--fg);
+  --text-2: var(--fg-alt);
+  --text-dim: #908E88;        /* a disabled control's label: text-2 faded a quarter towards bg, guarded to 4.5:1 */
+  --link: var(--accent);      /* 4.77:1 on bg */
+  --control: #676764;         /* ui_hi nudged to 3:1 on bg */
+  --link-line: var(--control);
+  --focus: var(--accent);
+  --leader: var(--muted);     /* dot leaders: the one non-rule use of muted */
+  --rule: var(--ui-alt);
+  --rule-strong: var(--ui-hi);
+  --plate-edge: var(--ui);
+
+  --shiki-background: var(--bg-alt);
+  --shiki-foreground: var(--fg);
+  --shiki-token-keyword: #D27457;       /* accent nudged to 4.5:1 on bg_alt */
+  --shiki-token-string: var(--accent-hi);
+  --shiki-token-string-expression: var(--accent-hi);
+  --shiki-token-constant: var(--fg);
+  --shiki-token-comment: var(--fg-alt);
+  --shiki-token-parameter: var(--fg);
+  --shiki-token-punctuation: var(--fg-alt);
+  --shiki-token-function: var(--fg);
+  --shiki-token-link: var(--fg);
+  --listing-gutter: var(--fg-alt);
+}
+
+/* ui_alt on a light ground is too faint to read as a rule, so rules step up one ui gray. */
+[data-regime="light"] {
+  color-scheme: light;
+  --rule: var(--ui);
+  --rule-strong: var(--ui-alt);
+}
+
+/* No JS and a light system preference: pinned flexoki-light, as the boot would pick. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-regime]) {
+    color-scheme: light;
+    --seed-bg: #FFFCF0;
+    --seed-fg: #100F0F;
+    --seed-accent: #BC5215;
+    --bg-r: 255; --bg-g: 252; --bg-b: 240;
+    --fg-r: 16; --fg-g: 15; --fg-b: 15;
+    --ac-r: 188; --ac-g: 82; --ac-b: 21;
+    --dk: 0; --lt: 1;
+
+    --bg: #FFFCF0;
+    --bg-alt: #E7E4D9;
+    --ui: #CFCCC3;
+    --ui-alt: #B7B4AC;
+    --ui-hi: #888680;
+    --muted: #787771;
+    --fg-alt: #3C3B38;
+    --fg: #100F0F;
+    --accent: #BC5215;
+    --accent-hi: #8C3F13;
+
+    --text-dim: #6D6B66;
+    --control: #888680;         /* ui_hi, 3.54:1 on bg */
+    --rule: var(--ui);
+    --rule-strong: var(--ui-alt);
+    --plate-edge: var(--ui);
+
+    --shiki-token-keyword: #A94913;       /* accent nudged to 4.5:1 on bg_alt */
+  }
+}
+
+/* Rhythm: every line box and vertical space is a multiple of --u (8px); UI and prose lines are 4u, captions and listings 3u. */
+:root {
+  --u: 0.5rem;
+  --l: calc(4 * var(--u));
+  --gutter: clamp(1rem, 4vw, 3.5rem);
+  --index-col: 18rem;
+  --col-gap: 4rem;
+  --masthead-h: calc(10 * var(--u));
+  /* Width over height of a plate box, and the narrowest a grid column may get; a [data-shape] grid sets both (--shape-ratio comes from src/client/screen.ts markShape). */
+  --ratio: calc(16 / 9);
+  --track: 18rem;
+
+  --fs-2: 1.1875rem;       /* 19: secondary lines, small-caps heads */
+  --fs-ui: 1.25rem;        /* 20: UI text, the body default */
+  --fs-prose: 1.375rem;    /* 22 */
+  --fs-l: 1.75rem;         /* 28 */
+  --fs-xl: 2.5rem;         /* 40 */
+  --fs-code: 1rem;         /* 16: listings, x-height of the 20px UI text */
+  /* Walldye Mono's x-height is 0.514em and Garamond's 0.405em: inline mono at 0.79em shares the serif's x-height. */
+  --mono-em: 0.79em;
+  /* Grayscale smoothing on dark grounds thins Garamond's hairlines; 450 puts the stroke back. */
+  --wt: 400;
+  /* --serif and --mono are set by next/font on <html> (src/app/fonts.ts). */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: var(--fs-ui);
+  font-weight: var(--wt);
+  line-height: var(--l);
+  font-kerning: normal;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  font-variant-ligatures: common-ligatures;
+  text-rendering: optimizeLegibility;
+}
+/* Grayscale smoothing keeps light-on-dark strokes from blooming; on light grounds it starves Garamond's hairlines, so it and the heavier weight are dark-only. */
+[data-regime="dark"] body,
+:root:not([data-regime]) body {
+  --wt: 450;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-regime]) body {
+    --wt: 400;
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+  }
+}
+
+[hidden] { display: none !important; }
+h1, h2, h3, p, ol, ul, dl, dd, figure, pre, fieldset { margin: 0; }
+h1, h2, h3 { font-size: inherit; font-weight: inherit; }
+ol, ul { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+button, input, select { font: inherit; color: inherit; }
+code, kbd, samp, pre { font-family: var(--mono); font-size: inherit; }
+/* The mono subset keeps liga, which would join data like "->" or "=="; body turns common ligatures on for the serif. */
+code, kbd, samp, pre, .mono, .count, .presets .name, .hexfield input[data-seed] { font-variant-ligatures: none; }
+
+a { color: inherit; text-decoration: none; }
+.prose a, .facts dd a, .credit a, .license a, .textbtn, .download .k {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--link-line);
+}
+.prose a:hover, .facts dd a:hover, .credit a:hover, .license a:hover, .textbtn:hover, .download:hover .k {
+  color: var(--text);
+  text-decoration-color: currentColor;
+}
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* The font's own smcp and c2sc only: WebKit on Linux otherwise draws scaled capitals, about a quarter smaller. */
+.sc, abbr, .brand, .about h1 { font-synthesis-small-caps: none; }
+.sc {
+  font-size: var(--fs-2);
+  font-variant-caps: all-small-caps;
+  font-variant-numeric: lining-nums;
+  letter-spacing: 0.08em;
+}
+abbr {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: var(--mono-em);
+  font-variant-numeric: normal;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+/* A smaller face with the full line-height sits its baseline elsewhere in the box and grows the line; keep its box inside the serif strut. */
+.mono, .count { line-height: 1; }
+/* Old-style 1 and 0 read as ı and o inside names and identifiers. */
+.lnum, h1, .label-s .t, .footnotes { font-variant-numeric: lining-nums proportional-nums; }
+.nowrap { white-space: nowrap; }
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: var(--u);
+  padding: 0 var(--u);
+  background: var(--bg);
+  transform: translateY(-200%);
+}
+.skip:focus { transform: none; }
+
+/* Hairlines take no layout space so they never push text off the grid. */
+.hair-t { background: linear-gradient(var(--rule), var(--rule)) top / 100% 1px no-repeat; }
+
+/* ---- page frame ---- */
+
+.page {
+  max-width: 110rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter) calc(10 * var(--u));
+}
+
+.masthead {
+  display: grid;
+  grid-template-columns: var(--index-col) 1fr auto;
+  /* The first row stays one line whatever the baselines do; a second row holds the shared-theme line when it wraps. */
+  grid-template-rows: var(--l);
+  grid-auto-rows: auto;
+  column-gap: var(--col-gap);
+  align-items: baseline;
+  padding-block: calc(3 * var(--u));
+  margin-bottom: calc(4 * var(--u));
+  background: linear-gradient(var(--rule-strong), var(--rule-strong)) bottom / 100% 1px no-repeat;
+}
+.brand {
+  justify-self: start;
+  font-size: var(--fs-l);
+  line-height: var(--l);
+  font-variant-caps: small-caps;
+  font-variant-numeric: lining-nums;
+  letter-spacing: 0.06em;
+  font-weight: calc(var(--wt) + 100);
+}
+.nav { display: flex; gap: calc(4 * var(--u)); }
+.nav a { color: var(--text-2); }
+.nav a:hover { color: var(--text); }
+/* One convention for "current" everywhere: text color, 1px underline in currentColor. */
+.nav a[aria-current="page"],
+.seg input:checked + span,
+.presets [aria-pressed="true"] .name,
+.seeds:hover .name,
+.seeds[aria-expanded="true"] .name {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
+
+.tools { display: flex; align-items: baseline; gap: calc(4 * var(--u)); }
+.shared { color: var(--text); }
+.shared .lead { margin-right: var(--u); }
+.seeds {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--l);
+  gap: calc(1.5 * var(--u));
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--text-2);
+  line-height: var(--l);
+}
+.seeds:hover, .seeds[aria-expanded="true"] { color: var(--text); }
+.chips { display: inline-flex; gap: 3px; }
+.chip {
+  display: block;
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  background: var(--c);
+  box-shadow: 0 0 0 1px var(--control);
+}
+
+/* ---- index ---- */
+
+.index {
+  display: grid;
+  grid-template-columns: var(--index-col) minmax(0, 1fr);
+  column-gap: var(--col-gap);
+  align-items: start;
+}
+
+.filter > summary { display: none; }
+.filter .show { display: none; }
+.facets fieldset, .facets .search { border: 0; padding: 0; min-width: 0; margin: 0 0 calc(4 * var(--u)); }
+.facets legend, .facets .label {
+  float: left;
+  width: 100%;
+  padding: 0;
+  color: var(--text-2);
+}
+.facets legend + * { clear: left; }
+.facets .label { display: block; }
+
+.search input {
+  display: block;
+  width: 100%;
+  height: var(--l);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(var(--control), var(--control)) bottom / 100% 1px no-repeat;
+  line-height: var(--l);
+  outline-offset: 3px;
+}
+.search input::placeholder { color: var(--text-2); opacity: 1; }
+.search input::-webkit-search-cancel-button { display: none; }
+
+.seg { display: flex; flex-wrap: wrap; column-gap: calc(2 * var(--u)); }
+.seg label { cursor: pointer; color: var(--text-2); position: relative; }
+.seg label:hover { color: var(--text); }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* 4u rows: each stacked label is a 32px target, over the 24px of WCAG 2.5.8. */
+.entry {
+  display: flex;
+  align-items: baseline;
+  gap: var(--u);
+  cursor: pointer;
+  line-height: var(--l);
+}
+.entry input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: 0 calc(0.5 * var(--u)) 0 0;
+  border: 1px solid var(--control);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.entry input:checked { background: var(--text); border-color: var(--text); }
+.entry .term { color: var(--text-2); white-space: nowrap; }
+.entry:hover .term, .entry input:checked ~ .term { color: var(--text); }
+/* An entry that cannot narrow the grid fades; its term takes --text-dim, a color guarded to 4.5:1, not opacity, which would drop it under that in some themes. */
+.entry input:disabled, .entry input:disabled ~ .leader { opacity: 0.75; }
+.entry input:disabled ~ .term { color: var(--text-dim); }
+.entry input:disabled, .entry:has(input:disabled) { cursor: default; }
+.entry input:disabled ~ .count { visibility: hidden; }
+.leader {
+  flex: 1 1 auto;
+  min-width: 1.5em;
+  height: 0.15em;
+  color: var(--leader);
+  background: radial-gradient(circle, currentColor 0.055em, transparent 0.07em) right bottom / 0.45em 0.15em repeat-x;
+}
+.count {
+  font-family: var(--mono);
+  font-size: var(--mono-em);
+  color: var(--text-2);
+  min-width: 2ch;
+  text-align: right;
+}
+.entry input:checked ~ .count { color: var(--text); }
+
+/* The themes as swatch buttons over the grid, so the first screen shows that the colors change. */
+.themes { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--u); margin-bottom: var(--u); }
+.themes h2 { color: var(--text-2); margin-right: var(--u); }
+.themes .textbtn { margin-left: var(--u); }
+.themes button:not(.textbtn), .presets .swatch {
+  display: flex;
+  align-items: center;
+  height: var(--l);
+  padding: 0 calc(0.5 * var(--u));
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.themes button:not(.textbtn):hover .chip, .presets .swatch:hover .chip { box-shadow: 0 0 0 1px var(--text); }
+/* "Current" as everywhere: a 1px underline in the text color, here under the swatches. */
+.themes [aria-pressed="true"], .presets .swatch[aria-pressed="true"] { background: linear-gradient(var(--text), var(--text)) left 50% bottom 3px / calc(100% - var(--u)) 1px no-repeat; }
+/* A family's button shows the theme it would pick under the system scheme. */
+.themes .for-light { display: none; }
+@media (prefers-color-scheme: light) {
+  .themes .for-dark { display: none; }
+  .themes .for-light { display: inline-flex; }
+}
+
+/* Plain text, not small caps: EB Garamond's small-cap 1 and 0 read as I and O. */
+.results-line {
+  display: flex;
+  align-items: baseline;
+  gap: calc(2 * var(--u));
+  color: var(--text-2);
+  margin-bottom: var(--u);
+}
+.empty { color: var(--text-2); }
+/* "clear" while a box is checked or the search holds text; the note while no plate shows. */
+.index:not(:has(#facets input[type=checkbox]:checked, #q:not(:placeholder-shown))) .results-line .clear,
+.plates:has(.grid > li:not([hidden])) .empty { display: none; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--track)), 1fr));
+  column-gap: var(--l);
+  row-gap: calc(6 * var(--u));
+}
+/* Size containment must not give the track an intrinsic width, or it cannot shrink below it on narrow screens. */
+.grid > li { content-visibility: auto; contain-intrinsic-size: none; contain-intrinsic-block-size: auto 22rem; }
+
+.plate {
+  position: relative;
+  container-type: inline-size;
+  background: var(--seed-bg);
+}
+/* The plate's height: the picture's, rounded up to the 8px unit so captions stay on the grid. The 0-7px strip under the picture is plate ground. */
+.plate::before { content: ""; display: block; height: calc(100cqw / var(--ratio)); }
+@supports (height: round(up, 1px, 1px)) {
+  .plate::before { height: round(up, calc(100cqw / var(--ratio)), var(--u)); }
+}
+/* Drawn inside the plate: grid rows use content-visibility, whose paint containment clips outside strokes. It frames the picture, not the strip. */
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100cqw / var(--ratio));
+  box-shadow: inset 0 0 0 1px var(--plate-edge);
+  pointer-events: none;
+}
+/* The picture lies over the spacer at its exact shape; its viewBox is the crop it shows. */
+.plate > .pic { position: absolute; top: 0; left: 0; display: block; width: 100%; aspect-ratio: var(--ratio); height: auto; }
+
+/* A grid in another shape: pieces without a template of that shape show the 16:9 one cropped around its focus, as the export would crop it. */
+[data-shape] { --ratio: var(--shape-ratio, calc(16 / 9)); }
+[data-shape="21:9"] { --track: 26rem; }
+[data-shape="32:9"] { --track: 40rem; }
+[data-shape][data-tall] { --track: 12rem; }
+
+.label-s { margin-top: calc(2 * var(--u)); font-size: var(--fs-2); line-height: calc(3 * var(--u)); }
+.label-s .t { display: block; font-size: var(--fs-ui); font-weight: calc(var(--wt) + 100); color: var(--text); }
+.label-s .v, .label-s .a { display: block; color: var(--text-2); }
+.grid a:hover .t, .grid a:focus-visible .t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.grid a:focus-visible { outline: none; }
+.grid a:focus-visible .plate::after { box-shadow: inset 0 0 0 2px var(--focus); }
+
+/* ---- detail ---- */
+
+.spread .plate {
+  /* Plate and the label's first three lines share the first screen: 32u of masthead, gaps, title, attribution and Download, plus 1u for the plate's round-up. */
+  width: min(100%, max(20rem, calc((100svh - 33 * var(--u)) * 16 / 9)));
+  overflow: hidden;
+}
+
+.crop {
+  position: absolute;
+  box-shadow: inset 0 0 0 1px var(--text), 0 0 0 100vmax color-mix(in srgb, var(--bg) 55%, transparent);
+  cursor: grab;
+  touch-action: none;
+}
+.crop:active { cursor: grabbing; }
+.crop .handle {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 5px;
+  height: calc(2 * var(--u) + 1px);
+  transform: translateX(-50%);
+  background: var(--text);
+}
+.crop[data-axis="y"] .handle {
+  left: auto;
+  right: 0;
+  bottom: 50%;
+  width: calc(2 * var(--u) + 1px);
+  height: 5px;
+  transform: translateY(50%);
+}
+
+/* A piece's motif over the plate's picture: the template's own box inside it, holding the handle a
+   visitor drags. */
+/* One finger scrolls the page over the plate; two pinch the motif. */
+.plate:has(> .motif-frame) { touch-action: pan-y; }
+.motif-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: var(--ratio);
+  container-type: size;
+  pointer-events: none;
+}
+.motif-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, 100cqh * var(--canvas-ratio, 16 / 9));
+  height: min(100cqh, 100cqw / var(--canvas-ratio, 16 / 9));
+  translate: -50% -50%;
+}
+.motif-handle {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+.motif-handle:hover, .motif-handle:active, [data-touched] .motif-handle { box-shadow: inset 0 0 0 1px var(--text); }
+.motif-handle:active { cursor: grabbing; }
+/* A corner's hit area is 3u, around a 1u square drawn on the frame's corner. */
+.motif-corner {
+  position: absolute;
+  width: calc(3 * var(--u));
+  height: calc(3 * var(--u));
+  translate: -50% -50%;
+  cursor: nwse-resize;
+}
+.motif-corner[data-corner="1,0"], .motif-corner[data-corner="0,1"] { cursor: nesw-resize; }
+.motif-corner[data-corner^="0"] { left: 0; }
+.motif-corner[data-corner^="1"] { left: 100%; }
+.motif-corner[data-corner$="0"] { top: 0; }
+.motif-corner[data-corner$="1"] { top: 100%; }
+.motif-corner::after {
+  content: "";
+  position: absolute;
+  inset: var(--u);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--text);
+  visibility: hidden;
+}
+.motif-handle:hover .motif-corner::after, .motif-handle:active .motif-corner::after, [data-touched] .motif-corner::after { visibility: visible; }
+
+.below {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30rem;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "label controls" "more controls";
+  column-gap: calc(1.5 * var(--col-gap));
+  align-items: start;
+  margin-top: calc(4 * var(--u));
+}
+.below > .label { grid-area: label; }
+.below > .controls { grid-area: controls; }
+/* Controls sit between label and notes in source order so phones reach export first. */
+.below > .label-more { grid-area: more; max-width: 42rem; }
+
+/* Label rows are whole 4u lines after the 6u title, so they share baselines with the controls column (offset 2u). */
+.label { max-width: 42rem; }
+.label h1 {
+  font-size: var(--fs-xl);
+  line-height: calc(6 * var(--u));
+  letter-spacing: -0.005em;
+}
+.label .attr { color: var(--text-2); }
+.label .desc { margin-top: var(--l); font-size: var(--fs-prose); max-width: 28em; text-wrap: pretty; }
+.label .credit { margin-top: var(--l); font-size: var(--fs-2); color: var(--text-2); }
+.sep { color: var(--text-2); padding-inline: 0.25em; }
+sup {
+  font-size: 0.62em;
+  font-weight: 600;
+  line-height: 0;
+  vertical-align: 0.55em;
+  font-variant-numeric: lining-nums;
+  margin-left: 0.08em;
+}
+sup a { color: var(--link); padding: 0.2em 0.25em; margin: -0.2em -0.25em; }
+
+.facts {
+  margin-top: calc(3 * var(--u));
+  padding-top: var(--u);
+}
+.facts { display: grid; grid-template-columns: 8rem 1fr; font-size: var(--fs-2); }
+.facts dt { color: var(--text-2); }
+.facts dd { color: var(--text); }
+
+.sect { margin-top: calc(6 * var(--u)); }
+.sect > h2 { color: var(--text-2); padding-top: var(--u); margin-bottom: var(--u); }
+.prose {
+  max-width: 28em;
+  font-size: var(--fs-prose);
+  text-wrap: pretty;
+  hyphens: auto;
+  hyphenate-limit-chars: 7 3 3;
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 3;
+}
+.prose p + p { text-indent: 1.5em; }
+
+.footnotes { counter-reset: fn; font-size: var(--fs-2); line-height: calc(3 * var(--u)); }
+.footnotes li { counter-increment: fn; display: grid; grid-template-columns: 2rem 1fr; }
+.footnotes li + li { margin-top: var(--u); }
+.footnotes li::before { content: counter(fn) "."; color: var(--text-2); }
+.footnotes .back { color: var(--text-2); padding-left: 0.25em; }
+.footnotes .back:hover { color: var(--link); }
+/* A bar in the margin marks the target; a tinted surface would lower the contrast of the text on it. */
+.footnotes li:target {
+  margin-left: calc(-1.5 * var(--u));
+  padding-left: calc(1.5 * var(--u));
+  background: linear-gradient(var(--link), var(--link)) left / 2px 100% no-repeat;
+}
+.footnotes li:target::before { color: var(--link); }
+
+/* controls */
+.controls { padding-top: calc(2 * var(--u)); }
+.controls h2 { color: var(--text-2); }
+.controls > section + section { margin-top: calc(3 * var(--u)); }
+.controls > section + section > h2 {
+  padding-top: var(--u);
+  background: linear-gradient(var(--rule), var(--rule)) top / 100% 1px no-repeat;
+}
+.row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); align-items: baseline; }
+.row > .k { color: var(--text-2); }
+.row.center { align-items: center; }
+.row .sub { grid-column: 2; }
+.seedlist li { display: flex; align-items: baseline; gap: calc(1.5 * var(--u)); }
+.seedlist .chip { align-self: center; }
+.seedlist .mono { color: var(--text); }
+.seedlist .role { color: var(--text-2); }
+.textbtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--text-2);
+  line-height: var(--l);
+}
+.actions { display: flex; flex-wrap: wrap; column-gap: calc(3 * var(--u)); }
+
+.hint { color: var(--text-2); }
+.range {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: var(--l);
+  margin: 0;
+  background: linear-gradient(var(--control), var(--control)) center / 100% 1px no-repeat;
+  cursor: ew-resize;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 5px;
+  height: calc(2 * var(--u) + 1px);
+  border: 0;
+  border-radius: 0;
+  background: var(--text);
+}
+.range::-moz-range-thumb {
+  width: 5px;
+  height: calc(2 * var(--u) + 1px);
+  border: 0;
+  border-radius: 0;
+  background: var(--text);
+}
+.range:focus-visible { outline-offset: 0; }
+.download {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: inherit;
+  line-height: var(--l);
+  text-align: left;
+}
+.download .k { color: var(--text); }
+.download .file { color: var(--text-2); }
+.download .file .mono { white-space: nowrap; }
+/* The export panel's Download, repeated under the attribution so it shares the first screen with the plate. */
+.download.quick { display: block; }
+/* The crop notes and range only while the checked shape is cropped from 16:9. */
+#export:has(input[name=asp][data-native]:checked) :is(#shape-hint, #crop-row) { display: none; }
+
+/* see also */
+.related { margin-top: calc(10 * var(--u)); }
+.related > h2 { color: var(--text-2); padding-top: var(--u); margin-bottom: var(--u); }
+
+/* appendix: a disclosure, closed until asked for */
+.appendix { margin-top: calc(10 * var(--u)); }
+.appendix > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--fs-l);
+  line-height: calc(5 * var(--u));
+  padding-top: calc(2 * var(--u));
+  background: linear-gradient(var(--rule-strong), var(--rule-strong)) top / 100% 1px no-repeat;
+}
+.appendix > summary::-webkit-details-marker { display: none; }
+.appendix > summary::after { content: "+" / ""; font-family: var(--mono); color: var(--text-2); }
+.appendix[open] > summary { margin-bottom: calc(2 * var(--u)); }
+.appendix[open] > summary::after { content: "\2212" / ""; }
+.appendix > summary:hover h2 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.listing-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--l);
+  font-size: var(--fs-2);
+  color: var(--text-2);
+}
+.listing-head .textbtn { margin-left: auto; }
+/* A long slug breaks the path after a slash, and inside the slug if it must, at 320px. */
+.listing-head > span { min-width: 0; }
+.listing-head .path { white-space: normal; overflow-wrap: anywhere; }
+.listing pre {
+  overflow-x: auto;
+  padding: calc(3 * var(--u)) var(--l);
+  background: var(--shiki-background);
+  color: var(--shiki-foreground);
+  font-size: var(--fs-code);
+  line-height: calc(3 * var(--u));
+  tab-size: 4;
+}
+.listing pre:focus-visible, .run pre:focus-visible { outline-offset: 0; }
+.listing code { counter-reset: ln; display: block; min-width: max-content; }
+.listing .line::before {
+  counter-increment: ln;
+  content: counter(ln);
+  display: inline-block;
+  width: 2ch;
+  margin-right: 3ch;
+  text-align: right;
+  color: var(--listing-gutter);
+}
+.run { margin-top: calc(4 * var(--u)); }
+.run h3 { color: var(--text-2); }
+.run pre {
+  overflow-x: auto;
+  padding-block: var(--u);
+  font-size: var(--fs-code);
+  line-height: calc(3 * var(--u));
+  color: var(--text);
+}
+.run .cmd { display: block; }
+.run .prompt { color: var(--text-2); user-select: none; }
+
+/* ---- about ---- */
+
+.about {
+  display: grid;
+  grid-template-columns: var(--index-col) minmax(0, 1fr);
+  column-gap: var(--col-gap);
+}
+/* A side head: the nav already names the page, so the heading stays quiet. */
+.about h1 {
+  grid-column: 1;
+  font-size: var(--fs-2);
+  line-height: var(--l);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+.about .prose { grid-column: 2; }
+
+/* ---- picker ---- */
+
+.picker {
+  position: fixed;
+  inset: auto;
+  /* The top border lands on the masthead rule instead of doubling it. */
+  top: calc(var(--masthead-h) - 1px);
+  right: var(--gutter);
+  width: 26rem;
+  max-height: calc(100dvh - 12 * var(--u));
+  overflow: auto;
+  margin: 0;
+  padding: calc(2 * var(--u)) calc(3 * var(--u)) calc(3 * var(--u));
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--fs-ui);
+  /* A bg-colored matte, not a drop shadow: clears the captions behind the sides and bottom; the 1px extra offset keeps it off the rule row. */
+  box-shadow: 0 calc(var(--u) + 1px) 0 var(--u) var(--bg);
+}
+.picker h3 { color: var(--text-2); }
+.picker .group + .group { margin-top: calc(2 * var(--u)); padding-top: var(--u); }
+/* Name and leader, then a column of dark swatches and one of light; a lone theme's swatches take the dark column. */
+.presets { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: calc(0.5 * var(--u)); }
+.presets li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; }
+.presets .family, .presets .single {
+  display: flex;
+  align-items: baseline;
+  gap: var(--u);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  line-height: var(--l);
+  color: var(--text-2);
+}
+/* `gap: normal` takes the list's column gap, as the swatch buttons do. */
+.presets .single { grid-column: 1 / 3; display: grid; grid-template-columns: subgrid; gap: normal; }
+.presets .single .chips { justify-self: start; margin-left: calc(0.5 * var(--u)); }
+.presets .entryname { display: flex; align-items: baseline; gap: var(--u); }
+.presets button:hover { color: var(--text); }
+.presets .name { font-family: var(--mono); font-size: var(--mono-em); white-space: nowrap; }
+/* A shorter leader than the index's lets "catppuccin-mocha" keep one line at 320px. */
+.presets .leader { min-width: var(--u); }
+.presets .chips { gap: 2px; align-self: center; }
+.presets .chip { width: 0.7em; height: 0.7em; }
+
+.hexfield { display: grid; grid-template-columns: 7rem auto minmax(0, 1fr); align-items: baseline; column-gap: calc(1.5 * var(--u)); }
+.hexfield .k { color: var(--text-2); }
+.hexfield .chip { position: relative; align-self: center; }
+/* The native color input covers the swatch, unseen, with a 24px target. */
+.hexfield .chip input { position: absolute; inset: -5px; width: auto; height: auto; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.hexfield .chip:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.hexfield input[data-seed] {
+  width: 100%;
+  height: var(--l);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(var(--control), var(--control)) bottom / 100% 1px no-repeat;
+  font-family: var(--mono);
+  font-size: var(--mono-em);
+  line-height: var(--l);
+  text-transform: uppercase;
+  outline-offset: 3px;
+}
+.hexfield input[data-seed]:user-invalid {
+  background-image: linear-gradient(var(--link), var(--link));
+  background-size: 100% 2px;
+}
+.importfield { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: baseline; column-gap: calc(1.5 * var(--u)); }
+.importfield .k { color: var(--text-2); }
+.importfield input {
+  width: 100%;
+  height: var(--l);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(var(--control), var(--control)) bottom / 100% 1px no-repeat;
+  line-height: var(--l);
+  outline-offset: 3px;
+}
+.importfield input::placeholder { color: var(--text-2); opacity: 1; }
+.msgs { margin-top: var(--u); line-height: calc(3 * var(--u)); text-wrap: pretty; }
+.msg.err { color: var(--link); }
+.msg.warn { color: var(--text); }
+.picker:not(:has(input[data-seed]:user-invalid)) #seed-msg { display: none; }
+.picker .actions { margin-top: calc(2 * var(--u)); }
+
+/* ---- baseline overlay: a debugging aid, on when <html> has class show-grid ---- */
+
+.show-grid body {
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0 calc(var(--l) - 1px), color-mix(in srgb, var(--accent) 45%, transparent) calc(var(--l) - 1px) var(--l)),
+    repeating-linear-gradient(to bottom, transparent 0 calc(var(--u) - 1px), color-mix(in srgb, var(--text) 8%, transparent) calc(var(--u) - 1px) var(--u));
+}
+
+/* ---- medium ---- */
+
+/* Below this the shared-theme line and the theme button no longer fit one header row. */
+@media (max-width: 84rem) {
+  .tools { display: contents; }
+  .seeds { grid-column: 3; grid-row: 1; justify-self: end; }
+  .shared { grid-column: 2 / -1; grid-row: 2; }
+  :root:has(.masthead .shared:not([hidden])) { --masthead-h: calc(14 * var(--u)); }
+}
+
+/* ---- phone ---- */
+
+@media (max-width: 60rem) {
+  :root { --fs-prose: 1.3125rem; --fs-l: 1.375rem; --fs-xl: 2.125rem; --col-gap: calc(3 * var(--u)); }
+
+  .masthead {
+    grid-template-columns: auto 1fr auto;
+    column-gap: calc(3 * var(--u));
+    margin-bottom: calc(3 * var(--u));
+  }
+  .nav { gap: calc(2 * var(--u)); }
+  .seeds .name { display: none; }
+  /* 44px target without growing the 4u header row. */
+  .seeds { min-width: 44px; min-height: 44px; margin-block: -6px; justify-content: flex-end; }
+  .shared { grid-column: 1 / -1; }
+  .shared .lead { display: block; }
+  :root:has(.masthead .shared:not([hidden])) { --masthead-h: calc(18 * var(--u)); }
+
+  .index { display: block; }
+  .filter { margin-top: calc(-3 * var(--u)); margin-bottom: calc(2 * var(--u)); }
+  .filter > summary {
+    display: flex;
+    justify-content: space-between;
+    gap: calc(2 * var(--u));
+    list-style: none;
+    cursor: pointer;
+    line-height: calc(6 * var(--u));
+    background: linear-gradient(var(--rule), var(--rule)) bottom / 100% 1px no-repeat;
+  }
+  .filter > summary::-webkit-details-marker { display: none; }
+  .filter > summary .state { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .filter > summary .state::after { content: " +" / ""; font-family: var(--mono); }
+  .filter[open] > summary .state::after { content: " \2212" / ""; }
+  /* Two columns only where an entry like "technical drawing" fits one; one on phones. */
+  .filter .facets { padding-top: calc(2 * var(--u)); columns: 2 16rem; column-gap: calc(4 * var(--u)); }
+  .filter .facets > * { break-inside: avoid; }
+  .filter .show { display: block; margin-bottom: calc(2 * var(--u)); }
+
+  :root { --track: 100%; }
+  /* Tall plates two to a row, down to 320px: a track never wider than half the row less half the gap. */
+  [data-shape][data-tall] { --track: min(9rem, calc(50% - var(--u))); }
+  .grid { row-gap: calc(5 * var(--u)); }
+  [data-shape][data-tall] > .grid { column-gap: calc(2 * var(--u)); }
+
+  .below {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "label" "controls" "more";
+    row-gap: calc(5 * var(--u));
+    margin-top: calc(3 * var(--u));
+  }
+  .download.quick { margin-top: var(--u); }
+  .controls { padding-top: var(--u); background: linear-gradient(var(--rule), var(--rule)) top / 100% 1px no-repeat; }
+  .below > .label-more > .sect:first-child { margin-top: 0; }
+  .facts { grid-template-columns: 7rem 1fr; }
+  .row { grid-template-columns: 6rem minmax(0, 1fr); }
+  .controls .seg { column-gap: calc(1.5 * var(--u)); }
+  .listing pre { padding-inline: calc(2 * var(--u)); }
+  .listing .line::before { margin-right: 2ch; }
+  .run .cmd { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; }
+
+  .about { display: block; }
+  .about h1 { margin-bottom: var(--u); }
+
+  .picker { left: var(--gutter); right: var(--gutter); width: auto; }
+}
+
+/* Below this brand, nav and swatches no longer fit one row: the nav takes a row of its own. */
+@media (max-width: 28rem) {
+  :root { --masthead-h: calc(14 * var(--u)); }
+  :root:has(.masthead .shared:not([hidden])) { --masthead-h: calc(22 * var(--u)); }
+  .nav { grid-column: 1 / -1; grid-row: 2; }
+  .shared { grid-row: 3; }
+}
+
+/* iOS zooms the page when a focused input is under 16px, which throws the fixed popover off screen. */
+@media (pointer: coarse) {
+  .hexfield input[data-seed] { font-size: 16px; }
+}
+
+/* On touch phones the color row is one line that scrolls sideways; 4px of padding keeps focus rings inside the scroll box. */
+@media (max-width: 60rem) and (pointer: coarse) {
+  .themes {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px;
+    margin: -4px -4px calc(var(--u) - 4px);
+  }
+  .themes::-webkit-scrollbar { display: none; }
+  .themes > * { flex: none; }
+  .themes .textbtn { white-space: nowrap; }
+}
+
+/* A plate carried between a grid and its page (React <ViewTransition share="plate">) while the page crossfades. The arriving plate is empty until its colors are drawn, so the leaving picture stays whole under it and the arriving one fades in over it. */
+::view-transition-group(*) { animation-duration: 0.3s; }
+::view-transition-group(.plate) { animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+/* Two shapes (a 9:19.5 grid plate opening a 16:9 spread) crop to the moving frame. */
+::view-transition-old(.plate), ::view-transition-new(.plate) { height: 100%; object-fit: cover; }
+/* Naming the animations drops the UA's plus-lighter blend, which would brighten the two grounds where they overlap. */
+@keyframes plate-in { from { opacity: 0; } }
+::view-transition-old(.plate) { animation: none; }
+::view-transition-new(.plate) { animation-name: plate-in; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+:active-view-transition .plate { background: none; }
+/* A grid entry inserted by the navigation has not been found on screen yet, so content-visibility would skip it in the arriving snapshot and its plate would never pair. */
+:active-view-transition .grid > li { content-visibility: visible; }
+
+/* Without JS nothing can change the theme, filter the index or export, so those controls stay out of the way. */
+@media (scripting: none) {
+  .seeds, .filter, .controls, .themes, .download.quick, [data-action="copy-source"] { display: none; }
+  .index > .plates { grid-column: 2; }
+}
+
+/* Forced colors drop backgrounds, gradients and box-shadows: redraw state, rules and swatches with system colors. */
+@media (forced-colors: active) {
+  .entry input, .range { appearance: auto; -webkit-appearance: auto; }
+  .search input, .hexfield input[data-seed], .importfield input { border-bottom: 1px solid CanvasText; }
+  .chip { forced-color-adjust: none; box-shadow: none; outline: 1px solid CanvasText; }
+  .masthead { border-bottom: 1px solid GrayText; }
+  .hair-t, .appendix > summary, .controls > section + section > h2 { border-top: 1px solid GrayText; }
+  .themes [aria-pressed="true"], .presets .swatch[aria-pressed="true"] { border-bottom: 1px solid CanvasText; }
+  .plate::after { border: 1px solid GrayText; }
+  .grid a:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  .crop { outline: 2px solid Highlight; }
+  .footnotes li:target { border-left: 2px solid Highlight; }
+}

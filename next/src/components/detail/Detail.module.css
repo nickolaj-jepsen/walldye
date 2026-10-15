@@ -1,0 +1,120 @@
+/* Overrides of site.css's .plate rules carry :global(.plate) for the specificity, whatever order the sheets load in. */
+
+/* A shape with its own template shows that template whole, centered in the 16:9 picture, inside a frame like the crop window's so the shape reads. The frame replaces the plate's; ::before stays the height spacer. */
+:global(.plate).composed::after {
+  --w: min(100cqw, 100cqw * 9 / 16 * var(--shape));
+  --h: min(100cqw * 9 / 16, 100cqw / var(--shape));
+  z-index: 1;
+  left: calc((100cqw - var(--w)) / 2);
+  top: calc((100cqw * 9 / 16 - var(--h)) / 2);
+  width: var(--w);
+  height: var(--h);
+  box-shadow: inset 0 0 0 1px var(--text);
+}
+
+/* Phones in a tall shape: the plate takes that shape, showing the crop itself rather than 16:9 with the crop window, and a sideways drag moves the crop. */
+@media (max-width: 60rem) {
+  /* Plate, title, attribution (up to two lines) and Download share the first screen: 25u of gaps and lines, plus 1u for the round-up. */
+  .spread[data-tall] :global(.plate) {
+    --ratio: var(--shape-ratio);
+    width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 26 * var(--u)) * var(--ratio))));
+    margin-inline: auto;
+    touch-action: pan-y;
+  }
+  /* The motif's three rows and their gap join the first screen. */
+  .spread[data-tall]:has(~ .motifNear) :global(.plate) {
+    width: min(100%, max(10rem, calc((100svh - var(--masthead-h) - 40 * var(--u)) * var(--ratio))));
+  }
+  .motifNear {
+    margin-top: calc(2 * var(--u));
+  }
+  .spread[data-tall] :global(.plate).inPlace > :global(.pic) {
+    cursor: ew-resize;
+  }
+  /* The shape's own template fills the plate, so the plate's own frame comes back. */
+  .spread[data-tall] :global(.plate).composed::after {
+    left: 0;
+    top: 0;
+    width: auto;
+    height: calc(100cqw / var(--ratio));
+    box-shadow: inset 0 0 0 1px var(--plate-edge);
+  }
+}
+
+/* Fullscreen (the f key): the wallpaper alone, centered on its ground. */
+.spread :global(.plate:fullscreen) > :global(.pic) {
+  height: 100%;
+}
+.spread :global(.plate:fullscreen) :global(.crop),
+.spread :global(.plate:fullscreen) :global(.motif-frame),
+.spread :global(.plate:fullscreen)::before,
+.spread :global(.plate:fullscreen)::after {
+  display: none;
+}
+
+/* One line per license notice under the credit, in the credit's type. */
+.license {
+  font-size: var(--fs-2);
+  color: var(--text-2);
+}
+
+/* Each version's picture over its name, a row of them. */
+:global(.seg).versions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  column-gap: calc(2 * var(--u));
+  row-gap: var(--u);
+}
+/* Reversed so the name comes first to assistive tech; flex-end packs from the top, so a name that wraps leaves the pictures level. */
+.versions label {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+}
+.thumb {
+  display: block;
+  margin-top: var(--u);
+}
+
+/* The 16:9 picture with the crop window, shown where the plate above shows the crop itself (phones, tall shapes). */
+.cropMap {
+  margin-top: var(--u);
+}
+.cropMap :global(.plate) {
+  overflow: hidden;
+}
+/* The label sits beside the range, under the picture. */
+:global(.row).cropRowMap {
+  align-items: end;
+}
+
+/* A range and its button; the button's track is fixed, so the range keeps its width when the button hides. */
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(7 * var(--u));
+  column-gap: calc(2 * var(--u));
+  align-items: center;
+}
+
+/* Keeps the Download under the attribution to one line. */
+@media (max-width: 28rem) {
+  :global(.download.quick) .yours {
+    display: none;
+  }
+}
+
+/* Source links read like the other in-text links (site.css .prose a). */
+.footnotes a:not(:global(.back)) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--link-line);
+}
+.footnotes a:not(:global(.back)):hover {
+  color: var(--text);
+  text-decoration-color: currentColor;
+}
+
+.lost {
+  color: var(--text-2);
+}
