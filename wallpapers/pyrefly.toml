@@ -1,3 +1,2 @@
 # The type-check level for designs: `pyrefly check -c wallpapers/pyrefly.toml`.
-python-version = "3.13"
 preset = "default"

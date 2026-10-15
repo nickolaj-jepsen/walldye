@@ -20,7 +20,7 @@ from PIL import Image
 
 from walldye import _design, _theme
 from walldye._aspect import SITE_ASPECTS, canvas_size
-from walldye.tools import build, hashing, lint, loader, paths, raster, recolor, slotfile
+from walldye.tools import build, hashing, lint, loader, paths, raster, recolor, review, slotfile
 from walldye.tools import themes as check_themes
 from walldye.tools.paths import aspect_label
 from walldye.tools.themes import parse_seeds
@@ -77,6 +77,9 @@ def constants() -> dict[str, object]:
         "max_variants": _design.MAX_VARIANTS,
         "default_license": lint.piece.DEFAULT_LICENSE,
         "fan_work": lint.piece.FAN_WORK,
+        "facets": list(lint.piece.FACETS),
+        "facet_legends": review.state.FACETS,
+        "source_kinds": list(lint.piece.SOURCE_KINDS),
     }
 
 
@@ -209,6 +212,7 @@ def references() -> dict[str, str | bytes]:
     out[f"{name}.svg"] = svg
     out[f"{name}.png"] = _png(svg, width, height, seeds["bg"])
     resvg = {
+        "slug": slug, "aspect": aspect, "theme": theme,
         "svg": _rel(REFERENCE / f"{name}.svg"), "png": _rel(REFERENCE / f"{name}.png"),
         "width": width, "height": height, "background": seeds["bg"],
         "resvg_py": importlib.metadata.version("resvg-py"),

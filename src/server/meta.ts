@@ -32,6 +32,9 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   'favicon',
 ]);
 
+/** What a meta.yaml source is to the piece (walldye/tools/lint/piece.py SOURCE_KINDS). */
+export const SOURCE_KINDS = ['recreation', 'inspiration', 'reference', 'data'] as const;
+
 /** Whether a slug collides with a site route or file: RESERVED_SLUGS, `sitemap*` or `_*`. */
 export function reservedSlug(slug: string): boolean {
   return RESERVED_SLUGS.has(slug) || slug.startsWith('sitemap') || slug.startsWith('_');

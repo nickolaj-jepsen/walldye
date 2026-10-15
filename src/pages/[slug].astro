@@ -51,8 +51,8 @@ const licenseLine = p.resolvedLicense !== DEFAULT_LICENSE && p.resolvedLicense !
 // The export panel's first choices, which the client keeps in step.
 const quickFormat = FORMATS.find((f) => f.value === DEFAULT_FORMAT)!.label;
 const quickSize = EXPORT_SIZES['16:9'][DEFAULT_SIZE_INDEX].replace('x', '×');
-const shapeBoot = await inlineScript('detailShape', !import.meta.env.DEV);
-const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
+const shapeBoot = await inlineScript('detailShape');
+const panelBoot = await inlineScript('detailPanel');
 ---
 
 <Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.alt} ogType="article" mainClass="detail">

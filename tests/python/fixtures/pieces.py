@@ -12,7 +12,6 @@ META = {
     "description": "A synthetic design for the build tests.",
     "alt": "Test shapes.",
     "model": "claude-opus-5-5",
-    "draft": True,
 }
 # The parity recolor themes: a 1-unit neighbor of fireproof (derived model), two presets, and a
 # light corner, so each regime is recolored under two themes other than its template's.
@@ -27,7 +26,7 @@ def install(
     **meta: object,
 ) -> str:
     """Copy designs/<design>.py to wallpapers/<slug>/design.py (slug defaults to `design`)
-    with META updated by `meta` as its meta.yaml and `data` as data/<name> files, credited by
+    with META as a draft, updated by `meta`, as its meta.yaml and `data` as data/<name> files, credited by
     a data source unless `meta` gives the sources; returns the slug."""
     slug = slug or design
     if data and "sources" not in meta:
@@ -35,7 +34,7 @@ def install(
     d = wallpapers / slug
     d.mkdir(parents=True, exist_ok=True)
     (d / "design.py").write_text((DESIGNS / f"{design}.py").read_text())
-    (d / "meta.yaml").write_text(yaml.safe_dump({**META, **meta}, sort_keys=False))
+    (d / "meta.yaml").write_text(yaml.safe_dump({**META, "draft": True, **meta}, sort_keys=False))
     for name, text in (data or {}).items():
         (d / "data").mkdir(exist_ok=True)
         (d / "data" / name).write_text(text)

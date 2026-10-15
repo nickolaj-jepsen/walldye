@@ -1,7 +1,7 @@
 /** The wallpapers collection's schema: meta.yaml in the shape the pages read, plus what the loader attaches. */
 import { z } from 'astro/zod';
 import { LICENSE_LINES, type TaxonomyFacet } from '../../lib/labels';
-import { DEFAULT_LICENSE, FAN_WORK, reservedSlug, variantsMeta } from '../meta';
+import { DEFAULT_LICENSE, FAN_WORK, reservedSlug, SOURCE_KINDS, variantsMeta } from '../meta';
 import { TAXONOMY } from '../taxonomy';
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -22,7 +22,7 @@ const facetList = (facet: TaxonomyFacet) =>
 
 const source = z
   .object({
-    kind: z.enum(['recreation', 'inspiration', 'reference', 'data']),
+    kind: z.enum(SOURCE_KINDS),
     /** The name of a work, set in italics. */
     title: z.string().min(1).optional(),
     /** The name of anything that is not a work (a technique, place, product or thing), set upright. */

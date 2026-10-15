@@ -37,6 +37,8 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
 
 ## Steps
 
+`.claude/workflows/wallpaper-batch.js` cites these steps by number; renumbering them means updating it.
+
 1. Brief, then dedupe. Pin the idea down to one line: subject, composition, technique. With no
    brief, start from references/taste.md and the seeds in references/ideas.md. A subject that
    needs `franchise:` is off limits unless the owner's brief names that franchise (taste.md,

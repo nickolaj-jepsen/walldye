@@ -2,8 +2,15 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { CANVAS, SITE_ASPECTS } from '../../src/lib/content';
+import { FACET_LEGENDS, TAXONOMY_FACETS } from '../../src/lib/labels';
 import { cropBox, focusPosition } from '../../src/lib/shape';
-import { DEFAULT_LICENSE, FAN_WORK, MAX_VARIANTS, RESERVED_SLUGS } from '../../src/server/meta';
+import {
+  DEFAULT_LICENSE,
+  FAN_WORK,
+  MAX_VARIANTS,
+  RESERVED_SLUGS,
+  SOURCE_KINDS,
+} from '../../src/server/meta';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (rel: string): unknown => JSON.parse(readFileSync(`${ROOT}${rel}`, 'utf8'));
@@ -15,6 +22,9 @@ interface Constants {
   max_variants: number;
   default_license: string;
   fan_work: string;
+  facets: string[];
+  facet_legends: Record<string, string>;
+  source_kinds: string[];
 }
 
 interface Crop {
@@ -34,6 +44,9 @@ describe('constants the Python tools also define', () => {
     expect(MAX_VARIANTS).toBe(py.max_variants);
     expect(DEFAULT_LICENSE).toBe(py.default_license);
     expect(FAN_WORK).toBe(py.fan_work);
+    expect([...TAXONOMY_FACETS]).toEqual(py.facets);
+    expect(FACET_LEGENDS).toMatchObject(py.facet_legends);
+    expect([...SOURCE_KINDS]).toEqual(py.source_kinds);
   });
 });
 

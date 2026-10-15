@@ -39,7 +39,7 @@ BANNED: Final = (
         "gesture phrase",
     ),
     (
-        re.compile(r"\b(regimes?|seeds?|tokens?|native|hand-tuned|light-ready|presets?|variants?|params?|slots?|templates?|derived|guards?|has script|AI-generated|generator lost|appendix)\b", _WORDS),
+        re.compile(rf"\b({'|'.join(f'{re.escape(t)}s?' for t in sorted(INTERNAL_TERMS))}|has script|AI-generated|generator lost|appendix)\b", _WORDS),
         "internal term",
     ),
     (re.compile(r"\b(CC0(-1\.0)?|GPL(-[\w.-]+)?|SPDX|OFL|LicenseRef-[\w.-]*)(?![\w-])", _WORDS), "license identifier"),

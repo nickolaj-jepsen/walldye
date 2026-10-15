@@ -33,8 +33,8 @@ const docTitle = title ? `${title} · Walldye` : 'Walldye';
 const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') || '/';
 const canonical = noindex ? undefined : new URL(path, Astro.site).href;
 const imageUrl = image ? new URL(image, Astro.site).href : undefined;
-const themeBoot = await inlineScript('theme', !import.meta.env.DEV);
-const transitionBoot = await inlineScript('transition', !import.meta.env.DEV);
+const themeBoot = await inlineScript('theme');
+const transitionBoot = await inlineScript('transition');
 ---
 
 <!doctype html>

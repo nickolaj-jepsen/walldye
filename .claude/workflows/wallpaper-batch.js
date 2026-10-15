@@ -32,6 +32,7 @@ const SKILL = '.claude/skills/walldye'
 // ---- helpers --------------------------------------------------------------
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+// An early filter: a copy of walldye/tools/lint/piece.py RESERVED_SLUGS. `walldye new` is the gate.
 const RESERVED = new Set(['about', 'index', 't', 'og', 'fonts', '404', 'robots', 'favicon'])
 const reservedSlug = s => RESERVED.has(s) || s.startsWith('sitemap')
 const slugify = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')

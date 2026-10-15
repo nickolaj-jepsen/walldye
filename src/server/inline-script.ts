@@ -1,7 +1,7 @@
 /**
- * A client entry from ENTRIES bundled as an IIFE for an inline `<script>`. With `cache` each entry is
- * built once per process; without, on every call, so `astro dev` picks up edits. Rejects when the entry is missing or does not compile, which
- * fails the page that asked for it.
+ * A client entry from ENTRIES bundled as an IIFE for an inline `<script>`. Built once per process,
+ * except under `astro dev`, which rebuilds on every call to pick up edits. Rejects when the entry is
+ * missing or does not compile, which fails the page that asked for it.
  */
 import { resolve } from 'node:path';
 import { build } from 'esbuild';
@@ -17,7 +17,7 @@ const ENTRIES = {
 
 const cached = new Map<keyof typeof ENTRIES, Promise<string>>();
 
-export function inlineScript(entry: keyof typeof ENTRIES, cache = true): Promise<string> {
+export function inlineScript(entry: keyof typeof ENTRIES): Promise<string> {
   const run = () =>
     build({
       entryPoints: [ENTRIES[entry]],
@@ -26,7 +26,7 @@ export function inlineScript(entry: keyof typeof ENTRIES, cache = true): Promise
       minify: true,
       write: false,
     }).then((r) => r.outputFiles[0].text);
-  if (!cache) return run();
+  if (import.meta.env.DEV) return run();
   let p = cached.get(entry);
   if (!p) {
     p = run();

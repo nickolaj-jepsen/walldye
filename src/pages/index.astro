@@ -16,7 +16,7 @@ const total = entries.length;
 // The view orders need a recorded view to mean anything (none in local builds without stats/).
 const viewed = collection.some((e) => e.data.views > 0);
 const featured = sort === 'featured';
-const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
+const shapeBoot = await inlineScript('shape');
 ---
 
 <Base description="Wallpapers drawn with code, in colors you choose." nav="index" mainClass="index">

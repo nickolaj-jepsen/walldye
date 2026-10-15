@@ -5,12 +5,20 @@ import { initWasm } from '@resvg/resvg-wasm';
 import { decode } from 'fast-png';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { encodePngRgb, rasterize, toRgb } from '../../src/client/export/resvg';
+import type { Aspect } from '../../src/lib/content';
 import { rasterSvg } from '../../src/lib/shape';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const read = (rel: string) => readFileSync(`${ROOT}${rel}`);
 const MANIFEST = JSON.parse(read('tests/fixtures/manifest.json').toString()) as {
-  resvg: { svg: string; png: string; width: number; height: number; background: string };
+  resvg: {
+    aspect: Aspect;
+    svg: string;
+    png: string;
+    width: number;
+    height: number;
+    background: string;
+  };
 };
 
 beforeAll(async () => {
@@ -25,7 +33,7 @@ describe('rasterize', () => {
     // The export path: the template sized to the output pixels, over the seed background.
     const { svg } = rasterSvg(
       read(ref.svg).toString(),
-      { aspect: '16:9', native: true, t: 0 },
+      { aspect: ref.aspect, native: true, t: 0 },
       ref.width,
       ref.height,
     );

@@ -52,7 +52,6 @@ dev = [
 [tool.ruff]
 line-length = 100
 cache-dir = ".cache/ruff"
-target-version = "py313"
 
 [tool.ruff.lint]
 # Import sorting counts as formatting; the rest is ruff's default rule set.
@@ -67,7 +66,6 @@ known-first-party = ["walldye"]
 
 [tool.pyrefly]
 project-includes = ["walldye"]
-python-version = "3.13"
 preset = "all"
 
 [tool.pyrefly.errors]

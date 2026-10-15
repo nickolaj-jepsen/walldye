@@ -32,7 +32,7 @@ interface Manifest {
     sha256: string;
     render: string;
   }[];
-  resvg: { svg: string };
+  resvg: { slug: string; aspect: string; theme: string; svg: string };
 }
 const MANIFEST = JSON.parse(read('tests/fixtures/manifest.json')) as Manifest;
 const REFERENCE_PIECES = Object.keys(MANIFEST.pieces);
@@ -97,7 +97,7 @@ describe('recolor matches the Python renders (b)', () => {
   );
 
   it('is byte-equal to the Python reference recolor', () => {
-    const [slug, aspect, theme] = ['loose-squares', '16:9', 'nord'];
+    const { slug, aspect, theme } = MANIFEST.resvg;
     const picked = select(slotsOf(slug), aspect, seeds(theme));
     const out = recolor(
       read(`wallpapers/${slug}/build/${picked.entry.file}`),

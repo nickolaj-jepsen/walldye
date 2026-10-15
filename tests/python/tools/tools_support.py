@@ -1,6 +1,7 @@
 """Helpers for the tools tests: building fixture pieces and comparing recolors."""
 
 import numpy as np
+from fixtures import pieces
 
 from walldye._theme import SEEDS
 from walldye.tools import build, coefs, loader, metadata, paths, recolor, slotfile
@@ -30,10 +31,10 @@ def legacy(wallpapers, slug="old", source=LEGACY_SOURCE, palette=LEGACY_PALETTE,
     (d / "source.svg").write_text(source)
     (d / "palette.yaml").write_text(palette)
     fields = {
+        **pieces.META,
         "title": "Old",
         "description": "A disc.",
         "alt": "A disc in the middle.",
-        "model": "claude-opus-5-5",
         **meta,
     }
     (d / "meta.yaml").write_text("".join(f"{k}: {v}\n" for k, v in fields.items()))
@@ -68,8 +69,6 @@ VERSION_LABELS = {
 
 def versions(wallpapers, slug: str = "versions", **meta) -> str:
     """Install the versions fixture with its meta.yaml variants: labels."""
-    from fixtures import pieces
-
     return pieces.install(wallpapers, "versions", slug, variants=VERSION_LABELS, **meta)
 
 
@@ -101,10 +100,10 @@ def piece(wallpapers, slug, design=TINY, **meta):
     d.mkdir()
     (d / "design.py").write_text(design)
     fields = {
+        **pieces.META,
         "title": slug.capitalize(),
         "description": "A test piece.",
         "alt": "A test shape.",
-        "model": "claude-opus-5-5",
     }
     metadata.write_meta(slug, {**fields, "draft": True, **meta})
     return d

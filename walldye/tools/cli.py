@@ -376,9 +376,7 @@ def _parser() -> argparse.ArgumentParser:
     s.set_defaults(fn=_cmd_drop)
 
     s = sub.add_parser("themes", help="list presets, or one theme's tokens")
-    s.add_argument(
-        "--theme", type=_seeds, metavar="TOKEN", help="also print this theme's 21 tokens"
-    )
+    s.add_argument("--theme", type=_seeds, metavar="TOKEN", help="also print this theme's tokens")
     s.set_defaults(fn=_cmd_themes)
 
     # check's determinism subprocess: WALLPAPERS_DIR SLUG@VARIANT@ASPECT@REGIME...

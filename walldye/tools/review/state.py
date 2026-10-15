@@ -18,8 +18,8 @@ from walldye.tools.paths import template_name
 from walldye.tools.themes import PRESETS
 
 STATE_FILE = paths.ROOT / ".cache" / "walldye-review.json"
-# facet: its legend on the page
-FACETS = {"technique": "Technique", "subject": "Subject", "lineage": "Inspired by"}
+# facet: its legend on the page, paired with lint.piece.FACETS in order
+FACETS = dict(zip(lint.piece.FACETS, ("Technique", "Subject", "Inspired by"), strict=True))
 # field: (its label on the page, rows in its text box)
 TEXT = {
     "title": ("Title", 1),

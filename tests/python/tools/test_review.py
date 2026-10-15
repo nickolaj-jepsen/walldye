@@ -6,6 +6,7 @@ import urllib.error
 import urllib.request
 
 import pytest
+from fixtures import pieces
 from tools_support import VERSION_LABELS, built, versions
 
 from walldye._aspect import SITE_ASPECTS
@@ -39,14 +40,15 @@ def piece(wallpapers, slug, **meta):
     d = wallpapers / slug
     d.mkdir()
     (d / "design.py").write_text(RING)
+    # Facets first, so model and draft stay the last two keys.
     fields = {
-        "title": slug.capitalize(),
-        "description": "A test piece.",
-        "alt": "A ring.",
         "technique": [],
         "subject": [],
         "lineage": [],
-        "model": "claude-opus-5-5",
+        **pieces.META,
+        "title": slug.capitalize(),
+        "description": "A test piece.",
+        "alt": "A ring.",
         "draft": True,
     }
     metadata.write_meta(slug, {k: v for k, v in {**fields, **meta}.items() if v is not None})
