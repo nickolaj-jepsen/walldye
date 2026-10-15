@@ -5,9 +5,8 @@ import pytest
 from core_support import load, spec
 
 from walldye import BG_ALT, MASK_WHITE, UI, Canvas, P, Params, design, knob
-from walldye._aspect import SITE_ASPECTS, canvas_size, native_aspects, supports
+from walldye._aspect import SITE_ASPECTS, canvas_size, supports
 from walldye._design import Design, RenderSpec
-from walldye.tools.paths import aspect_label, parse_template_name, template_name
 from walldye.tools.themes import parse_theme
 
 
@@ -175,14 +174,5 @@ def test_aspects():
     for bad in ("wide", "16:0", "-16:9", "16:9:1", 0, float("inf")):
         with pytest.raises(ValueError):
             canvas_size(bad)
-    assert aspect_label("9:19.5") == "9x19.5"
-    assert template_name("16:9") == "16x9.svg"
-    assert template_name("9:19.5", light=True) == "9x19.5.light.svg"
-    assert parse_template_name("9x19.5.light.svg") == ("9:19.5", True)
-    assert parse_template_name("16x10.svg") == ("16:10", False)
-    with pytest.raises(ValueError):
-        parse_template_name("slots.json")
-    assert native_aspects(("10:16",)) == ("16:9", "10:16")
-    assert native_aspects("any") == SITE_ASPECTS
     assert supports(("16:10",), "1728x1080") and not supports(("16:10",), "21:9")
     assert supports((), "16:9")

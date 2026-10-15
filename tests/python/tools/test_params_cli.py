@@ -8,6 +8,7 @@ from tools_support import versions
 from walldye import Params, knob
 from walldye._params import describe
 from walldye.tools import cli, knobs
+from walldye.tools.sheet import LABEL, PAD
 
 
 class Moon(Params):
@@ -163,8 +164,8 @@ def test_set_on_render_and_preview(wallpapers, tmp_path, monkeypatch, capsys):
             cli.main(bad)
         assert e.value.code == 2
     err = capsys.readouterr().err
-    assert "--set is for exploring; give the values a named variant in design.py" in err
-    assert "versions has no variant 'early' (have: default, late, bare)" in err
+    assert "--set is for exploring" in err
+    assert "versions has no variant 'early'" in err
 
 
 def test_wedge_sheet(wallpapers, tmp_path, capsys):
@@ -185,7 +186,7 @@ def test_wedge_sheet(wallpapers, tmp_path, capsys):
     assert cli.main(args) == 0
     assert capsys.readouterr().out.strip() == str(out)
     # 4 hours by 2 seeds, one row per hour
-    assert Image.open(out).size == (8 + 2 * (64 + 8), 4 * (36 + 8 + 22) + 8)
+    assert Image.open(out).size == (PAD + 2 * (64 + PAD), 4 * (36 + PAD + LABEL) + PAD)
     many = ["sheet", "versions", "--wedge", "hour=0..12..1", "--seeds", "0..4"]
     for bad in (
         many,

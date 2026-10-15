@@ -2,7 +2,7 @@ import pytest
 from tools_support import FLAT, piece, versions
 
 from walldye._aspect import SITE_ASPECTS
-from walldye.tools import build, check, cli, determinism
+from walldye.tools import build, check, cli, determinism, themes
 
 
 def test_check_and_build_wiring(wallpapers, monkeypatch):
@@ -51,13 +51,13 @@ def test_hashes_hands_off_to_check(monkeypatch):
 
 def test_list(wallpapers, capsys):
     piece(wallpapers, "tiny", title="Tiny\tring", description="A ring,\n  drawn once.")
-    piece(wallpapers, "flat", FLAT, draft=False)
-    versions(wallpapers)
+    piece(wallpapers, "flat", FLAT, draft=False, description="A square.")
+    versions(wallpapers, title="Clock", description="A clock.")
     assert cli.main(["list"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "flat\tFlat\tA test piece.\t-\t16:9\t",
+        "flat\tFlat\tA square.\t-\t16:9\t",
         f"tiny\tTiny ring\tA ring, drawn once.\tdraft\t{','.join(SITE_ASPECTS)}\t",
-        "versions\tFixture\tA synthetic design for the build tests.\tdraft\t16:9,10:16\tlate,bare",
+        "versions\tClock\tA clock.\tdraft\t16:9,10:16\tlate,bare",
     ]
 
 
@@ -68,4 +68,4 @@ def test_themes_lists_presets(capsys):
 
 def test_themes_prints_tokens(capsys):
     assert cli.main(["themes", "--theme", "nord"]) == 0
-    assert "  ACCENT_3     #5B7A88" in capsys.readouterr().out
+    assert f"  ACCENT_3     {themes.tokens_of('nord')['accent_3']}" in capsys.readouterr().out

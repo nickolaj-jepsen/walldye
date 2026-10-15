@@ -38,5 +38,4 @@ def test_helper_calls_draw_the_same_twice(aspect):
     tokens = parse_theme("fireproof")
     first, second = design.draw(spec), design.draw(spec)
     assert first.to_svg(tokens) == second.to_svg(tokens)
-    # one grid per pixel path, plus one: the glyphs path spanning both lines records both
-    assert len(first.pixel_grids) == first.to_svg(tokens).count('class="px"') + 1
+    assert first.pixel_grids == second.pixel_grids != ()

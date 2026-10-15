@@ -34,7 +34,7 @@ def draw(s: Canvas) -> None:
     s.fill(P().circle(c, 12), ACCENT)
 ```
 
-The design lint (§13.1) enforces these rules:
+The design lint (Lint and typing) enforces these rules:
 - The module docstring is one theme-neutral line (wallpapers.md, Copy).
 - Nothing at module level is mutated while drawing. The same module object draws every render, so a list appended to in `draw` leaks into the next one; the determinism check catches what the lint misses.
 - Everything render-dependent arrives through `s`: size, regime, params, random streams and data files. A render depends only on the design file, its data, the params, the aspect and the regime. The theme is applied afterwards, when the document is serialized.
@@ -223,10 +223,10 @@ Each surface collects its content inside the block and goes to `<defs>` when the
 ```python
 def motif(self, at: Point, extent: float | Rect | Literal["cover"], *,
           handle: float | Rect | None = None, cell: float | None = None,
-          scale: tuple[float, float] = (0.5, 2.0)) -> AbstractContextManager[Motif]
+          scale: tuple[float, float] = SCALE) -> AbstractContextManager[Motif]
 ```
 
-A piece with one thing a visitor may move and resize draws it inside `with s.motif(c, extent) as m:`, in motif-local units around the anchor `c` (architecture.md, Motifs). A radius or `Rect` extent bounds every mark it draws; `"cover"` makes an overscan motif, which fills `m.cover` (the motif-local area any placement can show) with the surroundings that move with it, and then needs a `handle`. `handle` is what a visitor grabs, the extent by default. `cell` is a pixel motif's cell, a whole number of units, so every size keeps it whole. `scale` narrows the sizes offered within (0.5, 2), and must hold 1. A motif can't open inside a group or a `buckets` block.
+A piece with one thing a visitor may move and resize draws it inside `with s.motif(c, extent) as m:`, in motif-local units around the anchor `c` (architecture.md, Motifs). A radius or `Rect` extent bounds every mark it draws; `"cover"` makes an overscan motif, which fills `m.cover` (the motif-local area any placement can show) with the surroundings that move with it, and then needs a `handle`. `handle` is what a visitor grabs, the extent by default. `cell` is a pixel motif's cell, a whole number of units, so every size keeps it whole. `scale` narrows the sizes offered within `SCALE` (`walldye/_canvas.py`), and must hold 1. A motif can't open inside a group or a `buckets` block.
 
 - The anchor `c` is on the canvas, and the block opens on the canvas itself, outside any group.
 - Inside it, `w`, `h`, `center`, `frac`, `pick`, `inset` and `mask()` raise; `landscape` and `light` stay. Values read before it opens may depend on the canvas size, never on `c`.
@@ -268,20 +268,20 @@ def design[Pm: Params](
 It decorates the one `draw(s: Canvas[Pm]) -> None` and replaces it with a `Design`.
 
 - `aspects`: `"any"` for every aspect in `SITE_ASPECTS`, or a tuple of them. 16:9 is always native; a design that composes only for 16:9 leaves `aspects` out.
-- `variants`: at most 4 named variants, so 5 versions with the default. Each is an instance of exactly `draw`'s params class and differs from `Pm()` and from the others. Names match `[a-z0-9]+(-[a-z0-9]+)*`, are at most 24 characters and are not `default`. Labels, alt texts, descriptions and draft flags live in meta.yaml (wallpapers.md, meta.yaml).
+- `variants`: at most `MAX_VARIANTS` (`walldye/_design.py`) named variants. Each is an instance of exactly `draw`'s params class and differs from `Pm()` and from the others. Names are short lowercase words joined by `-`, such as `open-sea`, and not `default`. Labels, alt texts, descriptions and draft flags live in meta.yaml (wallpapers.md, meta.yaml).
 - `bg`: the color of the full-canvas rectangle drawn before `draw` runs; a `by_regime` color is fine.
 - The params class comes from `draw`'s annotation, `Canvas[X]`, so annotate it when there are variants.
 
 ### 9.1 `@cached`
 
-Check draws every shape and regime three times, so a simulation or search that doesn't depend on them reruns for nothing. Put that work in a module-level def under a bare `@cached`, taking its random stream as an argument:
+Check draws every shape and regime more than once, so a simulation or search that doesn't depend on them reruns for nothing. Put that work in a module-level def under a bare `@cached`, taking its random stream as an argument:
 
 ```python
 @cached
 def gray_scott(rng: NpRng, gw: int, gh: int, f: float, k: float) -> Grid: ...
 ```
 
-The key is the function's code, every module-level name it reaches and its arguments, so editing `draw` keeps the result and editing the function or a constant it reads drops it. Its docstring lists the argument and result types. A process computes each distinct call once; `preview`, `render` and `sheet` also keep results on disk (§12.1).
+The key is the function's code, every module-level name it reaches and its arguments, so editing `draw` keeps the result and editing the function or a constant it reads drops it. Its docstring lists the argument and result types. A process computes each distinct call once; `preview`, `render` and `sheet` also keep results on disk (CLI).
 
 ## 10. Helper modules
 
@@ -322,7 +322,7 @@ Helpers take randomness as a generator from `s.rng`, `s.np_rng` or `s.noise`, ne
 | `dither(field, levels, *, method="bayer", rng=None)` | quantizes a field in [0, 1] into level indices, by any `DitherMethod` |
 | `bayer`, `blue_noise`, `threshold_matrix` | threshold masks |
 | `sprite(s, art, palette, cell, origin=(0.0, 0.0))` | pixel art from a string, one character per pixel |
-| `glyph(ch, font="8x16")`, `glyphs(s, lines, paint, *, at, ...)`, `text_width` | bitmap text from the bundled Spleen fonts (`"5x8"`, `"8x16"`), drawn as pixel paths |
+| `glyph(ch, font="8x16")`, `glyphs(s, lines, paint, *, at, ...)`, `text_width` | bitmap text in a bundled Spleen `Font`, drawn as pixel paths |
 
 ## 11. Build files
 
@@ -351,7 +351,7 @@ One per variant directory, with one top-level key per line and each value compac
 - `toolchain`: the hash of the code and packages that built it;
 - `focus`: the ink-weighted centroid of the 16:9 dark template, which centers crops and social cards;
 - `cells`: the cell sizes of pixel pieces;
-- one `"<aspect>/<regime>"` entry per template, `{file, sha256, n, coefs, occ}`: `coefs` holds the deduplicated `[a, b, c, dr, dg, db]` rows at 5 decimals, and `occ` the row for each of the `n` color occurrences. A piece with a motif adds `motif: {at, extent, handle, overscan, cell, scale}`, the anchor in canvas units and the boxes `[x, y, w, h]` in motif-local units.
+- one `"<aspect>/<regime>"` entry per template, `{file, sha256, n, coefs, occ}`: `coefs` holds the rounded, deduplicated `[a, b, c, dr, dg, db]` rows, and `occ` the row for each of the `n` color occurrences. A piece with a motif adds `motif: {at, extent, handle, overscan, cell, scale}`, the anchor in canvas units and the boxes `[x, y, w, h]` in motif-local units.
 
 architecture.md (Build and check) says how the hashes decide what to redraw.
 
@@ -372,37 +372,25 @@ What the help leaves out:
 
 The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an installed copy, such as the Nix package, at another folder holding `wallpapers/`.
 
-`preview`, `render` and `sheet` keep `@cached` results (§9.1) in `$WALLDYE_CACHE`, else the gitignored `.cache/cached/`, keyed by the toolchain hash and pruned past 1 GB; `WALLDYE_CACHE=off` keeps them in memory only. `check` and `build` never read them.
+`preview`, `render` and `sheet` keep `@cached` results in `$WALLDYE_CACHE`, else the gitignored `.cache/cached/`, keyed by the toolchain hash and pruned past `DISK_BYTES` (`walldye/_cache.py`); `WALLDYE_CACHE=off` keeps them in memory only.
 
 ### 12.2 Exploring
 
 - `--set seed=none` clears the seed.
-- `sheet <slug> --wedge k=SPEC --seeds A..B` draws one piece for every combination into a labeled grid of at most 64 cells. `SPEC` is `a..b..step` or `v1,v2,...`.
+- `sheet <slug> --wedge k=SPEC --seeds A..B` draws one piece for every combination into a labeled grid.
 - Without `--wedge`, `--seeds` or `--set`, `sheet` tiles built templates recolored under `--theme`.
 - `sheet <slug> --placements` draws the motif where the design put it, then anchored on each canvas corner at its smallest and largest size: the extremes where an overscan motif's surroundings must still cover the screen.
 
 ### 12.3 `walldye review`
 
-A localhost page that goes through versions one at a time and blocks until Apply. Without slugs its queue is every unpublished version; with slugs, every version of those pieces; with `--all`, everything. The sidebar edits the piece's words and facets and decides proposed facets; a new facet value needs a label. Each step is accepted (<kbd>A</kbd>), sent back for an edit (<kbd>E</kbd>), removed (<kbd>R</kbd>, which unpublishes a published version) or skipped (<kbd>S</kbd>). A note on an accept asks for more like it, and a note on an edit says what should change.
+A localhost page that goes through versions one at a time and blocks until Apply. Without slugs its queue is every unpublished version; with slugs, every version of those pieces; with `--all`, everything. The sidebar edits the piece's words and facets and decides proposed facets; a new facet value needs a label. Each step is accepted, sent back for an edit, removed (which unpublishes a published version) or skipped, with the keys the page lists. A note on an accept asks for more like it, and a note on an edit says what should change.
 
 Decisions are saved to the gitignored `.cache/walldye-review.json` as they are made, so a review resumes where it stopped. Only Apply writes to the repository:
 - Accepting an unpublished version removes its `draft:`, and removing a published one sets `draft: true`. Nothing else about a version changes; review never edits design.py.
 - Edits and facet decisions go to meta.yaml, and a new facet value to taxonomy.yaml with its label.
 - A piece is refused, and nothing of it written, when an edit adds a lint error, a new facet value has no label, or it would be published with proposed facets undecided.
 
-It then prints JSON:
-
-| Key | Holds |
-|---|---|
-| `approved`, `rejected` (`[{slug, note}]`), `undecided` | the unpublished default versions |
-| `variants` | the same three keys over the unpublished named versions (`[{slug, variant, note?}]`) |
-| `edit` | `[{slug, variant, published, note}]`, every version sent back |
-| `notes` | `[{slug, variant, note}]`, every note |
-| `published` (slugs), `published_variants`, `unpublished` (`[{slug, variant}]`) | what Apply changed |
-| `refused` | `[{slug, reason}]` |
-| `edits` | `[{slug, variant, field, before, after}]` |
-| `new_facets` | `[{facet, value, label}]` |
-| `finished` | false after a timeout or an `error` |
+It then prints JSON: the decisions `summarize` returns and the changes `apply` returns (`walldye/tools/review/state.py`), with `finished` false after a timeout or an `error`.
 
 ## 13. Lint and typing
 
@@ -419,7 +407,7 @@ It then prints JSON:
 | process state | the builtins in `PROCESS_CALLS` (such as `hash`, `open` and `eval`), and `global` statements |
 | entry point | anything but exactly one module-level `draw` decorated with `@design(...)` |
 | cached | `cached` anywhere but as the one, bare decorator of a module-level def |
-| module level | anything §13.2 does not allow |
+| module level | a statement the Module level rules below do not allow |
 | mutation | mutating a module-level name inside a function |
 | data | files in `data/` other than `.json`, `.txt` and `.npy`, and subdirectories |
 | type escapes | `# type: ignore`, `# pyrefly: ignore`, `typing.cast` and `typing.Any` |
@@ -434,4 +422,4 @@ A constant expression uses literals, displays, comprehensions and lambdas, names
 
 ### 13.3 Typing
 
-Pyrefly 1.3.1 wrongly reports `bad-argument-count` when a call star-unpacks a value of unknown length and then passes more positional arguments, as in `f(None, *p, 2.0)` with `p: list[float]`. Return points as `tuple[float, float]` or `Vec`, or index explicitly.
+Pyrefly wrongly reports `bad-argument-count` when a call star-unpacks a value of unknown length and then passes more positional arguments, as in `f(None, *p, 2.0)` with `p: list[float]`. Return points as `tuple[float, float]` or `Vec`, or index explicitly.

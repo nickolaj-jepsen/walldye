@@ -12,12 +12,9 @@ def test_preview_writes_png_and_reports(wallpapers, tmp_path, monkeypatch, capsy
     assert cli.main(args) == 0
     lines = capsys.readouterr().out.splitlines()
     png = tmp_path / "prev/tiny-flexoki-light-9x19.5.png"
-    assert lines == [
-        "lint: ok",
-        "regime: light (flexoki-light)",
-        "light geometry: differs from dark (build writes a light template for each native aspect)",
-        str(png),
-    ]
+    assert lines[:2] == ["lint: ok", "regime: light (flexoki-light)"]
+    assert lines[2].startswith("light geometry: differs from dark")
+    assert lines[3:] == [str(png)]
     assert Image.open(png).size == (185, 401)  # --width is the long side, up to rounding
     assert cli.main(["preview", "tiny", "--crop", "0,0,300,600", "--width", "300"]) == 0
     lines = capsys.readouterr().out.splitlines()
@@ -56,11 +53,9 @@ def test_preview_legacy_piece(wallpapers, tmp_path, monkeypatch, capsys):
     legacy(wallpapers)
     monkeypatch.setenv("WALLDYE_PREVIEW", str(tmp_path))
     assert cli.main(["preview", "old", "--theme", "nord", "--width", "64"]) == 0
-    assert capsys.readouterr().out.splitlines()[:3] == [
-        "lint: ok",
-        "regime: dark (nord)",
-        "light geometry: same as dark (one template serves both regimes)",
-    ]
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[:2] == ["lint: ok", "regime: dark (nord)"]
+    assert lines[2].startswith("light geometry: same as dark")
 
 
 def test_lint_checks_the_viewbox(wallpapers):

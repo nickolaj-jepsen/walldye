@@ -21,6 +21,11 @@ def info(d: dict) -> MotifInfo:
     )
 
 
+BOX = [-279, -279, 558, 558]
+CELL_3 = info({"at": [1305, 498], "extent": BOX, "handle": BOX, "overscan": False, "cell": 3,
+               "scale": [0.5, 2]})  # fmt: skip
+
+
 @pytest.mark.parametrize("case", SPEC["transform"])
 def test_transform(case):
     assert motif.transform(case["x"], case["y"], case["k"]) == case["out"]
@@ -48,7 +53,7 @@ def test_placements(case):
 
 
 def test_a_template_without_a_motif_cannot_be_placed():
-    svg = SPEC["ground"][2]["svg"]
+    svg = next(c["svg"] for c in SPEC["ground"] if "data-motif" not in c["svg"])
     with pytest.raises(ValueError, match="no motif"):
         motif.place(svg, 0, 0, 1)
     with pytest.raises(ValueError, match="no motif"):
@@ -72,7 +77,7 @@ def test_parse():
 
 
 def test_problems_say_why():
-    m = info(SPEC["placements"][0]["motif"])
+    m = CELL_3
     assert motif.problems(m, 1920, 1080, (-1, 0, 3)) == [
         "the anchor (-1, 0) is off the 1920x1080 canvas",
         "the size 3 is outside 0.5..2",
@@ -83,14 +88,14 @@ def test_problems_say_why():
 
 
 def test_size_range_keeps_whole_cells():
-    m = info(SPEC["placements"][0]["motif"])
+    m = CELL_3
     assert motif.size_range(m) == (0.6667, 2.0)
     assert motif.size_range(dataclasses.replace(m, cell=None)) == (0.5, 2.0)
     assert all(motif.problems(m, 1920, 1080, (0, 0, k)) == [] for k in motif.size_range(m))
 
 
 def test_problems_take_any_size_the_site_offers_a_large_cell():
-    m = dataclasses.replace(info(SPEC["placements"][0]["motif"]), cell=32.0)
+    m = dataclasses.replace(CELL_3, cell=32.0)
     # The site writes 17/32 as 0.5313, which puts 32 * k 0.0016 off whole.
     assert all(motif.problems(m, 1920, 1080, (0, 0, round(n / 32, 4))) == [] for n in range(16, 65))
     assert motif.problems(m, 1920, 1080, (0, 0, 0.532)) != []

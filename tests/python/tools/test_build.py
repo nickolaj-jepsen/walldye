@@ -15,6 +15,7 @@ from walldye.tools import (
     index,
     listing,
     loader,
+    metadata,
     paths,
     recolor,
     review,
@@ -199,13 +200,9 @@ def test_variant_builds_touch_only_their_variant(wallpapers, capsys):
     assert "removed build/gone/, not a declared variant" in out and not stray.exists()
     design = wallpapers / "versions/design.py"
     design.write_text(design.read_text().replace(', "bare": Clock(hour=5, ring=False, seed=3)', ""))
-    meta = wallpapers / "versions/meta.yaml"
-    meta.write_text(
-        meta.read_text().replace(
-            "  bare:\n    label: Five, no ring\n    alt: A bare clock at five.\n    draft: true\n",
-            "",
-        )
-    )
+    meta = metadata.load_meta("versions")
+    del meta["variants"]["bare"]
+    metadata.write_meta("versions", meta)
     out = built(capsys, "versions")
     assert "removed build/bare/" in out and not paths.build_dir("versions", "bare").exists()
     with pytest.raises(UsageError):
@@ -440,14 +437,14 @@ def test_write_index(wallpapers, capsys):
             "aspects": ["16:9"],
             "draft": True,
             "license": "CC0-1.0",
-            "title": "Fixture",
+            "title": pieces.META["title"],
             "variants": {},
         },
         "recreation": {
             "aspects": ["16:9"],
             "draft": False,
             "license": None,
-            "title": "Fixture",
+            "title": pieces.META["title"],
             "variants": {},
         },
     }

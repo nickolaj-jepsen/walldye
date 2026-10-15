@@ -26,17 +26,16 @@ pnpm dev                     # http://localhost:4321, drafts included
 
 ```sh
 uv run walldye --help
-uv run walldye params <slug>          # a design's params and variants
 uv run walldye build --all --published   # what CI runs
 uv run pytest
 uv run ruff format . && uv run ruff check --fix .
-uv run pyrefly check                  # the library, strictest preset
+uv run pyrefly check                  # the library
 uv run pyrefly check -c wallpapers/pyrefly.toml wallpapers/*/design.py
 uv run python scripts/fixtures/regen.py   # after a build, before pnpm test
 
-pnpm test                             # vitest
-pnpm check                            # astro check, after a build
-pnpm lint                             # Biome; pnpm format fixes what it can
+pnpm test
+pnpm check                            # after a build
+pnpm lint                             # pnpm format fixes what it can
 pnpm astro build
 pnpm promo                            # the README clip, into promo/
 ```

@@ -39,17 +39,17 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | Small-caps heads: legends, section heads, nav, picker heads | Garamond all-small-caps | 19px, 32 | `--text-2`; current nav `--text` |
 | Secondary lines: captions, facts, credit, footnotes, listing head | Garamond | 19px, 24 in captions and footnotes, 32 elsewhere | `--text-2`; fact values `--text` |
 | Plate caption title | Garamond +100 | 20px, 24 | `--text` |
-| Inline data: hex values, counts, sizes, shapes, file names | Mono | 0.79em, line-height 1 | its context's |
+| Inline data: hex values, counts, sizes, shapes, file names | Mono | `--mono-em`, line-height 1 | its context's |
 | Listing and run command | Mono | 16px, 24 | the listing roles |
 | Footnote marker | Garamond 600, lining figures | 0.62em, raised 0.55em | `--link` |
 
 ### Figures, caps and data
 
 - Running text uses old-style figures. Lining figures go wherever an old-style 1 or 0 would read as ı or o: titles ("Rule 30"), footnotes, model names ("Opus 5.5"), identifiers ("Z64") and measurements. The notes renderer wraps such tokens in `.lnum`.
-- Inline mono at 0.79em (`--mono-em`) matches the serif's x-height, and `line-height: 1` keeps it from growing the line. Mono ligatures are off, so `->` stays as typed.
+- Inline mono at `--mono-em` matches the serif's x-height, and `line-height: 1` keeps it from growing the line. Mono ligatures are off, so `->` stays as typed.
 - Acronyms in running text are `<abbr>` in all-small-caps. The export format choices are UI labels and stay roman.
 - Small caps come from the font only (`font-synthesis-small-caps: none`), and never go on text with figures: the small-cap 1 and 0 read as I and O.
-- The prose measure is 28em, 58 to 72 characters, with `text-wrap: pretty`. Hyphenation is for prose only, limited by `hyphenate-limit-chars: 7 3 3`.
+- The prose measure holds 58 to 72 characters, with `text-wrap: pretty`. Hyphenation is for prose only, limited by `hyphenate-limit-chars`.
 - Foreign titles carry `lang`, as in `<i lang="de">`.
 
 ## 4. Grid, spacing and breakpoints
@@ -57,10 +57,10 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 - The unit is `--u`, 8px; `--l` (4u) is the line for UI text and prose. Captions, footnotes and listings run on 3u lines, the detail title on 6u and the "Source code" heading on 5u. Margins and paddings are whole units.
 - Rules are 1px background gradients inside an existing padding, so they add no height.
 - Plate boxes round their height up to the unit: the picture keeps its exact shape at the top, and the remainder below it is plate ground, outside the frame. Nothing is cropped.
-- The page is at most 110rem wide, with a side gutter of `clamp(1rem, 4vw, 3.5rem)` and no footer.
-- The masthead, the index and About share one `18rem | 1fr` column pair, so the nav, the plate grid and About's prose share a left edge.
+- The page has a maximum width, a side gutter (`--gutter`) and no footer.
+- The masthead, the index and About share one column pair (`--index-col` and the rest), so the nav, the plate grid and About's prose share a left edge.
 - Grid columns are at least `--track` wide. A grid in another shape sets `--ratio` and its own `--track`, wider for the wide shapes and narrower for the tall ones, which take two columns on phones.
-- On the detail page the plate spans the content width, capped so the plate and the label's first three lines (title, attribution, Download) fit one screen. On phones a tall shape takes the plate's shape instead, capped so the title, an attribution of up to two lines and Download fit under it (§6.3). Below it, the label (at most 42rem) sits left and the controls (30rem) right, starting 2u lower so their rows share baselines with the label's.
+- On the detail page the plate spans the content width, capped so the plate and the label's first three lines (title, attribution, Download) fit one screen. On phones a tall shape takes the plate's shape instead, capped so the title, an attribution of up to two lines and Download fit under it (§6.3). Below it, the label sits left and the controls right, starting 2u lower so their rows share baselines with the label's.
 
 | Query | Changes |
 |---|---|
@@ -69,7 +69,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | `max-width: 60rem` and `pointer: coarse` | The index's color row is one line that scrolls sideways. |
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
-| `prefers-reduced-motion: no-preference` | The 0.2s fade when a plate is recolored, and the plate carried between a grid and its page (§6.3). |
+| `prefers-reduced-motion: no-preference` | The fade when a plate is recolored, and the plate carried between a grid and its page (§6.3). |
 
 ## 5. Rules, borders and focus
 
@@ -80,8 +80,8 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | Plate frame | `inset 0 0 0 1px` box-shadow on `.plate::after`, since paint containment clips anything outside; the picture's height, not the rounded plate's | `--plate-edge` |
 | Picker | 1px border, its top edge on the masthead rule | `--rule-strong` |
 | Text fields | 1px underline; 2px when invalid | `--control`; invalid `--link` |
-| Facet checkbox | 12px square, 1px border; filled when checked | `--control`; checked `--text` |
-| Dot leaders | radial-gradient dots 0.45em apart | `--leader` |
+| Facet checkbox | Square, 1px border; filled when checked | `--control`; checked `--text` |
+| Dot leaders | radial-gradient dots | `--leader` |
 | Swatch ring | 1px box-shadow | `--control` |
 | Focus | 2px outline, offset 2px; plate links draw a 2px inset ring and underline the title | `--focus` |
 
@@ -92,14 +92,14 @@ The rules each component keeps; what it does is in its `.astro` file and its cli
 ### 6.1 Header and picker
 
 - The theme button shows the preset name, or "custom", next to three swatches; its accessible name starts with the same word and spells out the colors: "fireproof theme: background #1C1B1A, foreground #DAD8CE, accent #CF6A4C" (WCAG 2.5.3). On phones only the swatches show.
-- Swatches are squares of 0.875rem (0.7em in the preset list), 3px apart, each with a 1px `--control` ring so a swatch the color of the page stays visible. They are `<span>`s: an empty `<i>` would be italic.
+- Swatches are small squares, each with a 1px `--control` ring so a swatch the color of the page stays visible. They are `<span>`s: an empty `<i>` would be italic.
 - The picker is right-aligned to the gutter (full width on phones), its top border on the masthead rule, with a matte in the page color in place of a shadow.
 - An invalid field, once left, gets a 2px accent underline and an error line in accent. Low contrast between the seeds is a warning in `--text`, so it does not read as a failure. All these messages share one polite live region.
 
 ### 6.2 Filter and results
 
-- Set like a book index: 20px entries with dot leaders and mono counts under small-caps legends, each row one full-width target, lowercase and sorted by label.
-- An entry that matches no piece or more than nine in ten (`NARROW_SHARE`) is left out. A box that would add none is disabled, its term in `--text-dim` and its count hidden.
+- Set like a book index: entries with dot leaders and mono counts under small-caps legends, each row one full-width target, lowercase and sorted by label.
+- An entry that matches no piece, or a share of them above `NARROW_SHARE`, is left out. A box that would add none is disabled, its term in `--text-dim` and its count hidden.
 - The results line is the page's one live region: "234 wallpapers" or "4 of 234 wallpapers".
 - On phones the filter is a closed disclosure whose summary lists the active terms; the color row stays above the grid, one line that scrolls sideways.
 
@@ -110,11 +110,11 @@ The rules each component keeps; what it does is in its `.astro` file and its cli
 - Detail source order is label, controls, notes, so on a phone the export panel comes straight after the label.
 - A composed shape sits in a 1px `--text` frame. A cropped one shows the crop window: a 1px `--text` frame with everything outside dimmed by 55% `--bg`; the range input stays the keyboard control.
 - A piece with a motif has an invisible handle over it on the plate, framed 1px `--text` while hovered or touched, with a corner square that resizes the motif about the opposite corner. Only the handle takes `touch-action: none`, and the rest of the plate `pan-y`, so one finger elsewhere scrolls the page and two pinch the motif. The Across, Down and Scale ranges are the keyboard control; on phones they sit just under the plate, which shrinks so they share the first screen with it. Each range's button has a fixed slot, so the range never changes width, and a button that hides under focus hands it to its range.
-- Only the carried plate gets a view transition (0.3s); every other link changes the page at once.
+- Only the carried plate gets a view transition; every other link changes the page at once.
 
 ### 6.4 Label, footnotes and controls
 
-- Every row after the title is a whole 32px line, so the label shares baselines with the controls. The description is 22px.
+- Every row after the title is a whole `--l` line, so the label shares baselines with the controls.
 - Attribution: a recreation reads "after {author}, *{title}*, {year}"; an inspiration, when there is no recreation, "inspired by {author}, *{title}*". Several are joined "A, B and C", a repeated author is left out ("Mark Rothko, *No. 61* and *Seagram murals*"), and missing fields are dropped. References and data appear only as footnotes.
 - The credit is "Made with {model credit name}" or "Made by {author}". A CC0 piece shows no license line; a fan work shows the fan-work disclaimer (wallpapers.md, Licensing).
 - Footnotes are numbered in lining figures, with no kind label; a topic stands in a title's place, in roman. The `:target` entry gets a 2px `--link` bar in the margin.

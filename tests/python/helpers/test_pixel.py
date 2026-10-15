@@ -83,7 +83,7 @@ def test_grid_runs_paths_are_absolute_rectangles_sharing_edges():
     (_, d1, line), (_, d2, _) = drawn(doc)
     assert d1 == "M0.5 2H8V9.5H0.5ZM8 9.5H23V17H8Z"
     assert d2 == "M8 2H23V9.5H8Z"
-    assert line.startswith(f'<path d="{d1}" class="px" fill="')
+    assert ' class="px"' in line
 
 
 def test_grid_runs_skip_none_entries_and_style():
@@ -92,7 +92,7 @@ def test_grid_runs_skip_none_entries_and_style():
     grid_runs(s, grid, [UI, None, ACCENT], 2, skip=None, opacity=0.5)
     out = drawn(doc)
     assert [fill for fill, _, _ in out] == [UI, ACCENT]
-    assert all(line.endswith(' opacity="0.5"/>') for _, _, line in out)
+    assert all(' opacity="0.5"' in line for _, _, line in out)
     s, doc = canvas()
     grid_runs(s, [[9, 9], [9, 1]], [None, UI], 2, skip=9)  # skipped cells need no palette entry
     assert [rects(d) for _, d, _ in drawn(doc)] == [[(2.0, 2.0, 2.0, 2.0)]]

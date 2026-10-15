@@ -7,7 +7,7 @@ What goes in a wallpaper's folder, and the rules for its metadata, words and lic
 ```
 wallpapers/<slug>/
   design.py     # one @design function (api.md)
-  data/         # optional .json, .txt and .npy files, read with s.data()
+  data/         # optional files read with s.data() (api.md)
   meta.yaml
   build/        # written by `walldye build`; gitignored
 ```
@@ -66,7 +66,7 @@ In every field:
 
 - A fact is checkable: it follows from a source in `sources:` or is stated in any encyclopedia. No invented numbers and no claims about what a piece means, evokes or is about.
 - Strictly neutral: no opinion, humor, mood or metaphor, and no gesture phrases (a take on, nods to, in the spirit of, evokes, homage). Name an inspiration and say what comes from it.
-- Use plain words a visitor would use. Never: internal terms (regime, token, slot, template and the rest of the internal-term pattern in `walldye/tools/lint/words.py`), license names and identifiers (CC0, GPL, SPDX, OFL, LicenseRef-*; About alone names the licenses), or machinery numbers (contrast ratios, color tolerances, pixel sizes). Visitors see variants as "versions".
+- Use plain words a visitor would use. Never: internal terms (regime, token, slot, template and the rest of the internal-term pattern in `walldye/tools/lint/words.py`), license names and identifiers (CC0, LicenseRef-* and the rest of the license-identifier pattern in the same file; About alone names the licenses), or machinery numbers (contrast ratios, color tolerances, pixel sizes). Visitors see variants as "versions".
 - Stay theme-neutral: no color names ("terracotta") and no theme roles as nouns ("the accent"). Comments in design.py name tokens or roles, never hues.
 - No evaluative adjectives (stunning, mesmerizing, elegant, timeless), and nothing the avoid-ai-tropes check flags.
 - Italics only for titles of works.

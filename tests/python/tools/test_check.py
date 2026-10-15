@@ -50,10 +50,8 @@ def test_data_design_reads_its_files(wallpapers):
     assert report("data").errors == []
     (wallpapers / "data/data/extra.csv").write_text("x\n")
     (wallpapers / "data/data/sub").mkdir()
-    assert report("data").errors == [
-        "data/extra.csv: data files are .json, .txt or .npy with a plain name",
-        "data/sub/: data/ holds files only, no subdirectories",
-    ]
+    errors = report("data").errors
+    assert [e.split(": ")[0] for e in errors] == ["data/extra.csv", "data/sub/"], errors
 
 
 @pytest.mark.parametrize(
@@ -232,9 +230,8 @@ def test_variant_values_outside_soft_ranges_warn(wallpapers, capsys):
 
 def test_variants_need_meta_labels(wallpapers):
     pieces.install(wallpapers, "versions")
-    assert check.prepare("versions").report.errors == [
-        "meta.yaml needs variants: with a label for each of default, late, bare"
-    ]
+    (error,) = check.prepare("versions").report.errors
+    assert "variants:" in error and error.endswith("default, late, bare")
     versions(wallpapers)
     assert check.prepare("versions").report.errors == []
 

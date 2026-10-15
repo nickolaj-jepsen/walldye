@@ -6,6 +6,7 @@ from PIL import Image
 from tools_support import FLAT, built, piece, versions
 
 from walldye.tools import cli, loader, paths, recolor, sheet
+from walldye.tools.sheet import LABEL, PAD
 from walldye.tools.themes import parse_seeds
 
 
@@ -34,7 +35,7 @@ def test_sheet_recolors_through_slots(wallpapers, tmp_path, capsys):
     captured = capsys.readouterr()
     assert captured.out.strip() == str(out)
     assert captured.err == "skip unbuilt: not built (run walldye build unbuilt)\n"
-    assert Image.open(out).size == (8 + 160 + 8, 2 * (90 + 8 + 22) + 8)
+    assert Image.open(out).size == (PAD + 160 + PAD, 2 * (90 + PAD + LABEL) + PAD)
     args = [
         "sheet",
         "tiny",
@@ -50,7 +51,7 @@ def test_sheet_recolors_through_slots(wallpapers, tmp_path, capsys):
     ]
     assert cli.main(args) == 0
     assert capsys.readouterr().err == "skip tiny: no variant late\n"
-    assert Image.open(out).size == (8 + 90 + 8, 144 + 8 + 22 + 8)
+    assert Image.open(out).size == (PAD + 90 + PAD, 144 + PAD + LABEL + PAD)
     shutil.rmtree(paths.build_dir("versions", "late"))
     with pytest.raises(SystemExit, match="nothing to put on a sheet"):
         cli.main([a for a in args if a != "tiny"])
@@ -87,7 +88,7 @@ def test_sheet_shows_the_motif_at_its_extremes(wallpapers, tmp_path, capsys):
     args = ["sheet", "motif", "--placements", "--thumb", "160", "-o", str(out)]
     assert cli.main(args) == 0
     with Image.open(out) as im:
-        assert im.size == (4 * 168 + 8, 3 * (90 + 30) + 8)
+        assert im.size == (4 * (160 + PAD) + PAD, 3 * (90 + PAD + LABEL) + PAD)
     piece(wallpapers, "tiny")
     with pytest.raises(SystemExit) as e:
         cli.main(["sheet", "tiny", "--placements"])

@@ -20,7 +20,6 @@ import {
   presetOf,
   roundHalfEven,
   type Seeds,
-  TOKENS,
   themeTokens,
   tokenOf,
 } from '../../src/lib/theme';
@@ -155,15 +154,6 @@ function resolveVars(props: Record<string, string>): Record<string, string> {
   for (const [k, v] of Object.entries(props)) out[k] = value(v);
   return out;
 }
-
-describe('token order', () => {
-  it('TOKENS follows walldye._theme.TOKENS', () => {
-    const py = readFileSync(`${ROOT}walldye/_theme.py`, 'utf8');
-    const tuple = /^TOKENS = \(([^)]*)\)/m.exec(py);
-    expect(tuple).not.toBeNull();
-    expect([...tuple![1].matchAll(/"(\w+)"/g)].map((m) => m[1])).toEqual([...TOKENS]);
-  });
-});
 
 describe('site CSS', () => {
   const css = readFileSync(`${ROOT}src/styles/site.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');

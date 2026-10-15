@@ -20,7 +20,7 @@ Ask Claude to run `wallpaper-batch` with args, e.g. `{"count": 20}` or just `20`
 
 `meta.phases` in `wallpaper-batch.js` lists the phases. The build stops with `needs-license` if a recreation has no answer in `licenses`, and the run ends on a `walldye review` page, then proposes changes to the skill from your notes.
 
-The run never commits, never edits `walldye/`, and never drops a piece you've seen. Its `next` lists a commit command, the pieces you rejected with their `drop` command, and the versions you sent back.
+The run never commits, never edits `walldye/`, and never drops a piece you've seen. Its `next` lists what is left for you to do.
 
 ### Resuming
 

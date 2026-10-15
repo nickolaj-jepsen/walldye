@@ -29,9 +29,10 @@ def test_load_imports_once_per_file_content(wallpapers):
 def test_fresh_imports_anew_without_caching(wallpapers):
     pieces.install(wallpapers, "leaky")
     loaded = loader.load("leaky")
+    before = set(sys.modules)
     a, b = loader.fresh("leaky"), loader.fresh("leaky")
     assert a is not b and a is not loaded
-    assert not any(k.startswith("_walldye_leaky_fresh") for k in sys.modules)
+    assert set(sys.modules) == before
 
 
 def test_load_errors(wallpapers):

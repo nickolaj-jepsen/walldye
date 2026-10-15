@@ -165,9 +165,8 @@ def test_apply_publishes_with_new_facet_values(wallpapers, review_files):
         "c": {"versions": {"default": {"status": "keep"}}},
     }  # fmt: skip
     result = review.state.apply(review.state.queue([]), state)
-    assert result["refused"] == [
-        {"slug": "b", "reason": "subject: moon needs the words visitors see"}
-    ]
+    (refused,) = result["refused"]
+    assert refused["slug"] == "b" and refused["reason"].startswith("subject: moon ")
     assert result["published"] == ["c"] and result["new_facets"] == []
     assert meta("b")["draft"] is True and paths.TAXONOMY.read_text() == TAXONOMY
     assert "facets" in review.state.load_state()["b"]

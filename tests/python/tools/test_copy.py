@@ -1,7 +1,7 @@
 import pytest
 
 from walldye.tools import metadata, paths
-from walldye.tools.lint.words import color_words, copy, docstring, sentences
+from walldye.tools.lint.words import LIMITS, color_words, copy, docstring, sentences
 
 # Committed copy that breaks a rule, pending the owner's rewrite; delete an entry once its
 # meta.yaml is fixed.
@@ -32,8 +32,11 @@ def test_color_words_but_not_token_names():
 
 
 def test_descriptions_and_alt_texts_are_short():
-    assert copy({"description": " ".join(["dot"] * 21)}) == ["description: 21 words, over 20"]
-    assert copy({"alt": " ".join(["dot"] * 26)}) == ["alt: 26 words, over 25"]
+    for field in ("description", "alt"):
+        most = LIMITS[field][0]
+        assert copy({field: " ".join(["dot"] * most)}) == []
+        over = copy({field: " ".join(["dot"] * (most + 1))})
+        assert over == [f"{field}: {most + 1} words, over {most}"]
     assert copy({"description": "One line. Two lines."}) == ["description: 2 sentences, over 1"]
     assert copy({"description": "A lamp drawn as Fig. 1 of a patent."}) == []
     assert [sentences(t) for t in ("One. Two", "No stop", "Ends here.", "Ask? Yes!")] == [
@@ -98,7 +101,8 @@ def test_accent_as_an_adjective_is_fine():
 
 
 def test_version_labels_descriptions_and_alt_texts():
-    long = " ".join(["dot"] * 21)
+    most = LIMITS["description"][0]
+    long = " ".join(["dot"] * (most + 1))
     assert copy({
         "variants": {
             "default": {"label": "Seed 11"},
@@ -109,7 +113,7 @@ def test_version_labels_descriptions_and_alt_texts():
         'variants.default.label: internal term "Seed"',
         "variants.late.label: color words red",
         'variants.late.description: evaluative adjective "stunning"',
-        "variants.open-sea.description: 21 words, over 20",
+        f"variants.open-sea.description: {most + 1} words, over {most}",
         "variants.open-sea.alt: 2 sentences, over 1",
     ]  # fmt: skip
     assert copy({"variants": {"late": {"label": "Params"}}}) == [

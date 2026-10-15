@@ -24,7 +24,7 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand, and `build/` is generated. `wallpapers/index.json` is generated too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `wallpapers/taxonomy.yaml`: the allowed facet values for meta.yaml, each with the words the site shows for it, and the credit name of each model id.
 - `wallpapers/featured.yaml`: the pieces the index opens on, in order, chosen by the owner.
-- `src/`: the site. `src/lib/` is pure code any side may import (no DOM, Node or Astro runtime): the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for the facets and licenses (taxonomy.yaml has those for facet values and models). `src/client/` runs only in the browser, `src/server/` only at build time.
+- `src/`: the site. `src/lib/` is pure code any side may import (no DOM, Node or Astro runtime). Its TypeScript ports of Python code share fixtures with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts` has the words visitors see for the facets and licenses (taxonomy.yaml has those for facet values and models). `src/client/` runs only in the browser, `src/server/` only at build time.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
 - `scripts/views/`: fetches the daily page views onto the `stats` branch, checked out as `stats/` (docs/deploy.md).
 - `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.

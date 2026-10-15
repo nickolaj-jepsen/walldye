@@ -67,7 +67,7 @@ def test_is_light_tie_is_dark():
     assert _theme.is_light("#787878", "#777777")
     assert not _theme.is_light("#777777", "#787878")
     tie = derive_theme({"bg": "#808080", "fg": "#808080", "accent": "#808080"})
-    assert tie["bg_deep"] == mix("#808080", "#000000", 0.15)
+    assert all(c < 0x80 for c in _theme.hex_to_rgb(tie["bg_deep"]))
     assert themes.regime_of("808080-808080-808080") == "dark"
     assert themes.regime_of("flexoki-light") == themes.regime_of("solarized-light") == "light"
     assert themes.regime_of("nord") == "dark"

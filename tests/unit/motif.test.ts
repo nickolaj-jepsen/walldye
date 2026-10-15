@@ -61,7 +61,14 @@ describe('the shared motif fixture', () => {
   );
 });
 
-const MOON: MotifInfo = SPEC.placements[0].motif;
+const MOON: MotifInfo = {
+  at: [1305, 498],
+  extent: [-279, -279, 558, 558],
+  handle: [-279, -279, 558, 558],
+  overscan: false,
+  cell: 3,
+  scale: [0.5, 2],
+};
 
 describe('sizes', () => {
   it('keeps whole cells inside the scale', () => {

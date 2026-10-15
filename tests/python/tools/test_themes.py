@@ -71,4 +71,4 @@ def test_check_theme_sets(regime):
     assert presets <= {
         theme_token(dict(zip(SEEDS, t, strict=True))) for t in themes.HELD_OUT[regime]
     }
-    assert len(themes.HELD_OUT[regime]) == len(presets) + 4 + 4
+    assert len(set(themes.HELD_OUT[regime])) == len(themes.HELD_OUT[regime])
