@@ -1,5 +1,5 @@
-"""The Python reference of the site's recolor (src/lib/recolor.ts): a built template set to
-any seeds through its slots.json entry."""
+"""The Python reference of `recolor` in src/lib/recolor.ts: a built template set to any seeds
+through its slots.json entry."""
 
 from collections.abc import Mapping
 

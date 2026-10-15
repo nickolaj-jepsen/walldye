@@ -1,14 +1,13 @@
 """Paint-context color tokenizer: the one definition of a color occurrence ("slot").
 
-A slot is a color value in a paint context: the attributes fill, stroke, stop-color,
-flood-color, lighting-color and color, and the same properties inside `style="..."` and
-`<style>` elements. The value (surrounding whitespace and a CSS `!important` aside) must be
-exactly hex3, hex6 or a CSS named color; anything else (none, currentColor, url(#id),
-rgb(), hex with alpha) is not a slot. Attribute and property names are case-sensitive,
+A slot is a color value in a paint context: a PAINT attribute, or the same property inside
+`style="..."` and `<style>` elements. The value (surrounding whitespace and a CSS `!important`
+aside) must be exactly hex3, hex6 or a CSS named color; anything else (none, currentColor,
+url(#id), rgb(), hex with alpha) is not a slot. Attribute and property names are case-sensitive,
 hex digits and color names are not. Comments are skipped. Offsets are str indices, so the
 shared fixture keeps its inputs ASCII (JS indices are UTF-16 units).
 
-src/lib/__fixtures__/tokenize.json is the spec; the TS port runs the same fixture.
+src/lib/__fixtures__/tokenize.json is the spec; src/lib/tokenize.ts runs the same fixture.
 """
 
 import re

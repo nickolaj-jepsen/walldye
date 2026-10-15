@@ -65,7 +65,7 @@ def _crop_span(aspect: str) -> tuple[bool, float]:
 def crop_position(aspect: str, focus: tuple[float, float]) -> float:
     """Where along its moving axis the crop of the 16:9 canvas to `aspect` sits when centered
     on `focus` (fractions of the canvas): 0 at the left or top edge, 1 at the other, clamped
-    and rounded to 0.001, as the site's crop slider holds it."""
+    and rounded to 0.001, as focusPosition in src/lib/shape.ts holds it."""
     cw, ch = canvas_size("16:9")
     narrow, size = _crop_span(aspect)
     span = size / (cw if narrow else ch)
@@ -74,8 +74,8 @@ def crop_position(aspect: str, focus: tuple[float, float]) -> float:
 
 
 def fit_crop(aspect: str, focus: tuple[float, float]) -> Crop:
-    """The box of the 16:9 canvas an `aspect` it wasn't drawn for is cut from, as the site
-    cuts it: the canvas's full height for a narrower aspect, else its full width, slid along
+    """The box of the 16:9 canvas an `aspect` it wasn't drawn for is cut from, as cropBox in
+    src/lib/shape.ts cuts it: the canvas's full height for a narrower aspect, else its full width, slid along
     the other axis to crop_position()."""
     cw, ch = canvas_size("16:9")
     narrow, size = _crop_span(aspect)

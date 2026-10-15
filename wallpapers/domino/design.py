@@ -54,7 +54,7 @@ F = 1250.0  # focal length, canvas units
 LANDSCAPE_CAM = (5.0, 0.27)
 PORTRAIT_CAM = (8.0, 0.4)
 # The path as canvas fractions, laid onto the floor: it enters low on the left, crosses the view
-# and bends away into the distance. Landscape keeps the 16:9 original's curve.
+# and bends away into the distance. The landscape curve is laid out on 16:9.
 LANDSCAPE = (
     (0.1064, 0.7469),
     (0.3164, 0.6252),

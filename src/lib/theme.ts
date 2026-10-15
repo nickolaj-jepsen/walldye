@@ -1,5 +1,5 @@
 /**
- * Theme model, ported from walldye/_theme.py: three seeds (bg, fg, accent) derive the 21 tokens,
+ * Theme model, ported from walldye/_theme.py: three seeds (bg, fg, accent) derive the TOKENS,
  * and the site's CSS roles are those tokens passed through the contrast guard. Pure functions, no DOM.
  *
  * Colors are `#RRGGBB` strings; every function returns uppercase hex like the Python side.
@@ -180,7 +180,7 @@ export function isLight(bg: string, fg: string): boolean {
 }
 
 /**
- * All 21 tokens from `seeds` (bg, fg, accent), with any other token in `seeds` as an override,
+ * Every token from `seeds` (bg, fg, accent), with any other token in `seeds` as an override,
  * uppercased but not otherwise normalized. Throws on a missing seed or an unknown token name.
  */
 export function deriveTheme(seeds: RawSeeds & Partial<Tokens>): Tokens {
@@ -248,7 +248,7 @@ export function regimeOf(seeds: Seeds): Regime {
   return isLight(seeds.bg, seeds.fg) ? 'light' : 'dark';
 }
 
-/** All 21 tokens: the pinned FIREPROOF table for fireproof's exact seeds, deriveTheme otherwise. */
+/** Every token: the pinned FIREPROOF table for fireproof's exact seeds, deriveTheme otherwise. */
 export function themeTokens(seeds: Seeds): Tokens {
   return isFireproof(seeds) ? { ...FIREPROOF } : deriveTheme(seeds);
 }

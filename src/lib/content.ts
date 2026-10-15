@@ -33,7 +33,7 @@ export const CANVAS: Record<Aspect, readonly [number, number]> = {
   '10:16': [1080, 1728],
 };
 
-/** Export sizes per aspect as `<w>x<h>`, smallest first; the panel appends "your screen". */
+/** Export sizes per aspect as `<w>x<h>`, smallest first; the screen's own size is not among them. */
 export const EXPORT_SIZES: Record<Aspect, readonly string[]> = {
   '16:9': ['1920x1080', '2560x1440', '3840x2160', '5120x2880'],
   '16:10': ['1920x1200', '2560x1600', '2880x1800', '3840x2400'],
@@ -322,9 +322,7 @@ export function lineCount(text: string): number {
 }
 
 /**
- * The versions the detail page offers, the default included, and how many of them are drafts. The
- * loader keeps draft variants only in `astro dev` and the PR preview, so production counts
- * published ones.
+ * The versions the detail page offers, the default included, and how many of them are drafts.
  */
 export function versionCount(p: Piece): { versions: number; drafts: number } {
   return {

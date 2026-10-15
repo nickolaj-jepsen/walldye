@@ -1,7 +1,5 @@
 /**
- * The detail page: versions and their pictures, plate, crop window, motif placement, export panel and
- * the Download under the attribution, run command, the `f` key, "Copy" and the "See also" plates, shown
- * in the page's shape. On narrow screens a tall cropped shape shows the crop in the plate itself, with
+ * The detail page, shown in the page's shape. On narrow screens a tall cropped shape shows the crop in the plate itself, with
  * the crop window on a small 16:9 map in the export panel.
  * A visitor's change goes through update(), which renders the whole page from the state and writes
  * the address; render() is cheap enough to run on every crop drag. A motif being moved shows on live
@@ -327,7 +325,7 @@ panel.addEventListener('change', (e) => {
     const keep = state.size === 'screen' && input.value === screenAspect ? 'screen' : '';
     update(withAspect(input.value, keep));
   } else if (input.name === 'size') {
-    // Picking "your screen" switches to the screen's shape.
+    // Picking the screen's size switches to the screen's shape.
     const toScreen = input.value === 'screen' && state.aspect !== screenAspect;
     update(toScreen ? withAspect(screenAspect, 'screen') : { size: input.value });
   } else if (input.name === 'fmt') {
@@ -375,7 +373,7 @@ for (const [axis, range] of [
   });
 }
 
-// Narrow screens show the motif's rows under the plate, wide ones in Export.
+// Narrow screens show the motif's rows under the plate, wide ones in the export panel.
 const motifRows = document.getElementById('motif-rows');
 const motifHome = motifRows?.nextElementSibling;
 const motifNear = document.querySelector('.motif-near');

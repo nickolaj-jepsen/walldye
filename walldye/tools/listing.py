@@ -1,5 +1,5 @@
 """`walldye list` (the pieces), `walldye params` (a design's params and variants) and
-`walldye themes` (the presets), plus the vitest theme fixture."""
+`walldye themes` (the presets)."""
 
 import dataclasses
 import json
@@ -103,7 +103,7 @@ def run_params(slug: str, as_json: bool) -> int:
 
 
 def run_themes(seeds: dict[str, str] | None) -> int:
-    """List the presets with their seeds and regime; with `seeds`, also print that theme's 21
+    """List the presets with their seeds and regime; with `seeds`, also print that theme's
     tokens."""
     for name in themes.PRESETS:
         s = themes.parse_seeds(name)

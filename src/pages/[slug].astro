@@ -56,14 +56,14 @@ const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
 ---
 
 <Base title={p.title} description={p.description} image={`/og/${p.slug}.jpg`} imageAlt={p.alt} ogType="article" mainClass="detail">
-  {/* The first render waits for the plate, which a plate carried from a grid lands on (src/client/transition/), and for the panel boot. */}
+  {/* The first render waits for the panel boot, and so for the plate above it, which a plate carried from a grid lands on. */}
   <link slot="head" rel="expect" href="#panel-boot" blocking="render" />
   <figure class="spread">
-    {/* SHAPE BOOT (src/client/detail/shape-boot.ts): sets this figure's data-aspect before first paint. */}
+    {/* The shape boot marks its parent, this figure, with the start shape before first paint. */}
     <script is:inline set:html={shapeBoot} />
     <PlateBox piece={p}><div class="crop" data-axis="x" hidden><span class="handle"></span></div>{p.motif && <div class="motif-frame" aria-hidden="true" hidden><div class="motif-canvas"><span class="motif-handle">{["0,0", "1,0", "0,1", "1,1"].map((c) => <span class="motif-corner" data-corner={c} />)}</span></div></div>}</PlateBox>
   </figure>
-  {/* Phones take the motif's rows from Export to here, beside the picture they move (src/client/detail/page.ts). */}
+  {/* Phones take the motif's rows from Export to here, beside the picture they move. */}
   {p.motif && <div class="motif-near" />}
 
   <div class="below">
@@ -84,7 +84,7 @@ const panelBoot = await inlineScript('detailPanel', !import.meta.env.DEV);
     </div>
 
     <Controls piece={p} />
-    {/* PANEL BOOT (src/client/detail/panel-boot.ts): puts the export panel and both Download summaries in the start state before first paint. */}
+    {/* The panel boot sets the export text to the start state before first paint, so it follows the markup it rewrites. */}
     <script is:inline id="panel-boot" set:html={panelBoot} />
 
     {

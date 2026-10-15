@@ -1,4 +1,4 @@
-/** The picker's themes: the presets of src/lib/theme.ts, named and grouped into families. */
+/** The picker's themes: theme.ts PRESETS, named and grouped into families. */
 import { DEFAULT_THEME, PRESETS, type Seeds } from './theme';
 
 export interface Preset extends Seeds {
@@ -22,7 +22,7 @@ export function presetColors(name: string): readonly [string, string, string] {
   return [p.bg, p.fg, p.accent];
 }
 
-/** Accessible name of the theme button (WCAG 2.5.3: starts with the visible name, "custom" when no preset matches). */
+/** Accessible name of the theme button (WCAG 2.5.3: starts with the visible name). */
 export function presetLabel(p: Preset): string {
   return `${p.name} theme: background ${p.bg}, foreground ${p.fg}, accent ${p.accent}`;
 }

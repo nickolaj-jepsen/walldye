@@ -32,9 +32,9 @@ export type OtherValue = keyof typeof OTHER_LABELS;
 export const TAKEDOWN_CONTACT = 'takedown@walldye.com';
 
 /**
- * The plain-words line under the credit for licenses other than the default (CC0-1.0, which
- * shows nothing); no license names or identifiers. A license missing here fails the build. The
- * fan-work line is built by the detail page from `franchise` and TAKEDOWN_CONTACT.
+ * The plain-words line under the credit for each license but DEFAULT_LICENSE, which shows nothing,
+ * and FAN_WORK, whose line names the franchise and TAKEDOWN_CONTACT; no license names or
+ * identifiers. Any other license missing here fails the build.
  */
 export const LICENSE_LINES: Record<string, string> = {
   // "Above" is the caption's "after …" line and the credit, which reuse under CC BY has to keep.

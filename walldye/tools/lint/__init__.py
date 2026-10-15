@@ -1,6 +1,4 @@
-"""Static lints, each returning what it finds as messages: `source` for design.py, `templates`
-for a rendered SVG, `piece` for meta.yaml and the folder, `words` for the words visitors
-read."""
+"""Static lints, each returning what it finds as messages."""
 
 from walldye.tools.lint import piece, source, templates, words
 

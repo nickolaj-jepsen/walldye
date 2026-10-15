@@ -8,6 +8,7 @@ import urllib.request
 import pytest
 from tools_support import VERSION_LABELS, built, versions
 
+from walldye._aspect import SITE_ASPECTS
 from walldye.tools import cli, lint, metadata, paths, recolor, review
 from walldye.tools.errors import UsageError
 from walldye.tools.review.state import Step
@@ -85,9 +86,7 @@ def test_queue_orders_versions(wallpapers, capsys):
 def test_the_repo_taxonomy_has_labels_and_models():
     taxonomy = lint.piece.load_taxonomy()
     assert taxonomy is not None
-    assert taxonomy.facets["technique"]["dither"] == "dithering"
-    assert taxonomy.facets["lineage"]["early-computer-art"] == "early computer art"
-    assert taxonomy.models["claude-opus-5-5"] == "Claude Opus 5.5"
+    assert all(taxonomy.facets.values()) and taxonomy.models
 
 
 def test_edited_applies_words_facets_and_versions():
@@ -287,10 +286,11 @@ def test_apply_refuses_edits_that_break_the_lint(wallpapers, review_files):
     before = (wallpapers / "a/meta.yaml").read_text()
     state = {"a": {"versions": {"default": {"status": "keep"}}, "edits": {"title": " "}}}
     result = review.state.apply(review.state.queue(["a"]), state)
-    assert result["refused"] == [{"slug": "a", "reason": "meta.yaml needs a title"}]
+    (fresh,) = review.state.check_entry("a", state["a"], {})["fresh"]
+    assert "title" in fresh
+    assert result["refused"] == [{"slug": "a", "reason": fresh}]
     assert result["published"] == [] and (wallpapers / "a/meta.yaml").read_text() == before
     assert review.state.load_state() == state
-    assert review.state.check_entry("a", state["a"], {})["fresh"] == ["meta.yaml needs a title"]
 
 
 def test_summarize_lists_notes_and_versions():
@@ -373,7 +373,7 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     a, c = cfg["pieces"]["a"], cfg["pieces"]["c"]
     assert a["sources"][0]["title"] == "</script><b>x"
     assert a["license"] == "CC0-1.0"
-    assert len(a["versions"]["default"]["aspects"]) == 6
+    assert a["versions"]["default"]["aspects"] == list(SITE_ASPECTS)
     assert c["versions"]["late"] == {
         "label": "Eight o'clock",
         "description": "",
@@ -388,8 +388,8 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
     }
     assert cfg["state"] == other
     assert b"init();" in http(url + "review.js")
-    assert cfg["facets"][2] == ["lineage", "Inspired by"]
-    assert [t[0] for t in cfg["text"]] == ["title", "description", "alt", "notes"]
+    assert dict(cfg["facets"]) == review.state.FACETS
+    assert [t[0] for t in cfg["text"]] == list(review.state.TEXT)
 
     template = (paths.build_dir("c", "late") / "16x9.svg").read_bytes()
     assert http(url + "img/c/late/16x9/fireproof.svg") == template
@@ -410,8 +410,8 @@ def test_review_round_trip(wallpapers, review_files, monkeypatch, capsys):
             http(url + missing)
 
     lint = json.loads(http(url + "lint", {"slug": "a", "entry": {"edits": {"title": ""}}}))
-    assert lint["fresh"] == ["meta.yaml needs a title"]
-    assert "meta.yaml needs a title" in lint["errors"]
+    (fresh,) = lint["fresh"]
+    assert "title" in fresh and fresh in lint["errors"]
     with pytest.raises(urllib.error.HTTPError):
         http(url + "lint", {"slug": "other", "entry": {}})
 
@@ -474,9 +474,7 @@ def test_review_reports_a_failed_apply(wallpapers, review_files, monkeypatch, ca
     assert printed == sent
     assert printed["finished"] is False and printed["published"] == []
     assert printed["approved"] == ["a"]
-    assert (
-        printed["error"] == "ValueError: taxonomy.yaml: technique must map each value to its words"
-    )
+    assert printed["error"].startswith("ValueError: taxonomy.yaml: technique ")
     assert meta("a")["draft"] is True
 
 

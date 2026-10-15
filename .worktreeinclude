@@ -1,5 +1,5 @@
 # Gitignored files Claude Code copies into a new worktree (.gitignore syntax).
-# Builds and fixtures save the ten-minute `walldye build --all` and the regen before pnpm test.
+# Builds and fixtures save a full `walldye build --all` and the regen before pnpm test.
 wallpapers/*/build/
 wallpapers/index.json
 tests/fixtures/

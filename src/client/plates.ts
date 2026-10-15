@@ -1,5 +1,5 @@
 /**
- * Recolored plate images for the index and the detail page. Templates and slots.json are cached,
+ * Recolored plate images. Templates and slots.json are cached,
  * templates in an LRU of about TEMPLATE_BUDGET bytes. At most MAX_PLATES plates load and recolor at
  * once, the waiting plate nearest the viewport first, and a plate no longer wanted leaves the queue;
  * their fetches, and decodes of template URLs, share MAX_FETCHES slots in turn. A plate shows its

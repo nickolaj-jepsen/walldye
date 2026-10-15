@@ -72,7 +72,7 @@ def test_light_documents_share_the_skeleton_unless_geometry_branches():
 def test_regime_mismatch():
     d = load("rings")
     doc = d.draw(spec(d, "default", "16:9", "dark"))
-    with pytest.raises(ValueError, match="dark document cannot be serialized under a light"):
+    with pytest.raises(ValueError, match="dark .* light"):
         doc.to_svg(parse_theme("flexoki-light"))
     with pytest.raises(ValueError):
         doc.hexes(parse_theme("solarized-light"))

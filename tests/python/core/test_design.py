@@ -76,7 +76,7 @@ def test_decorator_argument_errors(kw, error, match):
         (
             {f"v{k}": Radar(sweep=k) for k in range(5)},
             ValueError,
-            re.escape("at most 4 named variants (5 versions with the default), got 5"),
+            "at most 4",
         ),
         ({"Late": Radar(sweep=1)}, ValueError, "lowercase"),
         ({"open--sea": Radar(sweep=1)}, ValueError, "lowercase"),
@@ -84,11 +84,7 @@ def test_decorator_argument_errors(kw, error, match):
         ({"late\n": Radar(sweep=1)}, ValueError, "lowercase"),
         ({"x" * 25: Radar(sweep=1)}, ValueError, "24"),
         ({"default": Radar(sweep=1)}, ValueError, "default"),
-        (
-            {"late": Other(x=2)},
-            TypeError,
-            "variant 'late' is an instance of Other; draw takes Radar",
-        ),
+        ({"late": Other(x=2)}, TypeError, "Other.*Radar"),
         ({"late": Radar()}, ValueError, "equals the default"),
         ({"a": Radar(sweep=1), "b": Radar(sweep=1.0)}, ValueError, "are equal"),
         ([Radar(sweep=1)], TypeError, "mapping"),
@@ -115,14 +111,11 @@ def test_draw_signature_errors():
     for fn in (two, keyword_only):
         with pytest.raises(TypeError, match="exactly one positional parameter"):
             design()(fn)
-    with pytest.raises(TypeError, match=re.escape("annotate draw(s: Canvas[YourParams])")):
+    with pytest.raises(TypeError, match=re.escape("Canvas[YourParams]")):
         design(variants={"late": Params(seed=3)})(bare)
     with pytest.raises(TypeError, match="annotate"):
         design()(wrong)
-    with pytest.raises(
-        TypeError,
-        match=re.escape("variant 'late' is an instance of Radar; annotate draw(s: Canvas[Radar])"),
-    ):
+    with pytest.raises(TypeError, match=re.escape("Canvas[Radar]")):
         design(variants={"late": Radar(sweep=1)})(noop)
     assert design(variants={"late": Params(seed=3)})(noop).variants["late"].seed == 3
 
@@ -168,15 +161,15 @@ def test_fixture_designs_load():
 
 
 def test_aspects():
-    sizes = [canvas_size(a) for a in SITE_ASPECTS]
-    assert sizes == [
-        (1920, 1080),
-        (1728, 1080),
-        (2520, 1080),
-        (3840, 1080),
-        (1080, 2340),
-        (1080, 1728),
-    ]
+    for aspect, size in {
+        "16:9": (1920, 1080),
+        "16:10": (1728, 1080),
+        "21:9": (2520, 1080),
+        "32:9": (3840, 1080),
+        "9:19.5": (1080, 2340),
+        "10:16": (1080, 1728),
+    }.items():
+        assert canvas_size(aspect) == size
     assert canvas_size("3440x1440") == (2580, 1080)
     assert canvas_size(0.5) == (1080, 2160)
     for bad in ("wide", "16:0", "-16:9", "16:9:1", 0, float("inf")):

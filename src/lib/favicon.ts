@@ -1,6 +1,6 @@
 /**
  * The site icon: a 4 by 4 grid of seed mixes, bg at the top left, fg at the top right and accent at the
- * bottom left. The static /favicon.svg and the theme boot's live icon both draw it from here.
+ * bottom left.
  */
 
 import { hexToRgb, rgbToHex, type Seeds } from './theme';

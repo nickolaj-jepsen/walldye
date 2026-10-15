@@ -54,6 +54,13 @@ def sim(rng, n, k=1.0):
     return helper(rng.random(n)) * k
 """
 
+ECHO = """
+@cached
+def echo(x):
+    CALLS.append(1)
+    return x
+"""
+
 
 def test_a_hit_skips_the_work_and_leaves_the_generator_where_a_call_would(tmp_path):
     m = module(tmp_path, SIM)
@@ -97,13 +104,15 @@ def test_array_arguments_are_read_only(tmp_path):
 
 
 def test_the_key_follows_what_the_function_reaches(tmp_path):
-    def digest(head: str) -> str:
-        return _cache._code_digest(module(tmp_path, SIM, head).sim.__wrapped__)
+    def calls(head: str) -> list[int]:
+        m = module(tmp_path, SIM, head)
+        m.sim(np.random.default_rng(5), 4)
+        return m.CALLS
 
-    base = digest(HEAD)
-    assert digest(HEAD.replace("UNUSED = 1", "UNUSED = 2")) == base
-    assert digest(HEAD.replace("SCALE = 2.0", "SCALE = 3.0")) != base
-    assert digest(HEAD.replace("x * SCALE", "x * SCALE + 0")) != base
+    assert calls(HEAD) == [4]
+    assert calls(HEAD.replace("UNUSED = 1", "UNUSED = 2")) == []
+    assert calls(HEAD.replace("SCALE = 2.0", "SCALE = 3.0")) == [4]
+    assert calls(HEAD.replace("x * SCALE", "x * SCALE + 0")) == [4]
 
 
 @pytest.mark.parametrize(
@@ -117,10 +126,16 @@ def test_the_key_follows_what_the_function_reaches(tmp_path):
     ],
     ids=repr,
 )
-def test_results_round_trip(value):
-    got = _cache._unpack(_cache._pack(value))
-    assert type(got) is type(value)
-    assert repr(got) == repr(value)
+def test_results_round_trip(tmp_path, value):
+    m = module(tmp_path, ECHO)
+    _cache.use_disk(tmp_path / "cache")
+    first = m.echo(value)
+    _cache.clear_memory()
+    again = m.echo(value)
+    assert m.CALLS == [1]
+    for got in (first, again):
+        assert type(got) is type(value)
+        assert repr(got) == repr(value)
 
 
 def test_python_and_noise_arguments(tmp_path):
@@ -212,8 +227,6 @@ def test_disk_prunes_the_least_recently_used(tmp_path, monkeypatch):
 def test_memory_stays_under_its_budget(tmp_path, monkeypatch):
     monkeypatch.setattr(_cache, "MEMORY_BYTES", 2500)  # two entries with their states
     m = module(tmp_path, SIM)
-    for n in (100, 101, 102):
+    for n in (100, 101, 102, 101, 102, 100):
         m.sim(np.random.default_rng(1), n)
-    assert len(_cache._MEMORY) == 2
-    m.sim(np.random.default_rng(1), 100)
     assert m.CALLS == [100, 101, 102, 100]

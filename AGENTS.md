@@ -1,6 +1,6 @@
 # walldye
 
-walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colors, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates and records every color in them as a linear mix of three seed colors (bg, fg, accent), read off the formula it was drawn with. The Astro site at walldye.com uses those mixes to show every piece in the visitor's colors and to export it as SVG, PNG, WebP or JPEG.
+walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python script, one `@design` function that draws with the `walldye` library in symbolic theme colors, optionally with a few named variants. `walldye build` draws it once per version, screen shape and regime, writes SVG templates and records every color in them as a linear mix of three seed colors (bg, fg, accent), read off the formula it was drawn with. The Astro site at walldye.com uses those mixes to show and export every piece in the visitor's colors.
 
 ## Docs
 
@@ -20,15 +20,12 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 
 ## Layout
 
-- `walldye/`: the library designs import (`walldye`, `walldye.geom`, `walldye.field`, `walldye.pixel`; the `_*.py` modules implement them), plus the CLI in `walldye/tools/`. Changing its code outside the modules `NEUTRAL` in `walldye/tools/hashing.py` names makes the next build draw every piece once and compare.
+- `walldye/`: the library designs import (docs/api.md, Modules), plus the CLI in `walldye/tools/`. Changing its code outside the modules `NEUTRAL` in `walldye/tools/hashing.py` names makes the next build draw every piece once and compare.
 - `wallpapers/<slug>/`: `design.py`, `meta.yaml` and the optional `data/` are written by hand, and `build/` is generated. `wallpapers/index.json` is generated too, and `wallpapers/pyrefly.toml` sets the type-check level for designs.
 - `wallpapers/taxonomy.yaml`: the allowed facet values for meta.yaml, each with the words the site shows for it, and the credit name of each model id.
 - `wallpapers/featured.yaml`: the pieces the index opens on, in order, chosen by the owner.
-- `src/`: the site. `src/lib/` is pure code any side may import (no DOM, Node or Astro runtime): the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for the facets and licenses (taxonomy.yaml has those for facet values and models). `src/client/` runs only in the browser (one `page.ts` per page, plus the theme boot), `src/server/` only at build time (the collection in `src/server/catalog/`, meta.yaml's schema helpers and taxonomy.yaml).
-- `tests/`: `python/` (pytest: `core/`, `helpers/`, `tools/`, and `fixtures/` with the synthetic designs), `unit/` (vitest, self-contained), `parity/` (vitest against the Python output), and `fixtures/`, the gitignored Python renders and fixtures the parity tests read.
-- `scripts/fixtures/`: `regen.py` writes `tests/fixtures/` from a build.
+- `src/`: the site. `src/lib/` is pure code any side may import (no DOM, Node or Astro runtime): the TypeScript ports of the theme, recolor and tokenizer code, with the fixtures shared with pytest in `src/lib/__fixtures__/`, and `src/lib/labels.ts`, the words visitors see for the facets and licenses (taxonomy.yaml has those for facet values and models). `src/client/` runs only in the browser, `src/server/` only at build time.
 - `scripts/fonts/`: rebuilds the subset fonts in `src/assets/fonts/`.
-- `scripts/promo/`: records the promo clip into `promo/`, gitignored.
 - `scripts/views/`: fetches the daily page views onto the `stats` branch, checked out as `stats/` (docs/deploy.md).
 - `flake.nix`: the Nix package, `mkWallpaper` and the dev shell. The Python environment comes from `uv.lock` through uv2nix.
 - `wrangler.jsonc`: the Worker that serves `dist/` at walldye.com, deployed by CI.
@@ -42,8 +39,8 @@ walldye is a catalog of procedural SVG wallpapers. Each piece is a small Python 
 ## Rules
 
 - Build output is never committed; CI renders it. Locally, run `uv run walldye build --all` (drafts included, which `astro dev` shows) and `scripts/fixtures/regen.py` before `pnpm dev` or `pnpm test`.
-- Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the voice in `docs/site.md` §7: no color names, no theme roles as nouns, no internal terms, no evaluative adjectives.
-- Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of the rejected patterns in §8.
+- Anything a visitor reads (meta.yaml titles, descriptions and notes, design.py docstrings and comments, site text, aria-labels and alt text) follows the Copy rules in `docs/wallpapers.md` and the Voice section of `docs/site.md`: no color names, no theme roles as nouns, no internal terms, no evaluative adjectives.
+- Site styling stays inside the system in `docs/site.md`: tokens from `src/styles/site.css`, the 8px rhythm, and none of its Rejected patterns.
 - All Python, including ` ```python ` blocks in Markdown, passes `ruff format` and `ruff check` (fix findings, no blanket `noqa`), and Pyrefly at its level: 0 errors in the library. The prek hook and CI run them; `walldye check` does not.
 - All TypeScript passes `pnpm lint` (Biome; fix findings, a `biome-ignore` only with its reason) and `pnpm check`. `.astro` files are left to `astro check`: Biome does not format them.
 

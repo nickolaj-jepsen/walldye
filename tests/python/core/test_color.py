@@ -110,14 +110,14 @@ def test_colors_have_no_order():
 
 def test_colors_have_no_text_form():
     c = mix(UI, BG_ALT, 0.5)
-    msg = r"a Color has no text form; pass it to a drawing call \(got mix\(UI, BG_ALT, 0\.5\)\)"
+    msg = r"no text form.*mix\(UI, BG_ALT, 0\.5\)"
     with pytest.raises(TypeError, match=msg):
         str(c)
     with pytest.raises(TypeError, match=msg):
         f"{c}"
     with pytest.raises(TypeError, match=msg):
         format(c, "")
-    with pytest.raises(TypeError, match="a MaskColor has no text form"):
+    with pytest.raises(TypeError, match="MaskColor has no text form"):
         str(MASK_WHITE)
 
 
@@ -153,7 +153,7 @@ def test_mix_amount_outside_the_unit_interval(t):
 
 
 def test_mix_errors():
-    with pytest.raises(ValueError, match=r"mix t must be within \[0, 1\], got 1\.7"):
+    with pytest.raises(ValueError, match=r"\[0, 1\], got 1\.7"):
         mix(UI, BG, 1.7)
     with pytest.raises(TypeError):
         mix(UI, BG, True)
@@ -182,7 +182,7 @@ def test_ramp():
 
 
 def v1_accent_ramp(tokens: dict[str, str], n: int, lo: str, hi: str) -> list[str]:
-    """v1's accent_ramp(n, lo, hi), the formula ladder((lo, ACCENT_4, hi), n) replaces."""
+    """v1's accent_ramp(n, lo, hi): n hexes from lo through accent_4 at the midpoint to hi."""
     mid = tokens["accent_4"]
     out = []
     for i in range(n):

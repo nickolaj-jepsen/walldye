@@ -1,7 +1,7 @@
 name: Checks
 
-# Formatting, lint, types and pytest on every change, docs included: ruff formats the ```python
-# blocks in Markdown too. The prek hook (.pre-commit-config.yaml) runs most of them before a commit.
+# Runs on every change, docs included: ruff formats the ```python blocks in Markdown too.
+# The prek hook (.pre-commit-config.yaml) runs most of these checks before a commit.
 # `astro check` and vitest need a build, so ci.yml runs them.
 on:
   push:

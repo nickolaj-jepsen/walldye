@@ -1,5 +1,5 @@
-"""Emitting paths and groups, shared by the canvas and the clip, mask and pattern
-sub-surfaces its blocks open."""
+"""Emitting paths and groups, shared by the canvas and the sub-surfaces its blocks
+open."""
 
 import operator
 from collections.abc import Generator, Sequence
@@ -33,8 +33,7 @@ from ._vec import Num, Point
 
 
 class Drawing:
-    """Emitting paths and groups onto a list of lines, for the canvas, mask and pattern
-    surfaces."""
+    """Emitting paths and groups onto the list of lines a subclass's _target returns."""
 
     _mode: Mode = "theme"
 
@@ -103,7 +102,7 @@ class Buckets:
 
 
 class Sub:
-    """What the three sub-surfaces share: an id, a ref and the open/closed state."""
+    """What the sub-surfaces share: an id, a ref and the open/closed state."""
 
     _name: str
 

@@ -11,7 +11,7 @@ import {
   type SlotsEntry,
   select,
 } from '../../src/lib/recolor';
-import { normalizeSeeds, PRESETS, parseToken, type Seeds } from '../../src/lib/theme';
+import { normalizeSeeds, PRESETS, parseToken, regimeOf, type Seeds } from '../../src/lib/theme';
 import { findColors, skeleton } from '../../src/lib/tokenize';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -74,10 +74,12 @@ describe('fireproof passthrough (a)', () => {
 describe('recolor matches the Python renders (b)', () => {
   it('uses fixtures made from the current builds', () => {
     for (const slug of REFERENCE_PIECES)
-      expect(slotsOf(slug).design_sha, `${slug}: rerun tests/python/fixtures/regen.py`).toBe(
+      expect(slotsOf(slug).design_sha, `${slug}: rerun scripts/fixtures/regen.py`).toBe(
         MANIFEST.pieces[slug].design_sha,
       );
-    expect(MANIFEST.themes).toHaveLength(4);
+    expect(new Set(MANIFEST.themes.map((t) => regimeOf(seeds(t))))).toEqual(
+      new Set(['dark', 'light']),
+    );
   });
 
   it.each(MANIFEST.renders)(

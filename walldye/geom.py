@@ -1,4 +1,4 @@
-"""Geometry helpers: transforms, polylines, curve sampling, ribbons, hatching and scattering.
+"""Geometry helpers: point sets, polylines and shapes computed before they are drawn.
 
 Point sets are (N, 2) float64 arrays; draw them with P().poly(...) or P().dots(...).
 """

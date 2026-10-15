@@ -28,7 +28,7 @@ _SLUG: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 def cache_dir() -> Path | None:
-    """Where preview, render and sheet keep @cached results: $WALLDYE_CACHE, else
+    """Where @cached results persist across runs: $WALLDYE_CACHE, else
     .cache/cached/ in the checkout; None when $WALLDYE_CACHE is `off`."""
     env = os.environ.get("WALLDYE_CACHE", "")
     if env == "off":

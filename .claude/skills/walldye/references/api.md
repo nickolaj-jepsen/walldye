@@ -9,18 +9,10 @@ SKILL.md's Examples table are complete designs.
 - Annotate `draw` as `def draw(s: Canvas[YourParams]) -> None` (plain `Canvas` without params)
   and your helpers' parameters, so Pyrefly can check them.
 
-## Canvas and layout
-
-| Aspect | Canvas | Aspect | Canvas |
-|---|---|---|---|
-| 16:9 | 1920x1080 | 32:9 | 3840x1080 |
-| 16:10 | 1728x1080 | 9:19.5 | 1080x2340 |
-| 21:9 | 2520x1080 | 10:16 | 1080x1728 |
-
 ## Motifs
 
 A piece built around one object a visitor may want elsewhere (a moon, a plate, a tribar) draws it
-inside `s.motif` (docs/api.md §7.10), in local units around the anchor, last of all:
+inside `s.motif` (docs/api.md, Motif), in local units around the anchor, last of all:
 
 ```python
 c = s.pick(landscape=(0.68, 0.46), portrait=(0.56, 0.34), snap=CELL)
@@ -181,7 +173,8 @@ s.stroke(mesh, BG_ALT, 1)
 
 ## Staying under the limits
 
-check warns above 600 kB or 15,000 elements and fails above 1 MB or 20,000.
+check warns, then fails, on a template's size and element count (`WARN_*` and `MAX_*` in
+`walldye/tools/lint/templates.py`).
 
 - One path per paint and stroke style: accumulate subpaths in one `P()`, or use `s.buckets`.
   `grid_runs`, `glyphs` and `sprite` already merge runs.

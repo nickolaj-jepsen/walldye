@@ -9,33 +9,13 @@ How walldye.com looks and what it says. `src/styles/site.css` holds the values; 
 - Text is `--text` (fg) or `--text-2` (fg_alt), at 4.5:1 or better in every theme (§2). muted draws only the dot leaders; rules, frames and controls use the ui grays.
 - Accent appears only in the focus ring, the footnote markers and target bar, error text and the invalid-field underline, and the listing's keywords and strings.
 - Italic marks titles of works and nothing else.
-- One convention for "current": text color plus a 1px underline 0.3em below the baseline (nav, sort, shape, export choices, versions, the pressed theme name, the open theme button); under swatch buttons (the index's and the picker's), a 1px `--text` line under the swatches. Resting in-text links carry a 1px underline in `--link-line`.
+- One convention for "current": text color plus a 1px underline 0.3em below the baseline on any chosen or current text control; under swatch buttons, a 1px `--text` line under the swatches. Resting in-text links carry a 1px underline in `--link-line`.
 - Every vertical measure is a multiple of the 8px unit (§4), and rules take no layout space.
 - No border radius, no drop shadow, no tinted surface to mark state.
 
 ## 2. Color roles
 
-`cssVars()` in `src/lib/theme.ts` computes these for each theme, and `GUARDED` lists the guarded ones. site.css repeats the fireproof values in `:root`, and flexoki-light's under `prefers-color-scheme: light`, for visitors without JavaScript.
-
-| Property | Token | Guard |
-|---|---|---|
-| `--seed-bg`, `--seed-fg`, `--seed-accent` | the raw seeds | none: wallpapers and plate grounds |
-| `--bg`, `--bg-alt` | bg, bg_alt | grounds |
-| `--text` | fg | 4.5:1 on bg |
-| `--text-2` | fg_alt | 4.5:1 on bg |
-| `--text-dim` | fg_alt faded a quarter towards bg | 4.5:1 on bg |
-| `--link` | accent | 4.5:1 on bg |
-| `--control`, `--link-line` | ui_hi | 3:1 on bg |
-| `--focus` | accent | 3:1 on bg |
-| `--leader` | muted | none: dot leaders are not text |
-| `--rule` | ui_alt (dark), ui (light) | exempt |
-| `--rule-strong` | ui_hi (dark), ui_alt (light) | exempt |
-| `--plate-edge` | ui | exempt |
-| `--shiki-background` | bg_alt | ground of the listing |
-| `--shiki-foreground`, `-function`, `-link`, `-constant`, `-parameter` | fg | 4.5:1 on bg_alt |
-| `--shiki-token-keyword` | accent | 4.5:1 on bg_alt |
-| `--shiki-token-string`, `-string-expression` | accent_hi | 4.5:1 on bg_alt |
-| `--shiki-token-comment`, `-punctuation`, `--listing-gutter` | fg_alt | 4.5:1 on bg_alt |
+`cssVars()` in `src/lib/theme.ts` computes every color property for each theme, and `GUARDED` lists each guarded one with its token, ground and minimum: 4.5:1 for text, including the listing's, and 3:1 for controls, link underlines and focus. The raw seeds draw only wallpapers and plate grounds, and dot leaders, rules and the plate edge are exempt. site.css repeats the fireproof values in `:root`, and flexoki-light's under `prefers-color-scheme: light`, for visitors without JavaScript.
 
 ## 3. Type
 
@@ -43,7 +23,7 @@ How walldye.com looks and what it says. `src/styles/site.css` holds the values; 
 
 - EB Garamond, roman and italic, weights 400 to 800, for everything but data. Walldye Mono, a renamed Monaspace Krypton subset, weights 400 to 700, for data: seeds, colors, sizes, file names.
 - Self-hosted woff2 through Astro's fonts API, `display: swap`, with fallback metric overrides so the swap does not re-wrap captions. The roman and the mono are preloaded.
-- The subsets come from `scripts/fonts/` and keep smcp, c2sc, onum, lnum, pnum, tnum and case. No face has U+202F, and the mono lacks U+2009, U+200A, U+2011 and U+2060, so keep those out of mono text and hold a thin-spaced group together with `.nowrap`.
+- The subsets come from `scripts/fonts/` and keep only the OpenType features `FEATURES` in `subset.py` lists. No face has U+202F, and the mono lacks U+2009, U+200A, U+2011 and U+2060, so keep those out of mono text and hold a thin-spaced group together with `.nowrap`.
 
 ### Scale
 
@@ -79,13 +59,13 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 - Plate boxes round their height up to the unit: the picture keeps its exact shape at the top, and the remainder below it is plate ground, outside the frame. Nothing is cropped.
 - The page is at most 110rem wide, with a side gutter of `clamp(1rem, 4vw, 3.5rem)` and no footer.
 - The masthead, the index and About share one `18rem | 1fr` column pair, so the nav, the plate grid and About's prose share a left edge.
-- Grid columns are at least 18rem (`--track`): two from about 1045px, three from about 1390 and four from about 1710. A grid in another shape sets `--ratio` and `--track`: 26rem for 21:9, 40rem for 32:9 and 12rem for the tall shapes, which take two columns on phones.
+- Grid columns are at least `--track` wide. A grid in another shape sets `--ratio` and its own `--track`, wider for the wide shapes and narrower for the tall ones, which take two columns on phones.
 - On the detail page the plate spans the content width, capped so the plate and the label's first three lines (title, attribution, Download) fit one screen. On phones a tall shape takes the plate's shape instead, capped so the title, an attribution of up to two lines and Download fit under it (§6.3). Below it, the label (at most 42rem) sits left and the controls (30rem) right, starting 2u lower so their rows share baselines with the label's.
 
 | Query | Changes |
 |---|---|
 | `max-width: 84rem` | The shared-theme line moves under the nav. |
-| `max-width: 60rem` | Phones and small tablets: the theme button shows only its swatches, with a 44px target; the filter becomes a disclosure; one plate column, two for tall shapes down to 320px; the detail page stacks label, controls and notes, shows a tall shape in the plate; prose 21px, title 34px. |
+| `max-width: 60rem` | Phones and small tablets, what this file means by "on phones". The theme button, showing only its swatches, keeps a 44px target. |
 | `max-width: 60rem` and `pointer: coarse` | The index's color row is one line that scrolls sideways. |
 | `max-width: 28rem` | Narrow phones: the nav takes a row of its own under the brand and the swatches. |
 | `pointer: coarse` | Hex fields at 16px, since iOS zooms in on a smaller focused field. |
@@ -96,7 +76,7 @@ Garamond runs at weight 400 on light grounds and 450 on dark ones (`--wt`), beca
 | Element | Drawn as | Color |
 |---|---|---|
 | Masthead bottom, "Source code" heading | 1px background rule | `--rule-strong` |
-| `.hair-t` rules: facts, Notes and Sources heads, picker groups, the Export head, phone controls and filter summary | 1px background rule at the top | `--rule` |
+| `.hair-t` rules between sections | 1px background rule at the top | `--rule` |
 | Plate frame | `inset 0 0 0 1px` box-shadow on `.plate::after`, since paint containment clips anything outside; the picture's height, not the rounded plate's | `--plate-edge` |
 | Picker | 1px border, its top edge on the masthead rule | `--rule-strong` |
 | Text fields | 1px underline; 2px when invalid | `--control`; invalid `--link` |
@@ -129,7 +109,7 @@ The rules each component keeps; what it does is in its `.astro` file and its cli
 - Before JavaScript runs, a plate is an empty box of the grid's shape on `--seed-bg`, and an inline script sets the shape before first paint, so nothing reflows.
 - Detail source order is label, controls, notes, so on a phone the export panel comes straight after the label.
 - A composed shape sits in a 1px `--text` frame. A cropped one shows the crop window: a 1px `--text` frame with everything outside dimmed by 55% `--bg`; the range input stays the keyboard control.
-- A piece with a motif has an invisible handle over it on the plate, framed 1px `--text` on hover, or on a touch screen from a touch on it until one lands elsewhere; only the handle takes `touch-action: none`, and the rest of the plate `pan-y`, so a one-finger swipe elsewhere scrolls and two fingers anywhere on the plate pinch the motif's size. The frame shows a 1u square at each corner, with a 3u hit area, that resizes the motif about the opposite corner. The Across, Down and Scale ranges are the keyboard control; below 60rem they move from Export to just under the plate, which shrinks so they share the first screen with it. Each has a button in a fixed slot, underlined text, so the range never changes width: Center shows while the motif is off center on that axis, Reset once it has moved. A button that hides under focus hands it to its range.
+- A piece with a motif has an invisible handle over it on the plate, framed 1px `--text` while hovered or touched, with a corner square that resizes the motif about the opposite corner. Only the handle takes `touch-action: none`, and the rest of the plate `pan-y`, so one finger elsewhere scrolls the page and two pinch the motif. The Across, Down and Scale ranges are the keyboard control; on phones they sit just under the plate, which shrinks so they share the first screen with it. Each range's button has a fixed slot, so the range never changes width, and a button that hides under focus hands it to its range.
 - Only the carried plate gets a view transition (0.3s); every other link changes the page at once.
 
 ### 6.4 Label, footnotes and controls
@@ -143,12 +123,12 @@ The rules each component keeps; what it does is in its `.astro` file and its cli
 ### 6.5 Source code
 
 - A disclosure that starts closed, its summary the heading with a mono "+" at the right.
-- Shiki with a CSS-variables theme (§2): keywords in accent, strings in accent_hi, comments, punctuation, operators and line numbers in fg_alt, everything else in fg. To keep accent rare, `keyword.operator` takes the punctuation color and `meta.function-call.arguments` the foreground.
+- Shiki with a CSS-variables theme (§2). To keep accent to keywords and strings, `keyword.operator` takes the punctuation color and `meta.function-call.arguments` the foreground.
 - Both `pre` blocks scroll sideways and are focusable named regions.
 
 ### 6.6 About and 404
 
-- About: three short paragraphs (the site and the three colors, how pieces are made and checked, the licenses with a link to the code). No piece counts, colophon or font credits; the site has no footer.
+- About: a few short paragraphs. No piece counts, colophon or font credits; the site has no footer.
 - The 404 page uses the same layout: "Not found", one sentence and a link to the index.
 
 ### 6.7 Forced colors and no JavaScript
@@ -171,7 +151,7 @@ Visible copy is the page text, aria-labels, alt text and meta descriptions, plus
 Beyond what §1 and §7 rule out:
 
 - Hero sections, taglines with calls to action, cards, gradient text, icon libraries, pill chips, plate numbers, a footer.
-- Boxed buttons: Download, Copy, Change, Copy link, clear, Keep it and Back to yours are underlined text.
+- Boxed buttons: a text button, Download included, is underlined text.
 - Serif text under 19px, other than the footnote marker.
 - Full capitals for headings or acronyms, and synthesized small caps.
 - Focus suppression without a replacement.

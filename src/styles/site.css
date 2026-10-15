@@ -28,7 +28,7 @@
   --control: #676764;         /* ui_hi nudged to 3:1 on bg */
   --link-line: var(--control);
   --focus: var(--accent);
-  --leader: var(--muted);     /* dot leaders: the one non-rule use of muted */
+  --leader: var(--muted);     /* dot leaders */
   --rule: var(--ui-alt);
   --rule-strong: var(--ui-hi);
   --plate-edge: var(--ui);

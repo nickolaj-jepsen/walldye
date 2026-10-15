@@ -1,4 +1,4 @@
-"""The core design API; the helpers live in walldye.geom, walldye.field and walldye.pixel."""
+"""The core design API; the helpers live in its public submodules."""
 
 from ._cache import cached
 from ._canvas import Canvas, Motif

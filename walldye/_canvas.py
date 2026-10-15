@@ -1,5 +1,4 @@
-"""The drawing surface a design's draw() receives, its clip, mask and pattern sub-surfaces,
-and its motif block."""
+"""The drawing surface a design's draw() receives, and its motif block."""
 
 import hashlib
 import json
@@ -352,7 +351,7 @@ class Canvas[Pm: Params = Params](Drawing):
     ) -> Generator[Motif]:
         """The one thing on the canvas a visitor may move and resize: what is drawn inside the
         block goes into <g data-motif="" transform="translate(at)">, in motif-local units around
-        `at`, and the site rewrites that transform to place it.
+        `at`, and the site's placeMotif rewrites that transform to place it.
 
         `extent` bounds every mark drawn inside: a radius, a Rect, or "cover" for a motif that
         fills m.cover with its surroundings (an overscan motif), which then needs `handle`.

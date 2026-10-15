@@ -60,7 +60,7 @@ const shapeBoot = await inlineScript('shape', !import.meta.env.DEV);
   {/* Phones start with the filter closed; decided before first paint so the grid does not jump. */}
   <script is:inline>document.currentScript.previousElementSibling.open = matchMedia('(min-width: 60.0625rem)').matches;</script>
   <section class="plates" aria-label="Wallpapers">
-    {/* SHAPE BOOT (src/client/index/shape-boot.ts): sets this section's data-shape before first paint. */}
+    {/* The shape boot marks its parent, this section, with the start shape before first paint. */}
     <script is:inline set:html={shapeBoot} />
     <div class="themes" role="group" aria-labelledby="themes-h">
       <h2 id="themes-h" class="sc">Colors</h2>

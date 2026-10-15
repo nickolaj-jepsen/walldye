@@ -86,7 +86,7 @@ def parse_seeds(spec: str | None) -> dict[str, str]:
 
 
 def parse_theme(spec: str | None) -> dict[str, str]:
-    """All 21 tokens for a theme token (see parse_seeds)."""
+    """All the tokens for a theme token (see parse_seeds)."""
     return theme_tokens(parse_seeds(spec))
 
 
@@ -110,7 +110,7 @@ def seeds_of(theme: Theme) -> dict[str, str]:
 
 
 def tokens_of(theme: Theme) -> dict[str, str]:
-    """The 21 tokens of a theme token, seed mapping or seed triple."""
+    """The tokens of a theme token, seed mapping or seed triple."""
     return theme_tokens(seeds_of(theme))
 
 
@@ -172,8 +172,8 @@ _CORNERS: dict[Regime, list[Seeds]] = {
 }
 _PRESET_SEEDS: list[Seeds] = [preset_seeds(name) for name in PRESETS if name != "fireproof"]
 
-# Slot coefficients must predict these within 2 RGB units: every preset but fireproof, corners,
-# random.
+# Slot coefficients must predict these within coefs.MAX_ERROR RGB units: every preset but
+# fireproof, corners, random.
 HELD_OUT: dict[Regime, list[Seeds]] = {
     r: [t for t in _PRESET_SEEDS if regime(t.bg, t.fg) == r] + _CORNERS[r] + _HELD_OUT_RANDOM[r]
     for r in REGIMES
@@ -182,7 +182,7 @@ HELD_OUT: dict[Regime, list[Seeds]] = {
 # Skeleton check only. Collapse: every token lands on (nearly) one hex, so
 # color-keyed dicts merge; an exact tie is dark, so light's bg sits one unit above fg.
 # Order: bg/fg/accent chosen so token hex strings sort roughly opposite to the regime's
-# template theme (fireproof, flexoki-light), so anything sorted by hex reorders.
+# template theme (coefs.TEMPLATE_THEMES), so anything sorted by hex reorders.
 PROBES: dict[Regime, list[Seeds]] = {
     "dark": [Seeds("#808080", "#808080", "#808080"), Seeds("#3F0000", "#00C0C0", "#0000FF")],
     "light": [Seeds("#818181", "#808080", "#808080"), Seeds("#00C0C0", "#3F0000", "#FF0000")],

@@ -66,7 +66,7 @@ describe('number helpers', () => {
     expect(distance('#CF6A4C', '#cf6a4c')).toBe(0);
     expect(distance('#000000', '#FFFFFF')).toBeCloseTo(1, 6);
     expect(distance('#191724', '#EBBCBA')).toBeCloseTo(distance('#EBBCBA', '#191724'), 12);
-    // rose-pine's old accent next to its fg, close enough for the picker's warning.
+    // Close enough for the picker's warning.
     expect(distance('#EBBCBA', '#E0DEF4')).toBeLessThan(0.1);
   });
 
@@ -249,7 +249,7 @@ describe('contrast guard (d)', () => {
         failures.push(`${tokenOf(seeds)} --text-dim nudged needlessly`);
     }
     expect(failures).toEqual([]);
-    // solarized-light's guarded --text-2 has no room to fade: at 0.75 opacity it was 2.9:1.
+    // solarized-light's guarded --text-2 has no room to fade.
     const sol = cssVars(PRESETS['solarized-light']);
     expect(contrast(mix(sol['--text-2'], sol['--bg'], DIM), sol['--bg'])).toBeLessThan(3);
   });

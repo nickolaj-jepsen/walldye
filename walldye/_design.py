@@ -26,7 +26,7 @@ class RenderSpec:
     """One render: which version, with which params, at which aspect, in which regime."""
 
     variant: str  # "default" or a named variant; a label for keys
-    params: Params  # the values drawn (a variant's, or with --set overrides)
+    params: Params  # the values drawn (a variant's, or overridden)
     aspect: str  # anything _aspect.canvas_size accepts
     regime: Regime
 
@@ -183,10 +183,10 @@ def design[Pm: Params](
     """Declare a design: decorates the one function draw(s: Canvas[P]) -> None.
 
     `aspects` is "any" (every site aspect) or a tuple of the site aspects the composition
-    follows; 16:9 is always built. `variants` names up to 4 params instances of draw's params
-    class besides the implicit default, each different from the default and from each other,
-    named like "late" or "open-sea" (at most 24 characters, not "default"). `bg` is the color
-    of the full-canvas rectangle drawn before draw runs.
+    follows; 16:9 is always built. `variants` names up to MAX_VARIANTS params instances of
+    draw's params class besides the implicit default, each different from the default and from
+    each other, named like "late" or "open-sea" (at most 24 characters, not "default"). `bg` is
+    the color of the full-canvas rectangle drawn before draw runs.
 
     Raises TypeError for a non-tuple `aspects`, a bg that is not a theme color, a variant of
     another class, or a draw without exactly one positional parameter (or without a Canvas[P]

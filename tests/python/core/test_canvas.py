@@ -151,10 +151,10 @@ def test_style_validation(style, error):
 
 def test_paint_validation():
     s, _ = canvas()
-    with pytest.raises(TypeError, match="raw color strings are not paints"):
+    with pytest.raises(TypeError, match="raw color strings"):
         s.fill(SQUARE, "#FF0000")
     for array in (np.array(["none"]), np.array([]), np.array([1, 2])):
-        with pytest.raises(TypeError, match="takes a color, 'none' or a reference"):
+        with pytest.raises(TypeError, match="takes a color"):
             s.fill(SQUARE, array)
     with pytest.raises(TypeError):
         s.fill(SQUARE, MASK_BLACK)

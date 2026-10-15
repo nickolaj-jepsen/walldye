@@ -4,10 +4,10 @@
 
 ## Setup
 
-Needs [uv](https://docs.astral.sh/uv/) and [pnpm](https://pnpm.io/) with Node 24. On NixOS, `nix develop` has everything; outside it, set `programs.nix-ld.enable` for the Python wheels.
+Needs [uv](https://docs.astral.sh/uv/) and [pnpm](https://pnpm.io/) with the Node version in `.node-version`. On NixOS, `nix develop` has everything; outside it, set `programs.nix-ld.enable` for the Python wheels.
 
 ```sh
-uv run prek install          # ruff, Pyrefly and Biome on every commit
+uv run prek install          # the checks in .pre-commit-config.yaml, on every commit
 uv run walldye build --all   # the SVG templates, which git doesn't track; slow the first time
 pnpm install
 pnpm dev                     # http://localhost:4321, drafts included

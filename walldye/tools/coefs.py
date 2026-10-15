@@ -192,10 +192,10 @@ def serialize_aspect(
     """The templates and slot entries of one native aspect of a design, given its document
     per regime.
 
-    The dark template is the dark document under fireproof; the light regime shares it when
-    the two documents' skeletons match, else gets its own template under flexoki-light. Each
-    regime's slot coefficients must predict every held-out theme within MAX_ERROR units; the
-    template and probe serializations must tokenize to the document's own slots. Returns
+    Each regime's template is its document under TEMPLATE_THEMES; the light regime shares the
+    dark one when the two documents' skeletons match. Each regime's slot coefficients must
+    predict every held-out theme within MAX_ERROR units; the template and probe
+    serializations must tokenize to the document's own slots. Returns
     (templates {file name: svg}, entries {"<aspect>/<regime>": Entry}, errors); a regime whose
     serializations disagree with its document gets no entry.
     """

@@ -35,7 +35,7 @@ class _Symbolic:
     _hash: int
 
     def __init__(self, formula: _Formula) -> None:
-        """Internal: colors come from the tokens, mix, ramp, ladder and by_regime."""
+        """Internal: colors come from the token constants and the public color functions."""
         object.__setattr__(self, "_formula", formula)
         object.__setattr__(self, "_hash", hash(formula))
 
@@ -146,7 +146,7 @@ MASK_BLACK: Final = MaskColor((1, 0))
 
 
 def token(name: str) -> Color:
-    """The token color for any of the 21 names in TOKENS, orange_dark included.
+    """The token color for any name in TOKENS, orange_dark included.
 
     Raises ValueError for any other name.
     """
@@ -293,7 +293,7 @@ def by_regime(dark: Color, light: Color) -> Color:
 
 
 def resolve(c: Color | MaskColor, tokens: Mapping[str, str]) -> str:
-    """`c` as uppercase #RRGGBB under the 21-token dict `tokens` (from _theme.theme_tokens).
+    """`c` as uppercase #RRGGBB under the full token dict `tokens` (from _theme.theme_tokens).
 
     A mix resolves through _theme.mix, which rounds each channel half to even once per mix;
     by_regime picks by _theme.is_light(tokens["bg"], tokens["fg"]).

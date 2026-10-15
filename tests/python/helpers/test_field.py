@@ -20,10 +20,15 @@ from walldye.field import (
 )
 
 
-def test_exports_match_the_spec():
-    assert sorted(field.__all__) == sorted(
-        ["Noise", "noise_grid", "cells", "falloff", "gauss", "iso_lines", "runs", "sample_field"]
-    )
+def test_exports_are_the_public_names():
+    assert len(set(field.__all__)) == len(field.__all__)
+    assert all(hasattr(field, name) for name in field.__all__)
+    own = {
+        n
+        for n, v in vars(field).items()
+        if not n.startswith("_") and getattr(v, "__module__", None) == field.__name__
+    }
+    assert own <= set(field.__all__)
 
 
 def test_noise_is_the_core_noise():

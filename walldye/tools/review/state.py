@@ -46,10 +46,9 @@ class Step:
 
 
 def load_state() -> State:
-    """Review state {slug: {versions?: {name: {status?: keep|edit|drop, note?}}, edits?: {title?,
-    description?, alt?, notes?, technique?, subject?, lineage?, variants?: {name: {label?,
-    description?, alt?}}}, facets?: {facet: {value: accept|decline}}, labels?: {facet: {value:
-    label}}}}; {} if unreadable."""
+    """Review state {slug: {versions?: {name: {status?: keep|edit|drop, note?}}, edits?: {<a TEXT
+    or FACETS key>?, variants?: {name: {label?, <a VERSION_TEXT key>?}}}, facets?: {facet:
+    {value: accept|decline}}, labels?: {facet: {value: label}}}}; {} if unreadable."""
     try:
         data: object = json.loads(STATE_FILE.read_text())
     except (OSError, ValueError):

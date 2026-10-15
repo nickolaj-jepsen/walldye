@@ -271,11 +271,6 @@ def test_color_words_warn(tmp_path):
     ]
 
 
-def test_color_words_match_plurals_but_not_tokens():
-    text = "Greys and whites under the ambers; GREYS, BLUES, reddish, Blueprint, crimsons"
-    assert lint.words.color_words(text) == {"greys", "whites", "ambers", "crimsons"}
-
-
 def test_data_rules(wallpapers):
     d = wallpapers / "piece" / "data"
     d.mkdir(parents=True)

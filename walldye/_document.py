@@ -76,7 +76,7 @@ class Document:
         return "#".join(self._parts)
 
     def hexes(self, tokens: Mapping[str, str]) -> list[str]:
-        """Each slot resolved to uppercase #RRGGBB under the 21-token dict `tokens`.
+        """Each slot resolved to uppercase #RRGGBB under the full token dict `tokens`.
 
         Raises ValueError when the tokens belong to the other regime.
         """
@@ -106,7 +106,7 @@ class Document:
         return out
 
     def to_svg(self, tokens: Mapping[str, str]) -> str:
-        """The SVG text under the 21-token dict `tokens`, already normalized.
+        """The SVG text under the full token dict `tokens`, already normalized.
 
         Raises ValueError when the tokens belong to the other regime.
         """

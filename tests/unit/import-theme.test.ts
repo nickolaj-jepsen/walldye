@@ -7,7 +7,7 @@ const MOCHA = { bg: '#1E1E2E', fg: '#CDD6F4' };
 const BLUE = '#89B4FA';
 
 describe('seedsFromText', () => {
-  it('reads a theme token and three colors as before', () => {
+  it('reads a theme token and three colors', () => {
     expect(seedsFromText(' nord ')).toEqual({ bg: '#2E3440', fg: '#ECEFF4', accent: '#88C0D0' });
     expect(seedsFromText('#111, #eee, #f80')).toEqual({
       bg: '#111111',

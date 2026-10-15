@@ -1,9 +1,12 @@
+from typing import get_args
+
 import numpy as np
 import pytest
 from helpers_support import PINS, canvas, drawn, rects
 
 from walldye import ACCENT, BG_ALT, FG, UI, UI_HI, mix, pixel
 from walldye.pixel import (
+    DitherMethod,
     Pixels,
     bayer,
     blue_noise,
@@ -17,23 +20,15 @@ from walldye.pixel import (
 )
 
 
-def test_exports_match_the_spec():
-    assert sorted(pixel.__all__) == sorted(
-        [
-            "Pixels",
-            "grid_runs",
-            "dither",
-            "bayer",
-            "blue_noise",
-            "threshold_matrix",
-            "sprite",
-            "glyph",
-            "glyphs",
-            "text_width",
-            "Font",
-            "DitherMethod",
-        ]
-    )
+def test_exports_are_the_public_names():
+    assert len(set(pixel.__all__)) == len(pixel.__all__)
+    assert all(hasattr(pixel, name) for name in pixel.__all__)
+    own = {
+        n
+        for n, v in vars(pixel).items()
+        if not n.startswith("_") and getattr(v, "__module__", None) == pixel.__name__
+    }
+    assert own <= set(pixel.__all__)
 
 
 # Palette entry k stands for v1's fill "#00000k" in the pinned drawings.
@@ -388,11 +383,7 @@ def test_dither_equals_v1(case):
     assert np.array_equal(got, np.array(case["grid"]))
 
 
-@pytest.mark.parametrize(
-    "method",
-    ["bayer", "clustered", "lines", "fs", "atkinson", "jarvis", "stucki", "burkes", "sierra"]
-    + ["sierra-lite", "riemersma", "bluenoise", "random"],
-)
+@pytest.mark.parametrize("method", get_args(DitherMethod.__value__))
 def test_dither_levels_stay_in_range_and_follow_the_field(method):
     field = np.random.default_rng(9).uniform(-0.5, 1.5, (23, 31))
     for levels in (2, 3, 7):

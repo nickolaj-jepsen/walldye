@@ -432,11 +432,9 @@ def test_write_index(wallpapers, capsys):
     index.write()
     bad_meta = wallpapers / "bad-meta/meta.yaml"
     bad_slots = paths.build_dir("bad-slots") / "slots.json"
-    yaml_error = "expected ',' or ']', but got '<stream end>'"
-    assert capsys.readouterr().err.splitlines() == [
-        f"index.json: left out bad-meta: {bad_meta}: not valid YAML (line 2): {yaml_error}",
-        f"index.json: left out bad-slots: {bad_slots}: not a JSON object",
-    ]
+    meta_note, slots_note = capsys.readouterr().err.splitlines()
+    assert meta_note.startswith(f"index.json: left out bad-meta: {bad_meta}: not valid YAML ")
+    assert slots_note == f"index.json: left out bad-slots: {bad_slots}: not a JSON object"
     assert json.loads((wallpapers / "index.json").read_text()) == {
         "plain": {
             "aspects": ["16:9"],

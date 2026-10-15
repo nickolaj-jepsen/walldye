@@ -10,14 +10,7 @@ The reference for the Python API designs draw with, the CLI, and the files the b
 
 ## 2. Modules
 
-Designs import only these four. Each defines `__all__` with exactly these names, which Pyrefly's `implicit-reexport` rule relies on.
-
-| Module | Names |
-|---|---|
-| `walldye` | `design`, `Canvas`, `Motif`, `Params`, `knob`, `cached`; `Color`, `MaskColor`, the 20 tokens (§4.1), `MASK_WHITE`, `MASK_BLACK`, `mix`, `ramp`, `ladder`, `Ladder`, `by_regime`; `Paint`, `MaskPaint`, `Ref`, `Style`, `Stop`, `MaskStop`, `LineCap`, `LineJoin`, `FillRule`; `Buckets`, `ClipSurface`, `MaskSurface`, `PatternSurface`, `Rng` and `NpRng` for annotating helpers, since designs may not name `random` or `numpy.random`; `P`, `Path`, `Vec`, `Rect`, `Point`, `Num`, `polar`, `lerp`, `clamp`, `smoothstep` |
-| `walldye.geom` | `Affine`, `Polyline`, `spline_points`, `bezier_points`, `ribbon`, `hatch`, `ngon`, `scatter`, `poisson_disk`, `parts` |
-| `walldye.field` | `Noise`, `noise_grid`, `cells`, `falloff`, `gauss`, `iso_lines`, `runs`, `sample_field` |
-| `walldye.pixel` | `Pixels`, `grid_runs`, `dither`, `bayer`, `blue_noise`, `threshold_matrix`, `sprite`, `glyph`, `glyphs`, `text_width`, `Font`, `DitherMethod` |
+Designs import only `walldye`, `walldye.geom`, `walldye.field` and `walldye.pixel`. Each defines `__all__` as exactly its public names, which Pyrefly's `implicit-reexport` rule relies on.
 
 The `_*.py` modules implement them. `walldye.tools` is the CLI, which designs never import.
 
@@ -71,7 +64,7 @@ A `Color` is a formula over theme tokens, never a hex value (architecture.md, De
 | `UI_HI` | `mix(bg, fg, 0.31)`* | | |
 | `MUTED` | `mix(bg, fg, 0.563)` | | |
 
-The site's 21st token, `orange_dark`, has no design constant.
+The site's `orange_dark` token has no design constant.
 
 ### 4.2 Building colors
 
@@ -292,7 +285,7 @@ The key is the function's code, every module-level name it reaches and its argum
 
 ## 10. Helper modules
 
-Helpers take randomness as a generator from `s.rng`, `s.np_rng` or `s.noise`, never as an integer seed. Point arrays are `NDArray[np.float64]` of shape `(N, 2)`.
+Helpers take randomness as a generator from `s.rng`, `s.np_rng` or `s.noise`, never as an integer seed, and annotate it as `Rng` or `NpRng`, since designs may not name `random` or `numpy.random`. Point arrays are `NDArray[np.float64]` of shape `(N, 2)`.
 
 ### 10.1 `walldye.geom`
 
@@ -368,25 +361,14 @@ architecture.md (Build and check) says how the hashes decide what to redraw.
 
 ## 12. CLI
 
-Run `uv run walldye <command>`; `-h` lists any command's flags. Commands that take slugs need them named, or `--all`; `review` defaults to the drafts.
+`uv run walldye --help` lists the commands and how they take slugs, `--theme` and `--variant`, and `uv run walldye <command> -h` a command's flags.
 
 ### 12.1 Commands
 
-| Command | Does |
-|---|---|
-| `new <slug> --model M \| --author NAME` | writes a starter design.py and a draft meta.yaml with that credit, today's date and no `license:` |
-| `preview <slug>` | a PNG in `$WALLDYE_PREVIEW` (default `<tmp>/walldye`), printing the design lint, the regime and whether light geometry differs |
-| `render <slug>` | one SVG in the working directory, or `-o PATH` (`-` for stdout); never into `build/`. A PATH ending in `.png` gets an opaque PNG `--width PX` wide (default the canvas's). `--fit` cuts an aspect the piece doesn't declare from its 16:9 render around the focus, as the site does, instead of refusing it. `--place X,Y,K` puts the motif's anchor at X,Y in canvas units at size K, as the site's "Copy command" writes it. |
-| `check [<slug>... \| --all]` | the gate (architecture.md, Build and check) |
-| `build [<slug>... \| --all]` | check, then write `build/` and index.json. It has no `--set`: published values belong in a named variant |
-| `review [<slug>... \| --all]` | the review page (§12.3) |
-| `sheet [<slug>... \| --all]` | a contact sheet (§12.2) |
-| `params <slug>` | the params, their ranges and each named variant's values and label; `--json` for scripts |
-| `list` | slug, title, description, draft, native aspects and named variants, tab-separated |
-| `drop <slug>...` | deletes the folder after a y/N prompt and takes the piece off `featured.yaml`; `--yes` when the owner has already confirmed |
-| `themes` | the presets; `--theme T` also prints that theme's 21 tokens |
-
-`--theme` takes a preset name or bg-fg-accent seeds (also `bg,fg,accent` and `bg=..,fg=..,accent=..`), defaulting to `$WALLDYE_THEME`, else fireproof. `--variant` takes `default` or a declared name.
+What the help leaves out:
+- `check` is the gate (architecture.md, Build and check), and `build` runs it first. `build` has no `--set`: published values belong in a named variant.
+- `render` never writes into `build/`.
+- `drop` also takes the piece off `featured.yaml`.
 
 The CLI works on the checkout it is installed from. `$WALLDYE_ROOT` points an installed copy, such as the Nix package, at another folder holding `wallpapers/`.
 
@@ -430,11 +412,11 @@ It then prints JSON:
 
 | Rule | Fails |
 |---|---|
-| imports | anything outside source.py's `STDLIB`, `LIBRARIES` and `WALLDYE_MODULES` (a few pure standard-library modules, numpy but not `numpy.random`, scipy, shapely, skimage and the four `walldye` modules). Relative imports and `from __future__ import annotations` fail too |
+| imports | anything outside source.py's `STDLIB` (pure standard-library modules), `LIBRARIES` and `WALLDYE_MODULES`. Relative imports and `from __future__ import annotations` fail too |
 | randomness | `numpy.random`, `scipy.stats.qmc`, and constructing generators or `Noise` directly; library samplers unless handed `s.np_rng(key)` |
-| constructors | calls of `Color`, `MaskColor`, `Ref`, `Canvas`, `Document` or `Design` |
+| constructors | calls of the library types in `CONSTRUCTORS`, which designs only receive |
 | colors | hex string literals, f-strings that build a hex, and `str()`, `format()`, `repr()`, `%` or f-string formatting of a color |
-| process state | the builtins `hash`, `id`, `open`, `exec`, `eval`, `compile`, `globals` and `__import__`, and `global` statements |
+| process state | the builtins in `PROCESS_CALLS` (such as `hash`, `open` and `eval`), and `global` statements |
 | entry point | anything but exactly one module-level `draw` decorated with `@design(...)` |
 | cached | `cached` anywhere but as the one, bare decorator of a module-level def |
 | module level | anything §13.2 does not allow |
@@ -442,7 +424,7 @@ It then prints JSON:
 | data | files in `data/` other than `.json`, `.txt` and `.npy`, and subdirectories |
 | type escapes | `# type: ignore`, `# pyrefly: ignore`, `typing.cast` and `typing.Any` |
 
-Warnings: color words in docstrings and comments, and copy problems in the module docstring. Check adds a pixel-grid origin that is not a whole unit and a variant whose check took more than 120 seconds.
+Warnings: color words in docstrings and comments, and copy problems in the module docstring. Check adds a pixel-grid origin that is not a whole unit and a variant whose check is slower than `SLOW` in `walldye/tools/check.py`.
 
 ### 13.2 Module level
 

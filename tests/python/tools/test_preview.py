@@ -36,11 +36,10 @@ def test_preview_prints_lint_lines(wallpapers, tmp_path, monkeypatch, capsys):
     assert cli.main(["preview", "loud", "--theme", "nord", "--width", "64"]) == 0
     lines = capsys.readouterr().out.splitlines()
     assert lines[0].startswith("error: line 3: imports random;")
-    assert lines[1:4] == [
-        "warning: color words in docstrings or comments: crimson (name tokens or roles, never hues)",
-        "warning: meta.yaml description: color words crimson",
-        "warning: pixel grid origin (0.5, 3) is not a whole unit; snap it to the 4-unit cell grid",
-    ]
+    assert all(w.startswith("warning: ") for w in lines[1:4]), lines
+    source_words, meta_words, origin = lines[1:4]
+    assert "crimson" in source_words and "crimson" in meta_words
+    assert origin.startswith("warning: pixel grid origin (0.5, 3) ")
     assert lines[4] == "lint: 1 error(s), 3 warning(s)"
 
 

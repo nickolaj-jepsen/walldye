@@ -1,7 +1,7 @@
 # Font sources
 
-`uv run scripts/fonts/subset.py` writes the subsets to `src/assets/fonts/` from the two TTFs and the
-zip below, checked against their sha256; it refuses to run while a pin in its `SOURCES` is missing
+`uv run scripts/fonts/subset.py` writes the subsets to `src/assets/fonts/` from the downloads its
+`SOURCES` pins, checked against their sha256; it refuses to run while one of those pins is missing
 here. The other rows record provenance.
 
 ## EB Garamond 1.003

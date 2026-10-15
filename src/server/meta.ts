@@ -1,5 +1,5 @@
 /**
- * Rules over a parsed meta.yaml shared by CI and the content schema: the license default and draft
+ * Rules over a parsed meta.yaml: the license default and draft
  * flag (ports of walldye/tools/lint/piece.py license_of and metadata.is_draft) and the `variants:`
  * mapping. The copy rules live in walldye/tools/lint/words.py.
  */

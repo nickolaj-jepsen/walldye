@@ -108,7 +108,7 @@ export function savedTheme(): ResolvedTheme | null {
   return seeds && resolved(seeds, 'saved');
 }
 
-/** SYSTEM_PAIR's theme for the system scheme: fireproof, or flexoki-light under a light one. */
+/** SYSTEM_PAIR's theme for the system scheme. */
 export function systemTheme(): ResolvedTheme {
   return resolved(pairSeeds(SYSTEM_PAIR), 'system');
 }
@@ -123,7 +123,7 @@ export function resolveTheme(): ResolvedTheme {
   return sharedTheme() ?? ownTheme();
 }
 
-/** Whether a shared theme is in effect that differs from the visitor's own (the header offers Keep it / Back to yours). */
+/** Whether a shared theme is in effect that differs from the visitor's own. */
 export function sharedDiffers(): boolean {
   const shared = sharedTheme();
   return shared !== null && shared.token !== ownTheme().token;
@@ -185,7 +185,7 @@ export function applyTheme(seeds: Seeds): void {
 /**
  * Re-resolves and applies the theme when the system color scheme changes and when the page comes back
  * from the back/forward cache, where storage may have changed meanwhile. It applies even when the theme
- * is unchanged, so THEME_EVENT listeners re-check what depends on the system theme (the shared-theme line).
+ * is unchanged, so THEME_EVENT listeners re-check what depends on the system theme.
  */
 export function followChanges(): void {
   const again = () => applyTheme(resolveTheme().seeds);

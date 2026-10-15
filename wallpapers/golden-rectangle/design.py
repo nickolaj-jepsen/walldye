@@ -139,7 +139,7 @@ class Drawing(Params):
 @design(aspects="any", variants={"undimensioned": Drawing(dimensions=False)})
 def draw(s: Canvas[Drawing]) -> None:
     sheet(s)
-    # Landscape keeps the original's spot right of center. Portrait stands the rectangle upright
+    # Landscape sits right of center. Portrait stands the rectangle upright
     # with a quarter turn anticlockwise: the first square at the bottom, dimensions left and below.
     c = s.pick(landscape=(37 / 64, 14 / 27), portrait=(0.53, 0.465))
     turn = 0 if s.landscape else -90

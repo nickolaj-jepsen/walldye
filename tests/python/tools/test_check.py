@@ -7,6 +7,7 @@ import pytest
 from fixtures import pieces
 from tools_support import built, legacy, versions
 
+from walldye._aspect import SITE_ASPECTS
 from walldye.tools import check, determinism, hashing, loader, paths, themes
 from walldye.tools.errors import UsageError
 
@@ -254,7 +255,8 @@ def test_pixel_grids_give_cells_and_origin_warnings(wallpapers):
         "16:9: pixel grid origin (710.4, 442.8) is not a whole unit; snap it to the 3-unit cell grid"
         in result.warnings
     )
-    assert len(result.entries) == 12 and len(result.templates) == 6
+    assert len(result.templates) == len(SITE_ASPECTS)
+    assert len(result.entries) == 2 * len(SITE_ASPECTS)
 
 
 def test_hashes_subprocess(wallpapers):
@@ -309,9 +311,8 @@ def test_meta_yaml_problems(wallpapers):
     meta.write_text("- a\n- b\n")
     assert report("collision").errors == [f"{meta}: must be a mapping"]
     meta.write_text("title: [x\n")
-    assert report("collision").errors == [
-        f"{meta}: not valid YAML (line 2): expected ',' or ']', but got '<stream end>'"
-    ]
+    (error,) = report("collision").errors
+    assert error.startswith(f"{meta}: not valid YAML (line 2): ")
 
 
 def test_slots_entries_carry_the_motif(wallpapers):

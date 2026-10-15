@@ -18,7 +18,7 @@ interface Props {
   image?: string;
   imageAlt?: string;
   ogType?: 'website' | 'article';
-  /** Class on `<main id="main">`: `index`, `detail` or `about`. */
+  /** Class on `<main id="main">`. */
   mainClass?: string;
   /** Nav entry marked as the current page. */
   nav?: 'index' | 'about';
@@ -44,9 +44,9 @@ const transitionBoot = await inlineScript('transition', !import.meta.env.DEV);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {/* Ahead of the boot, which repaints it in the visitor's theme. */}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" id="favicon" />
-    {/* THEME BOOT (src/client/theme/boot.ts): keep it the first script, ahead of every stylesheet, so it never waits on CSS. */}
+    {/* The theme boot stays the first script, ahead of every stylesheet, so it never waits on CSS. */}
     <script is:inline set:html={themeBoot} />
-    {/* TRANSITION BOOT (src/client/transition/boot.ts): pagereveal fires at the first render, before the page modules run. */}
+    {/* The transition boot runs here: pagereveal fires at the first render, before the page modules run. */}
     <script is:inline set:html={transitionBoot} />
     <title>{docTitle}</title>
     <meta name="description" content={description} />

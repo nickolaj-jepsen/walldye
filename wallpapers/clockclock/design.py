@@ -27,7 +27,7 @@ def hands(d: Path, c: Vec, a: float, b: float, reach: float = HAND) -> None:
 @design(aspects="any")
 def draw(s: Canvas) -> None:
     cols, rows, odd = LANDSCAPE if s.landscape else PORTRAIT
-    # a little right of and above center on a landscape screen, as in the 16:9 original
+    # a little right of and above center on a landscape screen
     c = s.pick(landscape=(25 / 48, 25 / 54), portrait=(0.5, 0.46))
     origin = c - ((cols - 1) * PITCH / 2, (rows - 1) * PITCH / 2)
 

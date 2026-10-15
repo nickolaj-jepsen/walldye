@@ -4,7 +4,7 @@ import { join, relative, resolve, sep } from 'node:path';
 import { DAY_FILE, type Day, parseDay, renames, type Views, viewTotals } from '../views';
 import { parseYaml } from '../yaml';
 
-// Astro runs from the project root (as Base.astro assumes); this module is bundled, so import.meta.url is no anchor.
+// Astro runs from the project root; this module is bundled, so import.meta.url is no anchor.
 export const ROOT = resolve('.');
 export const WALLPAPERS = join(ROOT, 'wallpapers');
 /** The `stats` branch's day files, checked out by CI; absent locally unless fetched. */

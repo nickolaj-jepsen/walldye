@@ -6,9 +6,8 @@ description: Design procedural SVG wallpapers for the walldye catalog, one per s
 # walldye
 
 A wallpaper is a folder `wallpapers/<slug>/` holding a `design.py` that draws with the `walldye`
-library and a `meta.yaml`. docs/wallpapers.md has the rules for the folder, meta.yaml, copy and
-licensing, docs/api.md the design API and the CLI, and docs/architecture.md how build, check,
-versions and the light ladder work. This skill is what an agent does on top of them.
+library and a `meta.yaml`. AGENTS.md lists the docs that hold the rules; this skill is what an
+agent does on top of them.
 
 Run commands from the repo root as `uv run walldye <command>`; `-h` on any command lists its
 flags.
@@ -24,7 +23,7 @@ flags.
 - A check or build takes from a few seconds to about half a minute per piece (a dense
   `aspects="any"` piece with variants, or a heavy simulation, is the slow end), so give each a
   600000 ms Bash timeout. Work that takes seconds and doesn't depend on the shape or regime goes
-  in a module-level `@cached` def (docs/api.md §9.1).
+  in a module-level `@cached` def (docs/api.md, `@cached`).
 - Leave the work uncommitted (step 13).
 
 ## Several pieces
@@ -47,8 +46,7 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    ```
    If it does, or references/ideas.md lists it as dropped, change the subject or the
    composition, not the parameters.
-2. Scaffold, with your own model id, such as `claude-opus-5-5` (drop a context suffix such as
-   `[1m]` from the id):
+2. Scaffold, with your own model id (drop a context suffix such as `[1m]` from the id):
    ```bash
    uv run walldye new <slug> --model <model id>
    ```
@@ -59,9 +57,8 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    `s.inset`; leave it out for 16:9 only, and the site crops other screen shapes from that. A
    piece built around one object draws it as a motif (references/api.md, Motifs), which
    visitors can move and resize.
-4. Preview for at least three rounds. Each run prints lint lines, `regime:`,
-   `light geometry:` and, last, the PNG path. Read the PNG, critique it against the checklist
-   in references/principles.md, revise.
+4. Preview for at least three rounds. Each run prints the PNG's path last. Read the PNG,
+   critique it against the checklist in references/principles.md, revise.
    ```bash
    uv run walldye preview <slug>
    uv run walldye preview <slug> --crop X,Y,W,H          # canvas units, the busiest area
@@ -90,11 +87,11 @@ the critic's fixes back to that builder with SendMessage. Then build the pieces 
    fractional grid origins: fix those.
 9. Independent critique (below). Go on only with a score of 8 or more.
 10. `uv run walldye build <slug>`, then `uv run walldye check --similar <slug>`: after running
-    the whole check again, it prints `similar (0.95): a ~ b` for each built piece whose
-    thumbnail nearly matches yours. A match is a duplicate: change the subject or the
-    composition.
+    the whole check again, it prints a `similar` line for each built piece whose thumbnail
+    nearly matches yours. A match is a duplicate: change the subject or the composition.
 11. Review. Run `uv run walldye review <slug>` with `run_in_background`: it serves a local page,
-    blocks until the owner presses Apply, then prints JSON (docs/api.md §12.3). Act on it:
+    blocks until the owner presses Apply, then prints JSON (docs/api.md, `walldye review`). Act
+    on it:
     - A note on an approved version usually asks for more, such as another version like it.
     - Rework each version in `edit` as its note says, then run steps 8 to 11 for it again. It
       keeps its draft flag until then.
@@ -127,9 +124,9 @@ When the owner sends a published piece back with a note:
    slug so its published versions are in the queue.
 
 Making a published piece's object a motif changes how it is drawn, not what it shows. Before
-editing, render every shape and regime at the canvas size (`walldye render <slug> --aspect A
---theme fireproof -o before-A.png`, and `--theme flexoki-light`), render them again after, and
-compare:
+editing, render every shape and regime at the canvas size
+(`uv run walldye render <slug> --aspect A --theme fireproof -o before-A.png`, and
+`--theme flexoki-light`), render them again after, and compare:
 
 ```bash
 uv run python -c "import sys, numpy as n; from PIL import Image as I; a, b = (n.asarray(I.open(p), dtype=int) for p in sys.argv[1:]); print(abs(a - b).max())" before.png after.png
@@ -151,11 +148,11 @@ subagent with the Agent tool as the critic, and give it no conversation history,
   .claude/skills/walldye/references/taste.md. Edit no files; you may run
   `uv run walldye preview` for more views and read design.py and meta.yaml. Score the piece 1
   to 10 by principles.md's scoring, and list concrete fixes (positions, sizes, tones, density),
-  most important first. Judge each variant against the Variant policy in
-  .claude/skills/walldye/SKILL.md: keep or drop, with the reason. Then score the copy 1 to 10
-  on its own against Copy in docs/wallpapers.md, asking of each field: is its fact checkable,
-  does anything but the alt text describe the picture, and would a person say it out loud?
-  Quote any replacement text."
+  most important first. Judge each variant against Versions in docs/architecture.md and the
+  Variant policy in .claude/skills/walldye/SKILL.md: keep or drop, with the reason. Then score
+  the copy 1 to 10 on its own against Copy in docs/wallpapers.md, asking of each field: is its
+  fact checkable, does anything but the alt text describe the picture, and would a person say
+  it out loud? Quote any replacement text."
 
 Apply the fixes, run step 8 again, and start a second fresh critic. If the piece still scores
 under 8, stop before build: tell the owner the score and the critic's reasons, and ask whether
@@ -166,18 +163,17 @@ that started it runs the critic and sends back the fixes.
 
 ## Variant policy
 
-A variant is a named version of a piece (docs/architecture.md, Versions). Each one is built for
-every aspect and regime, reviewed and kept, so the bar is high:
+A variant is a named version of a piece, and docs/architecture.md, Versions, has its rule.
+Each one is built for every aspect and regime, reviewed and kept, so the bar is high:
 
-- It changes what is depicted (a moon phase, a rule number, a reaction regime, the moment of a
-  sweep), or leaves out a layer that a plainer wallpaper does without (a construction
-  drawing's dimensions, a chart's labels). It never just nudges a value. A new seed is a
-  variant only when the result shows something different; seed ladders are for
-  `sheet --seeds`, never for the site.
+- A change of what is depicted is a moon phase, a rule number, a reaction regime or the moment
+  of a sweep; a layer worth dropping is one a plainer wallpaper does without (a construction
+  drawing's dimensions, a chart's labels). A new seed is a variant only when the result shows
+  something different; seed ladders are for `sheet --seeds`, never for the site.
 - Propose at most 3, always as `draft: true`; the owner approves each one in review.
 - Every version reads as its subject as clearly as the default does.
-- `check` does not compare versions, so judge by eye that each one differs: on a
-  fine-textured piece a 4% nudge of one value changes the file but not the picture.
+- Judge by eye that each one differs: on a fine-textured piece a 4% nudge of one value changes
+  the file but not the picture.
 
 ## meta.yaml
 
@@ -201,9 +197,7 @@ docstring and comments. On top of them:
 - Write the alt text from the preview, and the description's fact from the sources; don't
   open a description the way the last few pieces do (`walldye list` shows them).
 - Run the avoid-ai-tropes skill on every draft.
-- The color-word lint is a plain word list that also matches plurals, so "black" and "grays"
-  trip it ("golden ratio" and its kin do not). It does not know temperatures ("warm",
-  "cool"); avoid those by hand.
+- The color-word lint does not know temperatures ("warm", "cool"); avoid those by hand.
 
 ## Examples
 
@@ -216,17 +210,15 @@ Start from the nearest of these published pieces, each at `wallpapers/<slug>/des
 | `glyph-terrain` | glyph roles, `by_regime` colors, a map turned for portrait screens |
 | `pixel-invaders` | sprites stamped into one `Pixels` grid, dive trail included |
 | `patent-lamp` | a patent figure placed by one transform, ruled shading and stipple |
-| `noise-contours` | iso-lines in a clip, in under 50 lines |
+| `noise-contours` | iso-lines in a clip |
 | `flow-field-ribbons` | a flow field of collision-checked streamlines |
 | `hitomezashi` | a stitch tiling that runs past every edge |
 | `star-chart` | real data read with `s.data`, a `data` source, a variant for another sky |
 
 ## References
 
-- references/api.md: worked examples (buckets, clips, masks, patterns, gradients, noise,
-  fields, dither, glyphs), dither costs, glyph coverage, shapely and scipy recipes, and the
-  size budget. docs/api.md has the signatures.
-- references/principles.md: the house style, light themes, subjects, the critique checklist,
-  scoring, and the failure modes with the reviews that taught them.
+- references/api.md: worked examples and recipes on top of the signatures in docs/api.md.
+- references/principles.md: the house style, the critique checklist and scoring, and the
+  failure modes with the reviews that taught them.
 - references/taste.md: what the owner likes and rejects, and the fan-work rule.
-- references/ideas.md: unbuilt seeds, and the ideas review dropped.
+- references/ideas.md: idea seeds, and the ideas review dropped.

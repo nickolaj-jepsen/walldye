@@ -1,7 +1,6 @@
 /**
- * A client entry bundled as an IIFE for an inline `<script>`: the theme and transition boots in
- * Base.astro's `<head>`, the index's and detail page's shape boots and the detail page's panel boot. With `cache` each entry is built once per process; without, on every
- * call, so `astro dev` picks up edits. Rejects when the entry is missing or does not compile, which
+ * A client entry from ENTRIES bundled as an IIFE for an inline `<script>`. With `cache` each entry is
+ * built once per process; without, on every call, so `astro dev` picks up edits. Rejects when the entry is missing or does not compile, which
  * fails the page that asked for it.
  */
 import { resolve } from 'node:path';

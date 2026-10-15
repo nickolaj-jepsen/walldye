@@ -31,21 +31,15 @@ from walldye.geom import (
 )
 
 
-def test_exports_match_the_spec():
-    assert sorted(geom.__all__) == sorted(
-        [
-            "Affine",
-            "Polyline",
-            "spline_points",
-            "bezier_points",
-            "ribbon",
-            "hatch",
-            "ngon",
-            "scatter",
-            "poisson_disk",
-            "parts",
-        ]
-    )
+def test_exports_are_the_public_names():
+    assert len(set(geom.__all__)) == len(geom.__all__)
+    assert all(hasattr(geom, name) for name in geom.__all__)
+    own = {
+        n
+        for n, v in vars(geom).items()
+        if not n.startswith("_") and getattr(v, "__module__", None) == geom.__name__
+    }
+    assert own <= set(geom.__all__)
 
 
 def test_affine_is_the_core_affine_and_replaces_hand_rotations():

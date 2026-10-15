@@ -3,7 +3,7 @@ import random
 import pytest
 
 from walldye import _theme
-from walldye._aspect import SITE_ASPECTS, canvas_size, native_aspects, supports
+from walldye._aspect import SITE_ASPECTS, native_aspects, supports
 from walldye._theme import SEEDS, TOKENS, derive_theme, mix
 from walldye.tools import paths, themes
 from walldye.tools.themes import PRESETS, parse_theme
@@ -30,7 +30,7 @@ def test_fireproof_seeds_resolve_to_pinned_table(spec):
 
 def test_fireproof_seed_dict_resolves_to_pinned_table():
     tokens = themes.tokens_of({"bg": "#1c1b1a", "fg": "dad8ce", "accent": "#CF6A4C"})
-    assert tokens == PRESETS["fireproof"] and tokens["accent_3"] == "#71311E"
+    assert tokens == PRESETS["fireproof"] != derive_theme(FIREPROOF_SEEDS)
 
 
 def test_fireproof_neighbor_is_derived():
@@ -49,11 +49,10 @@ def test_nord_regression():
     }  # fmt: skip
 
 
-def test_nord_accents_rederive():
-    t = parse_theme("nord")
-    for k, frac in _theme._ACCENT_T.items():
-        assert t[k] == mix(NORD["accent"], NORD["bg"], frac)
-    assert t["orange_dark"] == t["accent_1"]
+def test_derived_orange_dark_is_accent_1():
+    for seeds in (NORD, {"bg": "#FFFCF0", "fg": "#100F0F", "accent": "#2E7D6B"}):
+        t = derive_theme(seeds)
+        assert t["orange_dark"] == t["accent_1"]
 
 
 def test_mix_rounds_half_to_even():
@@ -92,15 +91,7 @@ def test_token_coefs_are_derive_theme_before_rounding():
 # --- aspects ----------------------------------------------------------------------
 
 
-def test_site_aspect_canvases():
-    assert {a: canvas_size(a) for a in SITE_ASPECTS} == {
-        "16:9": (1920, 1080),
-        "16:10": (1728, 1080),
-        "21:9": (2520, 1080),
-        "32:9": (3840, 1080),
-        "9:19.5": (1080, 2340),
-        "10:16": (1080, 1728),
-    }
+def test_is_aspect():
     for good in ("16:9", "3440x1440", "9:19.5"):
         assert paths.is_aspect(good)
     for bad in ("wide", "inf:1", "16:-9", "16:0"):

@@ -1,6 +1,5 @@
 /**
- * The index page: facet filtering, search, sort and shape with the state in the query string, live
- * counts and the results line, and the plate grid (grid.ts).
+ * The index page: its filter form, kept in step with the query string, and the plate grid.
  */
 import { aspectLabel, isSortOrder, type SortOrder } from '../../lib/content';
 import { formParams, must, replaceAddress } from '../dom';
@@ -112,7 +111,7 @@ status.setAttribute('role', 'status');
 form.addEventListener('submit', (e) => e.preventDefault());
 form.addEventListener('input', apply);
 form.addEventListener('change', apply);
-// `reset` fires before the controls are reset. "clear" clears the filters; the shape is kept.
+// `reset` fires before the controls are reset. A reset clears the filters; the shape is kept.
 form.addEventListener('reset', () => {
   const shape = shapes.find((r) => r.checked);
   setTimeout(() => {
@@ -121,7 +120,7 @@ form.addEventListener('reset', () => {
   });
 });
 
-// Phones: close the filter and bring its summary, the color row and the grid into view.
+// Phones: close the filter and scroll its summary to the top.
 showResults.addEventListener('click', () => {
   details.open = false;
   const toggle = must('summary', details);

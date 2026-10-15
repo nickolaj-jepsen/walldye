@@ -8,6 +8,7 @@ from pathlib import Path
 from walldye import _theme
 from walldye._design import Design, RenderSpec
 from walldye._params import Params
+from walldye.tools.coefs import TEMPLATE_THEMES
 from walldye.tools.themes import HELD_OUT, PROBES, parse_theme
 
 DESIGNS = Path(__file__).parent / "designs"
@@ -39,14 +40,14 @@ def load_file(path: Path) -> Design[Params]:
 
 
 def tokens(theme: tuple[str, str, str]) -> dict[str, str]:
-    """The 21-token dict of a (bg, fg, accent) seed triple."""
+    """The full token dict of a (bg, fg, accent) seed triple."""
     return _theme.theme_tokens(dict(zip(_theme.SEEDS, theme, strict=True)))
 
 
 def themes(regime: str) -> list[dict[str, str]]:
     """Every theme the tools serialize a document of `regime` under: its template preset, the
     held-out set and the probes (the sample theme is one of the held-out set)."""
-    template = parse_theme("fireproof" if regime == "dark" else "flexoki-light")
+    template = parse_theme(TEMPLATE_THEMES[regime])
     rest = HELD_OUT[regime] + PROBES[regime]
     return [template, *(tokens(t) for t in rest)]
 

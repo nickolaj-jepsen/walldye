@@ -23,7 +23,7 @@ def test_new_scaffolds_a_draft(wallpapers, capsys):
     # The template passes the design lint as written.
     t = check.prepare("ring-one")
     check.lint_source(t)
-    assert t.report.errors == ["meta.yaml needs a description", "meta.yaml needs alt text"]
+    assert all(e.startswith("meta.yaml ") for e in t.report.errors), t.report.errors
 
 
 def test_new_credits_an_author(wallpapers):

@@ -1,10 +1,9 @@
 """The Python-made fixtures vitest's parity tests check the TS ports against.
 
-`uv run python scripts/fixtures/regen.py` writes them to tests/fixtures/, uncommitted:
-themes.json, constants.json, crops.json and collision/, and the reference renders, which need
-REFERENCE_PIECES built first. CI runs it after `walldye build`; run it locally before
-`pnpm test`. The hand-written specs the ports also read (tokenize.json, theme-tokens.json) are
-committed in src/lib/__fixtures__/.
+`uv run python scripts/fixtures/regen.py` writes them to tests/fixtures/, uncommitted; the
+reference renders need REFERENCE_PIECES built first. CI runs it after `walldye build`; run it
+locally before `pnpm test`. The hand-written specs the ports also read are committed in
+src/lib/__fixtures__/.
 """
 
 import contextlib

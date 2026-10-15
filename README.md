@@ -6,15 +6,12 @@ Procedural wallpapers, each a small Python script, recolored to any three colors
 
 ## Run it
 
-Needs [uv](https://docs.astral.sh/uv/) and [pnpm](https://pnpm.io/).
+Needs [uv](https://docs.astral.sh/uv/).
 
 ```sh
 git clone https://github.com/nickolaj-jepsen/walldye && cd walldye
 uv run walldye list
 uv run walldye render radar-sweep --theme nord --aspect 21:9
-
-uv run walldye build --all   # slow the first time
-pnpm install && pnpm dev
 ```
 
 ## NixOS
@@ -33,7 +30,7 @@ wallpaper = inputs.walldye.packages.${pkgs.stdenv.hostPlatform.system}.default.m
 
 ## Contributing
 
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+[CONTRIBUTING.md](.github/CONTRIBUTING.md) covers running the site locally and adding a wallpaper.
 
 ## License
 

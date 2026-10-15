@@ -14,8 +14,8 @@ META = {
     "model": "claude-opus-5-5",
     "draft": True,
 }
-# vitest (b) themes: a 1-unit neighbor of fireproof (derived model), two presets, and a light
-# corner, so each regime is recolored under two themes other than its template's.
+# The parity recolor themes: a 1-unit neighbor of fireproof (derived model), two presets, and a
+# light corner, so each regime is recolored under two themes other than its template's.
 RECOLOR_THEMES = ["1c1b1b-dad8ce-cf6a4c", "nord", "flexoki-light", "ffffff-000000-0000ff"]
 
 

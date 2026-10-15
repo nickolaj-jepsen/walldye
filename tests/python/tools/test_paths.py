@@ -3,9 +3,6 @@ import pytest
 from walldye.tools import paths
 from walldye.tools.paths import TEMPLATE_NAME, parse_template_name, template_name
 
-NORD = {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"}
-FIREPROOF_SEEDS = {"bg": "#1C1B1A", "fg": "#DAD8CE", "accent": "#CF6A4C"}
-
 # --- template names ------------------------------------------------------------
 
 

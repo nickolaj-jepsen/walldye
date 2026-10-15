@@ -1,6 +1,5 @@
 /**
- * Every page: the header's theme button, the shared-theme line, the theme picker, the index's theme
- * row and "Copy link".
+ * The theme controls and copy-link button on every page.
  * The theme boot has already applied the theme; this module keeps the controls in step with it and
  * saves the visitor's edits.
  */
@@ -40,7 +39,7 @@ const themeButton = must('#theme-button');
 const themeName = must('[data-theme-name]', themeButton);
 const sharedLine = must('#shared');
 const picker = must('#picker');
-// The picker's themes and, on the index, the row above the grid.
+// Every preset and family button on the page, in the picker or not.
 const presetButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-preset]')];
 const familyButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-family]')];
 const fields = Object.fromEntries(

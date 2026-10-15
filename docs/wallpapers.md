@@ -52,7 +52,7 @@ variants:                    # only when design.py declares named variants
 
 ## Copy
 
-These rules cover everything a visitor reads that a wallpaper supplies: meta.yaml's titles, descriptions, alt texts, notes and version labels, and design.py's docstring and comments, since the page shows the source. The site's own text follows the same rules and the voice in site.md §7.
+These rules cover everything a visitor reads that a wallpaper supplies: meta.yaml's titles, descriptions, alt texts, notes and version labels, and design.py's docstring and comments, since the page shows the source. The site's own text follows the same rules and the Voice section of site.md.
 
 A visitor can see the picture, so nothing but the alt text describes it. Every field has one job:
 
@@ -66,7 +66,7 @@ In every field:
 
 - A fact is checkable: it follows from a source in `sources:` or is stated in any encyclopedia. No invented numbers and no claims about what a piece means, evokes or is about.
 - Strictly neutral: no opinion, humor, mood or metaphor, and no gesture phrases (a take on, nods to, in the spirit of, evokes, homage). Name an inspiration and say what comes from it.
-- Use plain words a visitor would use. Never: internal terms (regime, seed, token, native, hand-tuned, light-ready, preset, variant, param, slot, template, derived, guard, "has script", "AI-generated", "generator lost", "Appendix"), license names and identifiers (CC0, GPL, SPDX, OFL, LicenseRef-*; About alone names the licenses), or machinery numbers (contrast ratios, color tolerances, pixel sizes). Visitors see variants as "versions".
+- Use plain words a visitor would use. Never: internal terms (regime, token, slot, template and the rest of the internal-term pattern in `walldye/tools/lint/words.py`), license names and identifiers (CC0, GPL, SPDX, OFL, LicenseRef-*; About alone names the licenses), or machinery numbers (contrast ratios, color tolerances, pixel sizes). Visitors see variants as "versions".
 - Stay theme-neutral: no color names ("terracotta") and no theme roles as nouns ("the accent"). Comments in design.py name tokens or roles, never hues.
 - No evaluative adjectives (stunning, mesmerizing, elegant, timeless), and nothing the avoid-ai-tropes check flags.
 - Italics only for titles of works.
@@ -106,5 +106,5 @@ A piece is released as CC0 only when everything in it is ours to give away. The 
 
 ## Drafts and review
 
-- Drafts live on main. A new piece or version starts as `draft: true` and stays off the production site until `walldye review` (api.md §12.3) publishes it.
+- Drafts live on main. A new piece or version starts as `draft: true` and stays off the production site until `walldye review` (api.md) publishes it.
 - A rejected piece is deleted with `walldye drop`, after the owner confirms.

@@ -1,5 +1,5 @@
 /**
- * The inline <head> script (Base.astro bundles it with esbuild): applies the visitor's theme before
+ * The inline <head> script (inlineScript bundles it): applies the visitor's theme before
  * first paint and again whenever it may have changed (followChanges). On any failure the page keeps
  * site.css's no-JS theme.
  */

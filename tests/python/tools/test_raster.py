@@ -2,9 +2,6 @@ from PIL import Image
 
 from walldye.tools import raster
 
-NORD = {"bg": "#2E3440", "fg": "#ECEFF4", "accent": "#88C0D0"}
-FIREPROOF_SEEDS = {"bg": "#1C1B1A", "fg": "#DAD8CE", "accent": "#CF6A4C"}
-
 # --- rasterizing -------------------------------------------------------------------
 
 

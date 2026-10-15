@@ -1,5 +1,5 @@
 /**
- * The inline <head> script (Base.astro bundles it) that carries a piece's plate between a grid and
+ * The inline <head> script that carries a piece's plate between a grid and
  * its page as a cross-document view transition. Only that one plate is named, since the browser
  * captures every named element; any other navigation skips the transition. It must run before the
  * first render, when pagereveal fires.

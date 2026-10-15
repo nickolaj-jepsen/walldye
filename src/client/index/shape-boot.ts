@@ -1,5 +1,5 @@
 /**
- * The inline script at the top of the index's `section.plates` (index.astro bundles it): sets the
+ * The inline script at the top of the index's `section.plates`: sets the
  * section's shape (markShape) and checks the matching Shape radio before first paint, so the grid does not
  * reflow when the page module loads. On any failure the grid stays 16:9 until then.
  */

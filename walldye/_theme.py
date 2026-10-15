@@ -1,8 +1,8 @@
-"""Theme model: three seeds (bg, fg, accent) derive the 21 tokens; pure functions only.
+"""Theme model: three seeds (bg, fg, accent) derive every token in TOKENS; pure functions only.
 
 Tokens are relative to the seeds, so light themes invert on their own: BG_DEEP and BLACK sit
-beyond bg, the grays step from bg to fg and ACCENT_1..8 from accent to bg. `fireproof` pins all
-21 tokens by hand (FIREPROOF); its exact seeds resolve to that table, any other seeds are
+beyond bg, the grays step from bg to fg and ACCENT_1..8 from accent to bg. `fireproof` pins every
+token by hand (FIREPROOF); its exact seeds resolve to that table, any other seeds are
 derived. The presets and the theme token grammar are in walldye.tools.themes.
 """
 
@@ -196,8 +196,9 @@ def normalize_seed(c: str) -> str:
 
 
 def theme_tokens(seeds: dict[str, str]) -> dict[str, str]:
-    """All 21 tokens for exactly {bg, fg, accent}: the pinned fireproof table for fireproof's
-    exact seeds, derive_theme otherwise. Seeds are normalized first; ValueError on other keys."""
+    """Every token in TOKENS for exactly {bg, fg, accent}: the pinned fireproof table for
+    fireproof's exact seeds, derive_theme otherwise. Seeds are normalized first; ValueError on
+    other keys."""
     if seeds.keys() != set(SEEDS):
         raise ValueError(
             f"theme seeds must be exactly bg, fg, accent (got {', '.join(sorted(seeds))})"

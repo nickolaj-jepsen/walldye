@@ -27,7 +27,7 @@ pnpm-debug.log*
 __pycache__/
 .venv/
 
-# tool caches, review state and test output
+# tool caches and local state
 /.cache/
 
 # tooling
@@ -43,5 +43,5 @@ wallpapers/*/build/
 wallpapers/index.json
 tests/fixtures/
 
-# page views by day: the stats branch, which CI and views.yml check out here
+# page views by day: a checkout of the stats branch
 /stats/

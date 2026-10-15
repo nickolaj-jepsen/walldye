@@ -393,7 +393,7 @@ const spec = ideas => json(ideas.map(i => ({
 
 const needsFix = r => !r || r.verdict !== 'keep' || r.fixes.length > 0 || r.copy_fixes.length > 0 || r.light_verdict !== 'ok' || r.variants.some(v => !v.keep)
 
-// ---- 0. setup -------------------------------------------------------------
+// ---- setup ----------------------------------------------------------------
 
 phase('Setup')
 const setup = await agent(`Prepare shared context for a batch of new wallpapers. You are in the walldye repo; change nothing in it.
@@ -410,7 +410,7 @@ TAXONOMY = `technique: ${setup.taxonomy.technique.join(', ')}; subject: ${setup.
 const existing = new Set(setup.existing.map(slugify))
 log(`${existing.size} existing names; scratch dir ${WORK}`)
 
-// ---- 1. research ----------------------------------------------------------
+// ---- research -------------------------------------------------------------
 
 phase('Research')
 const pools = await parallel(LENS_LIST.map(l => () => agent(`${LOOK}
@@ -433,7 +433,7 @@ if (deadLenses.length) log(`No ideas from lens ${deadLenses.join(', ')} (agent f
 if (!pool.length) throw new Error('wallpaper-batch: no lens agent returned ideas')
 log(`${pool.length} ideas from ${LENS_LIST.length - deadLenses.length} lenses`)
 
-// ---- 2. curate ------------------------------------------------------------
+// ---- curate ---------------------------------------------------------------
 
 phase('Curate')
 const curated = await agent(`${LOOK}
@@ -496,7 +496,7 @@ if (A.stop === 'ideas') {
   }
 }
 
-// ---- 3. design: builder -> critic -> fixer per batch of 3 -----------------
+// ---- design: builder -> critic -> fixer per batch of 3 --------------------
 
 phase('Design')
 const batches = chunk(ideas, 3)
@@ -601,7 +601,7 @@ batches.forEach((batch, i) => {
 const kept = Object.keys(pieces)
 log(`${kept.length} of ${ideas.length} designs kept after critique; ${dropped.length} failed or dropped`)
 
-// ---- 4. set-level pass ----------------------------------------------------
+// ---- set-level pass -------------------------------------------------------
 
 async function dropFolders(slugs) {
   const res = await agent(`Delete the folders of wallpapers that this batch created and then rejected. The owner has never seen them (they were made and turned down within this run), which is why skipping the confirmation prompt is fine here.
@@ -666,7 +666,7 @@ for (const f of setRes?.build_failed ?? []) {
 }
 log(`Set pass: ${dupes.length} duplicates to drop, ${polish.length} pieces to polish, ${(setRes?.near_clones ?? []).length} near-clone pairs`)
 
-// ---- 4b. polish: rework -> judge ------------------------------------------
+// ---- polish: rework -> judge ----------------------------------------------
 
 phase('Polish')
 const judged = polish.length ? await pipeline(
@@ -711,7 +711,7 @@ if (!survivors.length) {
   return { status: 'nothing-kept', work: WORK, dropped, cleanup, near_clones: setRes?.near_clones ?? [], next: ['Nothing survived the set pass. Read `dropped` for why.'] }
 }
 
-// ---- 5. sources -----------------------------------------------------------
+// ---- sources --------------------------------------------------------------
 
 phase('Sources')
 const sourcedGroups = await parallel(chunk(survivors, 3).map(group => () => agent(`You verify the sources of new wallpapers before they are published. You are in the walldye repo.
@@ -729,7 +729,7 @@ for (const r of sourcedGroups) for (const d of r?.designs ?? []) if (survivors.i
 const unsourced = survivors.filter(s => !sources[s])
 if (unsourced.length) log(`No sources result for ${unsourced.join(', ')}; their meta.yaml keeps sources: []`)
 
-// ---- 6. copy --------------------------------------------------------------
+// ---- copy -----------------------------------------------------------------
 
 phase('Copy')
 const copy = await agent(`You are the copy editor for a batch of new wallpapers. Load the avoid-ai-tropes skill first.
@@ -742,7 +742,7 @@ Edit in place: only title, description, alt and notes in meta.yaml (and each ver
 Return every change as {slug, field, before, after}.`, { label: 'copy', phase: 'Copy', schema: COPY })
 if (!copy) log('The copy agent returned nothing; the builders\' copy stands')
 
-// ---- 7. licenses and build -----------------------------------------------
+// ---- licenses and build ---------------------------------------------------
 
 phase('Build')
 const recreations = survivors.filter(s => sources[s]?.sources.some(x => x.kind === 'recreation'))
@@ -811,7 +811,7 @@ if (!final) {
 const built = survivors.filter(s => final.built.includes(s))
 if (final.failed.length) log(`walldye build failed for ${final.failed.map(f => f.slug).join(', ')}`)
 
-// ---- 8. human review ------------------------------------------------------
+// ---- human review ---------------------------------------------------------
 
 phase('Review')
 let review = null

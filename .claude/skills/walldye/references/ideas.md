@@ -1,8 +1,6 @@
 # Wallpaper idea seeds
 
-Unbuilt concept seeds, grouped by family. Swap the subject, cross two families (a dithered instrument, a glyph-rendered simulation), or keep a seed's composition and change its technique. Each line reads `name`: concept; composition; technique.
-
-A seed leaves this list once it is built.
+Concept seeds, grouped by family. Swap the subject, cross two families (a dithered instrument, a glyph-rendered simulation), or keep a seed's composition and change its technique. Each line reads `name`: concept; composition; technique.
 
 ## Dither & pixel
 

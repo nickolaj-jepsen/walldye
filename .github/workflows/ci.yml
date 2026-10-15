@@ -1,7 +1,6 @@
 name: CI
 
-# build renders the published pieces, tests and makes dist; deploy uploads it from main.
-# Doc-only changes skip it; checks.yml covers the rest.
+# Doc-only changes skip it; checks.yml still checks them.
 on:
   push:
     branches: [main]
@@ -81,7 +80,7 @@ jobs:
       - run: uv run python scripts/fixtures/regen.py
 
       - run: pnpm test
-      # Type-checks the site, the client and the tests; it needs the rendered builds, so it runs here.
+      # Needs the rendered builds, so it runs here.
       - run: pnpm check
       - run: pnpm astro build
       - if: github.event_name != 'pull_request'
